@@ -26,6 +26,7 @@ public enum CommandRunner {
       "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:"
       + (environment["PATH"] ?? "")
     environment["GIT_TERMINAL_PROMPT"] = "0"
+    environment["GIT_LFS_SKIP_SMUDGE"] = "1"
     environment["GH_PROMPT_DISABLED"] = "1"
     process.environment = environment
     let stdout = Pipe()

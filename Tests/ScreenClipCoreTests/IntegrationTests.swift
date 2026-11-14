@@ -117,4 +117,36 @@ final class IntegrationTests: XCTestCase {
     } catch { XCTAssertTrue(error.localizedDescription.contains("did not acknowledge")) }
     await client.stop()
   }
+  func testArchivedThreadCanResumeWithoutRepeatedlyAcquiringWriter() async throws {
+    let script = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-resume-" + UUID().uuidString)
+    try """
+      #!/usr/bin/python3
+      import json,sys
+      archived=True
+      owned=False
+      for line in sys.stdin:
+          m=json.loads(line)
+          if 'id' not in m: continue
+          method=m.get('method'); result={}
+          if method=='thread/unarchive': archived=False
+          if method=='thread/resume':
+              if archived or owned:
+                  message='session is archived' if archived else 'already has an active writer'
+                  print(json.dumps({'id':m['id'],'error':{'code':-1,'message':message}}),flush=True)
+                  continue
+              owned=True
+          if method in ['thread/read','thread/resume']:
+              result={'thread':{'id':'saved','status':{'type':'idle'}}}
+          print(json.dumps({'id':m['id'],'result':result}),flush=True)
+      """.write(to: script, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
+    defer { try? FileManager.default.removeItem(at: script) }
+    let client = CodexClient()
+    _ = try await client.connect(path: script.path)
+    let restored = try await client.resumeThread("saved", params: [:])
+    XCTAssertEqual(restored["thread"]["id"].string, "saved")
+    let repeated = try await client.resumeThread("saved", params: [:])
+    XCTAssertEqual(repeated["thread"]["id"].string, "saved")
+    await client.stop()
+  }
 }

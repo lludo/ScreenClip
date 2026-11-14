@@ -58,6 +58,8 @@ Captures save locally before dispatch. Related images share an issue and Codex c
 
 Keep ScreenClip running and the Mac awake for local work. Use ScreenClip's reply controls for active jobs. Cancel an issue before taking over its worktree in another coding client; simultaneous editing from separate Codex processes is not coordinated automatically.
 
+After an interrupted run, **Reconcile chat** recovers a completed structured fix and independently validates it before publication. Continue reuses a chat already owned by ScreenClip and restores an archived chat when necessary. `--recover-reports` reconciles the saved reports and continues those without unanswered questions. PR details retain the link and confirmed merge commit; **Refresh PR status** updates checks immediately.
+
 ## Validation and delivery
 
 ```sh
