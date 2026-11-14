@@ -16,25 +16,25 @@ Each issue has an optional-on-decode `reportNumber`, assigned on store save and 
 
 The architecture serves the primary product goal: capture feedback as it is noticed and return the user to their current task. Capture persistence and return-to-app focus must not wait for Codex work, a clarification, or PR automation. Repeated small captures should stay lightweight even while earlier observations are being processed. See the [product specification](product-spec.md#problem-and-intended-outcome) for the capture-first value proposition.
 
-Build a native Swift application with SwiftUI for the composer and queue, AppKit for selection windows and focus behavior, a durable local store, and a Codex adapter. Keep the native capture experience independent of the particular Codex handoff mechanism.
+Build a native Swift application with SwiftUI for the composer and queue, AppKit for selection windows and focus behavior, a durable local store, and agent adapters. Keep the native capture experience independent of the particular agent handoff mechanism.
 
 ```mermaid
 flowchart LR
     A[Global shortcut] --> B[Select screen region]
     B --> C[Note and annotation overlay]
     C --> D[Local issue store and outbox]
-    D --> E[Dispatcher and Codex adapter]
+    D --> E[Dispatcher and agent adapter]
     E --> F[Isolated project worktree]
     F --> G[Tests and pull request]
     G --> H[Checks and merge]
     E --> I[Questions and progress]
     H --> I
     I --> J[Menu bar and issue detail]
-    J --> K[Exact Codex chat]
-    L[Optional Codex plugin] <--> D
+    J --> K[Exact agent conversation]
+    L[Optional MCP plugin] --> D
 ```
 
-The diagram is a proposed ownership model. In particular, the last two Codex-facing connections require compatibility testing.
+The diagram is a proposed ownership model. In particular, the agent-facing connections require compatibility testing for each agent.
 
 ## Native components
 
@@ -47,7 +47,7 @@ The diagram is a proposed ownership model. In particular, the last two Codex-fac
 | Context adapters | Source app/window identity; optional browser and build-context adapters |
 | Issue store | SQLite metadata/event history and image files in Application Support |
 | Dispatcher | Outbox delivery, issue ownership, retry, capacity, and worktree allocation |
-| Codex adapter | Agent transport, chat identity, progress, questions, cancellation, and recovery |
+| Agent adapters | Codex and Claude Code transport, conversation identity, progress, questions, cancellation, and recovery ([details](agents/README.md)) |
 | Git provider adapter | PR identity, checks, mergeability, and confirmed merge state |
 
 Apple documents menu bar utility support through [MenuBarExtra](https://developer.apple.com/documentation/swiftui/menubarextra) and still-image capture through [SCScreenshotManager](https://developer.apple.com/documentation/screencapturekit/scscreenshotmanager). The latter is available from macOS 14. Use the content-filter/configuration capture path for that baseline; availability-check newer convenience APIs.
@@ -70,75 +70,15 @@ Browser URL access needs an adapter and consent; it is not implied by having a s
 
 Use an explicit confidence/reason field rather than an unobservable guess. Never infer the repository from a generic browser bundle ID alone. A **Needs project** issue is a valid durable outcome when routing is ambiguous.
 
-## Codex integration
+## Agent integrations
 
-### What is documented
+The capture pipeline is agent-neutral. The dispatcher prepares a worktree, sends one prompt with approved screenshots to the issue's agent, and receives a structured `implemented` / `question` / `blocked` result. ScreenClip then validates, publishes, and verifies merges itself. The shared contract, agent selection, readiness gating, and the checklist for adding an agent are in [Coding agents](agents/README.md). Each agent has its own page:
 
-[Codex app-server](https://learn.chatgpt.com/docs/app-server) provides a local process interface with JSON-RPC messages over stdio. It supports starting/resuming threads and turns, local-image input, streamed events, interruption, and approval handling. Use stable capabilities first; typed user-question support must be checked against the chosen version because parts of that surface are experimental.
+- [Codex](agents/codex.md): app-server transport, thread identity, desktop deep links, project association, and Codex plugin options.
+- [Claude Code](agents/claude-code.md): headless stream-json turns, session identity, sandbox, sign-in, and the Claude Code plugin.
+- [External assistant proposal](agents/proposals/external-assistant.md): a possible remote hand-off.
 
-[Desktop deep links](https://learn.chatgpt.com/docs/app/commands#deep-links) include `codex://threads/<thread-id>` and new-chat links with a prompt and workspace path. A new-chat link prefills the composer; it is not documented as an automatic submit operation.
-
-[Codex authentication](https://learn.chatgpt.com/docs/auth) supports ChatGPT sign-in and API-key access for local clients. Verify the intended worker's login and account capabilities; running the desktop app alone does not establish that another process is authenticated. Keep credentials under Codex's supported authentication flow.
-
-### What still needs proof
-
-The documented app-server interface is an agent integration, not a promise of remote control over the running desktop UI. Test all of the following before selecting it as the production route:
-
-1. An externally created local thread is recognized by the installed desktop app, has the correct project/worktree, and opens through its exact deep link.
-2. Images and context remain available after process restart.
-3. Questions, agent updates, and replies made from either ScreenClip or the desktop chat reconcile without competing turns.
-4. Disconnects, login renewal, and desktop/worker ownership changes recover without duplicate chats or jobs.
-5. The capabilities needed for the companion plugin load in the selected worker configuration.
-
-If desktop registration fails, record the failure and revisit the integration. An embedded transcript or a manually submitted new-chat link may help development, but neither satisfies the confirmed automatic pickup plus exact desktop-chat requirement. Do not write to Codex's private databases or automate chat creation with keystrokes as a production shortcut.
-
-### Proposed adapter behavior
-
-ScreenClip owns a long-lived local worker connection and an outbox. Each issue gets one persistent chat binding and a versioned input bundle containing the approved image, note, routing decision, relevant session context, tested-version evidence, and validation instructions.
-
-The adapter keeps the issue worktree as `cwd` and separately assigns the chat to a saved Codex runtime project. It pages through `project/list`, matches the registered repository to canonical project root paths (including symlink resolution), and passes the unique matching `projectId` to `thread/start`. Resumed issue chats use `thread/metadata/update` to refresh that association. Names alone never select a project. Missing matches, unsupported APIs, ambiguous matches, and update failures record a deduplicated activity and allow work to continue. Every issue prompt identifies the original repository, isolated working directory, issue branch, and base branch. The installed runtime saves this assignment, but its project IDs currently differ from the desktop's saved-project IDs. Treat runtime association and desktop sidebar membership as separate checks; a successful API response does not establish the latter. The desktop move tool also rejected the synthetic worktree chat because its source project could not be safely determined.
-
-Cancellation is checked again after project lookup before creating or resuming a chat. A canceled dispatch retains its issue/project slot until outstanding requests return, so an immediate retry cannot create a second chat or turn alongside it. If cancellation arrives while `turn/start` is awaiting acknowledgement, ScreenClip interrupts the returned turn as soon as its ID is known. Integration modes require an explicit fresh data directory. `--integration-project-link` runs the installed native worker with a synthetic observation that requests a question, empty publication validation, and automatic merge disabled, so project-association checks can use a real registered repository without requesting a code fix.
-
-Settings → Connections offers a default local agent, detection, Claude executable/model settings, and a Terminal sign-in action. The composer can override the agent for a new report or draft; submitted issues retain their agent through follow-up captures and replies. Old issues without an agent field continue to use Codex. Missing agents and a signed-out Claude installation hold queued work until detection succeeds; Codex sign-in is checked through app-server.
-
-Claude Code uses one headless stream-json process per turn in the issue's isolated worktree. ScreenClip assigns the session UUID, sends approved screenshots and the same structured result schema used by Codex, records progress and usage, and resumes the session for replies. A missing session starts a fresh one with the saved evidence. Cancellation terminates the tracked child; reconciliation and resume also check for a surviving process or Terminal session before starting another turn. Reconciliation does not recover a completed result from Claude's history. Both agents use the same independent validation and PR publication path. Codex disconnect events affect only Codex jobs. These paths have synthetic CLI tests; a live Claude fix through publication and merge remains unverified.
-
-Serialize work on an individual issue. Append new evidence as a later turn, or use steering only after its semantics are tested. When the user continues work in Codex, observe and reconcile that activity; do not let two clients independently start competing turns.
-
-Separate transport progress from product outcomes. Require a structured result containing the covered input revision, summary, validations, unresolved questions, branch, PR reference, and proposed next status. Verify PR/check/merge claims with the source-control host before promoting the state. A normal successful agent response alone is insufficient.
-
-## Could this be a Codex plugin?
-
-Yes: a companion plugin is a plausible way to expose ScreenClip's issues to Codex and package the fix workflow. [Plugin architecture](https://developers.openai.com/plugins/concepts/plugins) supports skills, MCP tools, and optional UI. The native app still owns its macOS shortcut, capture overlay, annotations, and menu bar.
-
-Candidate tools, to validate with the prototype:
-
-| Tool | Purpose |
-| --- | --- |
-| `list_issues` / `get_issue` | Read issues, approved evidence, context, and revisions |
-| `claim_issue` | Atomically claim an issue revision and return a renewable lease |
-| `bind_thread` | Associate a real, validated Codex chat ID with the claimed issue |
-| `post_update` | Append a concise update linked to the active run |
-| `ask_question` | Persist a question and its correlation ID |
-| `get_replies` | Read replies in order, acknowledging delivery separately |
-| `record_result` | Submit validation and PR references for independent verification |
-
-These are proposed ScreenClip tools, not existing Codex endpoints. Restrict them to registered projects and approved evidence. Make mutations idempotent and revision-aware. Prefer a local broker that owns the store over multiple clients writing SQLite directly; prototype its authenticated local IPC before choosing a transport.
-
-There are three distinct plugin options:
-
-| Option | Fit | Limit to account for |
-| --- | --- | --- |
-| Skills and queue tools | Shared workflow and two-way status in Codex | Does not alone prove automatic creation/dispatch of issue chats |
-| Lifecycle hooks | Optional private experiment for lifecycle updates | Manual desktop installs and hook trust review; not a public-release dependency |
-| Hosted MCP Events | Event-driven pickup through a plugin | Cloud-oriented execution, hosted service, subscriptions, and chat-routing semantics need evaluation |
-
-[MCP Events](https://developers.openai.com/plugins/build/mcp-events) can deliver feedback events into a subscribed Work chat, including workflows that produce PRs. Current support is documented for web Work, desktop Work with Cloud selected, and dots. This does not establish equivalent local Codex behavior or one new chat per issue; test those requirements separately.
-
-Public distribution changes the choice. [Plugin packaging](https://developers.openai.com/plugins/build/plugins#bundled-mcp-servers-and-lifecycle-hooks) says hook-bearing plugins are ineligible for the public directory. [Desktop-only plugin submission](https://developers.openai.com/plugins/deploy/desktop-only) currently limits local MCP submissions to approved partners. A private local prototype can explore a plugin, but public availability cannot depend on obtaining that approval without confirming eligibility.
-
-Recommendation: prove the native app plus local worker first; evaluate queue tools/skills as a companion in the same integration milestone. Keep a hosted event route as an explicit alternative if the local route cannot meet desktop-chat requirements. A hosted route would require a separate decision about backend operations and uploaded screenshot storage.
+Serialize work on an individual issue. Append new evidence as a later turn. When the user continues work in the agent's own client, reconcile that activity; do not let two clients independently start competing turns. Separate transport progress from product outcomes, and verify PR, check, and merge claims with the source-control host before promoting the state. A normal successful agent response alone is insufficient.
 
 ## Local model and durable delivery
 

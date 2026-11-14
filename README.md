@@ -22,7 +22,7 @@ Each issue keeps its own agent conversation and isolated Git worktree. ScreenCli
 
 - **Quick capture and markup.** A configurable global shortcut, freehand drawing, arrows, shapes, text, opaque redaction, and undo/redo.
 - **Context that stays attached.** Source app, optional browser URL, project routing, related captures, and drafts.
-- **Your choice of local agent.** Codex or Claude Code, with a default in Settings and an override for each new report. Follow-up captures keep the issue’s original agent and session.
+- **Your choice of local agent.** Codex or Claude Code, with a default in Settings and an override for each new report. Follow-up captures keep the issue’s original agent and session. See [Coding agents](docs/agents/README.md).
 - **A searchable feedback queue.** Permanent report numbers such as **#234**, status and project filters, inline replies, and archive/restore without losing evidence. Search a report number across projects, statuses, and archived reports.
 - **The rest of the fix.** Validation, PR checks, merge tracking, recovery after interruptions, and a retest queue.
 
@@ -107,5 +107,6 @@ ScreenClip is a working local app; public downloads and notarized distribution a
 - [Product specification](docs/product-spec.md) — workflow, scope, screens, and status meanings.
 - [Technical design](docs/technical-design.md) — native components, storage, agent integration, and constraints.
 - [Implementation plan](docs/implementation-plan.md) — feasibility gates and acceptance criteria.
-- [Agent integration notes](docs/agent-integrations.md) — design review and external-assistant proposals.
+- [Coding agents](docs/agents/README.md) — how agents plug in, choosing one, and adding a new agent.
+  - [Codex](docs/agents/codex.md) · [Claude Code](docs/agents/claude-code.md) · [External assistant proposal](docs/agents/proposals/external-assistant.md)
 - [Promotional website](website/README.md) — local preview, SEO, and release links.
