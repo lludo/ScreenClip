@@ -86,6 +86,13 @@ struct SettingsView: View {
                   }
                 }))
           }
+          #if !SCREENCLIP_APP_STORE
+          Section("Support") {
+            Button("Send a tip…") { model.supportAction?() }
+            Text("ScreenClip is free. A tip is optional and opens GitHub Sponsors.")
+              .font(.caption).foregroundStyle(.secondary)
+          }
+          #endif
           Section("Local data") {
             HStack {
               Button("Export queue…") { export() }

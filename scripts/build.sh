@@ -1,11 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 cd "$(dirname "$0")/.."
-case "${1:-debug}" in
-    debug|Debug) configuration=Debug ;;
-    release|Release) configuration=Release ;;
-    *) printf '%s\n' 'Usage: bash scripts/build.sh [debug|release]' >&2; exit 2 ;;
-esac
+configuration=Debug
+if [[ $# -gt 0 ]]; then
+    case "$1" in
+        debug|Debug) configuration=Debug; shift ;;
+        release|Release) configuration=Release; shift ;;
+        *) printf '%s\n' 'Usage: bash scripts/build.sh [debug|release] [xcodebuild settings...]' >&2; exit 2 ;;
+    esac
+fi
 derived_data="$PWD/build/DerivedData"
 app="$derived_data/Build/Products/$configuration/ScreenClip.app"
 # Normal runs use /Applications. Never replace a build product being run for diagnostics.
@@ -25,6 +28,6 @@ arguments=(
 if [[ -n "${SCREENCLIP_SIGNING_IDENTITY:-}" ]]; then
     arguments+=("CODE_SIGN_IDENTITY=$SCREENCLIP_SIGNING_IDENTITY")
 fi
-xcodebuild "${arguments[@]}" build
+xcodebuild "${arguments[@]}" "$@" build
 codesign --verify --deep --strict "$app"
 printf 'Built %s\n' "$app"

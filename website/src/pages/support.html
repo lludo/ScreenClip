@@ -1,0 +1,31 @@
+<article class="prose">
+      <p class="eyebrow">Support</p>
+      <h1>Support</h1>
+      <p>ScreenClip is a macOS menu bar app for sending a screenshot, a note, and markup to Codex, Claude Code, or Grok Bot, then tracking the GitHub pull request. @@DOWNLOAD_STATUS@@</p>
+
+      <h2>Contact</h2>
+      <p>@@ISSUES_HTML@@</p>
+      <aside class="todo">
+        <p><strong>TODO:</strong> Replace this placeholder with a monitored support email before publishing one. No support inbox is set up yet.</p>
+        <p>Email: <span class="todo-token">TODO</span></p>
+      </aside>
+
+      <h2>What you need to run it</h2>
+      <ul>
+        <li>macOS 14 or later.</li>
+        <li>A local Git repository for the project you are testing. Add it in Settings, with the website addresses or Mac app bundle IDs that should route to it, and a validation command.</li>
+        <li>At least one agent: Codex CLI with <code>app-server</code>, Claude Code, or Grok Bot (a webhook URL and Authorization header). Grok Bot also needs <strong>Allow sending screenshots to the external assistant</strong> turned on for that project.</li>
+        <li>GitHub CLI, logged into GitHub. ScreenClip uses it to open pull requests, and to push screenshots for Grok Bot.</li>
+        <li>Screen Recording permission, so ScreenClip can capture the region you select.</li>
+      </ul>
+      <p>Leave ScreenClip running, and the Mac awake, while Codex or Claude Code works. Grok Bot keeps working if the Mac sleeps. ScreenClip updates that pull request the next time the app is running.</p>
+
+      <h2>Building from source</h2>
+      <p>@@SOURCE_HTML@@ The repository README is the build guide: copy the local signing example, open the Xcode project, and run the ScreenClip scheme. You need macOS 14 or later and Xcode 16 or later with Swift 6.</p>
+
+      <h2>If capture fails</h2>
+      <p>Use <strong>Check screen access</strong> in Settings. After you change access in System Settings, use <strong>Check again</strong> or <strong>Reopen app</strong> from the permission banner. Diagnostics are written to <code>~/Library/Application Support/ScreenClip/capture-diagnostics.log</code> and do not include screenshots, notes, browser URLs, or window titles. The repository README has the screen-recording reset steps.</p>
+
+      <h2>Privacy</h2>
+      <p>What is stored locally, what is sent to an agent or to GitHub, and how redaction works are described in the <a href="/privacy">privacy policy</a>.</p>
+    </article>

@@ -384,6 +384,12 @@ public struct AppSettings: Codable, Equatable {
   public var hideScreenClipDuringCapture: Bool?
   public var shouldHideScreenClipDuringCapture: Bool { hideScreenClipDuringCapture ?? true }
   public var notifications = false
+  /// When this queue was first opened. Optional so queues saved before the tip prompt still decode.
+  public var firstLaunchedAt: Date?
+  /// The automatic tip prompt stays off after Don't ask again.
+  public var donationOptOut: Bool?
+  /// Not now hides the automatic prompt until this instant.
+  public var donationSnoozeUntil: Date?
   public var shortcutKey: UInt32 = 19  // ANSI 2
   public var shortcutModifiers: UInt32 = 768  // cmdKey | shiftKey
   public var shortcutDescription = "⌘⇧2"

@@ -10,7 +10,7 @@ Updated: November 14, 2026. The local app is working: capture, markup, the queue
 | Claude Code, live | A real Claude fix through validation, PR publication, and merge; permanent plugin installation; an interactive plugin fix | Covered today by fake-CLI tests. See [Claude Code](agents/claude-code.md#verification-status) |
 | Grok Bot, live | A live webhook, an evidence push to a real repository, pull-request discovery, and auto-merge while `.screenclip/` is still present | Covered today by unit and app tests. See [Grok Bot](agents/external-assistant.md#verification-status) |
 | Codex desktop | Sidebar project grouping for chats created through app-server | Fails on the tested Codex version; exact chat links work. See [repository association review](validation.md#repository-association-review) |
-| Release signing | Developer ID signing and notarization | The Xcode target currently has `ENABLE_HARDENED_RUNTIME = NO`. Notarization requires the hardened runtime, and browser URL lookup then needs the Apple Events entitlement (`com.apple.security.automation.apple-events`) |
+| Release signing | Developer ID signing and notarization on a tag | Release builds already enable the hardened runtime, and the Apple Events entitlement is in `Resources/ScreenClip.entitlements`. Debug builds leave the hardened runtime off. The tag workflow and the secrets it needs are in [direct distribution](release/direct-distribution.md). |
 | Installation | Clean second Mac or user account; a separately installed Codex CLI; older macOS; Intel | Only the development host has been exercised |
 | Plugin distribution | Public directory eligibility for Codex; publishing the Claude Code marketplace | Local installation works; the app does not depend on the plugin |
 

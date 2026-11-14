@@ -1,0 +1,146 @@
+<section class="hero wrap" aria-labelledby="hero-title">
+      <div class="hero-copy">
+        <p class="eyebrow">Screenshot feedback for AI coding agents</p>
+        <h1 id="hero-title">From a screenshot to a <span class="accent">pull request.</span></h1>
+        <p class="lead">Capture a region on your Mac, mark what matters, and hand it to Codex, Claude Code, or Grok Bot. ScreenClip tracks the GitHub pull request, merges when you allow it, and keeps the result for retest.</p>
+        @@ACTIONS@@
+        <ul class="agents" aria-label="Coding agents">
+          <li><span class="agent-name">Codex</span><span class="agent-meta">On this Mac</span></li>
+          <li><span class="agent-name">Claude Code</span><span class="agent-meta">On this Mac</span></li>
+          <li><span class="agent-name">Grok Bot</span><span class="agent-meta">Webhook you configure</span></li>
+        </ul>
+      </div>
+      <figure class="hero-shot">
+        <img src="@@IMG_COMPOSER@@" width="1560" height="1380" alt="ScreenClip capture editor with sample data: drawing, arrow, shape, text, and redaction tools, a note field, and project and issue selectors." fetchpriority="high" decoding="async">
+        <figcaption>The capture editor, with sample data.</figcaption>
+      </figure>
+    </section>
+
+    <section class="section section-rule" id="loop" aria-labelledby="loop-title">
+      <div class="wrap">
+        <div class="section-intro">
+          <p class="eyebrow">The whole loop</p>
+          <h2 id="loop-title">Capture it, ship the fix, retest it.</h2>
+          <p>A clipped button or a confusing label is enough. You keep moving. ScreenClip holds the report and the pull request.</p>
+        </div>
+        <ol class="loop">
+          <li>
+            <span class="step-num">01</span>
+            <h3>Capture</h3>
+            <p>Press <kbd>Cmd</kbd> <kbd>Shift</kbd> <kbd>2</kbd> and drag a region of a website or a Mac app. The shortcut can be changed in Settings.</p>
+          </li>
+          <li>
+            <span class="step-num">02</span>
+            <h3>Annotate</h3>
+            <p>Add a note, an arrow, a shape, or text. A screenshot alone is enough. Redaction is a box you draw, flattened to opaque black.</p>
+          </li>
+          <li>
+            <span class="step-num">03</span>
+            <h3>Agent</h3>
+            <p>Codex and Claude Code work on this Mac, in their own Git worktree. Grok Bot is remote, and only after you save a webhook and opt that project in.</p>
+          </li>
+          <li>
+            <span class="step-num">04</span>
+            <h3>Pull request</h3>
+            <p>For Codex and Claude Code, ScreenClip runs your validation command and opens the pull request. Grok Bot opens it from the branch ScreenClip pushed.</p>
+          </li>
+          <li>
+            <span class="step-num">05</span>
+            <h3>Merged</h3>
+            <p>With automatic merge on, ScreenClip merges after validation, checks, and review rules pass. It does not skip required reviews. A merge is not a deploy.</p>
+          </li>
+          <li>
+            <span class="step-num">06</span>
+            <h3>Retest</h3>
+            <p>Merged reports move to To retest. A new capture on the same report continues that work. Leave the Mac awake while Codex or Claude Code runs.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section wrap" id="product" aria-labelledby="product-title">
+      <div class="section-intro">
+        <p class="eyebrow">The Mac app</p>
+        <h2 id="product-title">The capture, then the queue.</h2>
+        <p>Related screenshots stay on one report. Codex and Claude questions are answered in ScreenClip. Grok Bot questions stay in Grok Bot’s chat.</p>
+      </div>
+      <div class="showcase" data-showcase>
+        <div class="showcase-tabs" role="tablist" aria-label="ScreenClip screenshots">
+          <button type="button" id="tab-capture" data-tab role="tab" aria-selected="false" aria-controls="panel-capture" tabindex="-1">Capture &amp; annotate</button>
+          <button type="button" id="tab-queue" data-tab role="tab" aria-selected="true" aria-controls="panel-queue" tabindex="0">Queue &amp; retest</button>
+        </div>
+        <div class="showcase-panels">
+          <div class="screenshot-panel" id="panel-capture" role="tabpanel" aria-labelledby="tab-capture">
+            <figure>
+              <img src="@@IMG_COMPOSER@@" width="1560" height="1380" alt="ScreenClip capture editor with sample data: drawing, arrow, shape, text, and redaction tools, a note field, and project and issue selectors." loading="lazy" decoding="async">
+              <figcaption>Annotation tools, a note, and the project the report will use. Sample data.</figcaption>
+            </figure>
+          </div>
+          <div class="screenshot-panel" id="panel-queue" role="tabpanel" aria-labelledby="tab-queue">
+            <figure>
+              <img src="@@IMG_QUEUE@@" width="2480" height="1656" alt="ScreenClip report queue with sample data. The sidebar lists open reports, needs-you, and to-retest. The selected report shows an agent question with a reply field and an annotated screenshot." loading="lazy" decoding="async">
+              <figcaption>Working reports, a question you can answer, and To retest. Sample data.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+      <ul class="checks">
+        <li>Websites and native Mac apps</li>
+        <li>One conversation per report</li>
+        <li>Your project’s validation command</li>
+      </ul>
+    </section>
+
+    <section class="section section-rule" id="privacy" aria-labelledby="privacy-title">
+      <div class="wrap">
+        <div class="section-intro">
+          <p class="eyebrow">Local first</p>
+          <h2 id="privacy-title">What stays on the Mac, and what can leave.</h2>
+          <p>ScreenClip has no account and no analytics. You choose the agent, the repository, and whether a project may send screenshots anywhere.</p>
+        </div>
+        <div class="cards">
+          <article class="card">
+            <h3>On this Mac</h3>
+            <p>Reports, screenshots, notes, and project settings live in Application Support. A Grok Bot webhook, if you save one, stays in the Keychain. Codex and Claude Code see the approved screenshot only as a local agent.</p>
+          </article>
+          <article class="card">
+            <h3>What can leave</h3>
+            <p>GitHub receives the branch and pull request opened with the GitHub CLI you already use. Those pull requests do not attach the screenshot by default. Grok Bot receives approved screenshots only after you opt that project in.</p>
+          </article>
+          <article class="card">
+            <h3>Redaction is a box you draw</h3>
+            <p>The redact tool is a rectangle. ScreenClip flattens it to opaque black. Arrows, pen strokes, shapes, and text do not hide the pixels underneath. The unredacted crop is not kept.</p>
+          </article>
+        </div>
+        <p class="section-more"><a href="/privacy">Read the privacy policy</a></p>
+      </div>
+    </section>
+
+    <section class="section wrap" id="download" aria-labelledby="download-title">
+      <div class="band">
+        <div>
+          <p class="eyebrow">Get ScreenClip</p>
+          <h2 id="download-title">Free on your Mac. Open source on GitHub.</h2>
+          <p class="band-lead">@@PRICE@@</p>
+          <p>@@SOURCE_LINE@@</p>
+          @@ACTIONS@@
+        </div>
+        <div>
+          <h3 class="band-sub">What you need</h3>
+          <ul class="reqs">
+            <li>macOS 14 or later</li>
+            <li>A local Git repository for the app you are testing</li>
+            <li>Codex CLI, Claude Code, or a Grok Bot webhook</li>
+            <li>GitHub CLI, for pull requests and for Grok Bot</li>
+          </ul>
+          <p class="band-note">Leave ScreenClip running, and the Mac awake, while Codex or Claude Code works. Grok Bot keeps working if the Mac sleeps. ScreenClip updates that pull request the next time it is open.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section wrap faq-section" id="faq" aria-labelledby="faq-title">
+      <h2 id="faq-title">Questions</h2>
+      <div class="faq-list">
+        @@FAQ@@
+      </div>
+    </section>

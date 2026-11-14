@@ -1,5 +1,6 @@
-// Optional macOS-only asset generator. Generated PNGs are checked into src/assets.
+// Optional macOS-only refresh for the 1200×630 share image.
 // Run from the repository root: swift website/render-assets.swift
+// Favicons in dist/ are drawn by build.py.
 import AppKit
 
 let output = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
@@ -39,22 +40,17 @@ func text(_ value: String, at point: NSPoint, size: CGFloat, weight: NSFont.Weig
   (value as NSString).draw(at: point, withAttributes: [.font: NSFont.systemFont(ofSize: size, weight: weight), .foregroundColor: color])
 }
 
-try png(name: "social-preview.png", width: 1200, height: 630) {
+let accent = NSColor(srgbRed: 0.722, green: 0.263, blue: 0.039, alpha: 1)
+try png(name: "og.png", width: 1200, height: 630) {
   paper.setFill()
   NSRect(x: 0, y: 0, width: 1200, height: 630).fill()
-  icon(NSRect(x: 70, y: 492, width: 64, height: 64))
-  text("ScreenClip", at: NSPoint(x: 152, y: 506), size: 32, weight: .semibold, color: ink)
-  text("Capture feedback.", at: NSPoint(x: 64, y: 300), size: 94, weight: .semibold, color: ink)
-  text("Keep your flow.", at: NSPoint(x: 64, y: 190), size: 94, weight: .semibold, color: orange)
-  text("Notice it. Clip it. Keep going.", at: NSPoint(x: 71, y: 100), size: 28, weight: .regular, color: ink)
-  text("QUICK SCREENSHOT FEEDBACK FOR MAC", at: NSPoint(x: 73, y: 50), size: 15, weight: .medium, color: ink.withAlphaComponent(0.6))
+  icon(NSRect(x: 72, y: 492, width: 76, height: 76))
+  text("ScreenClip", at: NSPoint(x: 168, y: 514), size: 34, weight: .semibold, color: ink)
+  text("From a screenshot", at: NSPoint(x: 72, y: 330), size: 76, weight: .bold, color: ink)
+  text("to a pull request.", at: NSPoint(x: 72, y: 240), size: 76, weight: .bold, color: accent)
+  text("Codex  ·  Claude Code  ·  Grok Bot", at: NSPoint(x: 72, y: 150), size: 30, weight: .medium, color: ink.withAlphaComponent(0.72))
+  text("Screenshot feedback for AI coding agents on Mac", at: NSPoint(x: 72, y: 78), size: 22, weight: .medium, color: ink.withAlphaComponent(0.72))
   orange.setFill()
-  NSRect(x: 1120, y: 0, width: 80, height: 630).fill()
+  NSRect(x: 1124, y: 0, width: 76, height: 630).fill()
 }
-
-try png(name: "apple-touch-icon.png", width: 180, height: 180) {
-  paper.setFill()
-  NSRect(x: 0, y: 0, width: 180, height: 180).fill()
-  icon(NSRect(x: 0, y: 0, width: 180, height: 180))
-}
-print("Generated social preview and touch icon")
+print("Generated og.png")
