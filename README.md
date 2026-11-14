@@ -7,7 +7,7 @@
 A native macOS menu bar app for the small things you notice: a clipped button, confusing copy, a missing detail, or an idea. Grab a screenshot, add a note if you want one, and keep going. ScreenClip keeps the image and the context together. Codex, Claude Code, or Grok Bot does the follow-up.
 
 <p align="center">
-  <img src="docs/screenshots/app-queue.png" width="1000" alt="ScreenClip's report queue, showing projects, reports, an agent request, and an annotated capture.">
+  <img src="docs/screenshots/app-queue.png" width="1000" alt="ScreenClip's report queue, showing projects, an annotated capture, and agent activity.">
 </p>
 
 <p align="center"><em>Keep reports, captures, and agent conversations together.</em></p>
