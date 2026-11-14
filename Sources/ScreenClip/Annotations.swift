@@ -4,7 +4,9 @@ import SwiftUI
 
 @MainActor final class AnnotationDocument: ObservableObject {
   @Published var marks: [Annotation] = []
-  @Published var tool: MarkKind = .arrow
+  @Published var tool: MarkKind = .pen
+  @Published var color: MarkColor = .red
+  @Published var lineWidth: Double = 0.006
   @Published var text = ""
   private var redoMarks: [Annotation] = []
   func add(_ mark: Annotation) {
@@ -57,9 +59,12 @@ final class AnnotationView: NSView {
     let p = point(event)
     if document.tool == .text {
       let text = document.text.trimmingCharacters(in: .whitespacesAndNewlines)
-      if !text.isEmpty { document.add(Annotation(kind: .text, points: [p], text: text)) }
+      if !text.isEmpty {
+        document.add(Annotation(kind: .text, points: [p], text: text, color: document.color))
+      }
     } else {
-      draft = Annotation(kind: document.tool, points: [p, p])
+      draft = Annotation(
+        kind: document.tool, points: [p, p], color: document.color, lineWidth: document.lineWidth)
     }
     needsDisplay = true
   }
@@ -100,10 +105,13 @@ enum AnnotationRenderer {
       let box = CGRect(
         x: min(start.x, end.x), y: min(start.y, end.y), width: abs(end.x - start.x),
         height: abs(end.y - start.y))
-      NSColor.systemOrange.setStroke()
-      NSColor.systemOrange.setFill()
+      let color = mark.color?.nsColor ?? .systemOrange
+      color.setStroke()
+      color.setFill()
       let path = NSBezierPath()
-      path.lineWidth = max(2, rect.width / 350)
+      path.lineWidth =
+        mark.lineWidth.map { max(0.5, rect.width * min(0.04, max(0.0005, $0))) }
+        ?? max(2, rect.width / 350)
       path.lineCapStyle = .round
       path.lineJoinStyle = .round
       switch mark.kind {
@@ -112,6 +120,9 @@ enum AnnotationRenderer {
         box.integral.fill()
       case .rectangle:
         path.appendRect(box)
+        path.stroke()
+      case .ellipse:
+        path.appendOval(in: box)
         path.stroke()
       case .pen:
         path.move(to: start)
@@ -122,7 +133,7 @@ enum AnnotationRenderer {
         path.line(to: end)
         path.stroke()
         let angle = atan2(end.y - start.y, end.x - start.x)
-        let length = max(12, rect.width / 40)
+        let length = max(path.lineWidth * 3, rect.width / 40)
         let head = NSBezierPath()
         head.move(to: end)
         head.line(
@@ -136,7 +147,7 @@ enum AnnotationRenderer {
         mark.text.draw(
           at: start,
           withAttributes: [
-            .font: font, .foregroundColor: NSColor.systemOrange,
+            .font: font, .foregroundColor: color,
             .backgroundColor: NSColor.black.withAlphaComponent(0.8),
           ])
       }
@@ -162,5 +173,18 @@ enum AnnotationRenderer {
       let data = NSBitmapImageRep(cgImage: rendered).representation(using: .png, properties: [:])
     else { throw ScreenClipError.message("Could not encode the screenshot.") }
     return data
+  }
+}
+extension MarkColor {
+  var nsColor: NSColor {
+    switch self {
+    case .red: return NSColor(srgbRed: 1, green: 0.22, blue: 0.1, alpha: 1)
+    case .orange: return NSColor(srgbRed: 1, green: 0.55, blue: 0, alpha: 1)
+    case .yellow: return NSColor(srgbRed: 1, green: 0.85, blue: 0, alpha: 1)
+    case .green: return NSColor(srgbRed: 0.2, green: 0.8, blue: 0.35, alpha: 1)
+    case .blue: return NSColor(srgbRed: 0.1, green: 0.5, blue: 1, alpha: 1)
+    case .white: return .white
+    case .black: return .black
+    }
   }
 }

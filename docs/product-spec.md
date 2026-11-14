@@ -36,7 +36,7 @@ Everything below is a proposed implementation or interaction choice unless cover
 2. Preserve the source app and available context before ScreenClip takes focus.
 3. Show a crosshair and region selection. Escape cancels. The selection should work across multiple monitors, Retina scales, and full-screen apps.
 4. Show a compact overlay with the image, a focused note field, an inferred project chip, and an issue destination: **New issue** or **Add to issue…**.
-5. Offer arrows, rectangles, freehand marks, text, undo/redo, and an opaque redaction tool. Notes and annotations are optional; allow an image-only observation.
+5. Immediately offer freehand marks, arrows, rectangles, circles/ellipses, text, color and stroke-thickness choices, undo/redo, and an opaque redaction tool. Notes and annotations are optional; allow an image-only observation.
 6. Submit using the primary button or Command–Return. Persist the report before acknowledging success, dismiss the overlay, and return focus to the tested app.
 7. Dispatch immediately when routing and connectivity permit. A paused, offline, or ambiguous report remains saved with a clear reason.
 

@@ -14,6 +14,7 @@ struct SettingsView: View {
       TabView(selection: $tab) {
         Form {
           Section("Capture") {
+            ScreenCapturePermissionControls(model: model, permission: model.capturePermission)
             LabeledContent("Global shortcut") {
               ShortcutRecorder(settings: $settings).frame(width: 180, height: 26)
             }
@@ -105,16 +106,14 @@ struct SettingsView: View {
         Form {
           Section("Codex") {
             TextField("Codex executable", text: $settings.codexPath)
-            HStack {
-              Button("Choose…") { chooseExecutable { settings.codexPath = $0 } }
-              Button("Check connection") { connect() }
-              Button("Sign in…") {
+            CodexConnectionControls(
+              model: model, authentication: model.worker.authentication,
+              choose: { chooseExecutable { settings.codexPath = $0 } },
+              check: connect,
+              signIn: { method in
                 model.saveSettings(settings)
-                Task { await model.worker.signIn() }
-              }
-            }
-            Text(model.connection).font(.caption).foregroundStyle(.secondary).textSelection(
-              .enabled)
+                Task { await model.worker.signIn(method: method) }
+              })
             TextField("Model (empty uses Codex's default)", text: $settings.model)
             Text(
               "Use an installed Codex CLI that supports app-server. A detected desktop-bundled runtime can be used for development; it is not redistributed with ScreenClip."
@@ -186,6 +185,81 @@ struct SettingsView: View {
         NSWorkspace.shared.open(folder)
       } catch { self.error = error.localizedDescription }
     }
+  }
+}
+struct ScreenCapturePermissionControls: View {
+  @ObservedObject var model: AppModel
+  @ObservedObject var permission: ScreenCapturePermission
+  var body: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Label(
+        permission.message,
+        systemImage: permission.state == .available ? "checkmark.circle" : "viewfinder"
+      ).font(.caption).foregroundStyle(permission.state == .available ? .green : .secondary)
+      HStack {
+        Button("Check screen access") { Task { await model.recheckCapturePermission() } }.disabled(
+          permission.state == .checking)
+        if permission.state != .available {
+          Button("Open System Settings") { model.openCaptureSettings() }
+          Button("Reopen app") { model.relaunchAction?() }
+        }
+      }
+    }
+  }
+}
+struct CodexConnectionControls: View {
+  @ObservedObject var model: AppModel
+  @ObservedObject var authentication: CodexAuthentication
+  let choose: () -> Void
+  let check: () -> Void
+  let signIn: (CodexAuthentication.Method) -> Void
+  var body: some View {
+    VStack(alignment: .leading, spacing: 10) {
+      HStack {
+        Button("Choose…", action: choose)
+        Button("Check connection", action: check).disabled(authentication.state == .checking)
+        Button("Sign in…") { signIn(.browser) }.disabled(
+          authentication.state == .checking || authentication.state == .ready
+            || authentication.loginID != nil)
+        if authentication.state != .ready {
+          Menu("Other sign-in options") {
+            Button("Sign in with a code…") { signIn(.deviceCode) }
+            Button("Try browser sign-in again…") { signIn(.browser) }
+          }.disabled(authentication.state == .checking)
+        }
+        if authentication.state == .checking { ProgressView().controlSize(.small) }
+      }
+      Text(model.connection).font(.caption).foregroundStyle(statusColor).textSelection(.enabled)
+      if let description = authentication.accountDescription {
+        Text(description).font(.caption).foregroundStyle(.secondary)
+      }
+      if authentication.loginID != nil {
+        if let code = authentication.userCode {
+          HStack {
+            Text(code).font(.system(.title3, design: .monospaced)).textSelection(.enabled)
+            Button("Copy code") {
+              NSPasteboard.general.clearContents()
+              NSPasteboard.general.setString(code, forType: .string)
+            }
+          }
+          Text(
+            "Enter this code on the sign-in page. Device-code login may need to be enabled in your ChatGPT security settings."
+          ).font(.caption).foregroundStyle(.secondary)
+        }
+        HStack {
+          Button("Open sign-in page") { authentication.reopenLoginPage() }
+          Button("Cancel sign-in") { Task { await authentication.cancel() } }
+        }
+        Text(
+          "If the browser shows an error, cancel and check the connection or choose another sign-in option."
+        ).font(.caption).foregroundStyle(.secondary)
+      }
+    }
+  }
+  private var statusColor: Color {
+    if authentication.state == .ready { return .green }
+    if case .failed = authentication.state { return .orange }
+    return .secondary
   }
 }
 struct ProjectEditor: View {

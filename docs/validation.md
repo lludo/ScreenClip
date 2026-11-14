@@ -4,14 +4,18 @@ November 13, 2026. Development host: macOS 27.0.1, Xcode 27.2, Swift 6.4.2, Appl
 
 ## Verified
 
-The final run passed **20 Swift tests and 4 Python plugin tests**. The release app's ad-hoc signature and Info.plist also passed verification.
+The current run passed **36 Swift tests and 4 Python plugin tests**. Both SwiftPM and Xcode compile the updated app. The 0.1.2 app and ZIP were rebuilt, and the app passed strict signature verification using the installed Apple Development certificate. Public Developer ID signing and notarization remain separate.
 
 - Native Swift executable and app bundle build without third-party package dependencies.
+- The native `ScreenClip.xcodeproj` shared scheme builds and development-signs the app using `xcodebuild` Debug for My Mac (Apple Silicon). Open that project, select ScreenClip / My Mac, and use Command-R. A checkout without the ignored local signing file uses ad-hoc signing. The core library remains a local package dependency; the command-line test suite uses Swift Package Manager.
 - Automated tests cover persistence and asset export, single-writer ownership, project ambiguity and URL boundaries, badge counts, grouped input revisions, draft submission, worktree recovery and preservation of dirty source checkouts, JSON-RPC correlation/timeouts, changed-source validation rejection, stale-head/revision merge rejection, and native worker questions/replies.
-- Pixel tests verify image orientation and opaque redaction in the exported PNG.
+- Pixel tests verify image orientation, ellipse color and clear interior, pen thickness, and opaque redaction regardless of selected color in the exported PNG. Style fields round-trip, and captures saved before those fields were introduced still decode.
+- Four permission regressions cover successful real capture despite a false preflight hint, preserving actual denial and recovering on recheck, requiring reopen after executable replacement, and retaining non-permission errors accurately. Diagnostic events distinguish shortcut, access check, selection overlay, selected region, cancellation, and failure.
+- Launching the signed app preserved two registered projects and the existing empty queue. Running the Terminal builder while that app was active was correctly refused before compilation or bundle replacement.
 - Synthetic native queue/composer/settings previews are rendered and inspected; no user screen content is used in those previews.
 - Optional MCP bridge tests cover approved-image retrieval, status filtering, excluded private fields, and rejection of image paths outside the asset directory.
 - Codex `initialize`, account and model discovery passed with runtime `0.169.0-alpha.11.1` using the existing ChatGPT sign-in. No credentials were copied into this repository.
+- Authentication checks reuse existing ChatGPT/API-key sessions and providers that do not require OpenAI authentication. Nine regressions cover avoiding redundant browser login, missing account data, reported passkey failure, cancellation and stale callbacks, code-based fallback, missing callback timeout, failed browser launch, and recovering a session while a login is pending. Browser errors that never return to the local callback are bounded by a five-minute timeout; the user can cancel sooner. The fallback is tested against the runtime's generated contract, without signing the user out to test it live.
 - A synthetic screenshot produced a question, then a reply after process restart/resume in the same chat. The desktop app's chat reader independently recognized the saved conversation and both completed turns. Test chat ID: `01a1d7aa-7bbc-7620-987b-f497c14f91e1`.
 - The actual native worker completed a synthetic CSS bug through isolated editing, local validation, PR creation, passing GitHub CI, guarded merge, and confirmed merged state. [Private fixture PR](https://github.com/lludo/screenclip-integration-20261113/pull/1). Its Codex chat ID is `01a1d7b6-c810-7213-879d-51dd0dc111b6`.
 
@@ -42,12 +46,12 @@ The GitHub fixture setup helper requires an explicit `OWNER/screenclip-integrati
 
 ## Remaining hands-on and distribution checks
 
-- Screen Recording must be granted to ScreenClip by macOS. The user-driven drag/selection flow has not yet been exercised with that grant on this Mac.
+- The user reported Screen Recording enabled in Settings while the old app rejected capture at the preflight gate. Process/bundle inspection also found a running executable older than its rebuilt bundle. The updated app removes that gate, detects replacement, provides recovery actions and logs actual API errors. A stable development signature is configured locally. The user's successful drag/selection flow with this updated copy still needs confirmation.
 - Verify capture on each physical monitor, mixed scales, negative display origins, full-screen Spaces, transient menus, Escape, and return-to-source focus. Selection currently stays on the display where dragging starts; a rectangle spanning two displays is not implemented.
 - Browser URL access, denied/revoked permissions, notifications, login-item registration, and keyboard conflicts need a hands-on check under the app's permissions.
 - The desktop app recognizes external chats, but bidirectional handoff while independent Codex processes are simultaneously active has not been established. Use one agent owner per worktree; cancel native work before taking over in another client. The app checks saved history during explicit reconciliation.
 - Only the development runtime and host above have been exercised. A separately installed supported Codex CLI, older macOS versions, Intel, and clean second-machine installation remain compatibility checks.
-- Local builds are ad-hoc signed. Developer ID signing and notarization were not performed because no signing identity is installed. Packaging supports supplied signing/notary credentials. Automatic app updates are not implemented.
+- Local builds can use an ignored certificate configuration; this Mac has an installed Apple Development identity. Developer ID release signing and notarization were not performed. Packaging supports supplied signing/notary credentials. Automatic app updates are not implemented.
 - The plugin's stdio behavior is tested; public-directory submission and install eligibility are not established. The core app does not depend on that plugin.
 
 ## Useful implementation locations

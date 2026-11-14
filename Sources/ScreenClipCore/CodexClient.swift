@@ -48,7 +48,7 @@ public actor CodexClient {
       params: .object([
         "clientInfo": .object([
           "name": .string("screenclip"), "title": .string("ScreenClip"),
-          "version": .string("0.1.0"),
+          "version": .string("0.1.2"),
         ]), "capabilities": .object(["experimentalApi": .bool(true)]),
       ]))
     try send(.object(["method": .string("initialized"), "params": .object([:])]))

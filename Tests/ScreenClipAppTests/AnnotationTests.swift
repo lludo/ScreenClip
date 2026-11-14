@@ -30,7 +30,9 @@ final class AnnotationTests: XCTestCase {
     XCTAssertLessThan(bottom.redComponent, 0.1)
   }
   func testRedactionIsOpaqueAndUsesTopLeftCoordinates() throws {
-    let mark = Annotation(kind: .redact, points: [MarkPoint(0.1, 0.1), MarkPoint(0.4, 0.3)])
+    let mark = Annotation(
+      kind: .redact, points: [MarkPoint(0.1, 0.1), MarkPoint(0.4, 0.3)], color: .white,
+      lineWidth: 0.012)
     let rep = try XCTUnwrap(
       NSBitmapImageRep(data: AnnotationRenderer.png(image: image(), marks: [mark])))
     let redacted = try XCTUnwrap(rep.colorAt(x: 20, y: 20)?.usingColorSpace(.deviceRGB))
@@ -40,5 +42,49 @@ final class AnnotationTests: XCTestCase {
     XCTAssertLessThan(redacted.greenComponent, 0.01)
     XCTAssertLessThan(redacted.blueComponent, 0.01)
     XCTAssertGreaterThan(untouched.blueComponent, 0.9)
+  }
+  func testEllipseUsesSelectedColorAndKeepsCenterClear() throws {
+    let mark = Annotation(
+      kind: .ellipse, points: [MarkPoint(0.2, 0.2), MarkPoint(0.8, 0.8)], color: .green,
+      lineWidth: 0.04)
+    let rep = try XCTUnwrap(
+      NSBitmapImageRep(data: AnnotationRenderer.png(image: image(), marks: [mark])))
+    let edge = try XCTUnwrap(rep.colorAt(x: 20, y: 50)?.usingColorSpace(.deviceRGB))
+    let center = try XCTUnwrap(rep.colorAt(x: 50, y: 60)?.usingColorSpace(.deviceRGB))
+    let original = try XCTUnwrap(
+      NSBitmapImageRep(data: AnnotationRenderer.png(image: image(), marks: []))?.colorAt(
+        x: 50, y: 60)?.usingColorSpace(.deviceRGB))
+    XCTAssertGreaterThan(edge.greenComponent, 0.7)
+    XCTAssertEqual(center.blueComponent, original.blueComponent, accuracy: 0.001)
+    XCTAssertEqual(center.greenComponent, original.greenComponent, accuracy: 0.001)
+  }
+  func testPenStrokeThicknessIsExported() throws {
+    func pixel(width: Double) throws -> NSColor {
+      let mark = Annotation(
+        kind: .pen, points: [MarkPoint(0.1, 0.7), MarkPoint(0.9, 0.7)], color: .green,
+        lineWidth: width)
+      let rep = try XCTUnwrap(
+        NSBitmapImageRep(data: AnnotationRenderer.png(image: image(), marks: [mark])))
+      return try XCTUnwrap(rep.colorAt(x: 50, y: 68)?.usingColorSpace(.deviceRGB))
+    }
+    XCTAssertGreaterThan(try pixel(width: 0.04).greenComponent, 0.7)
+    let original = try XCTUnwrap(
+      NSBitmapImageRep(data: AnnotationRenderer.png(image: image(), marks: []))?.colorAt(
+        x: 50, y: 68)?.usingColorSpace(.deviceRGB))
+    XCTAssertEqual(try pixel(width: 0.01).greenComponent, original.greenComponent, accuracy: 0.001)
+  }
+  func testAnnotationStylesRoundTripAndOlderCapturesDecode() throws {
+    let old = Data(
+      """
+      {"id":"00000000-0000-0000-0000-000000000001","kind":"pen","points":[{"x":0.2,"y":0.3}],"text":""}
+      """.utf8)
+    let decoded = try JSONDecoder().decode(Annotation.self, from: old)
+    XCTAssertNil(decoded.color)
+    XCTAssertNil(decoded.lineWidth)
+    let styled = Annotation(
+      kind: .ellipse, points: [MarkPoint(0.2, 0.2), MarkPoint(0.8, 0.8)], color: .red,
+      lineWidth: 0.012)
+    XCTAssertEqual(
+      try JSONDecoder().decode(Annotation.self, from: JSONEncoder().encode(styled)), styled)
   }
 }

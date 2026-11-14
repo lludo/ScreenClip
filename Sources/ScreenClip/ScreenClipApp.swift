@@ -43,6 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       model.captureAction = { [weak self] in self?.startCapture() }
       model.queueAction = { [weak self] in self?.showQueue() }
       model.settingsAction = { [weak self] in self?.showSettings() }
+      model.relaunchAction = { [weak self] in self?.relaunch() }
       model.composerAction = { [weak self] image, context, existing in
         self?.showComposer(image: image, context: context, existing: existing)
       }
@@ -90,6 +91,31 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     ) {
       model.banner = "That keyboard shortcut is already in use. Choose another in Settings."
     }
+  }
+  func relaunch() {
+    guard composerWindow == nil else {
+      model.banner = "Save your capture as a draft before reopening ScreenClip."
+      return
+    }
+    guard !model.snapshot.issues.contains(where: { $0.status == .working }) else {
+      model.banner = "Finish or cancel active work before reopening ScreenClip."
+      return
+    }
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/bin/sh")
+    process.arguments = [
+      "-c",
+      "while kill -0 \"$1\" 2>/dev/null; do sleep 0.1; done; exec /usr/bin/open \"$2\" --args --data-dir \"$3\" --show-queue",
+      "screenclip-relaunch", String(ProcessInfo.processInfo.processIdentifier),
+      Bundle.main.bundleURL.path, model.store.root.path,
+    ]
+    process.standardInput = FileHandle.nullDevice
+    process.standardOutput = FileHandle.nullDevice
+    process.standardError = FileHandle.nullDevice
+    do {
+      try process.run()
+      NSApp.terminate(nil)
+    } catch { model.banner = error.localizedDescription }
   }
   func application(_ application: NSApplication, open urls: [URL]) {
     for url in urls where url.scheme == "screenclip" && url.host == "issues" {

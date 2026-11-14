@@ -160,9 +160,18 @@ struct QueueView: View {
         HStack {
           Image(systemName: "exclamationmark.circle")
           Text(banner).lineLimit(4)
+          if model.capturePermissionIssue {
+            Button("Open Settings") { model.openCaptureSettings() }
+            Button("Check again") { Task { await model.recheckCapturePermission() } }
+            Button("Reopen app") { model.relaunchAction?() }
+          }
           Button("Dismiss") { model.banner = nil }
-        }.padding(14).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12)).padding(
-          20)
+        }.padding(14).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+          .overlay(
+            RoundedRectangle(cornerRadius: 12).stroke(.primary.opacity(0.06), lineWidth: 0.5)
+          )
+          .shadow(color: .black.opacity(0.16), radius: 10, x: 0, y: 3).padding(
+            20)
       }
     }
     .onChange(of: model.selectedIssueID) { _, id in if let id { model.markRead(id) } }
