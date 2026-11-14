@@ -145,6 +145,7 @@ struct QueueView: View {
           if isReportLookup {
             Text(chrome: "Report search", comment: "Heading when the list is showing a report-number search.")
               .fontWeight(.semibold)
+              .frame(maxWidth: .infinity, alignment: .leading)
           } else {
             filterMenu
           }
