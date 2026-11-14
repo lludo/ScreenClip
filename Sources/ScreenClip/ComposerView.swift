@@ -128,8 +128,8 @@ struct ComposerView: View {
                 }
               ) { Text($0.referencedTitle).tag(Optional($0.id)) }
               if let existing, existing.status == .draft {
-                Text(existing.reportReference.map { "Current draft \($0)" } ?? "Current draft").tag(
-                  Optional(existing.id))
+                Text(existing.reportReference.map { "Current draft \($0)" } ?? "Current draft")
+                  .tag(Optional(existing.id))
               }
             }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
               .accessibilityLabel("Issue")
