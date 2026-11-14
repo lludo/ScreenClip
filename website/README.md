@@ -1,6 +1,6 @@
 # ScreenClip website
 
-Static pages for [screenclipai.com](https://screenclipai.com). The copy describes the Mac app as it works today: capture a region, annotate or redact it, hand it to Codex, Claude Code, or Grok Bot, then track the GitHub pull request through an optional merge and retest. Plain HTML, CSS, and a small script. No framework, no third-party fonts, and no analytics.
+Static pages for [screenclipai.com](https://screenclipai.com). The copy describes the Mac app as it works today: capture a region, annotate or redact it, hand it to Codex, Claude Code, or Grok Bot, then track the GitHub pull request through an optional merge and retest. Plain HTML and CSS. No framework, no third-party fonts, no analytics, and no page script. The page follows the system light and dark setting, and the menu bar demo uses the matching screenshot.
 
 `build.py` reads `site.config.json` and `src/`, then writes `dist/`. Python’s standard library is enough. `dist/` is generated and gitignored.
 
@@ -38,11 +38,11 @@ The build writes:
 
 - One `h1` per page, canonical URLs, and descriptions aimed at “screenshot feedback for AI coding agents”, “Mac screenshot to pull request”, and Claude Code / Codex.
 - Open Graph and Twitter card tags. The image is `src/assets/og.png` (1200×630), copied to `/assets/og.png`.
-- `SoftwareApplication` JSON-LD (`operatingSystem` `macOS 14+`, `applicationCategory` `DeveloperApplication`) and `FAQPage` JSON-LD on the home page.
+- `SoftwareApplication` JSON-LD (`operatingSystem` `macOS 14 or later`, free offer, `downloadUrl`) and `FAQPage` JSON-LD on the home page.
 - `robots.txt`, `sitemap.xml` (`/`, `/privacy`, `/support`), `manifest.webmanifest`, `favicon.ico`, an SVG icon, a 32×32 PNG, and an Apple touch icon.
 - `/privacy`, `/support`, and `404.html`.
 
-CSS, JavaScript, and the two product screenshots are fingerprinted under `/assets/h/`. `vercel.json` gives those files a one-year immutable cache. HTML and the stable icons stay revalidated.
+CSS and the menu bar screenshots are fingerprinted under `/assets/h/`. Each screenshot is an AVIF, a WebP, and a PNG. The home page picks the light or dark set with `prefers-color-scheme`. `vercel.json` gives those files a one-year immutable cache. HTML, `og.png`, and the stable icons stay revalidated. The older capture-editor and queue PNGs in `src/assets/` are not part of the page.
 
 On a Mac, `swift website/render-assets.swift` redraws `src/assets/og.png`. The icons in `dist/` are drawn by `build.py`.
 
