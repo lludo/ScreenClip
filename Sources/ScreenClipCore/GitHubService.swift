@@ -126,7 +126,7 @@ public enum GitHubService {
     }
     // Preserve newlines and avoid shell interpolation in PR content.
     let body =
-      "\(summary)\n\nValidation: `\(project.validationCommand)`\n\nScreenClip issue: \(issue.id.uuidString)\nInput revision: \(issue.revision)\n\nScreenshots and source context remain in ScreenClip."
+      "\(summary)\n\nValidation: `\(project.validationCommand)`\n\nScreenClip report: \(issue.reportReference ?? issue.id.uuidString)\nIssue ID: \(issue.id.uuidString)\nInput revision: \(issue.revision)\n\nScreenshots and source context remain in ScreenClip."
     let file = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(
       "screenclip-pr-\(UUID().uuidString).md")
     try body.write(to: file, atomically: true, encoding: .utf8)

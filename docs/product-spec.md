@@ -4,17 +4,28 @@ Updated: November 13, 2026. Status: implemented local app; confirmed decisions a
 
 ## Problem and intended outcome
 
-During a testing flow, the tester notices many small problems. Each screenshot currently requires a manual trip to chat, context reconstruction, image attachment, and chat organization. Those interruptions break the flow, and details are forgotten before the issue is reported.
+ScreenClip's primary value is capturing feedback immediately without breaking the user's flow. As people use or test an app, they notice many micro-observations: a misaligned element, an awkward label, a confusing interaction, a missing detail, or an idea for improvement. Stopping to write a formal report or switching to chat for each one is too costly, so many are forgotten or never captured.
 
-ScreenClip should make reporting a brief interruption and keep the whole feedback loop visible: observation, investigation, questions, implementation, testing, pull request, merge, and retest.
+The intended experience is **notice it, capture it, keep going**. A session may contain dozens or hundreds of small observations; this describes the intended usage pattern, not a measured throughput or capacity claim. Capture must remain lightweight enough that users do not have to decide whether each little thing is worth the interruption. A screenshot alone is valid; a short note or annotation adds clarity when useful. Related observations can be grouped without requiring an elaborate report for each one.
 
-Example: while testing a checkout flow, the tester spots a clipped button, selects it, writes “Label is cut off at this width,” and submits. Work begins in the background. Later, the menu bar shows either a question or a merged fix, with a link to the issue's Codex chat and PR.
+Preserving the screenshot and capture-time context removes the need to reconstruct the observation later. Codex dispatch, investigation, questions, implementation, testing, pull requests, merge, and retest extend the feedback loop after capture. They are secondary benefits; ScreenClip's lead promise is uninterrupted feedback capture, not “turn screenshots into fixes.”
+
+Example: while moving through a checkout flow, the tester notices a clipped button, captures it, optionally writes “Label is cut off at this width,” submits, and immediately continues. They capture a spacing problem, unclear copy, and a missing confirmation state as they go. ScreenClip keeps those observations and their context organized; downstream work and questions remain visible from the menu bar.
+
+### Messaging and experience priorities
+
+- Lead with fast capture at the moment of noticing and immediately continuing the current task.
+- Include feedback, polish, and improvement ideas as well as bugs. Not every observation is a broken feature or needs an immediate code change.
+- Show the repeated-capture workflow, not just one screenshot leading to one fix. Do not invent timing guarantees or claim measured support for a particular number of reports.
+- Keep context and related captures together, with one Codex chat per issue, without imposing a title, severity, or report template on each observation.
+- Explain Codex work and fix tracking after the capture value is clear. Marketing should not make an automatic fix the reason to capture feedback.
 
 ## Confirmed requirements
 
 | Decision | Agreed behavior |
 | --- | --- |
 | Platform | macOS only |
+| Primary value | Capture feedback as it is noticed, then continue without losing flow; support many small observations per session |
 | Apps being tested | Websites and native macOS apps |
 | Entry point | Menu bar utility plus a global keyboard shortcut |
 | Capture | Region selection resembling Command–Shift–4 |
@@ -76,13 +87,15 @@ Proposed compact menu bar label: icon plus the count of submitted, unresolved is
 | Surface | Contents and actions |
 | --- | --- |
 | Menu bar popover | Current project/session, New capture, Pause processing, status totals, recent issues, Open queue, Settings |
-| Issue row | Thumbnail, short title, project, status, latest update, unread indicator |
-| Issue detail | Ordered images and notes, captured context, concise activity, questions and replies, Codex link, PR link, validation result |
+| Issue row | Permanent report number (for example, #234), thumbnail, short title, project, status, latest update, unread indicator |
+| Issue detail | Click-to-copy report number, ordered images and notes, captured context, concise activity, questions and replies, Codex link, PR link, validation result |
 | Queue window | All issues, project/status filters, search, drafts, archive |
 
 The queue has resizable panes with a status filter and feedback search above the report list. Search includes capture notes, questions, replies, results, and activity. Archive and Restore are available directly in report details and the report row's context menu; archiving retains screenshots, status, and PR/merge evidence. Active work and outstanding agent permission requests must be canceled or resolved before archiving. The composer uses the regular macOS close control with its existing discard confirmation.
 
 Counts represent issues, so adding a second screenshot to an existing issue does not increment the count. Drafts are counted separately. **Merged** issues leave the active count and appear under **To retest**. Keep row positions stable during updates; offer explicit sorting and filtering.
+
+Assign a sequential report number when an issue or draft is first saved, unique within the local queue across projects. Retain it through draft submission, related captures, renames, retries, archive, and reopening. Number existing reports in creation order without reordering the queue. Never reuse a deleted number. Searching `#234` or `234` finds that exact report even when its project or status is outside the current filters. Include the reference in new Codex chat names, agent prompts, notifications, exports, PR descriptions, and plugin results; keep the UUID as the internal identity.
 
 Notify on a question, blocked run, or completed merge. Do not interrupt testing with a notification for every agent action. Clicking a notification opens the relevant issue. Notification permission is optional; the queue remains usable without it.
 

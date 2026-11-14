@@ -1,6 +1,6 @@
 # ScreenClip implementation plan
 
-Updated: November 13, 2026. The local app and live integrations are implemented. Basic capture, markup and submission are now confirmed from the signed app in Applications. Monitor/Spaces checks, permission retention after an installed update and public-release credentials remain. See [validation evidence](validation.md).
+Updated: November 13, 2026. The local app and live integrations are implemented. Basic capture, markup, submission, and permission retention after an installed update are confirmed from the signed app in Applications. The 0.1.6 installed-app check found that runtime project assignment does not produce desktop sidebar membership on the tested Codex version; that handoff gate remains open. Monitor/Spaces checks and public-release credentials also remain. See [validation evidence](validation.md).
 
 ## 1. Prove the Codex handoff
 

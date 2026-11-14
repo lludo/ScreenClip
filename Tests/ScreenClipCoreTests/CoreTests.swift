@@ -68,12 +68,68 @@ final class CoreTests: XCTestCase {
         projectID: UUID(), title: "Clipped",
         capture: Capture(note: "Label", imagePath: path, context: context))
     ]
-    try store.save(state)
+    state = try store.save(state)
     let reopened = try IssueStore(root: store.root, readOnly: true).load()
     XCTAssertEqual(reopened.issues, state.issues)
     XCTAssertEqual(
       try Data(contentsOf: URL(fileURLWithPath: reopened.issues[0].captures[0].imagePath)), bytes)
     XCTAssertEqual(reopened.issues[0].status, .queued)
+  }
+  func testLegacyReportNumbersMigrateInCreationOrderWithoutReordering() throws {
+    var older = Issue(projectID: nil, title: "Older", capture: capture())
+    older.createdAt = Date(timeIntervalSince1970: 1)
+    older.archived = true
+    var newer = Issue(projectID: nil, title: "Newer draft", capture: capture(), draft: true)
+    newer.createdAt = Date(timeIntervalSince1970: 2)
+    var state = StoreSnapshot()
+    state.issues = [newer, older]
+    let legacyData = try JSONEncoder().encode(state)
+    let legacyJSON = try XCTUnwrap(JSONSerialization.jsonObject(with: legacyData) as? [String: Any])
+    XCTAssertNil(legacyJSON["nextReportNumber"])
+    XCTAssertNil((legacyJSON["issues"] as? [[String: Any]])?.first?["reportNumber"])
+    let legacy = try JSONDecoder().decode(StoreSnapshot.self, from: legacyData)
+    let store = try temporaryStore()
+    let migrated = try store.save(legacy)
+    XCTAssertEqual(migrated.issues.map(\.id), [newer.id, older.id])
+    XCTAssertEqual(migrated.issues.map(\.reportNumber), [2, 1])
+    XCTAssertEqual(migrated.nextReportNumber, 3)
+    let reopened = try IssueStore(root: store.root, readOnly: true).load()
+    XCTAssertEqual(reopened.issues, migrated.issues)
+    // Saving the same pre-migration value cannot renumber existing reports.
+    XCTAssertEqual(try store.save(legacy).issues, migrated.issues)
+  }
+  func testReportNumbersSurviveUpdatesAndAreNeverReusedAfterDeletion() throws {
+    let store = try temporaryStore()
+    var state = StoreSnapshot()
+    state.issues = [Issue(projectID: nil, title: "First", capture: capture())]
+    state = try store.save(state)
+    XCTAssertEqual(state.issues[0].reportNumber, 1)
+    state.issues[0].add(capture())
+    state.issues[0].title = "Renamed"
+    state = try store.save(state)
+    XCTAssertEqual(state.issues[0].reportNumber, 1)
+    state.issues.append(Issue(projectID: nil, title: "Second", capture: capture()))
+    state = try store.save(state)
+    XCTAssertEqual(state.issues[1].reportNumber, 2)
+    // Delete every report, including the highest number, then simulate a fresh caller.
+    try store.save(StoreSnapshot())
+    let empty = try IssueStore(root: store.root, readOnly: true).load()
+    XCTAssertEqual(empty.nextReportNumber, 3)
+    var replacement = StoreSnapshot()
+    replacement.issues = [Issue(projectID: nil, title: "Third", capture: capture())]
+    XCTAssertEqual(try store.save(replacement).issues[0].reportNumber, 3)
+  }
+  func testReportReferenceSearchIsExactAndStillMatchesDescriptions() {
+    var issue = Issue(projectID: nil, title: "Clipped label", capture: capture())
+    issue.reportNumber = 234
+    XCTAssertEqual(issue.reportReference, "#234")
+    XCTAssertEqual(issue.referencedTitle, "#234 Clipped label")
+    for query in ["#234", "234", " #234\n", "LABEL", " "] {
+      XCTAssertTrue(issue.matchesSearch(query), query)
+    }
+    for query in ["#23", "23", "#2340", "#", "#0", "#-234", "unrelated"] {
+      XCTAssertFalse(issue.matchesSearch(query), query)
+    }
   }
   func testRelatedCaptureDoesNotCreateAnIssueOrChangeChat() {
     var state = StoreSnapshot()
@@ -198,6 +254,8 @@ final class CoreTests: XCTestCase {
     let exported = try JSONDecoder().decode(
       StoreSnapshot.self,
       from: Data(contentsOf: destination.appendingPathComponent("screenclip-export.json")))
+    XCTAssertEqual(exported.issues[0].reportNumber, 1)
+    XCTAssertEqual(exported.nextReportNumber, 2)
     XCTAssertNil(exported.issues[0].captures[0].originalPath)
     XCTAssertEqual(
       try Data(

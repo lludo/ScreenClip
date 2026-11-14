@@ -72,18 +72,31 @@ public final class IssueStore {
     else { throw ScreenClipError.message("Cannot read the queue.") }
     guard sqlite3_step(stmt) == SQLITE_ROW else { return StoreSnapshot() }
     let data = Data(bytes: sqlite3_column_blob(stmt, 0), count: Int(sqlite3_column_bytes(stmt, 0)))
-    let snapshot = try JSONDecoder().decode(StoreSnapshot.self, from: data)
+    var snapshot = try JSONDecoder().decode(StoreSnapshot.self, from: data)
     guard snapshot.version == 1 else {
       throw ScreenClipError.message(
         "This queue was created by a newer ScreenClip. Update the app before opening it.")
     }
+    snapshot.assignReportNumbers()
     return snapshot
   }
-  public func save(_ snapshot: StoreSnapshot) throws {
+  @discardableResult public func save(_ snapshot: StoreSnapshot) throws -> StoreSnapshot {
     guard !readOnly else { throw ScreenClipError.message("This queue connection is read-only.") }
     lock.lock()
     defer { lock.unlock() }
-    let data = try JSONEncoder().encode(snapshot)
+    var numbered = snapshot
+    let previous = try load()
+    let existingNumbers = Dictionary(
+      uniqueKeysWithValues: previous.issues.compactMap { issue in
+        issue.reportNumber.map { (issue.id, $0) }
+      })
+    for index in numbered.issues.indices {
+      if let number = existingNumbers[numbered.issues[index].id] {
+        numbered.issues[index].reportNumber = number
+      }
+    }
+    numbered.assignReportNumbers(startingAt: previous.nextReportNumber ?? 1)
+    let data = try JSONEncoder().encode(numbered)
     var stmt: OpaquePointer?
     defer { sqlite3_finalize(stmt) }
     guard
@@ -100,13 +113,19 @@ public final class IssueStore {
       throw ScreenClipError.message(
         "Could not save the report: \(String(cString: sqlite3_errmsg(db)))")
     }
+    return numbered
   }
   public func writeAsset(_ data: Data, original: Bool = false) throws -> String {
     guard !readOnly else { throw ScreenClipError.message("This queue connection is read-only.") }
     let path = root.appendingPathComponent(original ? "originals" : "assets")
       .appendingPathComponent(UUID().uuidString + ".png")
-    try data.write(to: path, options: .atomic)
-    try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: path.path)
+    do {
+      try data.write(to: path, options: .atomic)
+      try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: path.path)
+    } catch {
+      try? FileManager.default.removeItem(at: path)
+      throw error
+    }
     return path.path
   }
   public func export(to directory: URL) throws {

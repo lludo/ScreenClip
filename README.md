@@ -22,6 +22,7 @@ Press a global shortcut, select a screen region, optionally write a short note o
 - [Product specification](docs/product-spec.md): workflow, screens, status meanings, scope, and remaining questions.
 - [Technical design](docs/technical-design.md): native components, Codex integration, plugin options, storage, and constraints.
 - [Implementation plan](docs/implementation-plan.md): feasibility gates, build sequence, and acceptance criteria.
+- [Promotional website](website/README.md): one-page static site, local preview, SEO setup, and placeholder App Store/download links.
 
 ## Build and run
 
@@ -56,7 +57,11 @@ If System Settings shows access enabled but capture still fails, use **Check scr
 
 Captures save locally before dispatch. Related images share an issue and Codex chat. A fix runs in its own worktree, passes the configured validation, and opens a GitHub PR. Automatic merge requires passing CI, satisfied host policies, the validated PR head, and the current input revision. ScreenClip makes up to two repair attempts for failing checks, then requests input. Merged fixes appear under **To retest**.
 
+Every saved report gets a permanent number such as **#234**, shown in the queue, menu bar popover, and details. Click the number in the details to copy it. Search for `#234` or `234` to find that exact report across projects and statuses, including archived reports. Existing reports receive numbers automatically; related captures keep the same number, and deleted numbers are never reused in that queue.
+
 Keep ScreenClip running and the Mac awake for local work. Use ScreenClip's reply controls for active jobs. Cancel an issue before taking over its worktree in another coding client; simultaneous editing from separate Codex processes is not coordinated automatically.
+
+Codex chats can still appear in Recents on the tested desktop version, even when ScreenClip targets the correct repository. Use **Open in Codex** on the issue to reach its exact chat. The agent receives the repository, isolated worktree, and branch context explicitly. See the [project-association check](docs/validation.md#repository-association-review) for the current sidebar limitation.
 
 After an interrupted run, **Reconcile chat** recovers a completed structured fix and independently validates it before publication. Continue reuses a chat already owned by ScreenClip and restores an archived chat when necessary. `--recover-reports` reconciles the saved reports and continues those without unanswered questions. PR details retain the link and confirmed merge commit; **Refresh PR status** updates checks immediately.
 
@@ -65,11 +70,15 @@ After an interrupted run, **Reconcile chat** recovers a completed structured fix
 ```sh
 bash scripts/test.sh
 python3 scripts/test_plugin.py
+python3 scripts/test_review_queue.py
+python3 website/build.py
 bash scripts/package.sh
 ```
 
 Packaging uses the Xcode Release build and writes `build/ScreenClip-macOS.zip`. The built bundle is `build/DerivedData/Build/Products/Release/ScreenClip.app`. Local builds use the ignored local signing configuration when provided, otherwise ad-hoc signing for build-only checks. `SCREENCLIP_SIGNING_IDENTITY` overrides the local configuration. For a public release, supply a Developer ID signing identity and a preconfigured Keychain `SCREENCLIP_NOTARY_PROFILE` before running the packaging script. An Apple Development signature is for local testing and does not replace public notarization. No third-party runtime is redistributed.
 
 The optional [Codex MCP plugin](plugins/screenclip/README.md) exposes the local queue and approved images for inspection. It is not needed for automatic pickup.
+
+Claude Code detection, session models, and a headless process client are included as groundwork. Agent selection and Claude dispatch are not yet connected to the app; the current capture workflow uses Codex.
 
 See [validation evidence and current limits](docs/validation.md) for the live Codex and GitHub checks, native previews, and remaining manual verification. This is a working local app, not yet a publicly notarized release.

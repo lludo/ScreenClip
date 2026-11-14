@@ -126,9 +126,10 @@ struct ComposerView: View {
                 model.snapshot.issues.filter {
                   !$0.archived && $0.projectID == projectID && $0.status != .draft
                 }
-              ) { Text($0.title).tag(Optional($0.id)) }
+              ) { Text($0.referencedTitle).tag(Optional($0.id)) }
               if let existing, existing.status == .draft {
-                Text("Current draft").tag(Optional(existing.id))
+                Text(existing.reportReference.map { "Current draft \($0)" } ?? "Current draft").tag(
+                  Optional(existing.id))
               }
             }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
               .accessibilityLabel("Issue")

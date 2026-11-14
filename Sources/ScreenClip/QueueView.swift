@@ -19,7 +19,11 @@ enum QueueFilter: String, CaseIterable, Identifiable {
     case .archived: return "archivebox"
     }
   }
-  func includes(_ issue: Issue) -> Bool {
+  func includes(_ issue: Issue, projectID: UUID? = nil, search: String = "") -> Bool {
+    if Issue.parseReportReference(search) != nil { return issue.matchesSearch(search) }
+    guard projectID == nil || projectID == issue.projectID, issue.matchesSearch(search) else {
+      return false
+    }
     if self == .archived { return issue.archived }
     if issue.archived { return false }
     switch self {
@@ -37,10 +41,10 @@ struct QueueView: View {
   @State private var filter: QueueFilter = .active
   @State private var projectFilter: UUID?
   @State private var search = ""
+  var isReportLookup: Bool { Issue.parseReportReference(search) != nil }
   var filtered: [Issue] {
     model.snapshot.issues.filter {
-      filter.includes($0) && (projectFilter == nil || projectFilter == $0.projectID)
-        && $0.matchesFeedback(search)
+      filter.includes($0, projectID: projectFilter, search: search)
     }
   }
   var body: some View {
@@ -107,11 +111,15 @@ struct QueueView: View {
         VStack(alignment: .leading, spacing: 12) {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
-              Picker("Show reports", selection: $filter) {
-                ForEach(QueueFilter.allCases) { item in
-                  Label(item.rawValue, systemImage: item.symbol).tag(item)
-                }
-              }.labelsHidden().pickerStyle(.menu).fixedSize()
+              if isReportLookup {
+                Text("Report search").fontWeight(.semibold)
+              } else {
+                Picker("Show reports", selection: $filter) {
+                  ForEach(QueueFilter.allCases) { item in
+                    Label(item.rawValue, systemImage: item.symbol).tag(item)
+                  }
+                }.labelsHidden().pickerStyle(.menu).fixedSize()
+              }
               Text("\(filtered.count) observations").font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
@@ -135,7 +143,8 @@ struct QueueView: View {
             search.isEmpty ? "Nothing here yet" : "No matches", systemImage: "viewfinder",
             description: Text(
               search.isEmpty
-                ? "Capture an observation to start the next fix." : "Try another description."))
+                ? "Capture an observation to start the next fix."
+                : "Try a report number or another description."))
         } else {
           List(filtered, selection: $model.selectedIssueID) { issue in
             IssueRow(issue: issue, project: model.project(issue.projectID)).tag(issue.id)
@@ -192,7 +201,7 @@ struct IssueRow: View {
       }
       VStack(alignment: .leading, spacing: 6) {
         HStack {
-          Text(issue.title).font(.system(size: 13, weight: .medium)).lineLimit(2)
+          Text(issue.referencedTitle).font(.system(size: 13, weight: .medium)).lineLimit(2)
           if issue.unread { Circle().fill(.orange).frame(width: 6, height: 6) }
         }
         Text(project?.name ?? "Choose project").font(.caption).foregroundStyle(.secondary)
@@ -264,6 +273,15 @@ struct IssueDetailView: View {
     ScrollView {
       VStack(alignment: .leading, spacing: 22) {
         HStack {
+          if let reference = issue.reportReference {
+            Button {
+              NSPasteboard.general.clearContents()
+              NSPasteboard.general.setString(reference, forType: .string)
+            } label: {
+              Text(reference).font(.callout.weight(.semibold)).monospacedDigit()
+            }.buttonStyle(.plain).help("Copy report number")
+              .accessibilityLabel("Copy report number \(reference)")
+          }
           StatusBadge(status: issue.status)
           Spacer()
           Text(issue.createdAt, style: .date).font(.caption).foregroundStyle(.secondary)
