@@ -1,0 +1,15 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "screenclip",
+  "version": "0.1.0",
+  "description": "Inspect local ScreenClip observations, approved screenshots, and fix status from Codex.",
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "interface": {
+        "displayName": "ScreenClip",
+        "shortDescription": "Your app-testing observations in Codex"
+      }
+    }
+  }
+}
