@@ -47,7 +47,7 @@ The diagram is a proposed ownership model. In particular, the agent-facing conne
 | Context adapters | Source app/window identity; optional browser and build-context adapters |
 | Issue store | SQLite metadata/event history and image files in Application Support |
 | Dispatcher | Outbox delivery, issue ownership, retry, capacity, and worktree allocation |
-| Agent adapters | Codex and Claude Code transport, conversation identity, progress, questions, cancellation, and recovery ([details](agents/README.md)) |
+| Agent adapters | Codex and Claude Code locally, plus Grok Bot as a remote webhook destination ([details](agents/README.md)) |
 | Git provider adapter | PR identity, checks, mergeability, and confirmed merge state |
 
 Apple documents menu bar utility support through [MenuBarExtra](https://developer.apple.com/documentation/swiftui/menubarextra) and still-image capture through [SCScreenshotManager](https://developer.apple.com/documentation/screencapturekit/scscreenshotmanager). The latter is available from macOS 14. Use the content-filter/configuration capture path for that baseline; availability-check newer convenience APIs.
@@ -76,7 +76,7 @@ The capture pipeline is agent-neutral. The dispatcher prepares a worktree, sends
 
 - [Codex](agents/codex.md): app-server transport, thread identity, desktop deep links, project association, and Codex plugin options.
 - [Claude Code](agents/claude-code.md): headless stream-json turns, session identity, sandbox, sign-in, and the Claude Code plugin.
-- [External assistant proposal](agents/proposals/external-assistant.md): a possible remote hand-off.
+- [Grok Bot](agents/external-assistant.md): remote hand-off. Approved screenshots go to a `screenclip/` branch; the webhook carries no image data. ScreenClip still validates and merges.
 
 Serialize work on an individual issue. Append new evidence as a later turn. When the user continues work in the agent's own client, reconcile that activity; do not let two clients independently start competing turns. Separate transport progress from product outcomes, and verify PR, check, and merge claims with the source-control host before promoting the state. A normal successful agent response alone is insufficient.
 

@@ -17,6 +17,10 @@ import UserNotifications
   let captureDiagnostics: CaptureDiagnostics
   let capturePermission: ScreenCapturePermission
   lazy var worker = AgentWorker(model: self)
+  /// Reads the Grok Bot webhook from the Keychain. Tests replace this so they do not touch credentials.
+  var loadExternalAssistant: () -> ExternalAssistantConfiguration = {
+    ExternalAssistantKeychain.load()
+  }
   var captureAction: (() -> Void)?
   var queueAction: (() -> Void)?
   var settingsAction: (() -> Void)?
@@ -50,8 +54,20 @@ import UserNotifications
     // Do not replay uncertain work automatically after a crash.
     for i in snapshot.issues.indices
     where snapshot.issues[i].status == .working || snapshot.issues[i].dispatchUncertain {
-      snapshot.issues[i].record(
-        "ScreenClip restarted. Reconcile the existing chat before continuing.", status: .needsYou)
+      if snapshot.issues[i].resolvedAgent == .external {
+        switch ExternalRecovery.afterRestart(
+          status: snapshot.issues[i].status, uncertain: snapshot.issues[i].dispatchUncertain)
+        {
+        case .retrySend:
+          snapshot.issues[i].dispatchUncertain = false
+          snapshot.issues[i].record(ExternalAssistant.restartRetryActivity, status: .failed)
+        case .watchForPullRequest:
+          snapshot.issues[i].record(ExternalAssistant.restartWatchActivity)
+        }
+      } else {
+        snapshot.issues[i].record(
+          "ScreenClip restarted. Reconcile the existing chat before continuing.", status: .needsYou)
+      }
     }
     if snapshot.settings.codexPath.isEmpty {
       snapshot.settings.codexPath = Self.defaultCodexPath()
@@ -102,6 +118,12 @@ import UserNotifications
     agent: AgentKind? = nil
   ) throws {
     let chosenAgent = agent ?? snapshot.settings.preferredAgent
+    if !draft, chosenAgent == .external, projectID != nil {
+      let availability = AgentPicker.externalAvailability(
+        configured: loadExternalAssistant().isConfigured, hasProject: true,
+        projectOptIn: project(projectID)?.sendsExternalScreenshots == true)
+      if let hint = availability.hint { throw ScreenClipError.message(hint) }
+    }
     let approved = try store.writeAsset(imageData)
     // A redacted original is never retained where a local coding agent could read it.
     var original: String?
@@ -179,8 +201,53 @@ import UserNotifications
   func refreshAgents() async {
     detectingAgents = true
     defer { detectingAgents = false }
-    agents = await AgentDetector.detectAll(snapshot.settings)
+    agents = await AgentDetector.detectAll(snapshot.settings, external: loadExternalAssistant())
     worker.pump()
+  }
+  func saveExternalAssistant(webhookURL: String, authorization: String) throws {
+    let previous = loadExternalAssistant()
+    let next = ExternalAssistantConfiguration(
+      webhookURL: webhookURL, authorization: authorization, testSucceeded: false)
+    let unchanged =
+      previous.normalizedURL == next.normalizedURL
+      && previous.normalizedAuthorization == next.normalizedAuthorization
+    try ExternalAssistantKeychain.save(
+      ExternalAssistantConfiguration(
+        webhookURL: next.normalizedURL, authorization: next.normalizedAuthorization,
+        testSucceeded: unchanged && previous.testSucceeded))
+  }
+  func sendExternalAssistantTest(webhookURL: String, authorization: String) async -> String {
+    let configuration = ExternalAssistantConfiguration(
+      webhookURL: webhookURL, authorization: authorization, testSucceeded: false)
+    guard let endpoint = configuration.endpoint else {
+      return "The webhook URL must be an http or https address."
+    }
+    guard !configuration.normalizedAuthorization.isEmpty else {
+      return "Paste the Authorization header value from Grok Bot."
+    }
+    do {
+      let stored = ExternalAssistantConfiguration(
+        webhookURL: configuration.normalizedURL,
+        authorization: configuration.normalizedAuthorization, testSucceeded: false)
+      try ExternalAssistantKeychain.save(stored)
+      let response = try await ExternalAssistantClient.post(
+        url: endpoint, authorization: stored.authorization, body: try ExternalAssistant.testJSON())
+      if response.succeeded {
+        try ExternalAssistantKeychain.save(
+          ExternalAssistantConfiguration(
+            webhookURL: stored.webhookURL, authorization: stored.authorization,
+            testSucceeded: true))
+        await refreshAgents()
+        return "HTTP \(response.status). Grok Bot accepted the test request."
+      }
+      await refreshAgents()
+      let snippet = response.body.trimmingCharacters(in: .whitespacesAndNewlines)
+      return snippet.isEmpty
+        ? "HTTP \(response.status)."
+        : "HTTP \(response.status). \(snippet)"
+    } catch {
+      return error.localizedDescription
+    }
   }
   func detection(_ kind: AgentKind) -> AgentDetection? { agents.first { $0.kind == kind } }
   /// Agents offered in pickers: those found locally, plus the default so it is never hidden.
@@ -188,7 +255,7 @@ import UserNotifications
     let installed = agents.filter(\.installed).map(\.kind)
     if agents.isEmpty { return AgentKind.allCases }
     return AgentKind.allCases.filter {
-      installed.contains($0) || $0 == snapshot.settings.preferredAgent
+      installed.contains($0) || $0 == snapshot.settings.preferredAgent || $0 == .external
     }
   }
   /// One-line status for the default agent, shown in the queue sidebar.
@@ -200,6 +267,10 @@ import UserNotifications
       if !found.installed { return ("Claude Code not found", false) }
       if found.signedIn == false { return ("Sign in to Claude Code to start work", false) }
       return ("Claude Code ready", true)
+    case .external:
+      guard let found = detection(.external) else { return ("Checking Grok Bot…", false) }
+      if !found.usable { return ("Grok Bot is not configured", false) }
+      return ("Grok Bot ready", true)
     }
   }
   /// `claude auth login` needs an interactive terminal and a browser, so run it in Terminal.

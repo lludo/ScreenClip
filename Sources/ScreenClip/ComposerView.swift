@@ -137,22 +137,38 @@ struct ComposerView: View {
           }.frame(maxWidth: .infinity, alignment: .leading)
           VStack(alignment: .leading, spacing: 6) {
             Text("Agent").font(.caption).foregroundStyle(.secondary)
-            Picker("Agent", selection: $agent) {
-              ForEach(agentChoices) { kind in
-                Text(model.detection(kind)?.label ?? kind.title).tag(kind)
+            Menu {
+              ForEach(agentOptions) { option in
+                Button {
+                  agent = option.kind
+                } label: {
+                  if option.kind == agent {
+                    Label(option.title, systemImage: "checkmark")
+                  } else {
+                    Text(option.title)
+                  }
+                }
+                .disabled(!option.enabled)
               }
-            }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityLabel("Agent")
-              .disabled(lockedAgent != nil)
-              .help(
-                lockedAgent != nil
-                  ? "Follow-up captures continue with the issue's existing agent."
-                  : "Which local coding agent works on this report.")
-          }.frame(maxWidth: 200, alignment: .leading)
+            } label: {
+              Text(model.detection(agent)?.label ?? agent.title)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .menuStyle(.borderlessButton)
+            .disabled(lockedAgent != nil)
+            .accessibilityLabel("Agent")
+            .help(
+              lockedAgent != nil
+                ? "Follow-up captures continue with the issue's existing agent."
+                : "Which agent works on this report.")
+          }.frame(maxWidth: 230, alignment: .leading)
         }
-        if lockedAgent == nil, let found = model.detection(agent), !found.usable {
+        if lockedAgent == nil, agent != .external, let found = model.detection(agent), !found.usable {
           Text(found.detail + " The report will wait in the queue until it is ready.")
             .font(.caption).foregroundStyle(.orange)
+        }
+        if let hint = externalAvailability.hint, lockedAgent == nil || lockedAgent == .external {
+          Text(hint).font(.caption).foregroundStyle(.orange)
         }
         if let error { Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
         HStack {
@@ -192,6 +208,24 @@ struct ComposerView: View {
     }
     return target.resolvedAgent
   }
+  private struct AgentOption: Identifiable {
+    var kind: AgentKind
+    var title: String
+    var enabled: Bool
+    var id: AgentKind { kind }
+  }
+  private var externalAvailability: ExternalAgentAvailability {
+    AgentPicker.externalAvailability(
+      configured: model.detection(.external)?.usable == true, hasProject: projectID != nil,
+      projectOptIn: model.project(projectID)?.sendsExternalScreenshots == true)
+  }
+  private var agentOptions: [AgentOption] {
+    agentChoices.map { kind in
+      let title = model.detection(kind)?.label ?? kind.title
+      let enabled = kind == .external ? externalAvailability.enabled : true
+      return AgentOption(kind: kind, title: title, enabled: enabled)
+    }
+  }
   private var agentChoices: [AgentKind] {
     let available = model.availableAgents
     return AgentKind.allCases.filter { available.contains($0) || $0 == agent }
@@ -208,6 +242,10 @@ struct ComposerView: View {
   }
   private func submit(draft: Bool) {
     do {
+      if !draft, (lockedAgent ?? agent) == .external, let hint = externalAvailability.hint {
+        error = hint
+        return
+      }
       var captured = context
       if projectID != nil
         && ProjectRouter.infer(context, projects: model.snapshot.projects).projectID != projectID
