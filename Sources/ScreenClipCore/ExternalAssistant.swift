@@ -692,7 +692,7 @@ extension ExternalAssistant {
     if host == "cursor.com" {
       guard path.range(
         of: #"^/agents/bc-[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"#,
-        options: .regularExpression) != nil
+        options: [.regularExpression, .caseInsensitive]) != nil
       else { return nil }
       return URL(string: "https://cursor.com\(path.lowercased())")
     }
