@@ -1,32 +1,34 @@
 (() => {
-  const tabs = [...document.querySelectorAll('[role="tab"]')];
-  const caption = document.querySelector('#screenshot-caption');
-  const captions = {
-    'tab-capture': 'A quick note. An arrow if you need one. All the context in one capture.',
-    'tab-queue': 'See what’s working, answer a question, and come back when the fix is ready to retest.'
-  };
+  const root = document.querySelector("[data-showcase]");
+  if (!root) return;
+  const tabs = [...root.querySelectorAll("[data-tab]")];
+  const panels = tabs.map((tab) => document.getElementById(tab.getAttribute("aria-controls")));
+  if (tabs.length === 0 || panels.some((panel) => !panel)) return;
 
-  function selectTab(tab) {
+  function select(tab) {
     for (const item of tabs) {
       const selected = item === tab;
-      item.setAttribute('aria-selected', String(selected));
+      item.setAttribute("aria-selected", String(selected));
       item.tabIndex = selected ? 0 : -1;
-      document.getElementById(item.getAttribute('aria-controls')).hidden = !selected;
+      const panel = document.getElementById(item.getAttribute("aria-controls"));
+      panel.hidden = !selected;
     }
-    caption.textContent = captions[tab.id];
   }
 
+  root.classList.add("is-ready");
+  select(tabs.find((tab) => tab.getAttribute("aria-selected") === "true") || tabs[0]);
+
   tabs.forEach((tab, index) => {
-    tab.addEventListener('click', () => selectTab(tab));
-    tab.addEventListener('keydown', event => {
+    tab.addEventListener("click", () => select(tab));
+    tab.addEventListener("keydown", (event) => {
       let next;
-      if (event.key === 'ArrowRight') next = tabs[(index + 1) % tabs.length];
-      if (event.key === 'ArrowLeft') next = tabs[(index - 1 + tabs.length) % tabs.length];
-      if (event.key === 'Home') next = tabs[0];
-      if (event.key === 'End') next = tabs[tabs.length - 1];
+      if (event.key === "ArrowRight") next = tabs[(index + 1) % tabs.length];
+      if (event.key === "ArrowLeft") next = tabs[(index - 1 + tabs.length) % tabs.length];
+      if (event.key === "Home") next = tabs[0];
+      if (event.key === "End") next = tabs[tabs.length - 1];
       if (!next) return;
       event.preventDefault();
-      selectTab(next);
+      select(next);
       next.focus();
     });
   });
