@@ -322,9 +322,11 @@ extension AgentWorker {
     }
   }
   func removeWorkspace(_ id: UUID, path: String, branch: String?, project: Project) async {
-    guard await GitWorkspace.remove(path: path, branch: branch, repository: project.path) else {
-      return
-    }
+    let removed =
+      (try? await serializedWorkspaceChange(project.id) {
+        await GitWorkspace.remove(path: path, branch: branch, repository: project.path)
+      }) ?? false
+    guard removed else { return }
     model.perform {
       try model.updateIssue(id) { issue in
         if issue.worktreePath == path { issue.worktreePath = nil }

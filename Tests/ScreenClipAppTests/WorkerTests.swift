@@ -365,6 +365,66 @@ import XCTest
     model.agents[0].version = nil
     XCTAssertEqual(model.availableAgents, [.codex, .external])
   }
+  func testProjectRunsQueuedReportsInParallelUpToTheLimit() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "screenclip-parallel-" + UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let script = root.appendingPathComponent("fake-claude")
+    try """
+      #!/usr/bin/python3
+      import sys,json,os,time
+      here=os.path.dirname(os.path.abspath(__file__))
+      sys.stdin.readline()
+      open(os.path.join(here,'started-'+os.path.basename(os.getcwd())),'w').close()
+      while not os.path.exists(os.path.join(here,'release')): time.sleep(0.02)
+      def send(value): print(json.dumps(value),flush=True)
+      send({'type':'system','subtype':'init','session_id':os.path.basename(os.getcwd())})
+      report={'outcome':'question','summary':'','question':'Which width?'}
+      send({'type':'result','subtype':'success','is_error':False,'result':'','usage':{'input_tokens':1,'output_tokens':2},'total_cost_usd':0.01,'structured_output':report})
+      """.write(to: script, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
+    let model = try AppModel(root: root.appendingPathComponent("queue"))
+    let repo = root.appendingPathComponent("repo")
+    try FileManager.default.createDirectory(at: repo, withIntermediateDirectories: true)
+    try Data("original".utf8).write(to: repo.appendingPathComponent("source.txt"))
+    for arguments in [
+      ["init", "-b", "main"], ["add", "source.txt"],
+      ["-c", "user.name=ScreenClip", "-c", "user.email=test@example.invalid", "commit", "-m", "initial"],
+    ] {
+      _ = try await CommandRunner.checked("/usr/bin/git", arguments, cwd: repo.path)
+    }
+    try model.saveProject(Project(name: "P", path: repo.path))
+    let project = try XCTUnwrap(model.snapshot.projects.first)
+    var settings = model.snapshot.settings
+    settings.claudePath = script.path
+    settings.paused = true
+    settings.maxParallelReports = 2
+    model.saveSettings(settings)
+    for note in ["One", "Two", "Three"] {
+      try model.submit(
+        imageData: Data([1]), originalData: nil, annotations: [], note: note,
+        context: CaptureContext(), projectID: project.id, existingID: nil, draft: false,
+        agent: .claude)
+    }
+    settings.paused = false
+    model.saveSettings(settings)
+    model.worker.pump()
+    func started() -> Int {
+      ((try? FileManager.default.contentsOfDirectory(atPath: root.path)) ?? [])
+        .filter { $0.hasPrefix("started-") }.count
+    }
+    try await wait { started() == 2 }
+    try await Task.sleep(nanoseconds: 300_000_000)
+    XCTAssertEqual(started(), 2)
+    let working = model.snapshot.issues.filter { $0.status == .working }
+    XCTAssertEqual(working.count, 2)
+    XCTAssertEqual(Set(working.compactMap(\.worktreePath)).count, 2)
+    XCTAssertEqual(model.snapshot.issues.filter { $0.status == .queued }.count, 1)
+    try Data().write(to: root.appendingPathComponent("release"))
+    try await wait { model.snapshot.issues.allSatisfy { $0.status == .needsYou } }
+    XCTAssertEqual(started(), 3)
+  }
   func testReconcileRefusesClaudeSessionRunningOutsideTheWorker() async throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       "screenclip-external-claude-" + UUID().uuidString)
