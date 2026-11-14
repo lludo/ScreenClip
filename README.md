@@ -61,6 +61,8 @@ ScreenClip hides its own windows during capture by default. To report a bug in S
 
 Captures save locally before dispatch, under `~/Library/Application Support/ScreenClip`. Keep ScreenClip running and the Mac awake while an agent works. Use the report’s reply controls to answer questions; click its number to copy a reference.
 
+Forgot a detail? Choose **Add context** in the report to save a text note without another screenshot, including while it is queued or working. Notes stay with the report and are included when the agent next works on it. Adding context during a turn triggers follow-up work; completed reports reopen for a follow-up. Pending questions still use their reply controls.
+
 **Open in Codex** takes you to the exact issue chat. Claude reports offer **Copy Claude resume command**. Cancel active work before taking over the worktree in another coding client. Codex chats may still appear in Recents instead of the expected desktop project; the [repository association review](docs/validation.md#repository-association-review) documents that limitation.
 
 After an interruption, **Reconcile chat** can recover a saved Codex result and independently validate it before publication. For Claude Code, reconciliation checks for an active session process before allowing Continue; it does not recover completed results from Claude history. **Refresh PR status** updates checks immediately. Archive a report to retain its screenshots and outcome while clearing it from the active queue.

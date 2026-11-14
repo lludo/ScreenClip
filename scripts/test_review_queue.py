@@ -50,6 +50,17 @@ class QueueReviewTests(unittest.TestCase):
             reports = review_queue.review(self.state, self.args)["reports"]
             self.assertEqual([report["id"] for report in reports], ["one"])
 
+    def test_text_only_context_is_searchable_and_visible_in_details(self):
+        self.state["issues"][0]["contextNotes"] = [
+            {"text": "Details added after filing", "date": 123, "id": "note"}]
+        self.args.search = "AFTER FILING"
+        result = review_queue.review(self.state, self.args)
+        self.assertEqual([report["id"] for report in result["reports"]], ["one"])
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            review_queue.print_review(result, details=True)
+        self.assertIn("Feedback: Details added after filing", output.getvalue())
+
     def test_project_blockers_and_claude_session_output(self):
         self.state["projects"] = [{"id": "project", "name": "Test", "path": str(self.root)}]
         self.state["issues"][0].update({"agent": "claude", "threadID": "claude-session"})

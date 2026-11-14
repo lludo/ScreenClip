@@ -392,6 +392,9 @@ import ScreenClipCore
     let replies = issue.questions.compactMap { q in
       q.reply.map { "Question: \(q.title)\nUser reply: \($0)" }
     }.joined(separator: "\n")
+    let contextNotes = (issue.contextNotes ?? []).map {
+      "Context added at \($0.date.formatted(.iso8601)):\n\($0.text)"
+    }.joined(separator: "\n\n")
     return """
       Resolve this ScreenClip issue in the current isolated worktree. Issue ID: \(issue.id), revision \(issue.revision).
       Report number: \(issue.reportReference ?? "unassigned").
@@ -406,6 +409,9 @@ import ScreenClipCore
       <capture_evidence>
       \(captures)
       </capture_evidence>
+      <additional_context>
+      \(contextNotes)
+      </additional_context>
       <user_replies>
       \(replies)
       </user_replies>
