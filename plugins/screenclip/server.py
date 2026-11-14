@@ -25,7 +25,7 @@ def snapshot():
 def call(name, arguments):
     state = snapshot()
     if name == "list_issues":
-        issues = [{k: issue.get(k) for k in ["id", "reportNumber", "title", "status", "projectID", "revision", "prURL"]} for issue in state["issues"] if not issue.get("archived") and (not arguments.get("status") or issue.get("status") == arguments["status"])]
+        issues = [{k: issue.get(k) for k in ["id", "reportNumber", "title", "status", "projectID", "revision", "prURL"]} | {"agent": issue.get("agent") or "codex"} for issue in state["issues"] if not issue.get("archived") and (not arguments.get("status") or issue.get("status") == arguments["status"])]
         return {"content": [{"type": "text", "text": json.dumps(issues)}]}
     if name != "get_issue":
         raise ValueError("Unknown tool")
@@ -40,6 +40,7 @@ def call(name, arguments):
         raise ValueError("Issue not found")
     # Deliberately exclude original images, filesystem paths, settings, and credentials.
     public = {k: issue.get(k) for k in ["id", "reportNumber", "title", "status", "revision", "threadID", "prURL", "resultSummary", "activities"]}
+    public["agent"] = issue.get("agent") or "codex"
     public["captures"] = [{"id": c["id"], "note": c["note"], "context": c["context"]} for c in issue["captures"]]
     content = [{"type": "text", "text": json.dumps(public)}]
     if arguments.get("include_images"):

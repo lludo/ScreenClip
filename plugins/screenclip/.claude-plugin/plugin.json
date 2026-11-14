@@ -1,0 +1,8 @@
+{
+  "name": "screenclip",
+  "version": "0.1.0",
+  "description": "Read local ScreenClip observations, approved screenshots, and fix status from Claude Code, and fix a report in the current session.",
+  "author": { "name": "ScreenClip" },
+  "license": "MIT",
+  "keywords": ["screenshots", "feedback", "qa", "bug-reports"]
+}

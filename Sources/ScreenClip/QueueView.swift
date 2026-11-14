@@ -49,66 +49,11 @@ struct QueueView: View {
   }
   var body: some View {
     HSplitView {
-      List {
-        Section {
-          ForEach(QueueFilter.allCases) { item in
-            Button {
-              filter = item
-            } label: {
-              HStack {
-                Label(item.rawValue, systemImage: item.symbol)
-                Spacer()
-                Text("\(model.snapshot.issues.filter { item.includes($0) }.count)").foregroundStyle(
-                  .secondary
-                ).monospacedDigit()
-              }
-              .padding(.vertical, 4).foregroundStyle(filter == item ? Color.orange : Color.primary)
-            }.buttonStyle(.plain)
-          }
-        } header: {
-          Text("WORKSPACE")
-        }
-        Section("PROJECTS") {
-          Button {
-            projectFilter = nil
-          } label: {
-            Label("All projects", systemImage: "square.grid.2x2").foregroundStyle(
-              projectFilter == nil ? .orange : .primary)
-          }.buttonStyle(.plain)
-          ForEach(model.snapshot.projects) { project in
-            Button {
-              projectFilter = project.id
-            } label: {
-              Label(project.name, systemImage: "folder").foregroundStyle(
-                projectFilter == project.id ? .orange : .primary)
-            }.buttonStyle(.plain)
-          }
-          Button {
-            model.settingsAction?()
-          } label: {
-            Label("Manage projects…", systemImage: "plus")
-          }.buttonStyle(.plain).foregroundStyle(.secondary)
-        }
-      }.listStyle(.sidebar).frame(minWidth: 190, idealWidth: 210)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-          VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 6) {
-              Circle().fill(model.connection == "Connected to Codex" ? .green : .secondary).frame(
-                width: 6, height: 6)
-              Text(model.connection).lineLimit(2).font(.caption)
-            }
-            Button {
-              model.perform { try model.commit { $0.settings.paused.toggle() } }
-              model.worker.pump()
-            } label: {
-              Label(
-                model.snapshot.settings.paused ? "Resume processing" : "Pause processing",
-                systemImage: model.snapshot.settings.paused ? "play.fill" : "pause.fill")
-            }.buttonStyle(.plain).font(.caption)
-          }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(nsColor: .windowBackgroundColor))
-            .overlay(alignment: .top) { Divider() }
-        }
+      VStack(spacing: 0) {
+        sidebarList
+        Divider()
+        sidebarFooter
+      }.frame(minWidth: 190, idealWidth: 210, maxHeight: .infinity)
       VStack(spacing: 0) {
         VStack(alignment: .leading, spacing: 12) {
           HStack {
@@ -157,7 +102,7 @@ struct QueueView: View {
               }
           }.listStyle(.inset)
         }
-      }.frame(minWidth: 280, idealWidth: 330)
+      }.frame(minWidth: 280, idealWidth: 330, maxHeight: .infinity, alignment: .top)
       Group {
         if let id = model.selectedIssueID, let issue = model.issue(id) {
           IssueDetailView(model: model, issue: issue)
@@ -166,6 +111,7 @@ struct QueueView: View {
         }
       }.frame(minWidth: 450, maxWidth: .infinity, maxHeight: .infinity).layoutPriority(1)
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
     .overlay(alignment: .bottom) {
       if let banner = model.banner {
         HStack {
@@ -187,6 +133,67 @@ struct QueueView: View {
     }
     .onChange(of: model.selectedIssueID) { _, id in if let id { model.markRead(id) } }
     .frame(minWidth: 1000, minHeight: 640)
+  }
+  private var sidebarList: some View {
+    List {
+      Section {
+        ForEach(QueueFilter.allCases) { item in
+          Button {
+            filter = item
+          } label: {
+            HStack {
+              Label(item.rawValue, systemImage: item.symbol)
+              Spacer()
+              Text("\(model.snapshot.issues.filter { item.includes($0) }.count)").foregroundStyle(
+                .secondary
+              ).monospacedDigit()
+            }
+            .padding(.vertical, 4).foregroundStyle(filter == item ? Color.orange : Color.primary)
+          }.buttonStyle(.plain)
+        }
+      } header: {
+        Text("WORKSPACE")
+      }
+      Section("PROJECTS") {
+        Button {
+          projectFilter = nil
+        } label: {
+          Label("All projects", systemImage: "square.grid.2x2").foregroundStyle(
+            projectFilter == nil ? .orange : .primary)
+        }.buttonStyle(.plain)
+        ForEach(model.snapshot.projects) { project in
+          Button {
+            projectFilter = project.id
+          } label: {
+            Label(project.name, systemImage: "folder").foregroundStyle(
+              projectFilter == project.id ? .orange : .primary)
+          }.buttonStyle(.plain)
+        }
+        Button {
+          model.settingsAction?()
+        } label: {
+          Label("Manage projects…", systemImage: "plus")
+        }.buttonStyle(.plain).foregroundStyle(.secondary)
+      }
+    }.listStyle(.sidebar)
+  }
+  private var sidebarFooter: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 6) {
+        Circle().fill(model.agentStatus.ready ? .green : .secondary).frame(
+          width: 6, height: 6)
+        Text(model.agentStatus.text).lineLimit(2).font(.caption)
+      }
+      Button {
+        model.perform { try model.commit { $0.settings.paused.toggle() } }
+        model.worker.pump()
+      } label: {
+        Label(
+          model.snapshot.settings.paused ? "Resume processing" : "Pause processing",
+          systemImage: model.snapshot.settings.paused ? "play.fill" : "pause.fill")
+      }.buttonStyle(.plain).font(.caption)
+    }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
+      .background(Color(nsColor: .windowBackgroundColor))
   }
 }
 struct IssueRow: View {
@@ -238,7 +245,9 @@ struct WelcomeView: View {
       Image(systemName: "viewfinder").font(.system(size: 45, weight: .light)).foregroundStyle(
         .orange)
       VStack(alignment: .leading, spacing: 10) {
-        Text("Keep your testing flow.").font(.system(size: 28, weight: .semibold))
+        Text("File bugs as you go, without breaking your flow.")
+          .font(.system(size: 28, weight: .semibold))
+          .fixedSize(horizontal: false, vertical: true)
         Text("Capture what you notice. Follow the fix here.").font(.title3).foregroundStyle(
           .secondary)
       }
@@ -290,12 +299,21 @@ struct IssueDetailView: View {
         }
         Text(issue.title).font(.system(size: 25, weight: .semibold)).textSelection(.enabled)
         HStack(spacing: 12) {
+          Label(issue.resolvedAgent.title, systemImage: "cpu").font(.caption)
+            .foregroundStyle(.secondary).help("Agent working on this issue")
           if issue.codexURL != nil {
             Button {
               model.openCodex(issue)
             } label: {
               Label("Open in Codex", systemImage: "arrow.up.right.square")
             }
+          }
+          if issue.claudeResumeCommand != nil {
+            Button {
+              model.copyClaudeResumeCommand(issue)
+            } label: {
+              Label("Copy Claude resume command", systemImage: "terminal")
+            }.help("Copies a Terminal command that reopens this issue's Claude Code session")
           }
           if let url = issue.prURL.flatMap(URL.init(string:)) {
             Link("View pull request", destination: url)
@@ -435,13 +453,21 @@ struct IssueDetailView: View {
         }
       }.padding(28)
     }
-    .alert("Link an existing Codex chat", isPresented: $showLinkChat) {
-      TextField("Thread ID or codex://threads/…", text: $chatID)
+    .alert(
+      issue.resolvedAgent == .claude
+        ? "Link an existing Claude Code session" : "Link an existing Codex chat",
+      isPresented: $showLinkChat
+    ) {
+      TextField(
+        issue.resolvedAgent == .claude ? "Session ID" : "Thread ID or codex://threads/…",
+        text: $chatID)
       Button("Link") {
         let value = chatID.replacingOccurrences(of: "codex://threads/", with: "")
           .trimmingCharacters(in: .whitespacesAndNewlines)
         guard value.range(of: "^[A-Za-z0-9_-]+$", options: .regularExpression) != nil else {
-          model.banner = "Enter the thread ID from the Codex chat link."
+          model.banner =
+            issue.resolvedAgent == .claude
+            ? "Enter the Claude Code session ID." : "Enter the thread ID from the Codex chat link."
           return
         }
         Task { await model.worker.reconcile(issue.id, linkingThread: value) }
@@ -457,7 +483,9 @@ struct IssueDetailView: View {
       Button("Delete local evidence", role: .destructive) { model.delete(issue.id) }
       Button("Cancel", role: .cancel) {}
     } message: {
-      Text("Codex chat history, Git worktrees, and pull requests are retained independently.")
+      Text(
+        "\(issue.resolvedAgent.title) history, Git worktrees, and pull requests are retained independently."
+      )
     }
   }
   func contextLine(_ label: String, _ value: String) -> some View {

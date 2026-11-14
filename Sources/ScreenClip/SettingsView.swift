@@ -114,6 +114,50 @@ struct SettingsView: View {
           }
         }.padding(24).tabItem { Label("Projects", systemImage: "folder") }.tag(1)
         Form {
+          Section("AI agent") {
+            Picker(
+              "Default agent",
+              selection: Binding(
+                get: { settings.preferredAgent }, set: { settings.defaultAgent = $0 })
+            ) {
+              ForEach(agentChoices) { kind in
+                Text(model.detection(kind)?.label ?? kind.title).tag(kind)
+              }
+            }
+            ForEach(AgentKind.allCases) { kind in
+              AgentDetectionRow(kind: kind, detection: model.detection(kind))
+            }
+            HStack {
+              Button(model.detectingAgents ? "Detecting…" : "Detect agents") { detectAgents() }
+                .disabled(model.detectingAgents)
+              Spacer()
+            }
+            Text(
+              "New captures use the default agent. You can pick a different agent for any single report in the capture window. Each issue keeps the agent it started with."
+            ).font(.caption).foregroundStyle(.secondary)
+          }
+          Section("Claude Code") {
+            TextField(
+              "Claude Code executable",
+              text: Binding(get: { settings.claudePath ?? "" }, set: { settings.claudePath = $0 }),
+              prompt: Text(AgentDetector.defaultClaudePath().isEmpty
+                ? "Not found" : AgentDetector.defaultClaudePath()))
+            HStack {
+              Button("Choose…") { chooseExecutable { settings.claudePath = $0 } }
+              Button("Sign in to Claude") {
+                model.saveSettings(settings)
+                model.signInToClaude()
+              }
+              Button("Check") { detectAgents() }
+            }
+            TextField(
+              "Model (empty uses Claude Code's default)",
+              text: Binding(get: { settings.claudeModel ?? "" }, set: { settings.claudeModel = $0 }),
+              prompt: Text("e.g. opus, sonnet"))
+            Text(
+              "Runs claude -p in each issue's isolated worktree with edits auto-approved and Bash inside Claude Code's sandbox. git push and gh are blocked; ScreenClip validates, commits, and opens the PR itself. Sign-in opens Terminal for claude auth login."
+            ).font(.caption).foregroundStyle(.secondary)
+          }
           Section("Codex") {
             TextField("Codex executable", text: $settings.codexPath)
             CodexConnectionControls(
@@ -165,6 +209,14 @@ struct SettingsView: View {
         if model.snapshot.projects.isEmpty { tab = 1 }
       }
       .sheet(item: $editProject) { project in ProjectEditor(model: model, project: project) }
+  }
+  private var agentChoices: [AgentKind] {
+    let available = model.availableAgents
+    return AgentKind.allCases.filter { available.contains($0) || $0 == settings.preferredAgent }
+  }
+  private func detectAgents() {
+    model.saveSettings(settings)
+    Task { await model.refreshAgents() }
   }
   private func chooseExecutable(_ assign: (String) -> Void) {
     let panel = NSOpenPanel()
@@ -405,5 +457,28 @@ final class RecorderField: NSTextField {
     record?(UInt32(event.keyCode), value, label)
     stringValue = label
     window?.makeFirstResponder(nil)
+  }
+}
+
+struct AgentDetectionRow: View {
+  let kind: AgentKind
+  let detection: AgentDetection?
+  var body: some View {
+    let symbol: String
+    let color: Color
+    switch detection {
+    case nil: (symbol, color) = ("ellipsis.circle", .secondary)
+    case let found? where found.usable: (symbol, color) = ("checkmark.circle.fill", .green)
+    case let found? where found.installed: (symbol, color) = ("exclamationmark.circle.fill", .orange)
+    default: (symbol, color) = ("xmark.circle", .secondary)
+    }
+    return HStack(alignment: .firstTextBaseline) {
+      Image(systemName: symbol).foregroundStyle(color)
+      VStack(alignment: .leading, spacing: 2) {
+        Text(kind.title)
+        Text(detection?.detail ?? "Not checked yet").font(.caption).foregroundStyle(.secondary)
+          .textSelection(.enabled)
+      }
+    }
   }
 }

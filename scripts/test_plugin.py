@@ -57,6 +57,22 @@ class PluginTests(unittest.TestCase):
         self.save()
         listed = json.loads(plugin.call("list_issues", {})["content"][0]["text"])
         self.assertEqual(listed[0]["reportNumber"], 234)
+    def test_agent_defaults_to_codex_for_older_issues(self):
+        listed = json.loads(plugin.call("list_issues", {})["content"][0]["text"])
+        self.assertEqual(listed[0]["agent"], "codex")
+        self.issue["agent"] = "claude"
+        self.save()
+        found = json.loads(plugin.call("get_issue", {"issue_id": self.id})["content"][0]["text"])
+        self.assertEqual(found["agent"], "claude")
+    def test_claude_code_plugin_manifests(self):
+        root = Path(__file__).resolve().parents[1]
+        manifest = json.loads((root / "plugins/screenclip/.claude-plugin/plugin.json").read_text())
+        self.assertEqual(manifest["name"], "screenclip")
+        servers = json.loads((root / "plugins/screenclip/.mcp.json").read_text())["mcpServers"]
+        self.assertEqual(servers["screenclip"]["args"], ["${CLAUDE_PLUGIN_ROOT}/server.py"])
+        market = json.loads((root / ".claude-plugin/marketplace.json").read_text())
+        self.assertEqual(market["plugins"][0]["source"], "./plugins/screenclip")
+        self.assertTrue((root / "plugins/screenclip/skills/fix-report/SKILL.md").is_file())
     def test_stdio_handshake_and_tool_discovery(self):
         requests = [
             {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05"}},
