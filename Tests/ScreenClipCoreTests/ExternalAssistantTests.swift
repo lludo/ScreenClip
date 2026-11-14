@@ -76,8 +76,10 @@ final class ExternalAssistantTests: XCTestCase {
 
   func testBranchSlugIsStableAndGitSafe() {
     XCTAssertEqual(
-      ExternalAssistant.branchName(reportNumber: 234, title: "Clipped button on home"),
-      "screenclip/234-clipped-button-on-home")
+      ExternalAssistant.branchName(
+        reportNumber: 234, title: "Clipped button on home",
+        workspaceID: UUID(uuidString: "ABCDEF12-0000-0000-0000-000000000000")!),
+      "screenclip/234-clipped-button-on-home-abcdef12")
     XCTAssertEqual(ExternalAssistant.slug("Hello, World!"), "hello-world")
     XCTAssertEqual(ExternalAssistant.slug("Café menu"), "cafe-menu")
     XCTAssertEqual(ExternalAssistant.slug("   "), "report")
@@ -86,7 +88,7 @@ final class ExternalAssistantTests: XCTestCase {
     XCTAssertLessThanOrEqual(long.count, 40)
     XCTAssertFalse(long.hasSuffix("-"))
     for title in ["", "Hello, World!", "a/b", "lead.ing", ".hidden", "semi;colon", "at@{"] {
-      let branch = ExternalAssistant.branchName(reportNumber: 12, title: title)
+      let branch = ExternalAssistant.branchName(reportNumber: 12, title: title, workspaceID: UUID())
       XCTAssertTrue(branch.hasPrefix("screenclip/12-"), branch)
       XCTAssertFalse(branch.contains(" "))
       XCTAssertFalse(branch.contains(".."))
@@ -208,10 +210,30 @@ final class ExternalAssistantTests: XCTestCase {
       revision: 3, handoffRevision: 2, handoffCommit: "abc", uncertain: false)
     XCTAssertEqual(ExternalHandoff.action(followUp), .commitEvidence)
     XCTAssertEqual(
-      ExternalRecovery.afterRestart(status: .working, uncertain: true), .retrySend)
+      ExternalRecovery.afterRestart(status: .working, uncertain: true, sentCurrentRevision: true),
+      .retrySend)
     XCTAssertEqual(
-      ExternalRecovery.afterRestart(status: .working, uncertain: false), .watchForPullRequest)
-    XCTAssertEqual(ExternalRecovery.afterRestart(status: .failed, uncertain: false), .retrySend)
+      ExternalRecovery.afterRestart(status: .working, uncertain: false, sentCurrentRevision: true),
+      .watchForPullRequest)
+    // Quitting while evidence was still being prepared or pushed: nothing was sent.
+    XCTAssertEqual(
+      ExternalRecovery.afterRestart(status: .working, uncertain: false, sentCurrentRevision: false),
+      .retrySend)
+    XCTAssertEqual(
+      ExternalRecovery.afterRestart(status: .failed, uncertain: false, sentCurrentRevision: true),
+      .retrySend)
+    var issue = Issue(
+      projectID: nil, title: "t",
+      capture: Capture(note: "", imagePath: "/a.png", originalPath: nil, annotations: [], context: CaptureContext()))
+    issue.handoffRevision = issue.revision
+    issue.record("Preparing evidence for Grok Bot", status: .working)
+    XCTAssertFalse(ExternalRecovery.sentCurrentRevision(issue))
+    issue.record(ExternalAssistant.sentActivity)
+    XCTAssertTrue(ExternalRecovery.sentCurrentRevision(issue))
+    issue.record(ExternalAssistant.restartWatchActivity)
+    XCTAssertTrue(ExternalRecovery.sentCurrentRevision(issue))
+    issue.revision += 1
+    XCTAssertFalse(ExternalRecovery.sentCurrentRevision(issue))
   }
 
   func testPullRequestMatchRequiresBranchAndReportMarker() {
@@ -249,20 +271,28 @@ final class ExternalAssistantTests: XCTestCase {
       closed.url)
   }
 
-  func testAuthorizationStaysOnTheSameHostDuringRedirect() {
-    var same = URLRequest(url: URL(string: "https://assistant.example/next")!)
-    same.setValue("Bearer secret", forHTTPHeaderField: "Authorization")
-    let kept = ExternalAssistantClient.requestKeepingAuthorizationOnSameHost(
-      originalHost: "assistant.example", redirected: same)
-    XCTAssertEqual(kept.value(forHTTPHeaderField: "Authorization"), "Bearer secret")
-    var other = URLRequest(url: URL(string: "https://elsewhere.example/next")!)
-    other.setValue("Bearer secret", forHTTPHeaderField: "Authorization")
-    let stripped = ExternalAssistantClient.requestKeepingAuthorizationOnSameHost(
-      originalHost: "Assistant.Example", redirected: other)
-    XCTAssertNil(stripped.value(forHTTPHeaderField: "Authorization"))
-    let missing = ExternalAssistantClient.requestKeepingAuthorizationOnSameHost(
-      originalHost: nil, redirected: same)
-    XCTAssertNil(missing.value(forHTTPHeaderField: "Authorization"))
+  func testAuthorizationStaysOnlyOnTheSameOriginDuringRedirect() {
+    let origin = URL(string: "https://Assistant.Example/hook")!
+    func redirect(_ target: String) -> URLRequest {
+      var request = URLRequest(url: URL(string: target)!)
+      request.setValue("Bearer secret", forHTTPHeaderField: "Authorization")
+      return ExternalAssistantClient.requestKeepingAuthorizationOnSameOrigin(
+        original: origin, redirected: request)
+    }
+    XCTAssertEqual(
+      redirect("https://assistant.example/next").value(forHTTPHeaderField: "Authorization"),
+      "Bearer secret")
+    XCTAssertEqual(
+      redirect("https://assistant.example:443/next").value(forHTTPHeaderField: "Authorization"),
+      "Bearer secret")
+    XCTAssertNil(redirect("https://elsewhere.example/next").value(forHTTPHeaderField: "Authorization"))
+    XCTAssertNil(redirect("http://assistant.example/next").value(forHTTPHeaderField: "Authorization"))
+    XCTAssertNil(redirect("https://assistant.example:8443/next").value(forHTTPHeaderField: "Authorization"))
+    var request = URLRequest(url: URL(string: "https://assistant.example/next")!)
+    request.setValue("Bearer secret", forHTTPHeaderField: "Authorization")
+    XCTAssertNil(
+      ExternalAssistantClient.requestKeepingAuthorizationOnSameOrigin(original: nil, redirected: request)
+        .value(forHTTPHeaderField: "Authorization"))
   }
 
   func testScreenclipPathsBlockAutomaticMerge() {

@@ -40,13 +40,15 @@ The source review added a regression that reproduced two chats and turns being c
 
 ## External assistant (Grok Bot)
 
-November 14, 2026. Grok Bot is implemented as `AgentKind.external` and documented in [external-assistant.md](agents/external-assistant.md). Approved screenshots are pushed to `screenclip/<reportNumber>-<slug>`; the webhook schema `screenclip.external.v1` does not carry image bytes. `report.json` uses the same fields, with `evidence.commit` null because that file cannot contain its own commit id.
+November 14, 2026. Grok Bot is implemented as `AgentKind.external` and documented in [external-assistant.md](agents/external-assistant.md). Approved screenshots are pushed to `screenclip/<reportNumber>-<slug>-<workspace>`; the webhook schema `screenclip.external.v1` does not carry image bytes. `report.json` uses the same fields, with `evidence.commit` null because that file cannot contain its own commit id.
 
 The change was written on Linux, which has no Swift toolchain. GitHub Actions then ran the suite on macos-15 (arm64). After a slug-length fix, the macOS workflow passed `bash scripts/test.sh`, the Python tests (`test_plugin.py`, `test_review_queue.py`, `test_external_assistant.py`), and the Xcode Debug and Release builds.
 
 `bash scripts/test.sh` covers `ExternalAssistantTests` (payload encoding, slug and branch names, opt-in, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, and the Authorization header on a test POST) and `ExternalAssistantAppTests` (Grok Bot stays in the agent list, submit refuses it until the webhook is configured and the project opts in, and a restart during the POST stays retryable). One slug-length failure on the first green-compile run was fixed before the passing run.
 
 A later review fixed three hand-off bugs and added tests for them: a retry commits leftover `.screenclip/` files before fast-forwarding, the Keychain item is updated in place, and the Authorization header is rejected when it contains a line break and is removed on a cross-host redirect. Those tests ride with the next macOS workflow run.
+
+A second review before merge fixed four more: each workspace gets its own `screenclip/` branch, so a follow-up after a merge no longer collides with the merged branch or rediscovers the merged pull request; a restart while evidence was still being prepared or pushed now offers Retry instead of waiting for a pull request that was never requested; a rejected push after a base update rolls back the local merge; and the Authorization header survives a redirect only when scheme, host and port all match.
 
 **Still not exercised**
 

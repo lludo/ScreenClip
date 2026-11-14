@@ -10,7 +10,7 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 | --- | --- |
 | Where it appears | Settings → Connections → **AI agent** → **Default agent**, the agent list, and the capture window's **Agent** picker, next to Codex and Claude Code. |
 | Ready | Detected when a webhook URL and an Authorization header value are saved in the Keychain. A successful Send test is optional and is mentioned in the status line. Otherwise the row says **Not configured** and points at Settings → Connections → External assistant. |
-| Evidence | Approved screenshots and `report.json` are committed to `screenclip/<reportNumber>-<slug>` in the project's repository and pushed. The webhook does not contain image bytes. |
+| Evidence | Approved screenshots and `report.json` are committed to `screenclip/<reportNumber>-<slug>-<workspace>` in the project's repository and pushed. The webhook does not contain image bytes. |
 | Opt-in | Each project has **Allow sending screenshots to the external assistant**, off by default. Public and private repositories both need it. The capture window explains why Grok Bot cannot be chosen while it is off. |
 | After a 2xx | Activity `Sent to external assistant`. The issue stays **Working** until a pull request is found. |
 | Pull request | The assistant opens a PR from that same branch whose body contains `ScreenClip: #<reportNumber>`. ScreenClip polls GitHub and **Refresh PR status** picks it up immediately. |
@@ -20,7 +20,7 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 
 ## Hand-off
 
-1. ScreenClip creates or reuses a worktree on `screenclip/<reportNumber>-<slug>`, branched from the project's base branch. The slug is a short lowercase form of the title.
+1. ScreenClip creates or reuses a worktree on `screenclip/<reportNumber>-<slug>-<workspace>`, branched from the project's base branch. The slug is a short lowercase form of the title.
 2. It commits `.screenclip/<reportNumber>/report.json` and `.screenclip/<reportNumber>/capture-<n>.png`. The PNGs are the approved derivatives (annotations applied, redactions flattened). Unredacted originals are never committed.
 3. It pushes that branch with the `gh` and `git` credentials already used for pull requests.
 4. It POSTs JSON with schema `screenclip.external.v1`.
@@ -57,7 +57,7 @@ A follow-up capture adds files and a new commit on the same branch, then sends t
 ## What Grok Bot does
 
 1. Wakes on the webhook and reads the note plus the screenshots on the evidence branch.
-2. Starts a cloud coding agent on that repository. The branch stays `screenclip/<reportNumber>-<slug>`. The pull request body includes `ScreenClip: #<reportNumber>`.
+2. Starts a cloud coding agent on that repository. The branch stays `screenclip/<reportNumber>-<slug>-<workspace>`. The pull request body includes `ScreenClip: #<reportNumber>`.
 3. Questions stay in Grok Bot's chat.
 4. The last commit deletes `.screenclip/`. ScreenClip will not auto-merge while those files are still in the pull request.
 
@@ -116,5 +116,5 @@ Grok Bot is listed even when it is not configured.
 
 ## Verification status
 
-- **Automated:** payload encoding, branch slugs, GitHub remote parsing, opt-in gating, idempotent retry of the same revision, pull-request matching, the `.screenclip/` merge guard, detection and picker availability, header-safety, same-host redirect handling, and `scripts/send_test_webhook.py`. GitHub Actions on macos-15 passed the earlier Grok Bot suite, the Python tests, and the Xcode Debug and Release builds. The review fixes are in the tests and wait on the next macOS run.
+- **Automated:** payload encoding, branch slugs, GitHub remote parsing, opt-in gating, idempotent retry of the same revision, pull-request matching, the `.screenclip/` merge guard, detection and picker availability, header-safety, same-origin redirect handling (scheme, host and port), and `scripts/send_test_webhook.py`. GitHub Actions on macos-15 passed the earlier Grok Bot suite, the Python tests, and the Xcode Debug and Release builds. The review fixes are in the tests and wait on the next macOS run.
 - **Not yet exercised:** a live webhook, a real evidence push, pull-request discovery, and auto-merge. See [validation.md](../validation.md).
