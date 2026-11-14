@@ -103,5 +103,5 @@ Grok Bot is listed even when it is not configured.
 
 ## Verification status
 
-- **Automated, in this repository:** payload encoding, branch slugs, GitHub remote parsing, opt-in gating, idempotent retry of the same revision, pull-request matching, the `.screenclip/` merge guard, detection and picker availability, and `scripts/send_test_webhook.py`.
-- **Not verified from the Linux environment that added this:** `bash scripts/test.sh`, the Xcode build, a live webhook, a real evidence push, pull-request discovery, or auto-merge. See [validation.md](../validation.md).
+- **Automated:** payload encoding, branch slugs, GitHub remote parsing, opt-in gating, idempotent retry of the same revision, pull-request matching, the `.screenclip/` merge guard, detection and picker availability, and `scripts/send_test_webhook.py`. GitHub Actions on macos-15 passed `bash scripts/test.sh`, the Python tests, and the Xcode Debug and Release builds.
+- **Not yet exercised:** a live webhook, a real evidence push, pull-request discovery, and auto-merge. See [validation.md](../validation.md).
