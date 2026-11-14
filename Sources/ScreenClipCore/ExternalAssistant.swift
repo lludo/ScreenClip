@@ -24,10 +24,11 @@ public enum ExternalAssistant {
     for character in folded {
       let asciiLetter = character.isASCII && (character.isLetter || character.isNumber)
       if asciiLetter {
-        if dash && !output.isEmpty { output.append("-") }
+        let separator = dash && !output.isEmpty ? 1 : 0
+        if output.count + separator + 1 > limit { break }
+        if separator == 1 { output.append("-") }
         dash = false
         output.append(character)
-        if output.count >= limit { break }
       } else if !output.isEmpty {
         dash = true
       }
