@@ -1,13 +1,13 @@
 <div class="intro wrap">
       <section class="hero" aria-labelledby="hero-title">
-        <p class="eyebrow">Screenshot feedback for AI coding agents</p>
-        <h1 id="hero-title">From a screenshot to a <span class="accent">pull request.</span></h1>
-        <p class="lead">Capture a region on your Mac, mark what matters, and hand it to Codex, Claude Code, or Grok Bot. ScreenClip tracks the GitHub pull request, merges when you allow it, and keeps the result for retest.</p>
+        <p class="eyebrow">{{hero.eyebrow}}</p>
+        <h1 id="hero-title">{{hero.title}}</h1>
+        <p class="lead">{{hero.lead}}</p>
         @@ACTIONS@@
       </section>
 
       <section class="demo" id="demo" aria-labelledby="demo-title">
-        <h2 id="demo-title">The menu bar</h2>
+        <h2 id="demo-title">{{demo.title}}</h2>
         <figure class="demo-figure">
           <picture>
             <source media="(prefers-color-scheme: dark)" type="image/avif" srcset="@@POPUP_DARK_AVIF@@">
@@ -15,9 +15,9 @@
             <source media="(prefers-color-scheme: dark)" type="image/png" srcset="@@POPUP_DARK_PNG@@">
             <source type="image/avif" srcset="@@POPUP_LIGHT_AVIF@@">
             <source type="image/webp" srcset="@@POPUP_LIGHT_WEBP@@">
-            <img class="popup" src="@@POPUP_LIGHT_PNG@@" width="@@POPUP_W@@" height="@@POPUP_H@@" alt="ScreenClip menu bar popup with sample reports: 1 open, 1 that needs you, and 19 to retest. The list shows report titles, the ScreenClip project, and Needs you or Merged status, with New capture, Open queue, and Pause." fetchpriority="high">
+            <img class="popup" src="@@POPUP_LIGHT_PNG@@" width="@@POPUP_W@@" height="@@POPUP_H@@" alt="{{demo.alt}}" fetchpriority="high">
           </picture>
-          <figcaption>Open, needs you, and ready to retest.</figcaption>
+          <figcaption>{{demo.caption}}</figcaption>
         </figure>
       </section>
     </div>
@@ -25,40 +25,40 @@
     <section class="section section-rule" id="loop" aria-labelledby="loop-title">
       <div class="wrap">
         <div class="section-intro">
-          <p class="eyebrow">How it works</p>
-          <h2 id="loop-title">Capture it, ship the fix, retest it.</h2>
-          <p>A clipped button or a confusing label is enough. You keep moving. ScreenClip holds the report and the pull request.</p>
+          <p class="eyebrow">{{loop.eyebrow}}</p>
+          <h2 id="loop-title">{{loop.title}}</h2>
+          <p>{{loop.intro}}</p>
         </div>
         <ol class="loop">
           <li>
             <span class="step-num">01</span>
-            <h3>Capture</h3>
-            <p>Press <kbd>Cmd</kbd> <kbd>Shift</kbd> <kbd>2</kbd> and drag a region of a website or a Mac app. The shortcut can be changed in Settings.</p>
+            <h3>{{loop.captureTitle}}</h3>
+            <p>{{loop.captureBody}}</p>
           </li>
           <li>
             <span class="step-num">02</span>
-            <h3>Annotate</h3>
-            <p>Add a note, an arrow, a shape, or text. A screenshot alone is enough. Redaction is a box you draw, flattened to opaque black.</p>
+            <h3>{{loop.annotateTitle}}</h3>
+            <p>{{loop.annotateBody}}</p>
           </li>
           <li>
             <span class="step-num">03</span>
-            <h3>Agent</h3>
-            <p>Codex and Claude Code work on this Mac, in their own Git worktree. Grok Bot is remote, and only after you save a webhook and opt that project in.</p>
+            <h3>{{loop.agentTitle}}</h3>
+            <p>{{loop.agentBody}}</p>
           </li>
           <li>
             <span class="step-num">04</span>
-            <h3>Pull request</h3>
-            <p>For Codex and Claude Code, ScreenClip runs your validation command and opens the pull request. Grok Bot opens it from the branch ScreenClip pushed.</p>
+            <h3>{{loop.prTitle}}</h3>
+            <p>{{loop.prBody}}</p>
           </li>
           <li>
             <span class="step-num">05</span>
-            <h3>Merged</h3>
-            <p>With automatic merge on, ScreenClip merges after validation, checks, and review rules pass. It does not skip required reviews. A merge is not a deploy.</p>
+            <h3>{{loop.mergedTitle}}</h3>
+            <p>{{loop.mergedBody}}</p>
           </li>
           <li>
             <span class="step-num">06</span>
-            <h3>Retest</h3>
-            <p>Merged reports move to To retest. A new capture on the same report continues that work. Leave the Mac awake while Codex or Claude Code runs.</p>
+            <h3>{{loop.retestTitle}}</h3>
+            <p>{{loop.retestBody}}</p>
           </li>
         </ol>
       </div>
@@ -66,22 +66,22 @@
 
     <section class="section wrap" id="agents" aria-labelledby="agents-title">
       <div class="section-intro">
-        <p class="eyebrow">Coding agents</p>
-        <h2 id="agents-title">Codex, Claude Code, or Grok Bot.</h2>
-        <p>Choose a default in Settings, or pick an agent for a new report. A follow-up capture stays with that report’s agent.</p>
+        <p class="eyebrow">{{agents.eyebrow}}</p>
+        <h2 id="agents-title">{{agents.title}}</h2>
+        <p>{{agents.intro}}</p>
       </div>
       <div class="cards">
         <article class="card">
-          <h3>Codex</h3>
-          <p>On this Mac, in an isolated Git worktree. It does not push or open the pull request itself. ScreenClip runs your validation command and opens it. You answer questions on the report.</p>
+          <h3>{{agents.codexTitle}}</h3>
+          <p>{{agents.codexBody}}</p>
         </article>
         <article class="card">
-          <h3>Claude Code</h3>
-          <p>On this Mac, in its own Git worktree. ScreenClip opens the pull request. Questions show up on the report, and you answer them there.</p>
+          <h3>{{agents.claudeTitle}}</h3>
+          <p>{{agents.claudeBody}}</p>
         </article>
         <article class="card">
-          <h3>Grok Bot</h3>
-          <p>Remote. Nothing is sent until you save a webhook and turn on sending for that project. Grok Bot opens the pull request from the branch ScreenClip pushed. Questions stay in Grok Bot’s chat.</p>
+          <h3>{{agents.grokTitle}}</h3>
+          <p>{{agents.grokBody}}</p>
         </article>
       </div>
     </section>
@@ -89,28 +89,28 @@
     <section class="section wrap" id="download" aria-labelledby="download-title">
       <div class="band">
         <div>
-          <p class="eyebrow">Download</p>
-          <h2 id="download-title">Free on your Mac. Open source on GitHub.</h2>
-          <p class="band-lead">@@PRICE@@</p>
+          <p class="eyebrow">{{download.eyebrow}}</p>
+          <h2 id="download-title">{{download.title}}</h2>
+          <p class="band-lead">{{download.price}}</p>
           <p>@@SOURCE_LINE@@</p>
           @@ACTIONS@@
         </div>
         <div>
-          <h3 class="band-sub">What you need</h3>
+          <h3 class="band-sub">{{download.needsTitle}}</h3>
           <ul class="reqs">
-            <li>macOS 14 or later</li>
-            <li>A local Git repository for the app you are testing</li>
-            <li>Codex CLI, Claude Code, or a Grok Bot webhook</li>
-            <li>GitHub CLI, for pull requests and for Grok Bot</li>
+            <li>{{download.needOs}}</li>
+            <li>{{download.needGit}}</li>
+            <li>{{download.needAgent}}</li>
+            <li>{{download.needGh}}</li>
           </ul>
-          <p class="band-note">Leave ScreenClip running, and the Mac awake, while Codex or Claude Code works. Grok Bot keeps working if the Mac sleeps. ScreenClip updates that pull request the next time it is open.</p>
-          <p class="band-note"><a href="/privacy">Read the privacy policy</a> for what stays on your Mac and what can leave.</p>
+          <p class="band-note">{{download.awake}}</p>
+          <p class="band-note">{{download.privacy}}</p>
         </div>
       </div>
     </section>
 
     <section class="section section-rule faq-section wrap" id="faq" aria-labelledby="faq-title">
-      <h2 id="faq-title">Questions</h2>
+      <h2 id="faq-title">{{faq.title}}</h2>
       <div class="faq-list">
         @@FAQ@@
       </div>
