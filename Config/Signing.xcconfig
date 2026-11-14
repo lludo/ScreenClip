@@ -1,0 +1,4 @@
+// A checkout builds without an Apple account. Use a local override for stable development signing.
+CODE_SIGN_IDENTITY = -
+CODE_SIGN_STYLE = Manual
+#include? "LocalSigning.xcconfig"

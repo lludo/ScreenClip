@@ -9,15 +9,40 @@ import UserNotifications
   @Published var banner: String?
   @Published var connection = "Not connected"
   @Published var captureBusy = false
+  @Published var capturePermissionIssue = false
   let store: IssueStore
+  let captureDiagnostics: CaptureDiagnostics
+  let capturePermission: ScreenCapturePermission
   lazy var worker = AgentWorker(model: self)
   var captureAction: (() -> Void)?
   var queueAction: (() -> Void)?
   var settingsAction: (() -> Void)?
+  var relaunchAction: (() -> Void)?
   var composerAction: ((NSImage, CaptureContext, Issue?) -> Void)?
 
   init(root: URL) throws {
     store = try IssueStore(root: root)
+    let diagnostics = CaptureDiagnostics(root: root)
+    captureDiagnostics = diagnostics
+    let executable = Bundle.main.executableURL
+    let originalStamp = executable.flatMap {
+      try? FileManager.default.attributesOfItem(atPath: $0.path)[.modificationDate] as? Date
+    }
+    capturePermission = ScreenCapturePermission(
+      replaced: {
+        guard let executable, let originalStamp,
+          let stamp = try? FileManager.default.attributesOfItem(atPath: executable.path)[
+            .modificationDate] as? Date
+        else { return false }
+        return stamp != originalStamp
+      }, log: { diagnostics.record($0, $1) })
+    diagnostics.record(
+      "app.launch",
+      [
+        "bundle": Bundle.main.bundleURL.path,
+        "version": Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+          ?? "unknown",
+      ])
     snapshot = try store.load()
     // Do not replay uncertain work automatically after a crash.
     for i in snapshot.issues.indices
@@ -172,6 +197,23 @@ import UserNotifications
   }
   func openCodex(_ issue: Issue) { if let url = issue.codexURL { NSWorkspace.shared.open(url) } }
   func markRead(_ id: UUID) { perform { try updateIssue(id) { $0.unread = false } } }
+  func openCaptureSettings() {
+    if let url = URL(
+      string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")
+    {
+      NSWorkspace.shared.open(url)
+    }
+  }
+  func recheckCapturePermission() async {
+    if await capturePermission.recheck() {
+      if capturePermissionIssue {
+        banner = nil
+        capturePermissionIssue = false
+      }
+    } else if capturePermissionIssue {
+      banner = capturePermission.message
+    }
+  }
   func delete(_ id: UUID) {
     perform {
       guard let issue = issue(id), ![.working, .needsYou, .prOpen].contains(issue.status) else {

@@ -17,6 +17,14 @@ import ScreenClipCore
   private var mergingProjects = Set<UUID>()
   private var pendingRequests = Set<String>()
   private var timer: Timer?
+  lazy var authentication = CodexAuthentication(
+    request: { [unowned self] method, params in
+      try await self.connect()
+      return try await self.client.request(method, params: params)
+    },
+    openURL: { NSWorkspace.shared.open($0) },
+    statusChanged: { [unowned self] in self.model.connection = $0 }
+  )
   init(model: AppModel) { self.model = model }
   func start() {
     timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
@@ -25,15 +33,13 @@ import ScreenClipCore
         await self?.refreshPRs()
       }
     }
+    Task { await checkConnection() }
     pump()
   }
   func checkConnection() async {
+    await authentication.check()
+    guard authentication.state == .ready else { return }
     do {
-      try await connect()
-      let account = try await client.request(
-        "account/read", params: .object(["refreshToken": .bool(false)]))
-      model.connection =
-        account["account"] == .null ? "Sign in to Codex to start work" : "Connected to Codex"
       let models = try await client.request("model/list")
       let available = models["data"].array.compactMap { $0["id"].string }
       if !model.snapshot.settings.model.isEmpty
@@ -43,16 +49,8 @@ import ScreenClipCore
       }
     } catch { model.connection = error.localizedDescription }
   }
-  func signIn() async {
-    do {
-      try await connect()
-      let result = try await client.request(
-        "account/login/start", params: .object(["type": .string("chatgpt")]))
-      if let value = result["authUrl"].string, let url = URL(string: value), url.scheme == "https" {
-        NSWorkspace.shared.open(url)
-        model.connection = "Finish signing in in your browser"
-      }
-    } catch { model.banner = error.localizedDescription }
+  func signIn(method: CodexAuthentication.Method = .browser) async {
+    await authentication.signIn(method: method)
   }
   private func connect() async throws {
     if connected { return }
@@ -60,7 +58,6 @@ import ScreenClipCore
     let task = Task { @MainActor [self] in
       let stream = try await client.connect(path: model.snapshot.settings.codexPath)
       connected = true
-      model.connection = "Connected to Codex"
       eventsTask = Task { [weak self] in for await event in stream { await self?.handle(event) } }
     }
     connecting = task
@@ -73,6 +70,7 @@ import ScreenClipCore
       return
     }
     await client.stop()
+    authentication.reset()
     pendingRequests.removeAll()
     connected = false
     model.connection = "Not connected"
@@ -245,12 +243,13 @@ import ScreenClipCore
   }
   private func handle(_ message: JSONValue) async {
     guard let method = message["method"].string else { return }
-    if method == "account/login/completed" {
-      await checkConnection()
+    if method == "account/login/completed" || method == "account/updated" {
+      await authentication.handleNotification(method: method, params: message["params"])
       return
     }
     if method == "screenclip/disconnected" {
       connected = false
+      authentication.reset(message: "Codex disconnected. Check the connection to reconnect.")
       pendingRequests.removeAll()
       model.connection = "Codex disconnected"
       for id in jobs {

@@ -8,6 +8,8 @@ import ScreenClipCore
   private var windows: [NSWindow] = []
   private var lastExternalApp: NSRunningApplication?
   private var activationObserver: NSObjectProtocol?
+  private var permissionObservers: [NSObjectProtocol] = []
+  private var recheckOnReturn = false
   init(model: AppModel) {
     self.model = model
     lastExternalApp = NSWorkspace.shared.frontmostApplication
@@ -19,10 +21,30 @@ import ScreenClipCore
       else { return }
       Task { @MainActor in self?.lastExternalApp = app }
     }
+    permissionObservers.append(
+      NotificationCenter.default.addObserver(
+        forName: NSApplication.didResignActiveNotification, object: nil, queue: .main
+      ) { [weak self] _ in
+        Task { @MainActor in
+          guard let self else { return }
+          self.recheckOnReturn = self.model.capturePermission.state == .blocked
+        }
+      })
+    permissionObservers.append(
+      NotificationCenter.default.addObserver(
+        forName: NSApplication.didBecomeActiveNotification, object: nil, queue: .main
+      ) { [weak self] _ in
+        Task { @MainActor in
+          guard let self, self.recheckOnReturn else { return }
+          self.recheckOnReturn = false
+          await self.model.recheckCapturePermission()
+        }
+      })
   }
   func begin() {
     guard !model.captureBusy else { return }
     model.captureBusy = true
+    model.captureDiagnostics.record("capture.shortcut")
     let source = NSWorkspace.shared.frontmostApplication.flatMap {
       $0.bundleIdentifier == Bundle.main.bundleIdentifier ? lastExternalApp : $0
     }
@@ -35,13 +57,9 @@ import ScreenClipCore
     }
     Task { [self] in
       do {
-        guard CGPreflightScreenCaptureAccess() || CGRequestScreenCaptureAccess() else {
-          throw ScreenClipError.message(
-            "Screen recording access is needed to select a screenshot. Enable ScreenClip in System Settings → Privacy & Security → Screen & System Audio Recording, then try again."
-          )
+        let content = try await model.capturePermission.obtain {
+          try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
         }
-        let content = try await SCShareableContent.excludingDesktopWindows(
-          false, onScreenWindowsOnly: true)
         context.windowTitle =
           content.windows.first {
             $0.owningApplication?.processID == source?.processIdentifier && $0.windowLayer == 0
@@ -71,6 +89,12 @@ import ScreenClipCore
         }
         let decision = ProjectRouter.infer(context, projects: model.snapshot.projects)
         context.routingReason = decision.reason
+        if model.capturePermissionIssue {
+          model.banner = nil
+          model.capturePermissionIssue = false
+        }
+        model.captureDiagnostics.record(
+          "capture.overlay.presenting", ["displays": String(backdrops.count)])
         for (screen, image) in backdrops {
           let window = SelectionWindow(
             contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false,
@@ -80,6 +104,7 @@ import ScreenClipCore
           window.isReleasedWhenClosed = false
           let view = SelectionView(image: image, screen: screen)
           view.onCancel = { [weak self] in
+            self?.model.captureDiagnostics.record("capture.cancelled")
             self?.end()
             source?.activate(options: [])
           }
@@ -91,6 +116,7 @@ import ScreenClipCore
               x: rect.minX * sx, y: rect.minY * sy, width: rect.width * sx, height: rect.height * sy
             ).integral
             guard let crop = image.cropping(to: cropRect) else {
+              self.model.captureDiagnostics.record("capture.crop.failed")
               self.end()
               return
             }
@@ -100,6 +126,8 @@ import ScreenClipCore
               screen.frame.minX + rect.minX, screen.frame.maxY - rect.maxY, rect.width, rect.height,
             ]
             self.end()
+            self.model.captureDiagnostics.record(
+              "capture.selected", ["width": String(crop.width), "height": String(crop.height)])
             self.model.composerAction?(
               NSImage(cgImage: crop, size: NSSize(width: rect.width, height: rect.height)),
               captured, nil)
@@ -112,7 +140,10 @@ import ScreenClipCore
         NSApp.activate(ignoringOtherApps: true)
       } catch {
         end()
-        model.banner = error.localizedDescription
+        model.banner = model.capturePermission.report(error)
+        model.capturePermissionIssue = [.blocked, .needsRestart].contains(
+          model.capturePermission.state)
+        model.captureDiagnostics.record("capture.aborted", ["message": model.banner ?? "unknown"])
         model.queueAction?()
       }
     }

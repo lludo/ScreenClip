@@ -42,17 +42,49 @@ struct ComposerView: View {
           Button {
             document.tool = kind
           } label: {
-            Image(systemName: symbol(kind)).frame(width: 30, height: 27)
+            Image(systemName: symbol(kind)).frame(width: 36, height: 30)
+              .foregroundStyle(document.tool == kind ? Color.orange : Color.primary)
+              .background(
+                document.tool == kind ? Color.orange.opacity(0.14) : Color.primary.opacity(0.05),
+                in: RoundedRectangle(cornerRadius: 6)
+              )
+              .overlay(
+                RoundedRectangle(cornerRadius: 6).stroke(
+                  document.tool == kind ? Color.orange.opacity(0.4) : .clear, lineWidth: 1))
           }
-          .buttonStyle(.bordered).tint(document.tool == kind ? .orange : nil).help(
+          .buttonStyle(.plain).help(
             kind.rawValue.capitalized
           )
           .accessibilityLabel(kind.rawValue.capitalized)
         }
-        if document.tool == .text {
-          TextField("Text to place on image", text: $document.text).textFieldStyle(.roundedBorder)
-            .frame(maxWidth: 220)
-        }
+        Divider().frame(height: 22).padding(.horizontal, 4)
+        Menu {
+          ForEach(MarkColor.allCases, id: \.self) { color in
+            Button {
+              document.color = color
+            } label: {
+              Label(
+                color.rawValue.capitalized,
+                systemImage: document.color == color ? "checkmark.circle.fill" : "circle.fill"
+              )
+              .foregroundStyle(Color(nsColor: color.nsColor))
+            }
+          }
+        } label: {
+          Image(systemName: "circle.fill").foregroundStyle(Color(nsColor: document.color.nsColor))
+            .overlay(Circle().stroke(.primary.opacity(0.3), lineWidth: 0.5))
+        }.frame(width: 46).help("Annotation color").accessibilityLabel(
+          "Annotation color: " + document.color.rawValue
+        )
+        .disabled(document.tool == .redact)
+        Picker("Stroke", selection: $document.lineWidth) {
+          Text("Thin").tag(0.003)
+          Text("Medium").tag(0.006)
+          Text("Bold").tag(0.012)
+        }.labelsHidden().frame(width: 104).help("Stroke thickness").accessibilityLabel(
+          "Stroke thickness"
+        )
+        .disabled(document.tool == .redact || document.tool == .text)
         Spacer()
         Button {
           document.undo()
@@ -65,6 +97,10 @@ struct ComposerView: View {
           Image(systemName: "arrow.uturn.forward")
         }.disabled(!document.canRedo).keyboardShortcut("z", modifiers: [.command, .shift])
       }.padding(.horizontal, 20).padding(.vertical, 10)
+      if document.tool == .text {
+        TextField("Type a label, then click on the image to place it", text: $document.text)
+          .textFieldStyle(.roundedBorder).padding(.horizontal, 20).padding(.bottom, 10)
+      }
       Divider()
       VStack(alignment: .leading, spacing: 12) {
         ZStack(alignment: .topLeading) {
@@ -133,6 +169,7 @@ struct ComposerView: View {
     switch tool {
     case .arrow: return "arrow.up.right"
     case .rectangle: return "rectangle"
+    case .ellipse: return "oval"
     case .pen: return "pencil.tip"
     case .text: return "textformat"
     case .redact: return "rectangle.fill"

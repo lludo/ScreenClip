@@ -75,7 +75,12 @@ public struct CaptureContext: Codable, Equatable {
   }
 }
 
-public enum MarkKind: String, Codable, CaseIterable { case arrow, rectangle, pen, text, redact }
+public enum MarkKind: String, Codable, CaseIterable {
+  case pen, arrow, rectangle, ellipse, text, redact
+}
+public enum MarkColor: String, Codable, CaseIterable {
+  case red, orange, yellow, green, blue, white, black
+}
 public struct MarkPoint: Codable, Equatable {
   public var x: Double
   public var y: Double
@@ -89,11 +94,19 @@ public struct Annotation: Codable, Identifiable, Equatable {
   public var kind: MarkKind
   public var points: [MarkPoint]
   public var text: String
-  public init(kind: MarkKind, points: [MarkPoint], text: String = "") {
+  // Optional style keeps captures from earlier versions readable. Width is a fraction of image width.
+  public var color: MarkColor?
+  public var lineWidth: Double?
+  public init(
+    kind: MarkKind, points: [MarkPoint], text: String = "", color: MarkColor? = nil,
+    lineWidth: Double? = nil
+  ) {
     id = UUID()
     self.kind = kind
     self.points = points
     self.text = text
+    self.color = color
+    self.lineWidth = lineWidth
   }
 }
 public struct Capture: Codable, Identifiable, Equatable {
