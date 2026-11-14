@@ -52,7 +52,7 @@ struct GrokConnectionCheck: Equatable {
   var composerAction: ((NSImage, CaptureContext, Issue?) -> Void)?
   var supportAction: (() -> Void)?
 
-  init(root: URL) throws {
+  init(root: URL, recoverInterruptedWork: Bool = true) throws {
     store = try IssueStore(root: root)
     let diagnostics = CaptureDiagnostics(root: root)
     captureDiagnostics = diagnostics
@@ -77,6 +77,7 @@ struct GrokConnectionCheck: Equatable {
       ])
     snapshot = try store.load()
     // Do not replay uncertain work automatically after a crash.
+    if recoverInterruptedWork {
     for i in snapshot.issues.indices
     where snapshot.issues[i].status == .working || snapshot.issues[i].dispatchUncertain {
       if snapshot.issues[i].resolvedAgent == .external {
@@ -96,6 +97,7 @@ struct GrokConnectionCheck: Equatable {
         }
         snapshot.issues[i].record(Self.restartActivity, status: .needsYou)
       }
+    }
     }
     if snapshot.settings.codexPath.isEmpty {
       snapshot.settings.codexPath = Self.defaultCodexPath()
@@ -529,6 +531,22 @@ struct GrokConnectionCheck: Equatable {
   }
   /// One-line status for the default agent.
   var agentStatus: (text: String, ready: Bool) { agentStatus(snapshot.settings.preferredAgent) }
+  /// Fixed connection lines for localization screenshots. Does not contact Codex, Claude Code, or Grok Bot.
+  func applyScreenshotAgentStatus() {
+    connection = "Connected to Codex"
+    agents = [
+      AgentDetection(
+        kind: .codex, path: "/usr/local/bin/codex", version: "0.50.0", signedIn: nil,
+        detail: "Codex 0.50.0"),
+      AgentDetection(
+        kind: .claude, path: "/usr/local/bin/claude", version: "2.1.0", signedIn: true,
+        detail: "Claude Code 2.1.0, signed in"),
+      AgentDetection(
+        kind: .external, path: "", version: nil, signedIn: false,
+        detail: "Not connected — Connect Grok Bot"
+      ),
+    ]
+  }
   func agentStatus(_ kind: AgentKind) -> (text: String, ready: Bool) {
     switch kind {
     case .codex: return (connection, connection == "Connected to Codex")
@@ -556,7 +574,7 @@ struct GrokConnectionCheck: Equatable {
         #!/bin/zsh
         \(quoted) auth login
         echo
-        echo "ScreenClip notices the sign-in within a minute. Click Detect agents to check now."
+        echo "\(Chrome.text("ScreenClip notices the sign-in within a minute. Click Detect agents to check now.", comment: "Shown in Terminal after Claude Code sign-in. Keep ScreenClip."))"
         """.write(to: script, atomically: true, encoding: .utf8)
       try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
       NSWorkspace.shared.open(script)

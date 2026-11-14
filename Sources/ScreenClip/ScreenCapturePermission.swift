@@ -54,6 +54,11 @@ import ScreenClipCore
       return true
     } catch { return false }
   }
+  /// Settled state for localization screenshots, without probing ScreenCaptureKit.
+  func applyScreenshotReady() {
+    state = .available
+    message = "Screen capture is ready."
+  }
   func report(_ error: Error) -> String {
     if state == .needsRestart { return message }
     let value = error as NSError

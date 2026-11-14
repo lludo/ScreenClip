@@ -28,7 +28,8 @@ final class RecorderField: NSTextField {
   override var acceptsFirstResponder: Bool { true }
   override func mouseDown(with event: NSEvent) {
     window?.makeFirstResponder(self)
-    stringValue = "Press shortcut…"
+    stringValue = Chrome.text(
+      "Press shortcut…", comment: "Shown while recording a keyboard shortcut.")
   }
   override func keyDown(with event: NSEvent) {
     if event.keyCode == 53 {
@@ -37,7 +38,8 @@ final class RecorderField: NSTextField {
     }
     let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
     guard flags.contains(.command) || flags.contains(.control) || flags.contains(.option) else {
-      stringValue = "Include ⌘, ⌃ or ⌥"
+      stringValue = Chrome.text(
+        "Include ⌘, ⌃ or ⌥", comment: "Shortcut must include Command, Control, or Option. Keep the symbols.")
       return
     }
     var value: UInt32 = 0

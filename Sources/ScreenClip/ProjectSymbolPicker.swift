@@ -7,7 +7,7 @@ struct ProjectSymbolPicker: View {
   @Binding var symbol: String?
   @State private var isPresented = false
   var body: some View {
-    LabeledContent("Icon") {
+    LabeledContent {
       Button {
         isPresented = true
       } label: {
@@ -16,11 +16,13 @@ struct ProjectSymbolPicker: View {
           .foregroundStyle(.orange)
           .frame(width: 28, height: 22)
       }
-      .help("Choose an icon for this project")
-      .accessibilityLabel("Project icon")
+      .help(Text(chrome: "Choose an icon for this project", comment: "Opens the project icon picker."))
+      .accessibilityLabel(Text(chrome: "Project icon", comment: "Accessibility name for the project icon."))
       .popover(isPresented: $isPresented, arrowEdge: .bottom) {
         SymbolGrid(selection: $symbol) { isPresented = false }
       }
+    } label: {
+      Text(chrome: "Icon", comment: "Project icon field.")
     }
   }
 }
@@ -45,11 +47,13 @@ private struct SymbolGrid: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
-      TextField("Search or type a symbol name", text: $query)
-        .textFieldStyle(.roundedBorder)
+      TextField(text: $query) {
+        Text(chrome: "Search or type a symbol name", comment: "Filters the project icon list.")
+      }.textFieldStyle(.roundedBorder)
       ScrollView {
         if results.isEmpty {
-          Text("No matching symbols.").font(.caption).foregroundStyle(.secondary)
+          Text(chrome: "No matching symbols.", comment: "The icon search has no results.")
+            .font(.caption).foregroundStyle(.secondary)
             .frame(maxWidth: .infinity, minHeight: 60)
         } else {
           LazyVGrid(columns: columns, spacing: 6) {
