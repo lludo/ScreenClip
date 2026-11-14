@@ -4,7 +4,7 @@ Static pages for [screenclipai.com](https://screenclipai.com). The copy describe
 
 `website/build.py` reads `website/site.config.json` and `website/src/`, then writes `website/dist/`. Python’s standard library is enough. `dist/` is generated and gitignored.
 
-The support-email placeholder and the empty donate URL are tracked in [Open source](open-source.md#open-todos). This page describes how the site is built and deployed.
+The support-email placeholder and the empty donate URL are tracked in [Publishing checklist](open-source.md#open-todos). This page describes how the site is built and deployed.
 
 ## Build and preview
 

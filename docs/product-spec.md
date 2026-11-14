@@ -154,7 +154,7 @@ These were open while the app was being built. The original table, with the prop
 | Distribution | Notarized DMG on GitHub Releases. No Mac App Store build |
 | Name, shortcut, price | ScreenClip. Default shortcut ⌘⇧2, configurable. Free, with an optional tip |
 
-Publishing blockers that are still open (license, support email, Sponsors, release secrets) are listed only in [Open source](open-source.md).
+Publishing blockers that are still open (support email, Sponsors, release secrets) are listed only in [Publishing checklist](open-source.md).
 
 ## Release acceptance examples
 

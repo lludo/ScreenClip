@@ -1,6 +1,6 @@
 # ScreenClip roadmap
 
-Updated: November 14, 2026. The local app is working: capture, markup, the queue, Codex and Claude Code dispatch, the Grok Bot hand-off, validation, PRs, and guarded merges. This page lists engineering work that is still open. What has been verified is in [validation](validation.md). Release and publishing items that are not done are only listed in [Open source](open-source.md). Product choices that used to be open are in [Decisions](product-spec.md#decisions).
+Updated: November 14, 2026. The local app is working: capture, markup, the queue, Codex and Claude Code dispatch, the Grok Bot hand-off, validation, PRs, and guarded merges. This page lists engineering work that is still open. What has been verified is in [validation](validation.md). Release and publishing items that are not done are only listed in [Publishing checklist](open-source.md). Product choices that used to be open are in [Decisions](product-spec.md#decisions).
 
 ## Open gates
 
