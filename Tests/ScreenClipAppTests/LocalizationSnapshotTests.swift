@@ -61,6 +61,7 @@ import XCTest
       .environment(\.timeZone, ScreenshotFixture.timeZone)
       .preferredColorScheme(appearance == .darkAqua ? .dark : .light)
       .frame(width: size.width, height: size.height)
+      .background(appearance == .darkAqua ? Color(white: 0.13) : Color(white: 0.97))
     let window = NSWindow(
       contentRect: NSRect(origin: .zero, size: size),
       styleMask: [.titled, .closable], backing: .buffered, defer: false)
