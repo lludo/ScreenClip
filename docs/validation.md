@@ -2,11 +2,11 @@
 
 Updated: November 14, 2026. Development host: macOS 27.0.1, Xcode 27.2, Swift 6.4.2, Apple Silicon.
 
-This page records what is verified and how. What is still open is in the [roadmap](roadmap.md#open-gates).
+This page records what is verified and how. What is still open is in the [roadmap](roadmap.md#open-gates). The macOS CI job that runs these checks is in [Development](development.md#ci).
 
 ## Current status
 
-The checks below describe the coverage and the live verification completed on the development host as of the date above. Run the commands under [Reproduce](#reproduce) for current results. CI also checks shell syntax and builds the website and Xcode Debug and Release configurations.
+The checks below describe the coverage and the live verification completed on the development host as of the date above. Run the commands under [Reproduce](#reproduce) for current results. CI runs the catalog check, the Swift and Python suites, the sandbox diagnostic, the website build, and the Xcode Debug and Release builds. The step list is in [Development](development.md#macos-build-and-tests).
 
 | Area | Automated | Hands-on or live | Not yet verified |
 | --- | --- | --- | --- |
@@ -44,7 +44,7 @@ Inspect `integration-result.json`, the runtime's `thread/read`, and the desktop 
 
 ## Reproduce
 
-Run the suites listed under [Development in the README](../README.md#development). To render native previews with synthetic data:
+Run the suites listed under [Development](development.md#build-and-test-locally). To render native previews with synthetic data:
 
 ```sh
 bash scripts/build.sh
