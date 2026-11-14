@@ -2,14 +2,14 @@
   "languageName": "English",
   "meta": {
     "homeTitle": "ScreenClip — Screenshot feedback for AI coding agents",
-    "homeDescription": "Free Mac menu bar app. Capture a screenshot, hand it to Codex, Claude Code, or Grok Bot, and track the pull request through checks, merge, and retest.",
+    "homeDescription": "ScreenClip is a Mac menu bar app coming soon. Capture an observation, send it to a coding agent, and follow the fix without losing your flow.",
     "privacyTitle": "Privacy policy — ScreenClip",
     "privacyDescription": "What ScreenClip stores on your Mac, what can be sent to Codex, Claude Code, Grok Bot, or GitHub, and how redaction works.",
     "supportTitle": "Support — ScreenClip",
     "supportDescription": "Get ScreenClip help through GitHub issues, plus what you need to run or build the Mac app.",
     "notFoundTitle": "Page not found — ScreenClip",
     "notFoundDescription": "That page is not on the ScreenClip site.",
-    "ogAlt": "ScreenClip. From a screenshot to a pull request, for Codex, Claude Code, and Grok Bot."
+    "ogAlt": "ScreenClip. File bugs as you go, without breaking your flow."
   },
   "nav": {
     "skip": "Skip to content",
@@ -18,7 +18,7 @@
     "how": "How it works",
     "agents": "Coding agents",
     "questions": "Questions",
-    "download": "Download",
+    "download": "Availability",
     "privacy": "Privacy policy",
     "support": "Support",
     "source": "Source on GitHub",
@@ -38,7 +38,7 @@
   "hero": {
     "eyebrow": "Screenshot feedback for AI coding agents",
     "title": "File bugs as you go, without breaking your flow.",
-    "lead": "Capture a region on your Mac, mark what matters, and hand it to Codex, Claude Code, or Grok Bot. ScreenClip tracks the GitHub pull request, merges when you allow it, and keeps the result for retest."
+    "lead": "Spot something while testing? Capture it, add a note if you like, and send it to Codex, Claude Code, or Grok Bot. ScreenClip keeps the report and fix together, so you can get back to testing."
   },
   "demo": {
     "title": "The menu bar",
@@ -48,7 +48,7 @@
   "loop": {
     "eyebrow": "How it works",
     "title": "Capture it, ship the fix, retest it.",
-    "intro": "A clipped button or a confusing label is enough. You keep moving. ScreenClip holds the report and the pull request.",
+    "intro": "Three steps from observation to retest.",
     "captureTitle": "Capture",
     "captureBody": "Press {kbd} and drag a region of a website or a Mac app. The shortcut can be changed in Settings.",
     "annotateTitle": "Annotate",
@@ -75,16 +75,16 @@
   },
   "download": {
     "eyebrow": "Download",
-    "title": "Free on your Mac. Source-available on GitHub.",
-    "price": "ScreenClip is free. There is no subscription.",
+    "title": "Available for your Mac.",
+    "price": "Free for noncommercial use.",
     "source": "ScreenClip is source-available under PolyForm Noncommercial 1.0.0, free for noncommercial use. Commercial licensing is available on request. {link:githubRead}, file an issue, or build it with Xcode 16 or later.",
-    "sourceMissing": "The source link is not configured yet.",
+    "sourceMissing": "The source is not public yet.",
     "button": "Download for Mac (free)",
     "headerButton": "Download for Mac",
     "github": "View on GitHub",
     "donate": "Support the project",
     "noteReady": "Notarized disk image on GitHub Releases. The file is attached when a version tag is published.",
-    "noteSoon": "Direct Mac download coming soon.",
+    "noteSoon": "Mac download coming soon.",
     "sourceSoon": "Source coming soon.",
     "macSoon": "Mac download coming soon.",
     "needsTitle": "What you need",
@@ -93,11 +93,12 @@
     "needAgent": "Codex CLI, Claude Code, or a Grok Bot webhook",
     "needGh": "GitHub CLI, for pull requests and for Grok Bot",
     "awake": "Leave ScreenClip running, and the Mac awake, while Codex or Claude Code works. Grok Bot keeps working if the Mac sleeps. ScreenClip updates that pull request the next time it is open.",
-    "privacy": "{link:privacyLead} for what stays on your Mac and what can leave."
+    "privacy": "{link:privacyLead} for what stays on your Mac and what can leave.",
+    "titleSoon": "Coming soon to your Mac."
   },
   "faq": {
     "title": "Questions",
-    "cost": "ScreenClip is free. There is no subscription.",
+    "cost": "Free for noncommercial use; commercial licensing is available on request.",
     "costSource": " The source is on GitHub.",
     "downloadYes": "Yes. Download for Mac on this page links to the latest notarized disk image on GitHub Releases. The file is attached when a version tag is published.",
     "downloadSource": " You can also build the source from GitHub.",
@@ -134,7 +135,7 @@
       },
       {
         "q": "Where do agent questions show up?",
-        "a": "Codex and Claude Code questions appear on the report, and you reply there. Grok Bot questions stay in Grok Bot’s chat. Cancel stops the local record. It does not stop a Grok Bot run that has already been sent."
+        "a": "Codex and Claude Code questions appear on the report, and you reply there. Grok Bot questions stay in its chat. Cancel stops the local record and can request cancellation from a supported Grok Bot connection, but the remote run may still finish."
       },
       {
         "id": "cost",
@@ -184,14 +185,14 @@
     "github2": "The pull request body includes the agent’s summary, the project’s validation command with secret-like values redacted, and the report reference. The body states that screenshots and source context remain in ScreenClip. Screenshots are not attached to the pull request by default.",
     "grokTitle": "Grok Bot",
     "grok1": "Nothing is sent to Grok Bot until you save a webhook URL and Authorization header, and you turn on {ui:allowSend} for that project. The opt-in stays off until you enable it, including for private repositories.",
-    "grok2": "ScreenClip then pushes the approved PNGs and a {code:reportJson} file to a {code:branch} branch in the project repository, and sends a small JSON webhook. The webhook does not contain image bytes. It includes the report number, issue id, revision, title, notes, later context notes, source app name, bundle ID, project name, repository, base branch, validation command, and the evidence branch, commit, and file paths. The browser URL and window title are included only when {ui:browserUrl} is on.",
-    "grok3": "Anyone who can read that GitHub repository can read those files until they are removed. On a public repository, that includes anyone on the internet. Grok Bot opens the pull request from that branch. Cancel in ScreenClip stops the local record only. It does not stop Grok Bot. Questions from Grok Bot stay in Grok Bot’s chat, not in ScreenClip.",
+    "grok2": "ScreenClip then pushes the approved PNGs and a {code:reportJson} file to a {code:branch} branch in the project repository, and sends a small JSON webhook. The webhook does not contain image bytes. It includes the report number, issue id, revision, title, notes, later context notes, source app name, bundle ID, project name, repository, base branch, validation command, and the evidence branch, commit, and file paths. The browser URL and window title are included only when {ui:browserUrl} is on. The webhook also includes a workspace ID, previous pull request URLs, and delivery identifiers. A supported cancel request sends the issue ID, report number, revision, repository, and branch.",
+    "grok3": "Anyone who can read the repository can access the evidence; in a public repository, that includes anyone on the internet. Removing files from a later commit does not erase them from Git history. Grok Bot opens the pull request from that branch. Cancel stops the local record and, if the connection supports cancellation, sends a best-effort request; the remote run may still finish. Grok Bot questions stay in its chat.",
     "grok4": "A redirect of the webhook to a different host does not include the Authorization header.",
     "deleteTitle": "Deleting data",
     "delete1": "Delete a report in ScreenClip to remove its local screenshots and notes. That does not delete the agent’s own conversation history, or a pull request already opened on GitHub. Removing the app does not by itself delete {code:appSupport} or the Keychain item.",
     "delete2": "GitHub, and the provider behind the agent you signed into, keep what they received under their own terms.",
     "tipsTitle": "Tips",
-    "tips": "ScreenClip is free. The app can show an optional tip window, and the same window is available from the menu and from Settings. Choosing a tip opens GitHub Sponsors in your browser. ScreenClip does not process the payment and does not receive card or payout details. You can dismiss the window or turn the prompt off. This website does not link to a payment page.",
+    "tips": "The app can show an optional tip window, and the same window is available from the menu and from Settings. Choosing a tip opens GitHub Sponsors in your browser. ScreenClip does not process the payment and does not receive card or payout details. You can dismiss the window or turn the prompt off. This website does not link to a payment page.",
     "siteTitle": "This website",
     "site1": "{link:site} is a static website. Pages on this site load no third-party scripts, fonts, or analytics. Choosing a language stores that choice in a cookie named screenclip_lang and in local storage on your device. The cookie only selects the language for the home page. It is not used for advertising or analytics. The host that serves the site receives ordinary connection data, such as IP address and user agent, in order to deliver the page.",
     "site2": "The download button goes to a GitHub Release of the Mac app. Other links, such as the repository and a donation link if one is configured later, leave this site for that destination.",
@@ -205,10 +206,10 @@
     "title": "Support",
     "intro": "ScreenClip is a macOS menu bar app for sending a screenshot, a note, and markup to Codex, Claude Code, or Grok Bot, then tracking the GitHub pull request.",
     "statusReady": "The Mac app is free. {link:download} tracks the latest notarized disk image on GitHub Releases. The file is attached when a version tag is published.",
-    "statusSoon": "A direct Mac download is not linked yet. This page will point at the release file when it is published.",
+    "statusSoon": "ScreenClip is coming soon. There is no download available yet.",
     "contactTitle": "Contact",
     "issues": "Use {link:issues} for bugs, setup questions, and feature requests. Include the macOS version, the agent you selected, and what ScreenClip showed in the report. Do not attach an unredacted screenshot of something you meant to hide.",
-    "issuesMissing": "GitHub issues are not linked yet, because githubUrl is empty in site.config.json.",
+    "issuesMissing": "Public support is not available yet.",
     "needTitle": "What you need to run it",
     "needOs": "macOS 14 or later.",
     "needGit": "A local Git repository for the project you are testing. Add it in Settings, with the website addresses or Mac app bundle IDs that should route to it, and a validation command.",
@@ -219,7 +220,7 @@
     "buildTitle": "Building from source",
     "build": "The repository README is the build guide: copy the local signing example, open the Xcode project, and run the ScreenClip scheme. You need macOS 14 or later and Xcode 16 or later with Swift 6.",
     "buildSource": "The source is {link:github}.",
-    "buildMissing": "The source repository is not linked on this page yet.",
+    "buildMissing": "The source is not public yet.",
     "captureTitle": "If capture fails",
     "capture": "Use {ui:checkAccess} in Settings. After you change access in System Settings, use {ui:checkAgain} or {ui:reopen} from the permission banner. Diagnostics are written to {code:diagnostics} and do not include screenshots, notes, browser URLs, or window titles. The repository README has the screen-recording reset steps.",
     "privacyTitle": "Privacy",
@@ -239,5 +240,21 @@
     "flowBody": "File an observation quickly without switching back and forth or manually starting a new thread in your AI tool.",
     "noticeTitle": "Catch the little things",
     "noticeBody": "Capture small bugs, awkward details, and ideas as you notice them, so they don’t get lost while you test."
+  },
+  "simple": {
+    "captureTitle": "Capture",
+    "captureBody": "Select an area of a Mac app or website. Add a note or markup if you want.",
+    "sendTitle": "Send",
+    "sendBody": "Choose Codex, Claude Code, or Grok Bot and submit your report.",
+    "followTitle": "Follow the fix",
+    "followBody": "Track the pull request in ScreenClip, then retest. Automatic merge is optional."
+  },
+  "queue": {
+    "eyebrow": "See the work in progress",
+    "title": "Everything you filed, in one place.",
+    "intro": "Keep testing while your coding agent works. ScreenClip shows your reports, their status, and the pull request, so you can see what needs attention and what is ready to retest.",
+    "open": "Open the full-size report queue screenshot",
+    "alt": "ScreenClip report queue showing projects, a list of merged reports, and the details of a selected report.",
+    "caption": "A real report queue. App interface shown in English."
   }
 }

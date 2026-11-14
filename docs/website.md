@@ -4,7 +4,7 @@ Static pages for [screenclipai.com](https://screenclipai.com). The copy describe
 
 `website/build.py` reads `website/site.config.json` and `website/src/`, then writes `website/dist/`. Python’s standard library is enough. `dist/` is generated and gitignored.
 
-The support-email placeholder and the empty donate URL are tracked in [Publishing checklist](open-source.md#open-todos). This page describes how the site is built and deployed.
+Public support, the private repository, the first download, and the empty donate URL are tracked in [Publishing checklist](open-source.md#open-todos). This page describes how the site is built and deployed.
 
 ## Build and preview
 
@@ -34,20 +34,20 @@ Edit `website/site.config.json`, then rebuild. Every value is either an absolute
 | Key | Empty | Set |
 | --- | --- | --- |
 | `siteUrl` | No canonical URL, and `sitemap.xml` is omitted | Canonical URLs, Open Graph image URL, sitemap, and the sitemap line in `robots.txt` |
-| `githubUrl` | “Source coming soon” | “View on GitHub”, the repository link, and the issues link on Support |
-| `downloadUrl` | “Direct Mac download coming soon.” | Primary button: **Download for Mac (free)** |
+| `githubUrl` | Source is described as not public yet | “View on GitHub”, the repository link, and the issues link on Support |
+| `downloadUrl` | “Mac download coming soon.” | Primary button: **Download for Mac (free)** |
 | `donateUrl` | Link is omitted | **Support the project** |
 
 Current values:
 
 - `siteUrl` is `https://screenclipai.com`.
-- `githubUrl` is `https://github.com/lludo/ScreenClip`.
-- `downloadUrl` is `https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg`. The asset exists after a version tag is published. The page says so. ScreenClip is not on the Mac App Store.
+- `githubUrl` is empty while the repository is private. Set it to the public repository URL once it is accessible.
+- `downloadUrl` is empty because no public release exists yet. Set it to the actual download URL after the release is published. ScreenClip is not on the Mac App Store.
 - `donateUrl` is empty, so the site shows no tip link.
 
-The structured data offer is `"price": "0"` and `"priceCurrency": "USD"`.
+The structured data includes a zero-price offer only when a download URL is configured. The site explains the noncommercial-use restriction.
 
-The support email on `/support` is the literal placeholder **TODO** in `website/src/pages/support.html`. It is copied into every locale. There is no monitored inbox yet.
+There is no monitored support inbox yet. The support page says public support is not available rather than showing an unusable address.
 
 ## Languages
 
@@ -122,14 +122,14 @@ The build writes:
 
 - One `h1` per page, a canonical URL per locale, and `hreflang` alternates including `x-default` (English at `/`).
 - Open Graph and Twitter tags, including `og:locale`. The image is `website/src/assets/og.png` (1200×630), copied to `/assets/og.png`.
-- `SoftwareApplication` JSON-LD (`operatingSystem` includes macOS, free offer, `downloadUrl`, `inLanguage`) and `FAQPage` JSON-LD on each home page.
+- `SoftwareApplication` JSON-LD (`operatingSystem` includes macOS and `inLanguage`; offer and `downloadUrl` appear when configured) and `FAQPage` JSON-LD on each home page.
 - `robots.txt` and `sitemap.xml`. The sitemap lists `/`, `/privacy`, and `/support` in every locale, each with `xhtml:link` alternates. The sitemap is omitted when `siteUrl` is empty.
 - `manifest.webmanifest`, `favicon.ico`, an SVG icon, a 32×32 PNG, and an Apple touch icon. The icons in `dist/` are drawn by `build.py`.
 - `/privacy`, `/support`, and `404.html`. Localized privacy and support pages use the same paths under each locale prefix.
 
-CSS and the localized menu bar screenshots in `website/src/assets/localized-menu/` are fingerprinted under `/assets/h/`. Each home page picks its language’s light or dark PNG with `prefers-color-scheme`. These images were rendered from a filtered, isolated snapshot of real ScreenClip reports; report text remains in its original language. Review the visible content before replacing or publishing them. `website/vercel.json` gives those files a one-year immutable cache. HTML, `og.png`, and the stable icons stay revalidated. The older capture-editor and queue PNGs in `website/src/assets/` (`composer-preview.png`, `queue-preview.png`) are not part of the page.
+CSS and the localized menu bar screenshots in `website/src/assets/localized-menu/` are fingerprinted under `/assets/h/`. Each home page picks its language’s light or dark PNG with `prefers-color-scheme`. These images were rendered from a filtered, isolated snapshot of real ScreenClip reports; report text remains in its original language. Review the visible content before replacing or publishing them. `website/vercel.json` gives those files a one-year immutable cache. HTML, `og.png`, and the stable icons stay revalidated. The queue section also shows `report-queue-example.png`, a real screenshot supplied by the owner; its interface is in English, and visitors can open it at full size. The older capture-editor and queue PNGs in `website/src/assets/` (`composer-preview.png`, `queue-preview.png`) are not part of the page.
 
-On a Mac, `swift website/render-assets.swift` redraws `website/src/assets/og.png`.
+On a Mac, `swift website/render-assets.swift` redraws `website/src/assets/og.png`. Update the availability line in that script when a public download launches.
 
 `website/vercel.json` sends a Content-Security-Policy (script sources are `'self'` plus the hash of each locale’s home page JSON-LD), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and HSTS (`max-age=63072000; includeSubDomains; preload`). `build.py` fails if those hashes are not in that policy. The `preload` token does not by itself submit the domain to the HSTS preload list.
 

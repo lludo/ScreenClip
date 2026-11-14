@@ -14,7 +14,7 @@ Engineering work that is not a release blocker (live Claude and Grok Bot runs, m
 
 ### Support email
 
-`website/src/pages/support.html` shows the literal placeholder **TODO**. The built site, including [screenclipai.com/support](https://screenclipai.com/support), says no support inbox is set up. Replace that placeholder with a monitored address before publishing one. `website/site.config.json` has no email field; the text is in the page source.
+The support page says public support is not available yet. Add a monitored address or another support channel before advertising one. `website/site.config.json` has no email field.
 
 ### CONTRIBUTING and SECURITY
 
@@ -48,7 +48,7 @@ A tag push still starts the Release workflow. When none of the secrets are set, 
 
 1. Publish from a new repository or a single new commit, and have GitHub purge the pre-rewrite pull-request refs. The branch rewrite did not remove them. The path list is in the [open-source audit](release/open-source-audit.md#what-to-do-before-the-repository-is-public).
 2. Add root `CONTRIBUTING.md` and `SECURITY.md`, or accept that those files are still missing and that [Development](development.md#contributing) is the only contributing page.
-3. Replace the support-email placeholder if the public site should list an address.
+3. Add a monitored support channel if the public site should list one.
 4. Decide whether the Sponsors link and `donateUrl` should go live with the first public download.
 
-Publishing does not require the Apple secrets. Without them there is still no notarized DMG, so the site's download URL has no file. See [Direct distribution](release/direct-distribution.md).
+Publishing does not require the Apple secrets. Without them there is still no notarized DMG, so the site leaves its download URL empty. See [Direct distribution](release/direct-distribution.md).

@@ -185,6 +185,11 @@ async function capture(origin) {
             if (!response || response.status() >= 400) {
               throw new Error(`${target} returned ${response ? response.status() : "no response"}`);
             }
+            // Full-page screenshots do not scroll to trigger lazy-loaded images.
+            await page.locator("img").evaluateAll((images) => Promise.all(images.map((img) => {
+              img.loading = "eager";
+              return img.decode();
+            })));
             const file = `${theme}-${viewport.id}-${item.id}.png`;
             await page.screenshot({ path: path.join(dir, file), fullPage: true });
             shots.push({ locale: locale.id, theme, viewport: viewport.id, page: item.id, file });

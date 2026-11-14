@@ -27,8 +27,6 @@ HOME_DESCRIPTION = (
     "Free Mac menu bar app. Capture a screenshot, hand it to Codex, Claude Code, or Grok Bot, "
     "and track the pull request through checks, merge, and retest."
 )
-OG_TITLE = "From a screenshot to a pull request"
-OG_ALT = "ScreenClip. From a screenshot to a pull request, for Codex, Claude Code, and Grok Bot."
 
 
 @dataclass(frozen=True)
@@ -88,7 +86,7 @@ def catalog_or_english(catalog):
     return catalog if catalog is not None else i18n.load_catalogs()[0]
 
 
-def render_actions(config, catalog=None):
+def render_actions(config, catalog=None, *, hero=False):
     catalog = catalog_or_english(catalog)
     download = catalog.strings["download"]
     rows = []
@@ -104,9 +102,9 @@ def render_actions(config, catalog=None):
         notes.append(download["noteReady"])
     else:
         notes.append(download["noteSoon"])
-    if not config.github_url:
-        notes.append(download["sourceSoon"])
     parts = []
+    if hero and not config.download_url and not config.github_url:
+        parts.append(link(catalog.page("home") + "#loop", catalog.get("nav.how"), "button button-primary"))
     for kind, url, label in rows:
         class_name = {"primary": "button button-primary", "secondary": "button button-secondary"}[kind] if kind != "text" else "text-link"
         parts.append(link(url, label, class_name))
@@ -119,7 +117,7 @@ def render_actions(config, catalog=None):
 
 def header_cta(config, catalog):
     if not config.download_url:
-        return ""
+        return link(catalog.page("home") + "#download", catalog.get("nav.download"), "button button-primary button-small")
     return link(config.download_url, catalog.get("download.headerButton"), "button button-primary button-small")
 
 
@@ -141,7 +139,8 @@ def download_status(config, catalog):
 
 def source_html(config, catalog):
     key = "support.buildSource" if config.github_url else "support.buildMissing"
-    return catalog.html(key, config)
+    result = catalog.html(key, config)
+    return result + " " + catalog.html("support.build", config) if config.github_url else result
 
 
 def github_button(config, catalog):
@@ -193,9 +192,7 @@ def structured_data(config, catalog=None):
         "operatingSystem": catalog.get("schema.os"),
         "inLanguage": catalog.html_lang,
         "description": catalog.plain("meta.homeDescription"),
-        "offers": offers,
         "featureList": list(catalog.strings["schema"]["features"]),
-        "isAccessibleForFree": True,
     }
     page = i18n.absolute(config.origin, catalog.page("home"))
     if config.origin:
@@ -205,6 +202,8 @@ def structured_data(config, catalog=None):
         app["codeRepository"] = config.github_url
         app["sameAs"] = config.github_url
     if config.download_url:
+        app["offers"] = offers
+        app["isAccessibleForFree"] = True
         app["downloadUrl"] = config.download_url
     faq = {
         "@type": "FAQPage",
@@ -233,7 +232,6 @@ def nav(catalog, slug):
         (fragment_href(catalog, slug, "loop"), catalog.get("nav.how"), ""),
         (fragment_href(catalog, slug, "agents"), catalog.get("nav.agents"), ""),
         (fragment_href(catalog, slug, "faq"), catalog.get("nav.questions"), ""),
-        (fragment_href(catalog, slug, "download"), catalog.get("nav.download"), "nav-download"),
     ]
     parts = []
     for href, label, class_name in items:
@@ -603,7 +601,7 @@ def check_output(config, pages):
             raise SystemExit("donateUrl is set, but the support link is missing")
     elif "Support the project" in text:
         raise SystemExit("Donate link rendered without donateUrl")
-    if '"price":"0"' not in text:
+    if config.download_url and '"price":"0"' not in text:
         raise SystemExit("JSON-LD is missing the free offer")
     if '"@type":"FAQPage"' not in text or '"@type":"SoftwareApplication"' not in text:
         raise SystemExit("JSON-LD is missing SoftwareApplication or FAQPage")
@@ -668,6 +666,7 @@ def build():
     shutil.copyfile(SRC / "assets" / "icon.svg", assets / "icon.svg")
     shutil.copyfile(SRC / "assets" / "og.png", assets / "og.png")
     css_href = fingerprinted(SRC / "styles.css", hashed)
+    queue_image = fingerprinted(SRC / "assets" / "report-queue-example.png", hashed)
     print("Drawing icons…")
     write_icons(assets)
 
@@ -707,8 +706,11 @@ def build():
             (popup["POPUP_DARK_PNG"], "(prefers-color-scheme: dark)", "image/png"),
         ]
         tokens = {
+            "QUEUE_PNG": queue_image,
             "HERO_TITLE": catalog.html("hero.title", config).replace(", ", ",<br>", 1) if catalog.id == "en" else catalog.html("hero.title", config),
-            "ACTIONS": render_actions(config, catalog),
+            "DOWNLOAD_TITLE": catalog.html("download.title" if config.download_url else "download.titleSoon", config),
+            "ACTIONS": render_actions(config, catalog, hero=True),
+            "DOWNLOAD_ACTIONS": render_actions(config, catalog) if (config.download_url or config.github_url or config.donate_url) else "",
             "FAQ": render_faq(config, catalog),
             "SOURCE_LINE": source_line(config, catalog),
             "ISSUES_HTML": issues_html(config, catalog),
@@ -823,6 +825,12 @@ def self_test():
     price = i18n.load_catalogs()[0].get("download.price")
     if "0.99" in price or "App Store" in price:
         raise SystemExit("Pricing copy must stay free of the App Store")
+    empty_actions = render_actions(empty, hero=True)
+    if 'href="/#loop"' not in empty_actions or "Mac download coming soon." not in empty_actions:
+        raise SystemExit("Unreleased site needs a useful action and clear availability")
+    unavailable = json.loads(structured_data(empty).replace("\\u003c", "<"))["@graph"][0]
+    if "offers" in unavailable or "downloadUrl" in unavailable:
+        raise SystemExit("Unreleased site must not advertise a download offer")
     free_actions = render_actions(free)
     if "Download for Mac (free)" not in free_actions:
         raise SystemExit("Download label missing")
