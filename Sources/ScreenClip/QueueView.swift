@@ -56,31 +56,29 @@ struct QueueView: View {
       }.frame(minWidth: 190, idealWidth: 210, maxHeight: .infinity)
       VStack(spacing: 0) {
         VStack(alignment: .leading, spacing: 12) {
-          HStack {
-            VStack(alignment: .leading, spacing: 4) {
-              if isReportLookup {
-                Text("Report search").fontWeight(.semibold)
-              } else {
-                Picker("Show reports", selection: $filter) {
-                  ForEach(QueueFilter.allCases) { item in
-                    Label(item.rawValue, systemImage: item.symbol).tag(item)
-                  }
-                }.labelsHidden().pickerStyle(.menu).fixedSize()
-              }
-              Text("\(filtered.count) observations").font(.caption).foregroundStyle(.secondary)
+          // One row of equal-height controls; the sidebar already shows each filter's count.
+          HStack(alignment: .center, spacing: 8) {
+            if isReportLookup {
+              Text("Report search").fontWeight(.semibold)
+            } else {
+              Picker("Show reports", selection: $filter) {
+                ForEach(QueueFilter.allCases) { item in
+                  Label(item.rawValue, systemImage: item.symbol).tag(item)
+                }
+              }.labelsHidden().pickerStyle(.menu).fixedSize()
             }
             Spacer()
             Button {
               model.captureAction?()
             } label: {
-              Image(systemName: "plus")
-            }.help("New capture")
+              Image(systemName: "plus").frame(width: 16, height: 16)
+            }.help("New capture").accessibilityLabel("New capture")
             Button {
               model.settingsAction?()
             } label: {
-              Image(systemName: "gearshape")
-            }.help("Settings")
-          }
+              Image(systemName: "gearshape").frame(width: 16, height: 16)
+            }.help("Settings").accessibilityLabel("Settings")
+          }.controlSize(.regular).buttonStyle(.bordered)
           TextField("Search reports and feedback", text: $search)
             .textFieldStyle(.roundedBorder).accessibilityLabel("Search reports and feedback")
         }.padding(20)
