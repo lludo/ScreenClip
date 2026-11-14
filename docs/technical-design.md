@@ -77,7 +77,6 @@ The capture pipeline is agent-neutral for Codex and Claude Code. The dispatcher 
 - [Codex](agents/codex.md): app-server transport, thread identity, desktop deep links, and project association.
 - [Claude Code](agents/claude-code.md): headless stream-json turns, session identity, sandbox, sign-in, and the Claude Code plugin.
 - [Grok Bot](agents/external-assistant.md): remote hand-off. Approved screenshots go to a `screenclip/` branch; the webhook carries no image data. ScreenClip still validates and merges.
-- Proposal: [Codex plugin research](agents/proposals/codex-plugin.md).
 
 Serialize work on an individual issue. Append new evidence as a later turn. When the user continues work in the agent's own client, reconcile that activity; do not let two clients independently start competing turns. Separate transport progress from product outcomes, and verify PR, check, and merge claims with the source-control host before promoting the state. A normal successful agent response alone is insufficient.
 

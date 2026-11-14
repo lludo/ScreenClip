@@ -1,8 +1,8 @@
 # Open-source audit
 
-Scanned on November 14, 2026, against every commit reachable from `origin/main` at `a1c72c6e4b5d2f86ae663923a45804b09f4b4f50`, plus one unreachable duplicate commit left in the local object store. The repository is **private**. Nothing in this audit was rewritten. Visibility was not changed.
+Scanned on November 14, 2026, against every commit reachable from `origin/main` at `a1c72c6e4b5d2f86ae663923a45804b09f4b4f50`, plus one unreachable duplicate commit left in the local object store. The repository was private at the time of the audit; neither history nor visibility was changed.
 
-**History does not need a rewrite.** No real secret was found. The personal data below is an author address and one old home-directory path. Both are already in the commit metadata or in a file that later commits deleted. Publishing the repo publishes them. Switch future commits to a GitHub noreply address if you want to stop adding the mailbox. Rewriting the existing  commits is optional and not required for safety.
+**The scanned history did not require a rewrite.** No real secret was found in the scanned commits. This is a point-in-time audit, not a guarantee about later commits; scan subsequent changes before publication. The personal data below is an author address and one old home-directory path. Both are already in the commit metadata or in a file that later commits deleted. Publishing the repo publishes them. Switch future commits to a GitHub noreply address if you want to stop adding the mailbox. Rewriting the existing commits is optional and not required for safety.
 
 ## Tools
 
@@ -31,7 +31,7 @@ The only unreachable local commit `git fsck` still reported is `6b99ab1c68f1be3f
 
 ### Real secrets
 
-None. No API token, private key, certificate, `.env`, webhook URL with a credential, or `Authorization` header value is in the tree or the history. Grok Bot's webhook and header are stored in the Keychain at runtime (`ExternalAssistantKeychain`) and are not committed. Tests use example hosts such as `git@github.com` and `git@gitlab.com` inside remote-URL parsing. `ProcessEnvironment` names `GH_TOKEN`, `GITHUB_TOKEN`, and `SCREENCLIP_NOTARY_PROFILE` only to strip them from a child process. Those names are not values.
+None were found in the scanned tree or history: API tokens, private keys, certificates, `.env` files, credential-bearing webhook URLs, and `Authorization` header values. Grok Bot's webhook and header are stored in the Keychain at runtime (`ExternalAssistantKeychain`) and are not committed. Tests use example hosts such as `git@github.com` and `git@gitlab.com` inside remote-URL parsing. `ProcessEnvironment` names `GH_TOKEN`, `GITHUB_TOKEN`, and `SCREENCLIP_NOTARY_PROFILE` only to strip them from a child process. Those names are not values.
 
 ### Personal data
 
