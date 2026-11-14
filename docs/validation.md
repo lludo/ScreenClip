@@ -45,6 +45,8 @@ The change was written on Linux, which has no Swift toolchain. GitHub Actions th
 
 `bash scripts/test.sh` covers `ExternalAssistantTests` (payload encoding, slug and branch names, opt-in, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, and the Authorization header on a test POST) and `ExternalAssistantAppTests` (Grok Bot stays in the agent list, submit refuses it until the webhook is configured and the project opts in, and a restart during the POST stays retryable). One slug-length failure on the first green-compile run was fixed before the passing run.
 
+A later review fixed three hand-off bugs and added tests for them: a retry commits leftover `.screenclip/` files before fast-forwarding, the Keychain item is updated in place, and the Authorization header is rejected when it contains a line break and is removed on a cross-host redirect. Those tests ride with the next macOS workflow run.
+
 **Still not exercised**
 
 A live webhook, an evidence push to a real repository, pull-request discovery, and auto-merge while `.screenclip/` is still present. Those need a configured assistant and a GitHub repository.
@@ -120,6 +122,6 @@ The GitHub fixture setup helper requires an explicit `OWNER/screenclip-integrati
 
 - `Sources/ScreenClip/`: native app, capture, annotation editor, queue/settings, and worker.
 - `Sources/ScreenClipCore/`: durable model/store, routing, transport, Git and GitHub integration, and merge policy.
-- `Sources/ScreenClipCore/CodexClient.swift`, `ClaudeCodeClient.swift`, `AgentDetector.swift`: agent transports and detection. See [Coding agents](agents/README.md).
+- `Sources/ScreenClipCore/CodexClient.swift`, `ClaudeCodeClient.swift`, `ExternalAssistant.swift`, `AgentDetector.swift`: agent transports and detection. See [Coding agents](agents/README.md).
 - `plugins/screenclip/`: optional local read-only MCP bridge, packaged for Codex and Claude Code.
 - `scripts/`: app builds, packaging, probes, fixtures, and plugin tests.

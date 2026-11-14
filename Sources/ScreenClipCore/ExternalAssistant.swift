@@ -131,6 +131,11 @@ public struct ExternalAssistantConfiguration: Equatable, Sendable {
   public var normalizedAuthorization: String {
     authorization.trimmingCharacters(in: .whitespacesAndNewlines)
   }
+  /// Header values are sent verbatim, but a line break would split the HTTP header.
+  public static func isSafeHeaderValue(_ value: String) -> Bool {
+    !value.isEmpty && value.unicodeScalars.allSatisfy { $0.value >= 0x20 && $0.value != 0x7F }
+  }
+  public var authorizationIsHeaderSafe: Bool { Self.isSafeHeaderValue(normalizedAuthorization) }
   /// The assistant's panel supplies the full header value. Empty is not configured.
   public var endpoint: URL? {
     guard let url = URL(string: normalizedURL), let scheme = url.scheme?.lowercased(),
@@ -138,7 +143,7 @@ public struct ExternalAssistantConfiguration: Equatable, Sendable {
     else { return nil }
     return url
   }
-  public var isConfigured: Bool { endpoint != nil && !normalizedAuthorization.isEmpty }
+  public var isConfigured: Bool { endpoint != nil && authorizationIsHeaderSafe }
 }
 
 public struct ExternalWebhookContext: Equatable, Encodable {
@@ -242,7 +247,7 @@ public struct GitHubRepository: Equatable, Sendable {
     } else if value.hasPrefix("git://github.com/") {
       path = String(value.dropFirst("git://github.com/".count))
     } else if let components = URLComponents(string: value),
-      components.host?.lowercased() == "github.com"
+      let host = components.host?.lowercased(), host == "github.com" || host == "www.github.com"
     {
       path = components.path
     } else {
@@ -425,21 +430,39 @@ public struct ExternalHTTPResponse: Equatable, Sendable {
 }
 
 public enum ExternalAssistantClient {
+  /// Keep the credential on a same-host redirect. Drop it when the host changes.
+  public static func requestKeepingAuthorizationOnSameHost(
+    originalHost: String?, redirected: URLRequest
+  ) -> URLRequest {
+    guard let originalHost, let nextHost = redirected.url?.host,
+      originalHost.caseInsensitiveCompare(nextHost) == .orderedSame
+    else {
+      var stripped = redirected
+      stripped.setValue(nil, forHTTPHeaderField: "Authorization")
+      return stripped
+    }
+    return redirected
+  }
+
   public static func post(
-    url: URL, authorization: String, body: Data, session: URLSession = .shared,
+    url: URL, authorization: String, body: Data, session: URLSession? = nil,
     timeout: TimeInterval = 30
   ) async throws -> ExternalHTTPResponse {
+    guard ExternalAssistantConfiguration.isSafeHeaderValue(authorization) else {
+      throw ScreenClipError.message(
+        "The Authorization header cannot contain a line break. Paste the single-line value from the Grok Bot routine panel."
+      )
+    }
     var request = URLRequest(url: url, timeoutInterval: timeout)
     request.httpMethod = "POST"
     request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-    if !authorization.isEmpty {
-      request.setValue(authorization, forHTTPHeaderField: "Authorization")
-    }
+    request.setValue(authorization, forHTTPHeaderField: "Authorization")
     request.httpBody = body
+    let activeSession = session ?? ownedSession
     let data: Data
     let response: URLResponse
     do {
-      (data, response) = try await session.data(for: request)
+      (data, response) = try await activeSession.data(for: request)
     } catch {
       throw ScreenClipError.message("Could not reach Grok Bot. \(error.localizedDescription)")
     }
@@ -448,5 +471,24 @@ public enum ExternalAssistantClient {
     }
     let text = String(decoding: data.prefix(2000), as: UTF8.self)
     return ExternalHTTPResponse(status: http.statusCode, body: text)
+  }
+
+  private static let redirectGuard = RedirectGuard()
+  private static let ownedSession: URLSession = {
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.timeoutIntervalForRequest = 30
+    return URLSession(configuration: configuration, delegate: redirectGuard, delegateQueue: nil)
+  }()
+
+  private final class RedirectGuard: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+    func urlSession(
+      _ session: URLSession, task: URLSessionTask,
+      willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
+      completionHandler: @escaping @Sendable (URLRequest?) -> Void
+    ) {
+      completionHandler(
+        ExternalAssistantClient.requestKeepingAuthorizationOnSameHost(
+          originalHost: task.originalRequest?.url?.host, redirected: request))
+    }
   }
 }

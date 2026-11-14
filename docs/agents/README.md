@@ -14,7 +14,7 @@ Separately from automatic dispatch, Codex and Claude Code can **read** the queue
 
 ## Choosing an agent
 
-- **Default agent.** Settings → Connections → AI agent sets `AppSettings.defaultAgent`. Missing in older queues means Codex.
+- **Default agent.** Settings → Connections → **AI agent** → **Default agent** sets `AppSettings.defaultAgent`. Missing in older queues means Codex.
 - **Per report.** The capture window's **Agent** picker starts at the default and can be changed for a new report or a draft. The choice is stamped on the issue (`Issue.agent`).
 - **Follow-ups keep their agent.** Adding a capture to a submitted issue locks the picker to that issue's agent, because conversation IDs are not interchangeable between agents. Switching a submitted issue to another agent is not supported; cancel it and submit a new report.
 - **Older issues** have no `agent` field and resolve to Codex (`Issue.resolvedAgent`).
@@ -59,7 +59,7 @@ Codex and Claude Code follow the same contract, so the rest of ScreenClip stays 
 
 A planned follow-up aggregates usage per agent and project to help decide which agent to use.
 
-Grok Bot (`AgentKind.external`) does not follow the local contract above. It has no local turn, no structured `implemented` result, and no conversation id inside ScreenClip. The page [Grok Bot](external-assistant.md) is the contract for that destination. The checklist below is for another **local** agent.
+Grok Bot (`AgentKind.external`) is the remote exception: [Grok Bot](external-assistant.md) is its contract. The checklist below is for another local agent.
 
 ## Adding another agent
 

@@ -111,6 +111,9 @@ final class ExternalAssistantTests: XCTestCase {
       GitHubRepository.parse(remote: "ssh://git@github.com/lludo/ScreenClip.git")?.slug, "lludo/ScreenClip")
     XCTAssertEqual(
       GitHubRepository.parse(remote: "https://github.com/lludo/ScreenClip/")?.slug, "lludo/ScreenClip")
+    XCTAssertEqual(
+      GitHubRepository.parse(remote: "https://www.github.com/lludo/ScreenClip.git")?.slug,
+      "lludo/ScreenClip")
     XCTAssertNil(GitHubRepository.parse(remote: "https://gitlab.com/lludo/ScreenClip.git"))
     XCTAssertNil(GitHubRepository.parse(remote: "https://notgithub.com/lludo/ScreenClip"))
   }
@@ -162,6 +165,12 @@ final class ExternalAssistantTests: XCTestCase {
     XCTAssertNil(
       ExternalAssistantConfiguration(webhookURL: "", authorization: "Bearer secret", testSucceeded: false)
         .endpoint)
+    XCTAssertFalse(
+      ExternalAssistantConfiguration(
+        webhookURL: "https://assistant.example/hook", authorization: "Bearer one\nBearer two",
+        testSucceeded: false
+      ).isConfigured)
+    XCTAssertFalse(ExternalAssistantConfiguration.isSafeHeaderValue("Bearer\r\nX-Injected: 1"))
 
     let unconfigured = AgentPicker.externalAvailability(
       configured: false, hasProject: true, projectOptIn: true)
@@ -238,6 +247,22 @@ final class ExternalAssistantTests: XCTestCase {
       ExternalPullRequestFinder.closedMatch(
         reportNumber: 234, branch: branch, candidates: [closed])?.url,
       closed.url)
+  }
+
+  func testAuthorizationStaysOnTheSameHostDuringRedirect() {
+    var same = URLRequest(url: URL(string: "https://assistant.example/next")!)
+    same.setValue("Bearer secret", forHTTPHeaderField: "Authorization")
+    let kept = ExternalAssistantClient.requestKeepingAuthorizationOnSameHost(
+      originalHost: "assistant.example", redirected: same)
+    XCTAssertEqual(kept.value(forHTTPHeaderField: "Authorization"), "Bearer secret")
+    var other = URLRequest(url: URL(string: "https://elsewhere.example/next")!)
+    other.setValue("Bearer secret", forHTTPHeaderField: "Authorization")
+    let stripped = ExternalAssistantClient.requestKeepingAuthorizationOnSameHost(
+      originalHost: "Assistant.Example", redirected: other)
+    XCTAssertNil(stripped.value(forHTTPHeaderField: "Authorization"))
+    let missing = ExternalAssistantClient.requestKeepingAuthorizationOnSameHost(
+      originalHost: nil, redirected: same)
+    XCTAssertNil(missing.value(forHTTPHeaderField: "Authorization"))
   }
 
   func testScreenclipPathsBlockAutomaticMerge() {

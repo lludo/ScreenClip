@@ -50,7 +50,7 @@ Local installation requires a signing certificate to keep macOS permissions stab
 ### First capture
 
 1. **Add a project** in **Settings → Projects**: its Git repository, base branch, website URLs or native app bundle IDs, and validation command.
-2. **Connect an agent** in **Settings → Connections**. Use **Detect agents**, choose the default, and check sign-in. Codex reuses an existing session when available; **Sign in to Claude** opens Terminal for Claude Code’s login flow. You can also set a Claude executable path and model. For Grok Bot, paste the webhook URL and the full Authorization header under **External assistant**, then use **Send test**. Turn on **Allow sending screenshots to the external assistant** for each project that may send captures. That toggle stays off until you enable it, including for private repositories.
+2. **Connect an agent** in **Settings → Connections**. Use **Detect agents**, choose **Default agent** under **AI agent**, and check sign-in. Codex reuses an existing session when available; **Sign in to Claude** opens Terminal for Claude Code’s login flow. You can also set **Claude Code executable** and **Model (empty uses Claude Code's default)**. For Grok Bot, open **External assistant**, paste **Webhook URL** and **Authorization header** from the Grok Bot routine panel, then click **Send test**. In **Settings → Projects**, edit the project and turn on **Allow sending screenshots to the external assistant**. That toggle stays off until you enable it, including for private repositories.
 3. **Press ⌘⇧2**, grant macOS Screen Recording permission, select a region, and submit. Change the shortcut in Settings if needed.
 
 Browser URL context is optional and may request Safari or Chrome Automation access. Without it, select the project yourself when routing is unavailable.
@@ -59,7 +59,11 @@ ScreenClip hides its own windows during capture by default. To report a bug in S
 
 ## Working with reports
 
-Captures save locally before dispatch, under `~/Library/Application Support/ScreenClip`. Keep ScreenClip running and the Mac awake while an agent works. Use the report’s reply controls to answer questions; click its number to copy a reference.
+Captures save locally before dispatch, under `~/Library/Application Support/ScreenClip`. Keep ScreenClip running and the Mac awake while Codex or Claude Code works. Grok Bot keeps working in the cloud if the Mac sleeps; ScreenClip updates the pull request status the next time it is running. Use the report’s reply controls to answer Codex or Claude questions; Grok Bot questions stay in Grok Bot’s chat. Click a report number to copy a reference.
+
+Redaction is only the black rectangles you draw with the redact tool. Those pixels are flattened to opaque black in the saved screenshot. Arrows, pen strokes, shapes, and text do not hide what is underneath. When a capture has a redaction, ScreenClip does not keep the unredacted crop.
+
+Codex and Claude Code see the approved screenshots only on this Mac. Grok Bot is different: the approved PNGs, notes, and report fields are pushed to a `screenclip/` branch in the project repository, and a small JSON webhook is sent. The browser URL and window title are included only when **Read the active browser URL for project matching** is on. The webhook URL and Authorization header stay in the Keychain, not in the queue database. A public repository makes those screenshot files readable by anyone who can see the repo, which is why the project opt-in stays off until you turn it on.
 
 **Open in Codex** takes you to the exact issue chat. Claude reports offer **Copy Claude resume command**. Grok Bot has no deep link: the report shows the pull request once ScreenClip finds it, and otherwise says the conversation is in Grok Bot’s chat. Cancel stops only the local record; it does not stop Grok Bot. Cancel active work before taking over a local worktree in another coding client. Codex chats may still appear in Recents instead of the expected desktop project; the [repository association review](docs/validation.md#repository-association-review) documents that limitation.
 
