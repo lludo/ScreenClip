@@ -1096,7 +1096,9 @@ import ScreenClipCore
     }
     let repo = try await githubRepo(project)
     let branch =
-      issue.branch ?? ExternalAssistant.branchName(reportNumber: number, title: issue.title)
+      issue.branch
+      ?? ExternalAssistant.branchName(
+        reportNumber: number, title: issue.title, workspaceID: issue.workspaceID)
     _ = try await CommandRunner.checked(
       "/usr/bin/git", ["check-ref-format", "--branch", branch], cwd: project.path)
     let workspace = try await GitWorkspace.prepare(
@@ -1349,8 +1351,15 @@ import ScreenClipCore
     }
     receipts[id] = validated
     try JSONEncoder().encode(validated).write(to: receiptURL(issue), options: .atomic)
-    _ = try await CommandRunner.checked(
-      "/usr/bin/git", ["push", "origin", "HEAD:\(branch)"], cwd: path)
+    do {
+      _ = try await CommandRunner.checked(
+        "/usr/bin/git", ["push", "origin", "HEAD:\(branch)"], cwd: path)
+    } catch {
+      // Without the rollback the local merge diverges from the PR and blocks every later refresh.
+      _ = try? await CommandRunner.checked(
+        "/usr/bin/git", ["reset", "--hard", previousHead], cwd: path)
+      throw error
+    }
     try model.updateIssue(id) {
       $0.prHead = validated.head
       $0.lastError = nil

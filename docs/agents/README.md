@@ -8,7 +8,7 @@ ScreenClip captures an observation and hands it to a coding agent. Codex and Cla
 | --- | --- | --- | --- | --- | --- |
 | Codex | `codex app-server` (long-lived JSON-RPC over stdio) | Codex thread ID | `codex://threads/<id>` | ChatGPT or API key through app-server | [codex.md](codex.md) |
 | Claude Code | `claude -p` (one stream-json process per turn) | Session UUID chosen by ScreenClip | Copy `cd <worktree> && claude --resume <id>` | `claude auth login` in Terminal | [claude-code.md](claude-code.md) |
-| Grok Bot | Webhook `screenclip.external.v1` after a Git push of approved screenshots | Report number and `screenclip/<number>-<slug>` branch | Pull request link, or a note that the chat is in Grok Bot | Webhook URL and Authorization header in the Keychain | [external-assistant.md](external-assistant.md) |
+| Grok Bot | Webhook `screenclip.external.v1` after a Git push of approved screenshots | Report number and `screenclip/<number>-<slug>-<workspace>` branch | Pull request link, or a note that the chat is in Grok Bot | Webhook URL and Authorization header in the Keychain | [external-assistant.md](external-assistant.md) |
 
 Separately from automatic dispatch, Codex and Claude Code can **read** the queue through the optional MCP plugin. See [the plugin README](../../plugins/screenclip/README.md).
 

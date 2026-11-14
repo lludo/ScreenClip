@@ -37,8 +37,10 @@ public enum ExternalAssistant {
     return output.isEmpty ? "report" : output
   }
 
-  public static func branchName(reportNumber: Int, title: String) -> String {
-    "screenclip/\(reportNumber)-\(slug(title))"
+  /// Unique per workspace: a follow-up after a merge gets a new workspace, so it never reuses the
+  /// merged branch (still checked out in the old worktree) or rediscovers the merged PR.
+  public static func branchName(reportNumber: Int, title: String, workspaceID: UUID) -> String {
+    "screenclip/\(reportNumber)-\(slug(title))-\(workspaceID.uuidString.lowercased().prefix(8))"
   }
 
   public static func evidenceDirectory(reportNumber: Int) -> String {
@@ -360,9 +362,23 @@ public enum ExternalHandoff {
 
 public enum ExternalRecovery {
   public enum Step: Equatable { case retrySend, watchForPullRequest }
-  public static func afterRestart(status: IssueStatus, uncertain: Bool) -> Step {
-    if uncertain || status != .working { return .retrySend }
+  /// Watch for a pull request only when the current revision's webhook was delivered. A restart
+  /// while evidence was still being prepared or pushed leaves `.working` without a send.
+  public static func afterRestart(status: IssueStatus, uncertain: Bool, sentCurrentRevision: Bool)
+    -> Step
+  {
+    if uncertain || status != .working || !sentCurrentRevision { return .retrySend }
     return .watchForPullRequest
+  }
+  /// True when the latest handoff step recorded for this issue is a successful send of its
+  /// current revision.
+  public static func sentCurrentRevision(_ issue: Issue) -> Bool {
+    guard issue.handoffRevision == issue.revision else { return false }
+    let last = issue.activities.last {
+      $0.text == ExternalAssistant.sentActivity || $0.text.hasPrefix("Sending report revision")
+        || $0.text.hasPrefix("Preparing evidence for Grok Bot")
+    }
+    return last?.text == ExternalAssistant.sentActivity
   }
 }
 
@@ -430,12 +446,15 @@ public struct ExternalHTTPResponse: Equatable, Sendable {
 }
 
 public enum ExternalAssistantClient {
-  /// Keep the credential on a same-host redirect. Drop it when the host changes.
-  public static func requestKeepingAuthorizationOnSameHost(
-    originalHost: String?, redirected: URLRequest
+  /// Keep the credential only on a same-origin redirect (scheme, host and port). Drop it when
+  /// any of them changes, including an https to http downgrade on the same host.
+  public static func requestKeepingAuthorizationOnSameOrigin(
+    original: URL?, redirected: URLRequest
   ) -> URLRequest {
-    guard let originalHost, let nextHost = redirected.url?.host,
-      originalHost.caseInsensitiveCompare(nextHost) == .orderedSame
+    func port(_ url: URL) -> Int? { url.port ?? (url.scheme?.lowercased() == "https" ? 443 : url.scheme?.lowercased() == "http" ? 80 : nil) }
+    guard let original, let next = redirected.url, let host = original.host, let nextHost = next.host,
+      host.caseInsensitiveCompare(nextHost) == .orderedSame,
+      original.scheme?.lowercased() == next.scheme?.lowercased(), port(original) == port(next)
     else {
       var stripped = redirected
       stripped.setValue(nil, forHTTPHeaderField: "Authorization")
@@ -487,8 +506,8 @@ public enum ExternalAssistantClient {
       completionHandler: @escaping @Sendable (URLRequest?) -> Void
     ) {
       completionHandler(
-        ExternalAssistantClient.requestKeepingAuthorizationOnSameHost(
-          originalHost: task.originalRequest?.url?.host, redirected: request))
+        ExternalAssistantClient.requestKeepingAuthorizationOnSameOrigin(
+          original: task.originalRequest?.url, redirected: request))
     }
   }
 }

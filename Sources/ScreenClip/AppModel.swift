@@ -56,7 +56,8 @@ import UserNotifications
     where snapshot.issues[i].status == .working || snapshot.issues[i].dispatchUncertain {
       if snapshot.issues[i].resolvedAgent == .external {
         switch ExternalRecovery.afterRestart(
-          status: snapshot.issues[i].status, uncertain: snapshot.issues[i].dispatchUncertain)
+          status: snapshot.issues[i].status, uncertain: snapshot.issues[i].dispatchUncertain,
+          sentCurrentRevision: ExternalRecovery.sentCurrentRevision(snapshot.issues[i]))
         {
         case .retrySend:
           snapshot.issues[i].dispatchUncertain = false
