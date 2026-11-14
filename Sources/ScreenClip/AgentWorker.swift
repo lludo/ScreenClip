@@ -155,7 +155,10 @@ import ScreenClipCore
       }
     }
   }
-  func reply(issueID: UUID, questionID: UUID, answers: [String: String], allow: Bool? = nil) async {
+  func reply(
+    issueID: UUID, questionID: UUID, answers: [String: String], allow: Bool? = nil,
+    approvalDecision: JSONValue? = nil
+  ) async {
     guard let issue = model.issue(issueID),
       let question = issue.questions.first(where: { $0.id == questionID })
     else { return }
@@ -173,9 +176,14 @@ import ScreenClipCore
               "answers": .object(answers.mapValues { .object(["answers": .array([.string($0)])]) })
             ]))
         } else if method.contains("requestApproval") && !method.contains("permissions") {
+          let options = CodexApprovalOptions(method: method, params: question.questions ?? .null)
+          let decision = approvalDecision ?? .string(allow == true ? "accept" : "decline")
+          guard (decision.string.map { options.permits($0) } ?? (decision == options.ruleDecision)) else {
+            throw ScreenClipError.message("This approval choice is no longer available.")
+          }
           try await client.respond(
             id: requestID,
-            result: .object(["decision": .string(allow == true ? "accept" : "decline")]))
+            result: .object(["decision": decision]))
         } else {
           try await client.reject(
             id: requestID, message: "Complete this permission or connection request in Codex.")
@@ -184,7 +192,10 @@ import ScreenClipCore
         try model.updateIssue(issueID) { issue in
           if let i = issue.questions.firstIndex(where: { $0.id == questionID }) {
             issue.questions[i].reply =
-              allow.map { $0 ? "Allowed once" : "Declined" }
+              (approvalDecision == .string("cancel") ? "Canceled" :
+                approvalDecision == .string("acceptForSession") ? "Allowed for this chat" :
+                (approvalDecision != nil ? "Allowed with a saved command rule" : nil))
+              ?? allow.map { $0 ? "Allowed once" : "Declined" }
               ?? answers.values.joined(separator: "\n")
           }
           let waiting = issue.questions.contains { $0.requestID != nil && $0.reply == nil }

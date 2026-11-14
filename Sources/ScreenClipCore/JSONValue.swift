@@ -62,3 +62,35 @@ public indirect enum JSONValue: Codable, Equatable, Sendable {
   public static func text(_ value: String) -> JSONValue { .string(value) }
   public var data: Data { (try? JSONEncoder().encode(self)) ?? Data() }
 }
+
+/// Decisions offered by Codex for one approval request. Never invent a command rule.
+public struct CodexApprovalOptions {
+  public let params: JSONValue
+  public let method: String
+  public init(method: String, params: JSONValue) {
+    self.method = method
+    self.params = params
+  }
+  public func permits(_ decision: String) -> Bool {
+    let offered = params["availableDecisions"]
+    return offered == .null || offered.array.contains(.string(decision))
+  }
+  public var commandRule: [String]? {
+    guard method == "item/commandExecution/requestApproval",
+      params["networkApprovalContext"] == .null else { return nil }
+    let proposed = params["proposedExecpolicyAmendment"].array
+    guard !proposed.isEmpty, proposed.allSatisfy({ $0.string != nil }) else { return nil }
+    let offered = params["availableDecisions"]
+    let rule = JSONValue.object(["acceptWithExecpolicyAmendment": .object([
+      "execpolicy_amendment": .array(proposed)
+    ])])
+    guard offered == .null || offered.array.contains(rule) else { return nil }
+    return proposed.compactMap(\.string)
+  }
+  public var ruleDecision: JSONValue? {
+    guard let commandRule else { return nil }
+    return .object(["acceptWithExecpolicyAmendment": .object([
+      "execpolicy_amendment": .array(commandRule.map(JSONValue.string))
+    ])])
+  }
+}
