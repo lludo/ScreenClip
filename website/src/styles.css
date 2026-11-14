@@ -19,7 +19,7 @@
   --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   --wrap: 1120px;
   --header: 4.5rem;
-  --space: 4.5rem;
+  --space: clamp(4rem, 6vw, 5.5rem);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -44,7 +44,7 @@ body {
   color: var(--ink);
   font-family: var(--sans);
   font-size: 1.0625rem;
-  line-height: 1.6;
+  line-height: 1.65;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -91,9 +91,15 @@ h1, h2 {
   line-height: 1.08;
   text-wrap: balance;
 }
-h1 { font-size: clamp(2.55rem, 5.2vw, 4.15rem); margin-bottom: 1.1rem; }
+h1 { font-size: clamp(2.65rem, 5vw, 4.1rem); margin-bottom: 1.2rem; }
 h2 { font-size: clamp(1.85rem, 3vw, 2.5rem); margin-bottom: 0.75rem; }
 h3 { font-size: 1.125rem; letter-spacing: -0.02em; line-height: 1.3; margin-bottom: 0.45rem; }
+:lang(ja) h1, :lang(ja) h2, :lang(ko) h1, :lang(ko) h2,
+:lang(zh) h1, :lang(zh) h2 {
+  font-family: var(--sans);
+  letter-spacing: 0;
+  line-height: 1.25;
+}
 .accent { color: var(--orange-ink); }
 
 .site-header {
@@ -146,13 +152,13 @@ h3 { font-size: 1.125rem; letter-spacing: -0.02em; line-height: 1.3; margin-bott
 .intro {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(17rem, 0.8fr);
-  gap: 2.5rem 3.5rem;
+  gap: 3rem clamp(3rem, 5vw, 5rem);
   align-items: center;
-  padding-block: 3.25rem 4.25rem;
+  padding-block: clamp(3.5rem, 6vw, 5rem) clamp(4rem, 6vw, 5.5rem);
 }
 .lead, .band-lead {
-  font-size: 1.2rem;
-  line-height: 1.55;
+  font-size: clamp(1.1rem, 1.4vw, 1.2rem);
+  line-height: 1.6;
   color: var(--muted);
   max-width: 38rem;
 }
@@ -197,7 +203,15 @@ h3 { font-size: 1.125rem; letter-spacing: -0.02em; line-height: 1.3; margin-bott
   margin-bottom: 0.85rem;
 }
 .demo-figure { margin: 0; width: min(100%, 23.25rem); }
-.popup { width: 100%; height: auto; filter: var(--popup-shadow); }
+.demo-figure picture {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 460 / 500;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 18px 36px rgba(36, 31, 26, 0.12);
+}
+.popup { width: 100%; height: 100%; object-fit: cover; object-position: center; }
 .demo-figure figcaption {
   margin: 0.9rem 0 0;
   color: var(--muted);
@@ -207,7 +221,7 @@ h3 { font-size: 1.125rem; letter-spacing: -0.02em; line-height: 1.3; margin-bott
 .section { padding-bottom: var(--space); }
 .section-rule { border-top: 1px solid var(--line); padding-top: var(--space); }
 .section-intro { max-width: 40rem; margin-bottom: 1.75rem; }
-.section-intro p:last-child { color: var(--muted); }
+.section-intro p:last-child { color: var(--muted); margin-bottom: 0; }
 
 .loop {
   list-style: none;
@@ -246,7 +260,7 @@ kbd {
 }
 .card {
   margin: 0;
-  padding: 1.2rem 1.2rem 1.3rem;
+  padding: clamp(1.25rem, 2vw, 1.6rem);
   background: var(--paper-2);
   border: 1px solid var(--line);
   border-radius: 16px;
@@ -314,7 +328,8 @@ kbd {
 
 .prose { width: min(68ch, calc(100% - 3rem)); margin: 0 auto; padding-block: 2.75rem 4.25rem; }
 .prose h1 { font-size: clamp(2.3rem, 5vw, 3.4rem); }
-.prose h2 { font-size: 1.55rem; margin-top: 2.1rem; }
+.prose h2 { font-size: 1.55rem; margin-top: 2.5rem; }
+.prose p { margin-bottom: 1.1rem; }
 .prose p, .prose li { color: var(--muted); }
 .prose li { margin: 0.4rem 0; }
 .prose a { font-weight: 650; text-decoration: underline; text-underline-offset: 0.18em; }
@@ -380,7 +395,7 @@ kbd {
 @media (max-width: 960px) {
   .intro, .band, .faq-section { grid-template-columns: 1fr; }
   .loop, .cards { grid-template-columns: 1fr 1fr; }
-  .intro { padding-top: 2.25rem; gap: 2.25rem; }
+  .intro { padding-top: 2.75rem; gap: 2.75rem; }
   .section, .section-rule, .faq-section { --space: 3.25rem; }
   .band { padding: 1.5rem; gap: 1.75rem; }
 }
@@ -393,7 +408,10 @@ kbd {
   .site-header nav a.nav-download { display: none; }
   .loop, .cards { grid-template-columns: 1fr; }
   .wrap, .prose { width: min(var(--wrap), calc(100% - 2rem)); }
-  h1 { font-size: clamp(2.35rem, 11vw, 3rem); }
+  h1 { font-size: clamp(2.25rem, 10.5vw, 3rem); }
+  .intro { padding-block: 2.75rem 3.5rem; }
+  .site-header nav { justify-content: space-between; }
+  .site-header nav a { padding-inline: 0.45rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -108,6 +108,8 @@ node website/scripts/screenshots.mjs --url https://screenclipai.com
 node website/scripts/screenshots.mjs --url http://127.0.0.1:4173
 ```
 
+To use an existing Chromium-compatible browser, set `SCREENCLIP_CHROMIUM_PATH` to its executable when running the script.
+
 Playwright is a dev dependency. Vercel installs with `npm install --omit=dev`, so deploys still only install `@vercel/functions`.
 
 GitHub Actions can run the same script when someone starts it: **Website screenshots** is a manual `workflow_dispatch` job on `ubuntu-latest`. It uploads `website/screenshots` as an artifact. It does not run on push or on pull requests.
@@ -125,7 +127,7 @@ The build writes:
 - `manifest.webmanifest`, `favicon.ico`, an SVG icon, a 32×32 PNG, and an Apple touch icon. The icons in `dist/` are drawn by `build.py`.
 - `/privacy`, `/support`, and `404.html`. Localized privacy and support pages use the same paths under each locale prefix.
 
-CSS and the synthetic menu bar screenshots (`popup-light.png`, `popup-dark.png`) are fingerprinted under `/assets/h/`. The home page picks the light or dark PNG with `prefers-color-scheme`. `website/vercel.json` gives those files a one-year immutable cache. HTML, `og.png`, and the stable icons stay revalidated. The older capture-editor and queue PNGs in `website/src/assets/` (`composer-preview.png`, `queue-preview.png`) are not part of the page.
+CSS and the localized menu bar screenshots in `website/src/assets/localized-menu/` are fingerprinted under `/assets/h/`. Each home page picks its language’s light or dark PNG with `prefers-color-scheme`. These images were rendered from a filtered, isolated snapshot of real ScreenClip reports; report text remains in its original language. Review the visible content before replacing or publishing them. `website/vercel.json` gives those files a one-year immutable cache. HTML, `og.png`, and the stable icons stay revalidated. The older capture-editor and queue PNGs in `website/src/assets/` (`composer-preview.png`, `queue-preview.png`) are not part of the page.
 
 On a Mac, `swift website/render-assets.swift` redraws `website/src/assets/og.png`.
 
