@@ -4,6 +4,109 @@ import XCTest
 @testable import ScreenClip
 
 @MainActor final class FeedbackReviewTests: XCTestCase {
+  func testImageOnlyQueuedReportAcceptsDurableSearchableContextWithoutAnotherCapture() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = try AppModel(root: root)
+    let issue = Issue(
+      projectID: UUID(), title: "Observation in Test",
+      capture: Capture(note: "", imagePath: "/tmp/test.png", context: CaptureContext()))
+    try model.commit {
+      $0.settings.paused = true
+      $0.issues = [issue]
+    }
+    let original = try XCTUnwrap(model.issue(issue.id))
+    try model.addContext(issue.id, text: "  The button is clipped.\nOnly at narrow widths.  ")
+    try model.addContext(issue.id, text: "It also happens in the settings window.")
+    let saved = try XCTUnwrap(model.issue(issue.id))
+    XCTAssertEqual(
+      saved.contextNotes?.map(\.text),
+      [
+        "The button is clipped.\nOnly at narrow widths.",
+        "It also happens in the settings window.",
+      ])
+    XCTAssertEqual(saved.status, .queued)
+    XCTAssertEqual(saved.revision, original.revision + 2)
+    XCTAssertEqual(saved.coveredRevision, original.coveredRevision)
+    XCTAssertEqual(saved.reportNumber, original.reportNumber)
+    XCTAssertEqual(saved.captures, original.captures)
+    XCTAssertEqual(saved.workspaceID, original.workspaceID)
+    XCTAssertEqual(model.snapshot.issues.count, 1)
+    XCTAssertTrue(QueueFilter.active.includes(saved, search: "NARROW WIDTHS"))
+    XCTAssertEqual(try model.store.load().issues[0], saved)
+    var withLongActivity = saved
+    for _ in 0..<501 { withLongActivity.record("Progress") }
+    XCTAssertEqual(withLongActivity.contextNotes, saved.contextNotes)
+  }
+
+  func testContextRejectsEmptyTextAndMissingReportsWithoutChangingTheQueue() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = try AppModel(root: root)
+    let issue = Issue(
+      projectID: nil, title: "Report",
+      capture: Capture(note: "", imagePath: "/tmp/test.png", context: CaptureContext()))
+    try model.commit { $0.issues = [issue] }
+    let original = model.snapshot.issues
+    XCTAssertThrowsError(try model.addContext(issue.id, text: " \n\t "))
+    XCTAssertThrowsError(try model.addContext(UUID(), text: "Missing report"))
+    XCTAssertEqual(model.snapshot.issues, original)
+    XCTAssertEqual(try model.store.load().issues, original)
+  }
+
+  func testLegacyReportsCanAddContextAndPreserveActiveWorkAndPendingQuestions() throws {
+    let original = Issue(
+      projectID: UUID(), title: "Report",
+      capture: Capture(note: "", imagePath: "/tmp/test.png", context: CaptureContext()))
+    var json = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: JSONEncoder().encode(original)) as? [String: Any])
+    json.removeValue(forKey: "contextNotes")
+    let legacy = try JSONDecoder().decode(
+      Issue.self, from: JSONSerialization.data(withJSONObject: json))
+    XCTAssertNil(legacy.contextNotes)
+    for status in [IssueStatus.draft, .queued, .working, .needsYou, .needsProject] {
+      var issue = legacy
+      issue.status = status
+      if status == .needsProject { issue.projectID = nil }
+      issue.threadID = "existing-chat"
+      issue.turnID = "active-turn"
+      issue.coveredRevision = 1
+      issue.dispatchUncertain = true
+      issue.questions = [PendingQuestion(title: "Allow?", requestID: .number(12))]
+      issue.addContext("Forgotten details")
+      XCTAssertEqual(issue.status, status)
+      XCTAssertEqual(issue.threadID, "existing-chat")
+      XCTAssertEqual(issue.turnID, "active-turn")
+      XCTAssertEqual(issue.coveredRevision, 1)
+      XCTAssertEqual(issue.revision, 2)
+      XCTAssertTrue(issue.dispatchUncertain)
+      XCTAssertNil(issue.questions[0].reply)
+      XCTAssertEqual(issue.contextNotes?.first?.text, "Forgotten details")
+    }
+  }
+
+  func testContextReopensCompletedReportsWithFreshWorkspaceAndSameConversation() {
+    for status in [IssueStatus.merged, .verified] {
+      var issue = Issue(
+        projectID: UUID(), title: "Report",
+        capture: Capture(note: "", imagePath: "/tmp/test.png", context: CaptureContext()))
+      let workspaceID = issue.workspaceID
+      issue.status = status
+      issue.archived = true
+      issue.threadID = "existing-chat"
+      issue.prURL = "https://github.com/example/repo/pull/1"
+      issue.worktreePath = "/tmp/previous-workspace"
+      issue.addContext("Another detail")
+      XCTAssertEqual(issue.status, .queued)
+      XCTAssertFalse(issue.archived)
+      XCTAssertEqual(issue.threadID, "existing-chat")
+      XCTAssertNotEqual(issue.workspaceID, workspaceID)
+      XCTAssertNil(issue.worktreePath)
+      XCTAssertNil(issue.prURL)
+      XCTAssertTrue(issue.activities.contains { $0.text.contains("Previous fix:") })
+    }
+  }
+
   func testFeedbackSearchIncludesFollowupsRepliesResultsAndActivity() {
     var issue = Issue(
       projectID: nil, title: "Capture layout",

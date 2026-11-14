@@ -157,6 +157,16 @@ public struct Activity: Codable, Identifiable, Equatable {
     self.text = text
   }
 }
+public struct ContextNote: Codable, Identifiable, Equatable {
+  public var id: UUID
+  public var date: Date
+  public var text: String
+  public init(_ text: String) {
+    id = UUID()
+    date = Date()
+    self.text = text
+  }
+}
 public struct PendingQuestion: Codable, Identifiable, Equatable {
   public var id: UUID
   public var title: String
@@ -190,6 +200,8 @@ public struct Issue: Codable, Identifiable, Equatable {
   public var workspaceID: UUID
   public var coveredRevision: Int
   public var captures: [Capture]
+  // Optional so reports filed before text-only follow-ups still decode.
+  public var contextNotes: [ContextNote]?
   public var activities: [Activity]
   public var questions: [PendingQuestion]
   public var threadID: String?
@@ -227,6 +239,7 @@ public struct Issue: Codable, Identifiable, Equatable {
     workspaceID = UUID()
     coveredRevision = 0
     captures = [capture]
+    contextNotes = []
     activities = [Activity(draft ? "Draft saved" : "Capture submitted")]
     questions = []
     dispatchUncertain = false
@@ -279,6 +292,7 @@ public struct Issue: Codable, Identifiable, Equatable {
     if text.isEmpty { return true }
     return title.localizedCaseInsensitiveContains(text)
       || captures.contains { $0.note.localizedCaseInsensitiveContains(text) }
+      || contextNotes?.contains { $0.text.localizedCaseInsensitiveContains(text) } == true
       || resultSummary?.localizedCaseInsensitiveContains(text) == true
       || activities.contains { $0.text.localizedCaseInsensitiveContains(text) }
       || questions.contains {
@@ -287,6 +301,33 @@ public struct Issue: Codable, Identifiable, Equatable {
       }
   }
   public mutating func add(_ capture: Capture) {
+    prepareForNewEvidence()
+    captures.append(capture)
+    revision += 1
+    updatedAt = Date()
+    archived = false
+    if resolvedAgent == .external {
+      // A new revision is another handoff on the same branch, including while a PR is open.
+      status = projectID == nil ? .needsProject : .queued
+    } else if ![.working, .needsYou].contains(status) {
+      status = projectID == nil ? .needsProject : .queued
+    }
+    activities.append(Activity("Added capture \(captures.count)"))
+  }
+  public mutating func addContext(_ text: String) {
+    prepareForNewEvidence()
+    contextNotes = (contextNotes ?? []) + [ContextNote(text)]
+    revision += 1
+    archived = false
+    if resolvedAgent == .external && status != .draft {
+      // A new revision is another handoff on the same branch, including while a PR is open.
+      status = projectID == nil ? .needsProject : .queued
+    } else if ![.draft, .working, .needsYou].contains(status) {
+      status = projectID == nil ? .needsProject : .queued
+    }
+    record("Context added")
+  }
+  private mutating func prepareForNewEvidence() {
     repairAttempts = 0
     if [.merged, .verified].contains(status) {
       if let prURL { activities.append(Activity("Previous fix: " + prURL)) }
@@ -299,17 +340,6 @@ public struct Issue: Codable, Identifiable, Equatable {
       handoffCommit = nil
       handoffRevision = nil
     }
-    captures.append(capture)
-    revision += 1
-    updatedAt = Date()
-    archived = false
-    if resolvedAgent == .external {
-      // A new revision is another handoff on the same branch, including while a PR is open.
-      status = projectID == nil ? .needsProject : .queued
-    } else if ![.working, .needsYou].contains(status) {
-      status = projectID == nil ? .needsProject : .queued
-    }
-    activities.append(Activity("Added capture \(captures.count)"))
   }
   public mutating func record(_ text: String, status: IssueStatus? = nil, kind: String = "update") {
     if let status { self.status = status }
