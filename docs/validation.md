@@ -26,6 +26,10 @@ A synthetic run confirmed repository context, worktree isolation, and runtime pr
 
 A follow-up probe started a read-only chat with the repository as its initial directory, then used app-server's per-turn `cwd` override to work in a separate directory. The desktop listed the chat without a project and recorded the turn directory as its `cwd`. Continuing the same chat from the repository did not assign it to the desktop project, and the desktop move operation reported that the test chat was not available in the sidebar. The test chat was archived. This does not establish a reliable project association or justify changing worktree isolation.
 
+An additional read-only inspection of the installed Codex desktop found an incomplete project-assignment migration: at the time, 85 pending entries comprised 79 archived and 6 active chats, all with the `vscode` source. Of those, 64 referenced missing rollout files. Codex doctor reported healthy databases and warned about missing or unusable rollout files. The desktop's migration code scans non-archived chats; these observations suggest possible reasons for the backlog but do not prove why the migration is incomplete. Sample ScreenClip chats had runtime project IDs but no desktop assignment, and were not in that pending set. No supported repair was identified, and neither migration state nor Codex databases were edited.
+
+A subsequent read-only app-server probe found all six then-pending active chats in the default interactive thread list, and `thread/read` returned each of them. Their legacy project registrations and legacy-to-runtime mappings were present. Thus the earlier missing-rollout warning alone does not explain why the active entries remain pending. The pending count changed while observing it, so a snapshot-based checkpoint rewrite could discard concurrent updates. This probe did not run the desktop migration against a copied state or establish a repair.
+
 To repeat it (creates a synthetic Codex chat and uses normal account usage):
 
 ```sh

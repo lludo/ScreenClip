@@ -93,7 +93,7 @@ struct AgentDetectionRow: View {
     return HStack(alignment: .firstTextBaseline) {
       Image(systemName: symbol).foregroundStyle(color)
       VStack(alignment: .leading, spacing: 2) {
-        Text(kind.title)
+        AgentLabel(kind: kind)
         Text(detection?.detail ?? "Not checked yet").font(.caption).foregroundStyle(.secondary)
           .textSelection(.enabled)
       }

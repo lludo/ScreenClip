@@ -139,7 +139,7 @@ struct SettingsView: View {
                 get: { settings.preferredAgent }, set: { settings.defaultAgent = $0 })
             ) {
               ForEach(agentChoices) { kind in
-                Text(model.detection(kind)?.label ?? kind.title).tag(kind)
+                AgentLabel(kind: kind, title: model.detection(kind)?.label ?? kind.title).tag(kind)
               }
             }
             ForEach(AgentKind.allCases) { kind in
