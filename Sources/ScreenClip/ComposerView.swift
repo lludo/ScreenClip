@@ -12,7 +12,6 @@ struct ComposerView: View {
   @State private var projectID: UUID?
   @State private var issueID: UUID?
   @State private var error: String?
-  @State private var confirmCancel = false
   @FocusState private var noteFocused: Bool
   var body: some View {
     VStack(spacing: 0) {
@@ -29,11 +28,6 @@ struct ComposerView: View {
           ).font(.caption).foregroundStyle(.secondary).lineLimit(1)
         }
         Spacer()
-        Button {
-          confirmCancel = true
-        } label: {
-          Image(systemName: "xmark")
-        }.buttonStyle(.plain).accessibilityLabel("Close capture")
       }.padding(20)
       HStack(spacing: 6) {
         ForEach(MarkKind.allCases, id: \.self) { kind in
@@ -167,15 +161,6 @@ struct ComposerView: View {
       }
     }
     .onChange(of: projectID) { _, _ in if existing == nil { issueID = nil } }
-    .confirmationDialog(
-      "Keep this capture?", isPresented: $confirmCancel, titleVisibility: .visible
-    ) {
-      if existing == nil || existing?.status == .draft {
-        Button("Save draft") { submit(draft: true) }
-      }
-      Button("Discard capture", role: .destructive) { close() }
-      Button("Keep editing", role: .cancel) {}
-    }
   }
   private func symbol(_ tool: MarkKind) -> String {
     switch tool {

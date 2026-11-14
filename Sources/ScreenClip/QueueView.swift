@@ -48,7 +48,7 @@ struct QueueView: View {
     }
   }
   var body: some View {
-    NavigationSplitView {
+    HSplitView {
       List {
         Section {
           ForEach(QueueFilter.allCases) { item in
@@ -89,7 +89,7 @@ struct QueueView: View {
             Label("Manage projects…", systemImage: "plus")
           }.buttonStyle(.plain).foregroundStyle(.secondary)
         }
-      }.listStyle(.sidebar).navigationSplitViewColumnWidth(min: 190, ideal: 210)
+      }.listStyle(.sidebar).frame(minWidth: 190, idealWidth: 210)
         .safeAreaInset(edge: .bottom) {
           VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
@@ -107,19 +107,35 @@ struct QueueView: View {
             }.buttonStyle(.plain).font(.caption)
           }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
         }
-    } content: {
       VStack(spacing: 0) {
-        HStack {
-          VStack(alignment: .leading, spacing: 4) {
-            Text(isReportLookup ? "Report search" : filter.rawValue).font(.title2.weight(.semibold))
-            Text("\(filtered.count) observations").font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: 12) {
+          HStack {
+            VStack(alignment: .leading, spacing: 4) {
+              if isReportLookup {
+                Text("Report search").fontWeight(.semibold)
+              } else {
+                Picker("Show reports", selection: $filter) {
+                  ForEach(QueueFilter.allCases) { item in
+                    Label(item.rawValue, systemImage: item.symbol).tag(item)
+                  }
+                }.labelsHidden().pickerStyle(.menu).fixedSize()
+              }
+              Text("\(filtered.count) observations").font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            Button {
+              model.captureAction?()
+            } label: {
+              Image(systemName: "plus")
+            }.help("New capture")
+            Button {
+              model.settingsAction?()
+            } label: {
+              Image(systemName: "gearshape")
+            }.help("Settings")
           }
-          Spacer()
-          Button {
-            model.captureAction?()
-          } label: {
-            Image(systemName: "plus")
-          }.help("New capture")
+          TextField("Search reports and feedback", text: $search)
+            .textFieldStyle(.roundedBorder).accessibilityLabel("Search reports and feedback")
         }.padding(20)
         Divider()
         if filtered.isEmpty {
@@ -132,32 +148,21 @@ struct QueueView: View {
         } else {
           List(filtered, selection: $model.selectedIssueID) { issue in
             IssueRow(issue: issue, project: model.project(issue.projectID)).tag(issue.id)
+              .contextMenu {
+                Button(issue.archived ? "Restore report" : "Archive report") {
+                  model.setArchived(issue.id, archived: !issue.archived)
+                }.disabled(!issue.archived && !issue.canArchive)
+              }
           }.listStyle(.inset)
         }
-      }.searchable(text: $search, placement: .automatic, prompt: "Find by # or description")
-        .navigationSplitViewColumnWidth(min: 280, ideal: 330)
-    } detail: {
-      if let id = model.selectedIssueID, let issue = model.issue(id) {
-        IssueDetailView(model: model, issue: issue)
-      } else {
-        WelcomeView(model: model)
-      }
-    }
-    .toolbar {
-      ToolbarItem(placement: .primaryAction) {
-        Button {
-          model.captureAction?()
-        } label: {
-          Label("New capture", systemImage: "viewfinder")
-        }.tint(.orange)
-      }
-      ToolbarItem {
-        Button {
-          model.settingsAction?()
-        } label: {
-          Image(systemName: "gearshape")
-        }.help("Settings")
-      }
+      }.frame(minWidth: 280, idealWidth: 330)
+      Group {
+        if let id = model.selectedIssueID, let issue = model.issue(id) {
+          IssueDetailView(model: model, issue: issue)
+        } else {
+          WelcomeView(model: model)
+        }
+      }.frame(minWidth: 450, maxWidth: .infinity, maxHeight: .infinity).layoutPriority(1)
     }
     .overlay(alignment: .bottom) {
       if let banner = model.banner {
@@ -297,10 +302,15 @@ struct IssueDetailView: View {
             Button("Refresh PR status") { Task { await model.worker.refreshPRs() } }
           }
           Spacer()
+          Button {
+            model.setArchived(issue.id, archived: !issue.archived)
+          } label: {
+            Label(issue.archived ? "Restore" : "Archive", systemImage: "archivebox")
+          }.disabled(!issue.archived && !issue.canArchive)
+            .help(
+              issue.archived || issue.canArchive
+                ? "Keep this report's evidence" : "Cancel active work before archiving")
           Menu {
-            Button(issue.archived ? "Unarchive" : "Archive") {
-              model.perform { try model.updateIssue(issue.id) { $0.archived.toggle() } }
-            }
             Button("Link existing chat…") { showLinkChat = true }.disabled(
               issue.status == .working || issue.worktreePath == nil)
             if issue.status != .working {
