@@ -292,7 +292,7 @@ struct IssueDetailView: View {
             }
           } label: {
             Image(systemName: "ellipsis")
-          }.menuStyle(.borderlessButton).fixedSize()
+          }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
         }.controlSize(.small)
         if issue.projectID == nil {
           VStack(alignment: .leading, spacing: 10) {

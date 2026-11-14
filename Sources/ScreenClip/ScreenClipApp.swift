@@ -48,7 +48,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         self?.showComposer(image: image, context: context, existing: existing)
       }
       shortcut.action = { [weak self] in self?.startCapture() }
-      registerShortcut()
+      if !previewMode { registerShortcut() }
       UNUserNotificationCenter.current().delegate = self
       statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
       statusItem.button?.target = self
@@ -200,10 +200,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       NSApp.activate(ignoringOtherApps: true)
       return
     }
-    popover.performClose(nil)
-    queueWindow?.orderOut(nil)
-    settingsWindow?.orderOut(nil)
-    capture.begin()
+    let hideScreenClip = model.snapshot.settings.shouldHideScreenClipDuringCapture
+    let sourceOverride = !hideScreenClip && popover.isShown ? NSRunningApplication.current : nil
+    if hideScreenClip {
+      popover.performClose(nil)
+      queueWindow?.orderOut(nil)
+      settingsWindow?.orderOut(nil)
+    }
+    capture.begin(sourceOverride: sourceOverride)
   }
   func showQueue() {
     popover.performClose(nil)
@@ -221,7 +225,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     popover.performClose(nil)
     if settingsWindow == nil {
       settingsWindow = makeWindow(
-        title: "ScreenClip Settings", view: SettingsView(model: model),
+        title: "ScreenClip Settings",
+        view: SettingsView(model: model) { [weak self] in
+          self?.settingsWindow?.close()
+        },
         size: NSSize(width: 700, height: 590))
     }
     settingsWindow?.makeKeyAndOrderFront(nil)
@@ -287,6 +294,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   }
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
     if previewMode { return .terminateNow }
+    if let composerWindow {
+      composerWindow.makeKeyAndOrderFront(nil)
+      model.banner = "Save this capture as a draft or discard it before quitting ScreenClip."
+      return .terminateCancel
+    }
     if model?.snapshot.issues.contains(where: { $0.status == .working }) == true {
       let alert = NSAlert()
       alert.messageText = "Quit while work is running?"
@@ -360,8 +372,9 @@ struct MenuPopover: View {
         Menu {
           Button("Quit ScreenClip") { NSApp.terminate(nil) }
         } label: {
-          Image(systemName: "ellipsis")
-        }.menuStyle(.borderlessButton).frame(width: 22)
+          Image(systemName: "ellipsis").frame(width: 28, height: 24).contentShape(Rectangle())
+        }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+          .accessibilityLabel("More options").help("More options")
       }
     }.padding(20).frame(width: 370)
   }

@@ -122,7 +122,7 @@ import SwiftUI
         to: root.appendingPathComponent("composer-preview.png"))
     }
     window.contentView = NSHostingView(
-      rootView: SettingsView(model: model).background(Color.white).preferredColorScheme(.light))
+      rootView: SettingsView(model: model, close: {}).background(Color.white).preferredColorScheme(.light))
     window.setContentSize(NSSize(width: 700, height: 590))
     window.display()
     RunLoop.main.run(until: Date().addingTimeInterval(0.5))
@@ -132,6 +132,18 @@ import SwiftUI
       view.cacheDisplay(in: view.bounds, to: bitmap)
       try bitmap.representation(using: .png, properties: [:])?.write(
         to: root.appendingPathComponent("settings-preview.png"))
+    }
+    window.contentView = NSHostingView(
+      rootView: MenuPopover(model: model).preferredColorScheme(.dark))
+    window.setContentSize(NSSize(width: 370, height: 440))
+    window.display()
+    RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+    if let view = window.contentView,
+      let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)
+    {
+      view.cacheDisplay(in: view.bounds, to: bitmap)
+      try bitmap.representation(using: .png, properties: [:])?.write(
+        to: root.appendingPathComponent("menu-preview.png"))
     }
     window.orderOut(nil)
   }

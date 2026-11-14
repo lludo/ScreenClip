@@ -1,6 +1,6 @@
 # ScreenClip implementation plan
 
-Updated: November 13, 2026. Implementation and live integration testing are complete for the local app. Hands-on screen-capture permission/monitor checks and public-release credentials remain. See [validation evidence](validation.md).
+Updated: November 13, 2026. The local app and live integrations are implemented. Basic capture, markup and submission are now confirmed from the signed app in Applications. Monitor/Spaces checks, permission retention after an installed update and public-release credentials remain. See [validation evidence](validation.md).
 
 ## 1. Prove the Codex handoff
 
@@ -56,10 +56,12 @@ Exit evidence: a new user can install, register a project, capture, follow quest
 
 ## Focused verification
 
+Treat repeated, low-friction capture as the core product acceptance path: move through an app, capture a sequence of small observations with optional notes, and continue after each submit without reconstructing context or switching to chat. Include polish feedback and ideas, not only bugs. Check that earlier background work and questions do not prevent the next capture; do not treat a successful automatic fix as sufficient evidence of this experience. A dozens-or-hundreds observation session is an intended usage pattern, not a verified capacity result.
+
 Use automated checks where they protect durable behavior: lifecycle transitions, badge counts, atomic submit/recovery, routing ambiguity, idempotency, run ownership, input revisions, and current-head merge eligibility. Exercise failure injection for lost responses and process restarts.
 
 Use integration checks for the actual Codex and Git provider contracts. Use hands-on macOS verification for capture permissions, screen geometry, keyboard/focus behavior, annotations/redaction, Spaces, and clean installation. A passing model-layer test does not establish a working capture experience.
 
 ## Next concrete deliverable
 
-A local app bundle and ZIP are generated under `build/`. Complete the user's first capture with macOS permission granted, then test monitor/Spaces behavior on their setup. Public distribution next needs Developer ID signing/notarization, a clean second-machine installation, and runtime compatibility coverage. Product choices still open are tracked in the [product specification](product-spec.md#remaining-decisions). The user's confirmed submission, grouping, project-inference, and automatic-merge choices should not be asked again.
+The Xcode build produces a bundle under `build/DerivedData` and a ZIP under `build/`. Normal runs install and launch `/Applications/ScreenClip.app`; Xcode Run and Terminal share that installer. The user's first capture/markup/submission is confirmed after regranting permission to the installed signed copy. Next, test grant retention after an installed update and monitor/Spaces behavior. Public distribution needs Developer ID signing/notarization, a clean second-machine installation, and runtime compatibility coverage. Product choices still open are tracked in the [product specification](product-spec.md#remaining-decisions). The user's confirmed submission, grouping, project-inference, and automatic-merge choices should not be asked again.

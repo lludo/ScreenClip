@@ -3,6 +3,19 @@ import XCTest
 @testable import ScreenClipCore
 
 final class CoreTests: XCTestCase {
+  func testSelfCapturePreferenceLoadsOlderSettingsAndPersistsBothChoices() throws {
+    let older = try JSONEncoder().encode(AppSettings())
+    var settings = try JSONDecoder().decode(AppSettings.self, from: older)
+    XCTAssertFalse(settings.shouldHideScreenClipDuringCapture)
+    for hide in [true, false] {
+      settings.hideScreenClipDuringCapture = hide
+      let store = try temporaryStore()
+      var snapshot = StoreSnapshot()
+      snapshot.settings = settings
+      try store.save(snapshot)
+      XCTAssertEqual(try store.load().settings.shouldHideScreenClipDuringCapture, hide)
+    }
+  }
   func temporaryStore() throws -> IssueStore {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       "screenclip-test-" + UUID().uuidString)
