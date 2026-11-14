@@ -59,7 +59,7 @@ ScreenClip hides its own windows during capture by default. To report a bug in S
 
 ## Working with reports
 
-Captures save locally before dispatch, under `~/Library/Application Support/ScreenClip`. Keep ScreenClip running and the Mac awake while Codex or Claude Code works. Grok Bot keeps working in the cloud if the Mac sleeps; ScreenClip updates the pull request status the next time it is running. Use the report’s reply controls to answer Codex or Claude questions; Grok Bot questions stay in Grok Bot’s chat. Click a report number to copy a reference.
+Captures save locally before dispatch, under `~/Library/Application Support/ScreenClip`. Each report runs in its own worktree, and a project runs up to three reports at once by default; change the limit (1–6) in Settings → AI agent. Keep ScreenClip running and the Mac awake while Codex or Claude Code works. Grok Bot keeps working in the cloud if the Mac sleeps; ScreenClip updates the pull request status the next time it is running. Use the report’s reply controls to answer Codex or Claude questions; Grok Bot questions stay in Grok Bot’s chat. Click a report number to copy a reference.
 
 Redaction is only the black rectangles you draw with the redact tool. Those pixels are flattened to opaque black in the saved screenshot. Arrows, pen strokes, shapes, and text do not hide what is underneath. When a capture has a redaction, ScreenClip does not keep the unredacted crop.
 

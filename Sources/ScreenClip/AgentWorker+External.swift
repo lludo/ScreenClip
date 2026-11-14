@@ -66,8 +66,11 @@ extension AgentWorker {
         reportNumber: number, title: issue.title, workspaceID: issue.workspaceID)
     _ = try await CommandRunner.checked(
       "/usr/bin/git", ["check-ref-format", "--branch", branch], cwd: project.path)
-    let workspace = try await GitWorkspace.prepare(
-      project: project, issueID: issue.workspaceID, root: model.store.root, branch: branch)
+    let workspaceID = issue.workspaceID
+    let workspace = try await serializedWorkspaceChange(project.id) { [model] in
+      try await GitWorkspace.prepare(
+        project: project, issueID: workspaceID, root: model.store.root, branch: branch)
+    }
     try ensureExternalActive(id)
     issue = model.issue(id) ?? issue
     let preparedRevision = issue.revision

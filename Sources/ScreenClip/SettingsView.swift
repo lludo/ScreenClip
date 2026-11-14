@@ -137,6 +137,11 @@ struct SettingsView: View {
                 .disabled(model.detectingAgents)
               Spacer()
             }
+            Stepper(
+              "Run up to \(settings.parallelReportLimit) reports per project at once",
+              value: Binding(
+                get: { settings.parallelReportLimit }, set: { settings.maxParallelReports = $0 }),
+              in: AppSettings.parallelReportRange)
             Text(
               "New captures use the default agent. You can pick a different agent for any single report in the capture window. Each issue keeps the agent it started with. Grok Bot is ready when its webhook is saved below."
             ).font(.caption).foregroundStyle(.secondary)

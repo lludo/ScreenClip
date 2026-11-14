@@ -49,22 +49,37 @@ import ScreenClipCore
     jobs.contains(id) || dispatching.contains(id) || finishing.contains(id)
       || publishing.contains(id)
   }
+  /// Worktree creation and removal per project, one at a time: concurrent `git fetch` and
+  /// `git worktree` calls on one repository contend for the same config and ref locks.
+  private var workspaceChanges: [UUID: Task<Void, Never>] = [:]
+  func serializedWorkspaceChange<T: Sendable>(
+    _ projectID: UUID, _ body: @escaping @MainActor () async throws -> T
+  ) async throws -> T {
+    let previous = workspaceChanges[projectID]
+    let task = Task { @MainActor () async throws -> T in
+      await previous?.value
+      return try await body()
+    }
+    workspaceChanges[projectID] = Task { _ = try? await task.value }
+    return try await task.value
+  }
   func pump() {
     guard !model.snapshot.settings.paused else { return }
-    var busyProjects = Set(
-      model.snapshot.issues.filter {
-        jobs.contains($0.id) || dispatching.contains($0.id)
-          || ($0.status == .working && $0.resolvedAgent != .external)
-      }.compactMap(
-        \.projectID))
+    // Each report runs in its own worktree, so a project runs up to the configured number at once.
+    let limit = model.snapshot.settings.parallelReportLimit
+    var running = model.snapshot.issues.filter {
+      jobs.contains($0.id) || dispatching.contains($0.id)
+        || ($0.status == .working && $0.resolvedAgent != .external)
+    }.reduce(into: [UUID: Int]()) { counts, issue in
+      if let projectID = issue.projectID { counts[projectID, default: 0] += 1 }
+    }
     for issue in model.snapshot.issues
     where issue.status == .queued && !issue.archived && !issue.dispatchUncertain
       && !jobs.contains(issue.id)
       && !dispatching.contains(issue.id)
     {
-      guard let project = model.project(issue.projectID), !busyProjects.contains(project.id) else {
-        continue
-      }
+      guard let project = model.project(issue.projectID), running[project.id, default: 0] < limit
+      else { continue }
       // Hold work for an agent that detection found missing, signed out, or not configured.
       // Grok Bot stays queued until detection has seen a saved webhook, including before the first check.
       if issue.resolvedAgent == .external {
@@ -74,7 +89,7 @@ import ScreenClipCore
       }
       jobs.insert(issue.id)
       dispatching.insert(issue.id)
-      busyProjects.insert(project.id)
+      running[project.id, default: 0] += 1
       Task { [model] in await model.worker.dispatch(issue.id) }
     }
   }
@@ -101,8 +116,11 @@ import ScreenClipCore
         $0.record("Preparing isolated workspace", status: .working)
       }
       if issue.worktreePath == nil {
-        let workspace = try await GitWorkspace.prepare(
-          project: project, issueID: issue.workspaceID, root: model.store.root)
+        let workspaceID = issue.workspaceID
+        let workspace = try await serializedWorkspaceChange(project.id) { [model] in
+          try await GitWorkspace.prepare(
+            project: project, issueID: workspaceID, root: model.store.root)
+        }
         try model.updateIssue(id) {
           $0.worktreePath = workspace.path
           $0.branch = workspace.branch
