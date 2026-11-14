@@ -21,12 +21,7 @@ public struct AgentDetection: Identifiable, Equatable, Sendable {
     self.signedIn = signedIn
     self.detail = detail
   }
-  public var label: String {
-    if kind == .external { return usable ? kind.title : "\(kind.title) — not connected" }
-    guard installed else { return "\(kind.title) — not found" }
-    if signedIn == false { return "\(kind.title) — signed out" }
-    return kind.title
-  }
+  public var label: String { kind.title }
 }
 
 public enum AgentDetector {
@@ -89,43 +84,53 @@ public enum AgentDetector {
       return AgentDetection(
         kind: .external, path: "", version: nil, signedIn: false,
         detail: started
-          ? "Not connected — Connect Grok Bot. The address has to start with https, and the secret can't contain a line break."
-          : "Not connected — Connect Grok Bot"
+          ? ExternalConnectCode.Failure.invalidURL.message
+          : ProviderPhrase.notConnected.english(.external)
       )
     }
     let host = configuration.endpoint?.host ?? ""
-    let detail = host.isEmpty ? "Connected" : "Connected · \(host)"
+    let detail =
+      host.isEmpty
+      ? ProviderPhrase.ready.english(.external)
+      : ProviderPhrase.readyDetail(kind: .external, extra: host)
     return AgentDetection(
       kind: .external, path: "", version: "configured", signedIn: true, detail: detail)
   }
 
   public static func detectCodex(path: String) async -> AgentDetection {
+    guard canRun(path) else {
+      return AgentDetection(
+        kind: .codex, path: path, version: nil, signedIn: nil,
+        detail: ProviderPhrase.notFound.english(.codex))
+    }
     guard let version = await version(path) else {
       return AgentDetection(
         kind: .codex, path: path, version: nil, signedIn: nil,
-        detail: path.isEmpty ? "Codex CLI not found." : "Codex at \(path) did not respond.")
+        detail: ProviderPhrase.noResponse(kind: .codex, path: path))
     }
     return AgentDetection(
-      kind: .codex, path: path, version: version, signedIn: nil, detail: "Codex \(version)")
+      kind: .codex, path: path, version: version, signedIn: nil,
+      detail: ProviderPhrase.readyDetail(kind: .codex, extra: version))
   }
 
   public static func detectClaude(path: String) async -> AgentDetection {
+    guard canRun(path) else {
+      return AgentDetection(
+        kind: .claude, path: path, version: nil, signedIn: nil,
+        detail: ProviderPhrase.notFound.english(.claude))
+    }
     guard let version = await version(path) else {
       return AgentDetection(
         kind: .claude, path: path, version: nil, signedIn: nil,
-        detail: path.isEmpty
-          ? "Claude Code CLI not found. Install it from claude.com/claude-code."
-          : "Claude Code at \(path) did not respond.")
+        detail: ProviderPhrase.noResponse(kind: .claude, path: path))
     }
     let status = try? await CommandRunner.run(path, ["auth", "status"], timeout: 15)
     let auth = status.flatMap { try? JSONDecoder().decode(JSONValue.self, from: Data($0.output.utf8)) }
     let signedIn = auth?["loggedIn"].bool
-    let method = auth?["authMethod"].string
     let detail: String
     switch signedIn {
-    case true?: detail = "Claude Code \(version), signed in" + (method.map { " (\($0))" } ?? "")
-    case false?: detail = "Claude Code \(version) is signed out. Use Sign in to Claude."
-    case nil: detail = "Claude Code \(version); sign-in status unavailable."
+    case false?: detail = ProviderPhrase.signInToStart.english(.claude)
+    default: detail = ProviderPhrase.readyDetail(kind: .claude, extra: version)
     }
     return AgentDetection(
       kind: .claude, path: path, version: version, signedIn: signedIn, detail: detail)
@@ -138,6 +143,12 @@ public enum AgentDetector {
       "not logged in", "please run /login", "invalid api key", "oauth token has expired",
       "authentication_error", "sign in to codex", "not signed in", "401 unauthorized",
     ].contains { lower.contains($0) }
+  }
+
+  /// A path that is missing or not executable has not been found. Only a real executable
+  /// that fails `--version` is reported as not responding.
+  private static func canRun(_ path: String) -> Bool {
+    !path.isEmpty && FileManager.default.isExecutableFile(atPath: path)
   }
 
   private static func version(_ path: String) async -> String? {

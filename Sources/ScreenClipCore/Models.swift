@@ -46,6 +46,8 @@ public struct Project: Codable, Identifiable, Equatable {
   /// Off until a project explicitly allows approved screenshots to leave the Mac for Grok Bot.
   public var allowExternalScreenshots: Bool? = nil
   public var sendsExternalScreenshots: Bool { allowExternalScreenshots ?? false }
+  /// nil follows the system default. An explicit provider stays when the system default changes.
+  public var defaultAgent: AgentKind? = nil
   /// SF Symbol shown next to the project name. Optional so projects saved earlier still decode.
   public var symbol: String? = nil
   public static let defaultSymbol = "folder"
@@ -66,6 +68,50 @@ public struct Project: Codable, Identifiable, Equatable {
     self.bundleIDs = bundleIDs
     self.validationCommand = validationCommand
     self.autoMerge = autoMerge
+  }
+
+  private enum CodingKeys: String, CodingKey {
+    case id, name, path, baseBranch, origins, bundleIDs, validationCommand, autoMerge
+    case allowExternalScreenshots, symbol, defaultAgent
+  }
+
+  public init(from decoder: Decoder) throws {
+    let container = try decoder.container(keyedBy: CodingKeys.self)
+    id = try container.decode(UUID.self, forKey: .id)
+    name = try container.decode(String.self, forKey: .name)
+    path = try container.decode(String.self, forKey: .path)
+    baseBranch = try container.decode(String.self, forKey: .baseBranch)
+    origins = try container.decode([String].self, forKey: .origins)
+    bundleIDs = try container.decode([String].self, forKey: .bundleIDs)
+    validationCommand = try container.decode(String.self, forKey: .validationCommand)
+    autoMerge = try container.decode(Bool.self, forKey: .autoMerge)
+    allowExternalScreenshots = try container.decodeIfPresent(Bool.self, forKey: .allowExternalScreenshots)
+    symbol = try container.decodeIfPresent(String.self, forKey: .symbol)
+    // A missing key is an older project. Opting into Grok Bot screenshots meant that
+    // project sent its work to Grok Bot, so that choice becomes an explicit default.
+    // A present null is "use the system default" and must not be migrated again.
+    if container.contains(.defaultAgent) {
+      defaultAgent = try container.decodeIfPresent(AgentKind.self, forKey: .defaultAgent)
+    } else if allowExternalScreenshots == true {
+      defaultAgent = .external
+    } else {
+      defaultAgent = nil
+    }
+  }
+
+  public func encode(to encoder: Encoder) throws {
+    var container = encoder.container(keyedBy: CodingKeys.self)
+    try container.encode(id, forKey: .id)
+    try container.encode(name, forKey: .name)
+    try container.encode(path, forKey: .path)
+    try container.encode(baseBranch, forKey: .baseBranch)
+    try container.encode(origins, forKey: .origins)
+    try container.encode(bundleIDs, forKey: .bundleIDs)
+    try container.encode(validationCommand, forKey: .validationCommand)
+    try container.encode(autoMerge, forKey: .autoMerge)
+    try container.encodeIfPresent(allowExternalScreenshots, forKey: .allowExternalScreenshots)
+    try container.encodeIfPresent(symbol, forKey: .symbol)
+    try container.encode(defaultAgent, forKey: .defaultAgent)
   }
 }
 

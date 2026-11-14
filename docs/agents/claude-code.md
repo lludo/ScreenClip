@@ -10,7 +10,7 @@ ScreenClip can send any report to Claude Code instead of Codex or Grok Bot. Each
 | --- | --- |
 | Executable | Settings → Connections → Claude Code. Detected from `/opt/homebrew/bin/claude`, `/usr/local/bin/claude`, `~/.local/bin/claude`, `~/.claude/local/claude`, `~/.npm-global/bin/claude`, or `~/.bun/bin/claude`. Override the path if needed. |
 | Model | Optional, for example `opus` or `sonnet`. Empty uses Claude Code's default. |
-| Sign-in | **Sign in to Claude** opens Terminal running `claude auth login`, then use **Detect agents**. Detection reads `claude auth status`. ScreenClip never handles Claude credentials. The Claude desktop app's sign-in is separate from the CLI's. |
+| Sign-in | **Sign in to Claude Code** opens Terminal running `claude auth login`, then use **Detect agents**. Detection reads `claude auth status`. ScreenClip never handles Claude credentials. The Claude desktop app's sign-in is separate from the CLI's. |
 | Turn | One process per turn, with the prompt and approved PNGs sent as one stream-json user message. |
 | Questions | Returned as a structured `question` or `blocked` result, answered under **Needs you**. A reply starts the next turn with `--resume`. |
 | Open the conversation | **Open in Claude Desktop** runs `claude --desktop --resume '<session>'` from the worktree when the configured CLI is 2.1.285 or newer; older CLIs get an explanatory message. **Copy Claude resume command** copies `cd '<worktree>' && claude --resume '<session>'` and works on every version. Both refuse while a process is running the session. |

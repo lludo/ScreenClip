@@ -8,8 +8,8 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 
 | Topic | Behavior |
 | --- | --- |
-| Where it appears | Settings → Connections → **AI agent** → **Default agent** and the agent list. The capture window offers Grok Bot when its connection and the project opt-in are ready. |
-| Ready | The Grok Bot row says **Connected** and the host once a setup code has been saved in the Keychain. Otherwise it says **Not connected — Connect Grok Bot**. |
+| Where it appears | Settings → Connections → **AI agent** → **System default**, each project's **Project default**, and the capture window's **Agent** picker, next to Codex and Claude Code. |
+| Ready | The Grok Bot row says **Grok Bot ready** and the host once the Webhook URL and key have been saved in the Keychain. Otherwise it says **Grok Bot is not connected**. |
 | Evidence | Approved screenshots and `report.json` are committed to `screenclip/<reportNumber>-<slug>-<workspace>` in the project's repository and pushed. The webhook does not contain image bytes. |
 | Opt-in | Each project has **Allow sending screenshots to the external assistant**, off by default. Public and private repositories both need it. A follow-up locked to Grok Bot explains why it cannot be sent while the opt-in is off. |
 | After a 2xx | Activity `Sent to external assistant`. The issue stays **Working** until a pull request is found. |
@@ -75,61 +75,33 @@ The webhook also sends `Idempotency-Key` set to `delivery.key`. Request headers 
 
 ## Setup
 
-1. Open **Settings → Connections**. On the **Grok Bot** row, click **Connect Grok Bot**.
-2. In Grok Bot, open your ScreenClip assistant and ask it: **Connect ScreenClip**. It replies with a setup code. Copy that phrase with the button in the sheet.
-3. Paste the setup code. If it is already on the clipboard when the sheet opens, click **Use code from clipboard**. ScreenClip checks the connection and shows **Connected**, or a short explanation of what to do next.
-4. Turn on **Turn on for this project**. Approved annotated screenshots are pushed to a branch in that project's GitHub repo. A private repo is recommended. The same choice lives in **Settings → Projects** as **Allow sending screenshots to the external assistant**, and it stays off until you turn it on.
-5. Choose Grok Bot as **Default agent**, or pick it in the capture window once it is connected and that project opt-in is on.
+Connecting Grok Bot is global. The sheet does not pick a project.
 
-Afterward the row says **Connected** with the host, and offers **Test again** and **Disconnect**. **Advanced** still has the address and secret fields for anyone who already has them. **Save settings** stores edits there. **Disconnect** removes the Keychain item. Leaving both fields blank and clicking **Save settings** does not disconnect.
+1. Open **Settings → Connections**. On the **Grok Bot** row, click **Connect Grok Bot**.
+2. In Grok Bot, open your ScreenClip assistant's info pane, then the **ScreenClip reports** routine. It shows **POST to**, **key**, and **header**, each with a copy button. The routine's webhook secret is not visible to the assistant, so asking it to connect does not produce these values.
+3. Paste **POST to** into **Webhook URL**. Paste **key**, or **header**, into **Key**. A bare key is sent as `Bearer` plus that key. A value that already starts with `Bearer ` is kept. A value that starts with `Authorization:` has that prefix removed, and `Bearer ` is added when the remainder does not already have it. The address must be `https` (plain `http` is accepted only for `localhost`, `127.0.0.1`, and `::1`). The key must be a single line.
+4. Click **Connect**. ScreenClip sends the test webhook and shows **Grok Bot ready**, or an error for a bad URL, a missing key, or HTTP 401.
+5. In **Project settings**, leave **Project default** on **System default**, or choose Grok Bot for that project. **Allow sending screenshots to the external assistant** stays off until you turn it on. If Grok Bot is the project's effective default while that toggle is off, the editor shows a note. The same note appears in the capture window. ScreenClip does not send screenshots until the toggle is on.
+6. A new capture starts on the project's effective default. You can pick another connected provider for that capture. A follow-up stays on the provider the report already uses.
+
+In **Settings → Connections**, the **AI agent** list shows Grok Bot like Codex and Claude Code: icon, name, and a status such as **Grok Bot ready · host**. There are no buttons on that row. The **Grok Bot** section below Claude Code and Codex has the Webhook URL, a Key row that says **Set** or **Not set** and never shows the secret, a Capabilities row, **Connect Grok Bot** or **Test connection**, and **Disconnect Grok Bot**. **Save settings** stores an edited URL with the saved key. **Disconnect Grok Bot** removes the Keychain item.
 
 The address and secret live in the Keychain (`com.screenclip.app.external-assistant`). They are not written to the SQLite queue, and ScreenClip does not write them to a log. Replacing a saved connection updates the Keychain item in place. The check ScreenClip runs asks Grok Bot to accept a small test message. `scripts/send_test_webhook.py` sends that same test from `SCREENCLIP_WEBHOOK_URL` and `SCREENCLIP_AUTHORIZATION`.
 
-A clickable link from the assistant opens the same sheet with the code filled in. The app registers the `screenclip` URL scheme in `Resources/Info.plist` (also used by `screenclip://issues/<uuid>`).
+Opening a `screenclip://connect` link fills the same two fields. The app registers the `screenclip` URL scheme in `Resources/Info.plist` (also used by `screenclip://issues/<uuid>`).
 
-## Setup code
+## Webhook and key
 
-When someone asks the assistant **Connect ScreenClip**, reply with a setup code and, if you can, a link. Do not ask the person to find a webhook.
-
-The code is one line:
+Example values only:
 
 ```text
-screenclip-connect:v1:<base64url>
+Webhook URL: https://assistant.example/hook
+Key: dummy-key
 ```
 
-`<base64url>` is the UTF-8 JSON object below, encoded with RFC 4648 §5 base64url and **no** `=` padding. The object is compact (no extra space) and its keys are sorted alphabetically, `authorization` then `url`:
+ScreenClip stores that key as `Bearer dummy-key`. Pasting `Bearer dummy-key` or `Authorization: Bearer dummy-key` stores the same header. ScreenClip does not add a second `Bearer` prefix. The secret must be a single line with no control characters.
 
-```json
-{"authorization":"<secret>","url":"https://assistant.example/hook"}
-```
-
-An optional `capabilities` array may be included. Keys stay sorted alphabetically. Older ScreenClip builds ignore unknown keys. `capabilities` is not a secret. The only value ScreenClip acts on today is `cancel`:
-
-```json
-{"authorization":"<secret>","capabilities":["cancel"],"url":"https://assistant.example/hook"}
-```
-
-`<secret>` is the full value ScreenClip will send as the `Authorization` header. ScreenClip does not add `Bearer` or any other prefix. The address must be `https` (plain `http` is accepted only for `localhost`, `127.0.0.1`, and `::1`). The secret must be a single line with no control characters.
-
-Example, for `https://assistant.example/hook` and `Bearer secret`:
-
-```text
-screenclip-connect:v1:eyJhdXRob3JpemF0aW9uIjoiQmVhcmVyIHNlY3JldCIsInVybCI6Imh0dHBzOi8vYXNzaXN0YW50LmV4YW1wbGUvaG9vayJ9
-```
-
-Link, with the code percent-encoded in the `code` query item:
-
-```text
-screenclip://connect?code=screenclip-connect%3Av1%3AeyJhdXRob3JpemF0aW9uIjoiQmVhcmVyIHNlY3JldCIsInVybCI6Imh0dHBzOi8vYXNzaXN0YW50LmV4YW1wbGUvaG9vayJ9
-```
-
-ScreenClip also accepts, if that is what gets pasted:
-
-- JSON with `url` and `authorization`, or `url` and `header`
-- a block that contains both an `https://` address and a line `Authorization: …`
-- a `curl` command with that address and header
-
-Build the link with a normal query encoder so `:` in the code becomes `%3A`. ScreenClip reads `screenclip://connect?code=`.
+A pasted connection can also carry an optional `capabilities` array. It is not a secret. The only value ScreenClip acts on today is `cancel`. Older builds ignore unknown keys. The sheet does not ask for this array; it is kept when a pasted connection includes it.
 
 ## Privacy
 
@@ -140,7 +112,7 @@ What leaves the Mac for a Grok Bot report:
 
 Redaction is only a rectangle you draw with the redact tool. ScreenClip flattens those rectangles to opaque black in the PNG it stores and sends. Arrows, pen, shapes, and text do not cover pixels. The unredacted crop is not kept when a capture has a redaction, and it is never pushed or posted.
 
-The address must use HTTPS (plain HTTP is accepted only for `localhost` test servers). A redirect to a different host does not include the secret. A retry after an uncertain delivery can send the same `issueID` and `revision` again, so the assistant should treat that pair as idempotent. The setup code is parsed on the Mac and stored in the Keychain. ScreenClip does not write the code, the address, or the secret to a log, and a failed check does not show the reply body, because that body can repeat the secret.
+The address must use HTTPS (plain HTTP is accepted only for `localhost` test servers). A redirect to a different host does not include the secret. A retry after an uncertain delivery can send the same `issueID` and `revision` again, so the assistant should treat that pair as idempotent. The pasted connection is parsed on the Mac and stored in the Keychain. ScreenClip does not write the pasted text, the address, or the secret to a log, and a failed check does not show the reply body, because that body can repeat the secret.
 
 ## Status
 
@@ -166,22 +138,24 @@ ScreenClip validates the pull request head with the project's validation command
 
 ## Picker
 
-Grok Bot stays in Settings even when it is not connected. The capture window offers it when it is ready for the selected project.
+The menu bar status line is **Grok Bot ready** or **Grok Bot is not connected**, the same shape as **Codex ready** and **Claude Code ready**.
 
-- **Settings:** it can be the default agent. The row is green and says **Connected** with the host when the connection is saved. Otherwise it says **Not connected — Connect Grok Bot**.
-- **Capture window:** Grok Bot appears in the Agent menu only when it is connected and the selected project has opted in. A follow-up stays on Grok Bot and explains why it cannot be sent if the connection or opt-in is missing.
+- **System default:** Settings → Connections → **System default**. A missing value in an older queue means Codex.
+- **Project default:** Project settings. **System default (Codex)** (or whichever provider is current) follows the system default. Choosing Grok Bot, Codex, or Claude Code stores that provider and does not change when the system default changes. An older project that had **Allow sending screenshots to the external assistant** on migrates to an explicit Grok Bot default. Other older projects keep inheriting.
+- **Capture:** the **Agent** picker starts at the project's effective default. You can override it for that capture. Follow-up captures stay on the provider the report started with.
+- Grok Bot appears in those pickers once it is connected. If it is selected while the screenshot toggle is off, ScreenClip shows the opt-in note instead of hiding the provider. A follow-up locked to Grok Bot explains why it cannot be sent if the connection or opt-in is missing.
 
 ## Limitations
 
 - The webhook returns only an HTTP status. A 200 means a run started. There is no body, run id, conversation id, status API, cancel API, or documented dedupe header for ScreenClip to read. Progress and the agent link exist only when the routine writes the GitHub commit status and the pull request lines above.
 - `Idempotency-Key` is sent and must not be relied on. The delivery key in the JSON is the value the routine can see.
 - Questions are not copied into ScreenClip. Answer them in Grok Bot's chat.
-- Cancel is best-effort, and only when the setup code lists `cancel`. There is no API that hard-stops the cloud agent. Without that capability, cancel is local only.
-- ScreenClip has no report-specific Grok Bot chat link. Grok Bot documents a `grokbot://app/v1/prompt` link that opens a Bot with an unsent draft message. That link does not identify a particular ScreenClip report or send the message, and ScreenClip does not offer it as one. See [Grok Bot deep links](https://docs.x.ai/grok-bot/deep-links). `screenclip://connect?code=` only opens the connect sheet.
+- Cancel is best-effort, and only when the saved connection lists `cancel`. There is no API that hard-stops the cloud agent. Without that capability, cancel is local only.
+- ScreenClip has no report-specific Grok Bot chat link. Grok Bot documents a `grokbot://app/v1/prompt` link that opens a Bot with an unsent draft message. That link does not identify a particular ScreenClip report or send the message, and ScreenClip does not offer it as one. See [Grok Bot deep links](https://docs.x.ai/grok-bot/deep-links). `screenclip://connect` only opens the connect sheet.
 - Automatic merge waits until `.screenclip/` is gone and the pull request is not a draft, even when checks are green.
-- The destination is refused while the project opt-in is off, including for private repositories.
+- Sending is refused, with the opt-in note, while **Allow sending screenshots to the external assistant** is off, including for private repositories.
 
 ## Verification status
 
-- **Automated:** payload encoding (delivery key only on the webhook), branch slugs, GitHub remote parsing, opt-in gating, idempotent retry of the same revision, pull-request matching (fork rejection, `ScreenClip-Report`, optional marker, drafts not merged), commit-status link allowlist, old-queue decoding, cancel gating, header-safety, same-origin redirect handling (scheme, host and port), setup-code encoding and lenient parsing, `screenclip://connect` and `screenclip://issues/` routing, and `scripts/send_test_webhook.py`. `bash scripts/test.sh` includes both Grok Bot suites. The macOS GitHub Actions job runs that script on every push to `main` and every pull request. See [Development](../development.md#ci).
+- **Automated:** payload encoding (delivery key only on the webhook), branch slugs, GitHub remote parsing, opt-in gating, idempotent retry of the same revision, pull-request matching (fork rejection, `ScreenClip-Report`, optional marker, drafts not merged), commit-status link allowlist, old-queue decoding, cancel gating, header-safety, same-origin redirect handling (scheme, host and port), connection-paste encoding and lenient parsing, key normalization, project-default resolution and migration, `screenclip://connect` and `screenclip://issues/` routing, and `scripts/send_test_webhook.py`. `bash scripts/test.sh` includes both Grok Bot suites. The macOS GitHub Actions job runs that script on every push to `main` and every pull request. See [Development](../development.md#ci).
 - **Not yet exercised:** a live webhook, a real evidence push, pull-request discovery, and auto-merge. See [validation.md](../validation.md).

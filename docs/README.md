@@ -19,7 +19,7 @@ The [root README](../README.md) is the short introduction. This page is the map.
 - [Coding agents](agents/README.md) — how an agent is chosen, the shared local contract, and how to add one.
   - [Codex](agents/codex.md) — `codex app-server`, threads, and desktop links.
   - [Claude Code](agents/claude-code.md) — headless `claude -p` turns and the optional plugin.
-  - [Grok Bot](agents/external-assistant.md) — the webhook, the `screenclip/<N>-<slug>-<workspace>` evidence branch, pull-request discovery (`ScreenClip: #N`), and the Connect Grok Bot setup code.
+  - [Grok Bot](agents/external-assistant.md) — the webhook, the `screenclip/<N>-<slug>-<workspace>` evidence branch, pull-request discovery (`ScreenClip: #N`), and Connect Grok Bot (**POST to** and **key**).
 - [Optional MCP plugin](../plugins/screenclip/README.md) — read-only queue access for Codex and Claude Code.
 
 ## Architecture

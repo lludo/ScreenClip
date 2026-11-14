@@ -216,10 +216,12 @@ final class AgentTests: XCTestCase {
     XCTAssertEqual(found.version, "9.9.9")
     XCTAssertEqual(found.signedIn, false)
     XCTAssertFalse(found.usable)
-    XCTAssertEqual(found.label, "Claude Code — signed out")
+    XCTAssertEqual(found.label, "Claude Code")
+    XCTAssertEqual(found.detail, "Sign in to Claude Code to start work")
     let missing = await AgentDetector.detectClaude(path: root.appendingPathComponent("nope").path)
     XCTAssertFalse(missing.installed)
-    XCTAssertEqual(missing.label, "Claude Code — not found")
+    XCTAssertEqual(missing.label, "Claude Code")
+    XCTAssertEqual(missing.detail, "Claude Code not found")
   }
 
   private func temporaryDirectory() throws -> URL {

@@ -479,18 +479,15 @@ public enum AgentPicker {
     configured: Bool, hasProject: Bool, projectOptIn: Bool
   ) -> ExternalAgentAvailability {
     if !configured {
-      return ExternalAgentAvailability(enabled: false, hint: "Not connected — Connect Grok Bot")
+      return ExternalAgentAvailability(
+        enabled: false, hint: ProviderPhrase.notConnected.english(.external))
     }
     if !hasProject {
       return ExternalAgentAvailability(
         enabled: false, hint: "Choose a project that can share screenshots with Grok Bot.")
     }
     if !projectOptIn {
-      return ExternalAgentAvailability(
-        enabled: false,
-        hint:
-          "Turn on sharing screenshots with Grok Bot for this project. Approved annotated screenshots are pushed to a branch in the project's GitHub repo."
-      )
+      return ExternalAgentAvailability(enabled: true, hint: AgentSelection.grokOptInNote)
     }
     return ExternalAgentAvailability(enabled: true, hint: nil)
   }

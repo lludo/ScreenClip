@@ -42,9 +42,9 @@ Choose **Move to project** in the report's **…** menu.
 
 Codex and Claude Code see the approved screenshots only on this Mac, inside an isolated Git worktree. They do not get GitHub tokens. ScreenClip commits, pushes, opens the pull request, and merges.
 
-Grok Bot is remote. Approved PNGs, notes, and report fields are pushed to a `screenclip/<number>-<slug>-<workspace>` branch, then a small JSON webhook is sent. The webhook has no image bytes. The browser URL and window title are included only when **Read the active browser URL for project matching** is on. The connection from the setup code stays in the Keychain, not in the queue database. Anyone who can read the GitHub repository can read those screenshot files. On a public repository that means anyone, which is why the project switch stays off until you turn it on. Deleting `.screenclip/` later does not erase the files from Git history.
+Grok Bot is remote. Approved PNGs, notes, and report fields are pushed to a `screenclip/<number>-<slug>-<workspace>` branch, then a small JSON webhook is sent. The webhook has no image bytes. The browser URL and window title are included only when **Read the active browser URL for project matching** is on. The Webhook URL and key stay in the Keychain, not in the queue database. Anyone who can read the GitHub repository can read those screenshot files. On a public repository that means anyone, which is why **Allow sending screenshots to the external assistant** stays off until you turn it on. Deleting `.screenclip/` later does not erase the files from Git history.
 
-Details, including the setup code an assistant should reply with, are in [Coding agents](agents/README.md).
+Details, including how to copy the webhook from the ScreenClip reports routine, are in [Coding agents](agents/README.md).
 
 ## Tip window
 

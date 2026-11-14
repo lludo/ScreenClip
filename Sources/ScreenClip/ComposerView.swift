@@ -203,8 +203,14 @@ struct ComposerView: View {
           }
         }
         .frame(height: 52)
-        if lockedAgent == .external, let hint = externalAvailability.localizedHint(locale: locale) {
+        if (lockedAgent ?? agent) == .external, let hint = externalAvailability.localizedHint(locale: locale) {
           Text(verbatim: hint).font(.caption).foregroundStyle(.orange)
+            .fixedSize(horizontal: false, vertical: true)
+        } else if model.effectiveAgent(for: projectID) == .external,
+          model.loadExternalAssistant().isConfigured == false
+        {
+          Text(verbatim: ProviderPhrase.notConnected.localized(.external, locale: locale))
+            .font(.caption).foregroundStyle(.orange)
             .fixedSize(horizontal: false, vertical: true)
         }
         if let error {
@@ -236,19 +242,32 @@ struct ComposerView: View {
         existing?.projectID
         ?? ProjectRouter.infer(context, projects: model.snapshot.projects).projectID
       issueID = existing?.id
-      agent = lockedAgent ?? existing?.agent ?? model.snapshot.settings.preferredAgent
+      if let lockedAgent {
+        agent = lockedAgent
+      } else if let existing, existing.status == .draft, let chosen = existing.agent {
+        agent = chosen
+      } else {
+        agent = model.effectiveAgent(for: projectID)
+      }
       reconcileAgent()
       if let existing, existing.status == .draft, let capture = existing.captures.first {
         note = capture.note
         if capture.originalPath != nil { document.marks = capture.annotations }
       }
     }
-    .onChange(of: projectID) { _, _ in
+    .onChange(of: projectID) { _, new in
       if existing == nil { issueID = nil }
+      if lockedAgent == nil, existing == nil || new != existing?.projectID {
+        agent = model.effectiveAgent(for: new)
+      }
       reconcileAgent()
     }
     .onChange(of: issueID) { _, _ in
-      agent = lockedAgent ?? existing?.agent ?? model.snapshot.settings.preferredAgent
+      if let lockedAgent {
+        agent = lockedAgent
+      } else if issueID == nil {
+        agent = model.effectiveAgent(for: projectID)
+      }
       reconcileAgent()
     }
     .onChange(of: model.agents) { _, _ in reconcileAgent() }

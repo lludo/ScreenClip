@@ -42,7 +42,7 @@ extension AgentWorker {
     authentication.reset()
     pendingRequests.removeAll()
     connected = false
-    model.connection = "Not connected"
+    model.connection = ProviderPhrase.notConnected.english(.codex)
   }
   /// Starts or resumes the issue's Codex thread and starts a turn. Completion arrives
   /// as app-server events handled in `handle(_:)`.
@@ -223,7 +223,7 @@ extension AgentWorker {
       connected = false
       authentication.reset(message: "Codex disconnected. Check the connection to reconnect.")
       pendingRequests.removeAll()
-      model.connection = "Codex disconnected"
+      model.connection = ProviderPhrase.disconnected.english(.codex)
       // Work already in validation or publication no longer needs the Codex connection.
       for id in jobs
       where model.issue(id)?.resolvedAgent == .codex && !finishing.contains(id)

@@ -153,7 +153,7 @@ import ScreenClipCore
       }
     }
     if let issue = model.issue(id) {
-      model.notify(issue, text: "\(agent.title) is signed out. Sign in to continue.")
+      model.notify(issue, text: ProviderPhrase.signInToStart.english(agent))
     }
   }
   func dispatch(_ id: UUID) async {
