@@ -270,7 +270,10 @@ extension AgentWorker {
             id, project: project, path: path, branch: issue.branch ?? "", previousHead: pr.head)
           return
         }
-        guard model.issue(id)?.revision == issue.coveredRevision, model.issue(id)?.status == .prOpen
+        // publish() returns at once while another publish runs; marking the report working
+        // first would leave it working with nothing to finish it.
+        guard model.issue(id)?.revision == issue.coveredRevision, model.issue(id)?.status == .prOpen,
+          !publishing.contains(id)
         else { return }
         try model.updateIssue(id) {
           $0.record("Base branch advanced; revalidating the updated fix", status: .working)

@@ -43,6 +43,7 @@ extension AgentWorker {
       name: "ScreenClip: " + issue.referencedTitle,
       model: model.snapshot.settings.claudeModel, prompt: AgentPrompt.text(for: issue, project: project),
       images: images, schema: AgentPrompt.resultSchema)
+    request.timeout = turnTimeLimit
     let progress: @Sendable (String) async -> Void = { [weak self] text in
       await self?.recordProgress(id, text: text)
     }
@@ -92,11 +93,12 @@ extension AgentWorker {
       return
     }
     if result.isError {
+      if AgentDetector.isSignInError(result.text) {
+        holdForSignIn(id, agent: .claude)
+        return
+      }
       let text = result.text.isEmpty ? "Claude Code reported an error." : result.text
-      throw ScreenClipError.message(
-        text.localizedCaseInsensitiveContains("not logged in")
-          ? "Claude Code is signed out. Open Settings → Connections and use Sign in to Claude."
-          : String(text.prefix(3000)))
+      throw ScreenClipError.message(String(text.prefix(3000)))
     }
     if var json = result.outputJSON {
       // Surface blocked tools so a "blocked" outcome says what needs approval.
@@ -117,6 +119,33 @@ extension AgentWorker {
       await finish(id)
       finishing.remove(id)
     }
+  }
+  /// A Claude turn cannot survive a ScreenClip restart: the process belonged to the old app.
+  /// When no process for the session is still running, continue the same session instead of
+  /// waiting for a manual reconcile. A session still running elsewhere keeps waiting.
+  func recoverClaudeAfterRestart() async {
+    for id in model.takeRestartedClaudeIssues() {
+      guard let issue = model.issue(id), issue.status == .needsYou, !issue.archived,
+        issue.resolvedAgent == .claude, !isActive(id),
+        issue.activities.last?.text == AppModel.restartActivity
+      else { continue }
+      if let session = issue.threadID {
+        // Unknown (ps failed) is treated like running: the tester reconciles.
+        guard (try? await claude.sessionIsRunning(sessionID: session)) == false else { continue }
+      }
+      guard model.issue(id)?.activities.last?.text == AppModel.restartActivity, !isActive(id)
+      else { continue }
+      model.perform {
+        try model.updateIssue(id) {
+          $0.turnID = nil
+          $0.dispatchUncertain = false
+          $0.record(
+            "No Claude Code process survived the restart; continuing the same session",
+            status: .queued)
+        }
+      }
+    }
+    pump()
   }
   func recordProgress(_ id: UUID, text: String) {
     guard model.issue(id)?.status == .working else { return }

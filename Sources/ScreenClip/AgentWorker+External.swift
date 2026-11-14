@@ -346,10 +346,16 @@ extension AgentWorker {
         "Updated the pull request onto the current base branch. Waiting for checks.", status: .prOpen)
     }
   }
-  func discoverExternalPullRequests() async {
+  /// A report waiting for Grok Bot's pull request: still working, or flagged after no PR arrived.
+  static func awaitsExternalPullRequest(_ issue: Issue) -> Bool {
+    issue.status == .working
+      || (issue.status == .needsYou && issue.lastError == ExternalAssistant.noPullRequestActivity)
+  }
+  func discoverExternalPullRequests(now: Date = Date()) async {
     let pending = model.snapshot.issues.filter {
-      $0.resolvedAgent == .external && $0.status == .working && $0.prURL == nil
+      $0.resolvedAgent == .external && Self.awaitsExternalPullRequest($0) && $0.prURL == nil
         && !$0.dispatchUncertain && !$0.archived && $0.branch != nil && $0.worktreePath != nil
+        && !isActive($0.id)
     }
     for issue in pending {
       guard let branch = issue.branch, let path = issue.worktreePath,
@@ -361,7 +367,8 @@ extension AgentWorker {
         if let match = ExternalPullRequestFinder.match(
           reportNumber: number, branch: branch, candidates: candidates)
         {
-          guard model.issue(issue.id)?.status == .working, model.issue(issue.id)?.prURL == nil
+          guard let current = model.issue(issue.id), Self.awaitsExternalPullRequest(current),
+            current.prURL == nil, !isActive(issue.id)
           else { continue }
           try model.updateIssue(issue.id) {
             $0.prURL = match.url
@@ -376,6 +383,16 @@ extension AgentWorker {
           if model.issue(issue.id)?.lastError != text {
             try model.updateIssue(issue.id) { $0.lastError = text }
           }
+        } else if issue.status == .working, let sent = ExternalAssistant.sentDate(issue),
+          now.timeIntervalSince(sent) >= ExternalAssistant.noPullRequestReminder
+        {
+          // Without this, a report Grok Bot never picked up shows "working" indefinitely.
+          try model.updateIssue(issue.id) {
+            $0.lastError = ExternalAssistant.noPullRequestActivity
+            $0.unread = true
+            $0.record(ExternalAssistant.noPullRequestActivity, status: .needsYou)
+          }
+          model.notify(issue, text: ExternalAssistant.noPullRequestActivity)
         }
       } catch {
         if model.issue(issue.id)?.lastError != error.localizedDescription {
