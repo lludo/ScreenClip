@@ -8,6 +8,7 @@ public actor CodexClient {
   private var buffer = Data()
   private var continuation: AsyncStream<JSONValue>.Continuation?
   private var generation = UUID()
+  private var ownedThreads = Set<String>()
   public init() {}
   deinit { process?.terminate() }
   public func connect(path: String) async throws -> AsyncStream<JSONValue> {
@@ -54,12 +55,28 @@ public actor CodexClient {
     try send(.object(["method": .string("initialized"), "params": .object([:])]))
     return stream
   }
+  public func resumeThread(_ threadID: String, params: [String: JSONValue]) async throws -> JSONValue {
+    if ownedThreads.contains(threadID) {
+      return try await request("thread/read", params: .object(["threadId": .string(threadID)]))
+    }
+    var options = params
+    options["threadId"] = .string(threadID)
+    options["excludeTurns"] = .bool(true)
+    do {
+      return try await request("thread/resume", params: .object(options), timeout: 60)
+    } catch {
+      // A deliberate Continue action also restores a previously archived issue chat.
+      guard error.localizedDescription.localizedCaseInsensitiveContains("archived") else { throw error }
+      _ = try await request("thread/unarchive", params: .object(["threadId": .string(threadID)]))
+      return try await request("thread/resume", params: .object(options), timeout: 60)
+    }
+  }
   public func request(_ method: String, params: JSONValue = .object([:]), timeout: UInt64 = 30)
     async throws -> JSONValue
   {
     let id = nextID
     nextID += 1
-    return try await withCheckedThrowingContinuation { continuation in
+    let result: JSONValue = try await withCheckedThrowingContinuation { continuation in
       pending[id] = continuation
       do {
         try send(.object(["id": .number(Double(id)), "method": .string(method), "params": params]))
@@ -72,6 +89,10 @@ public actor CodexClient {
         await self?.expire(id)
       }
     }
+    if ["thread/start", "thread/resume"].contains(method), let threadID = result["thread"]["id"].string {
+      ownedThreads.insert(threadID)
+    }
+    return result
   }
   public func respond(id: JSONValue, result: JSONValue) throws {
     try send(.object(["id": id, "result": result]))
@@ -117,6 +138,7 @@ public actor CodexClient {
   }
   private func disconnected(token: UUID) {
     guard token == generation else { return }
+    ownedThreads.removeAll()
     for callback in pending.values {
       callback.resume(throwing: ScreenClipError.message("Codex disconnected."))
     }
@@ -126,6 +148,7 @@ public actor CodexClient {
     continuation = nil
   }
   public func stop() {
+    ownedThreads.removeAll()
     generation = UUID()
     process?.terminationHandler = nil
     try? input?.close()
