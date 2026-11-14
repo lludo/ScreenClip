@@ -6,7 +6,7 @@ final class CoreTests: XCTestCase {
   func testSelfCapturePreferenceLoadsOlderSettingsAndPersistsBothChoices() throws {
     let older = try JSONEncoder().encode(AppSettings())
     var settings = try JSONDecoder().decode(AppSettings.self, from: older)
-    XCTAssertFalse(settings.shouldHideScreenClipDuringCapture)
+    XCTAssertTrue(settings.shouldHideScreenClipDuringCapture)
     for hide in [true, false] {
       settings.hideScreenClipDuringCapture = hide
       let store = try temporaryStore()
@@ -25,6 +25,34 @@ final class CoreTests: XCTestCase {
   func capture() -> Capture {
     Capture(
       note: "A clipped label", imagePath: "/tmp/test.png", context: CaptureContext(appName: "Test"))
+  }
+  func testNewStoreHidesScreenClipDuringCaptureByDefault() throws {
+    let store = try temporaryStore()
+    XCTAssertTrue(try store.load().settings.shouldHideScreenClipDuringCapture)
+  }
+  func testLegacySettingsDefaultToHidingScreenClipWithoutChangingOtherPreferences() throws {
+    var settings = AppSettings()
+    settings.browserContext = true
+    settings.sessionName = "Legacy session"
+    settings.shortcutKey = 20
+    settings.testedVersion = "build 42"
+    let legacy = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: JSONEncoder().encode(settings)) as? [String: Any])
+      .filter { $0.key != "hideScreenClipDuringCapture" }
+    let decoded = try JSONDecoder().decode(
+      AppSettings.self, from: JSONSerialization.data(withJSONObject: legacy))
+    XCTAssertTrue(decoded.shouldHideScreenClipDuringCapture)
+    XCTAssertEqual(decoded, settings)
+  }
+  func testCaptureVisibilityChoicePersistsAcrossStoreReloads() throws {
+    let store = try temporaryStore()
+    for hidden in [false, true] {
+      var state = StoreSnapshot()
+      state.settings.hideScreenClipDuringCapture = hidden
+      try store.save(state)
+      let reopened = try IssueStore(root: store.root, readOnly: true).load()
+      XCTAssertEqual(reopened.settings.hideScreenClipDuringCapture, hidden)
+    }
   }
   func testDurableSubmissionPreservesImageRevisionAndContext() throws {
     let store = try temporaryStore()
