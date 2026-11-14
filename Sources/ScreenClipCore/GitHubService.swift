@@ -1,72 +1,6 @@
 import Foundation
 
-public struct PRState {
-  public var url: String
-  public var head: String
-  public var base: String
-  public var merged: Bool
-  public var mergeCommit: String?
-  public var checksPassed: Bool
-  public var checksFailed: Bool
-  public var mergeable: Bool
-  public var reviewSatisfied: Bool
-  public var details: String
-  public static func parse(_ value: JSONValue) -> PRState {
-    let checks = value["statusCheckRollup"].array
-    let passing: Set<String> = ["SUCCESS", "NEUTRAL", "SKIPPED"]
-    let pending: Set<String> = [
-      "PENDING", "EXPECTED", "IN_PROGRESS", "QUEUED", "WAITING", "REQUESTED",
-    ]
-    let conclusions = checks.map {
-      $0["conclusion"].string.flatMap { $0.isEmpty ? nil : $0 } ?? $0["state"].string ?? $0[
-        "status"
-      ].string ?? "UNKNOWN"
-    }
-    let failed = conclusions.contains { !passing.contains($0) && !pending.contains($0) }
-    let passed = !checks.isEmpty && conclusions.allSatisfy { passing.contains($0) }
-    return PRState(
-      url: value["url"].string ?? "", head: value["headRefOid"].string ?? "",
-      base: value["baseRefName"].string ?? "", merged: value["state"].string == "MERGED",
-      mergeCommit: value["mergeCommit"]["oid"].string, checksPassed: passed, checksFailed: failed,
-      mergeable: value["mergeStateStatus"].string == "CLEAN"
-        && value["mergeable"].string == "MERGEABLE",
-      reviewSatisfied: !["REVIEW_REQUIRED", "CHANGES_REQUESTED"].contains(
-        value["reviewDecision"].string ?? ""),
-      details: checks.isEmpty
-        ? "Waiting for check results. Configure at least one required CI check for automatic merge."
-        : (failed
-          ? "One or more checks failed." : (passed ? "Checks passed." : "Checks are running.")))
-  }
-}
-
-public struct ValidationReceipt: Codable {
-  public var head: String
-  public var command: String
-  public var passed: Bool
-  public var date: Date
-  public var output: String
-  public var fingerprint: String
-}
-
 public enum GitHubService {
-  public static func validate(project: Project, path: String) async throws -> ValidationReceipt {
-    guard !project.validationCommand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-      throw ScreenClipError.message(
-        "Add a validation command in this project's settings before publishing a fix.")
-    }
-    let before = try await GitWorkspace.fingerprint(path: path)
-    let result = try await CommandRunner.run(
-      "/bin/zsh", ["-c", project.validationCommand], cwd: path, timeout: 600)
-    let after = try await GitWorkspace.fingerprint(path: path)
-    guard before == after else {
-      throw ScreenClipError.message(
-        "Source files changed during validation. Run the checks again before publishing.")
-    }
-    let head = try await CommandRunner.checked("/usr/bin/git", ["rev-parse", "HEAD"], cwd: path)
-    return ValidationReceipt(
-      head: head, command: project.validationCommand, passed: result.status == 0, date: Date(),
-      output: String((result.output + "\n" + result.error).suffix(8000)), fingerprint: after)
-  }
   public static func publish(
     project: Project, issue: Issue, summary: String, receipt: ValidationReceipt, gh: String,
     shouldContinue: @escaping @MainActor () -> Bool
@@ -77,7 +11,7 @@ public enum GitHubService {
     _ = try await CommandRunner.checked(gh, ["auth", "status"], cwd: path)
     let remote = try await CommandRunner.checked(
       "/usr/bin/git", ["remote", "get-url", "origin"], cwd: path)
-    guard remote.contains("github.com") else {
+    guard isGitHubRemote(remote) else {
       throw ScreenClipError.message(
         "This version publishes to GitHub. Configure the repository's GitHub origin.")
     }
@@ -99,11 +33,12 @@ public enum GitHubService {
       _ = try await CommandRunner.checked(
         "/usr/bin/git", ["commit", "-m", "Fix: " + String(issue.title.prefix(120))], cwd: path)
     }
+    let base = await GitWorkspace.baseRef(project: project, path: path)
     let commits = try await CommandRunner.checked(
-      "/usr/bin/git", ["rev-list", "--count", project.baseBranch + "..HEAD"], cwd: path)
+      "/usr/bin/git", ["rev-list", "--count", base + "..HEAD"], cwd: path)
     guard (Int(commits) ?? 0) > 0 else {
       throw ScreenClipError.message(
-        "No fix commit was produced. Open the Codex chat to review the result.")
+        "No fix commit was produced. Open the \(issue.resolvedAgent.title) conversation to review the result.")
     }
     let head = try await CommandRunner.checked("/usr/bin/git", ["rev-parse", "HEAD"], cwd: path)
     guard await shouldContinue(),
@@ -126,7 +61,7 @@ public enum GitHubService {
     }
     // Preserve newlines and avoid shell interpolation in PR content.
     let body =
-      "\(summary)\n\nValidation: `\(project.validationCommand)`\n\nScreenClip report: \(issue.reportReference ?? issue.id.uuidString)\nIssue ID: \(issue.id.uuidString)\nInput revision: \(issue.revision)\n\nScreenshots and source context remain in ScreenClip."
+      "\(summary)\n\nValidation: `\(redactSecrets(project.validationCommand))`\n\nScreenClip report: \(issue.reportReference ?? issue.id.uuidString)\nIssue ID: \(issue.id.uuidString)\nInput revision: \(issue.revision)\n\nScreenshots and source context remain in ScreenClip."
     let file = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(
       "screenclip-pr-\(UUID().uuidString).md")
     try body.write(to: file, atomically: true, encoding: .utf8)
@@ -159,16 +94,30 @@ public enum GitHubService {
     _ = try await CommandRunner.checked(
       gh, ["pr", "merge", url, "--squash", "--match-head-commit", head], cwd: path)
   }
-  public static func updateBaseIfNeeded(project: Project, path: String) async throws -> Bool {
-    _ = try await CommandRunner.checked(
-      "/usr/bin/git", ["fetch", "origin", project.baseBranch], cwd: path)
-    let ancestor = try await CommandRunner.run(
-      "/usr/bin/git", ["merge-base", "--is-ancestor", "FETCH_HEAD", "HEAD"], cwd: path)
-    if ancestor.status == 0 { return false }
-    guard ancestor.status == 1 else { throw ScreenClipError.message(ancestor.error) }
-    _ = try await CommandRunner.checked(
-      "/usr/bin/git", ["merge", "--no-edit", "FETCH_HEAD"], cwd: path)
-    return true
+
+  /// Accepts github.com over HTTPS, SSH URL, or scp-style SSH, and nothing that merely
+  /// contains the string (such as github.com.example.net).
+  public static func isGitHubRemote(_ remote: String) -> Bool {
+    let value = remote.trimmingCharacters(in: .whitespacesAndNewlines)
+    if let url = URL(string: value), let host = url.host, url.scheme != nil {
+      return host.lowercased() == "github.com"
+    }
+    // scp-style: [user@]github.com:owner/repo.git
+    guard let colon = value.firstIndex(of: ":") else { return false }
+    let hostPart = value[..<colon].split(separator: "@").last.map(String.init) ?? ""
+    return hostPart.lowercased() == "github.com" && !value[value.index(after: colon)...].isEmpty
+  }
+
+  /// Hides values in `NAME=value` assignments and long token-like strings so a validation
+  /// command never publishes credentials in a PR body.
+  public static func redactSecrets(_ text: String) -> String {
+    var result = text.replacingOccurrences(
+      of: #"\b([A-Za-z_][A-Za-z0-9_]*)=("[^"]*"|'[^']*'|\S+)"#, with: "$1=…",
+      options: .regularExpression)
+    result = result.replacingOccurrences(
+      of: #"\b(gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{20,}|[A-Za-z0-9_-]{40,})\b"#,
+      with: "…", options: .regularExpression)
+    return result
   }
   public static func repositoryIsPublic(_ repo: String, gh: String, cwd: String) async -> Bool? {
     guard

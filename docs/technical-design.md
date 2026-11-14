@@ -1,20 +1,20 @@
 # ScreenClip technical design
 
-Updated: November 13, 2026. The native app and local worker are implemented. The design below retains future options where identified; [validation evidence](validation.md) distinguishes verified behavior from remaining work.
+Updated: November 14, 2026. The native app and local worker are implemented. The design below retains future options where identified; [validation evidence](validation.md) distinguishes verified behavior from remaining work.
 
 ## Implemented choices
 
 The native app is built through the shared Xcode project/scheme, including from Terminal and CI. Swift Package Manager supplies its local core library and command-line tests. Normal runs install and launch `/Applications/ScreenClip.app`, preserving the bundle ID and development certificate across builds. Xcode Run and `scripts/run.sh` use the same installer: verify a certificate-signed staging bundle, ask running copies to quit, then replace the installed bundle with rollback on failure. Build-only output stays in DerivedData. A local ignored certificate configuration supplies development signing. The SQLite store persists a versioned snapshot containing projects, issues, ordered captures, activity, questions, and settings. Queued state acts as the durable outbox; dispatch uncertainty is persisted before external creation. A process file lock enforces a single writer, and recovery pauses interrupted work for reconciliation.
 
-The native worker uses Codex app-server over stdio. A live synthetic test passed image input, a structured question, restart/resume, and a reply in the same chat; the desktop app's chat reader recognized both turns. The actual native worker also completed a synthetic fix through local validation, GitHub CI, PR creation, and confirmed merge in a private fixture. Automatic desktop sidebar project membership failed in the installed 0.1.6 association check: app-server persisted a canonical project ID, while the desktop still used a different project identity for the same repository. Exact chat links and repository context work; sidebar grouping remains a compatibility gap.
+Each issue goes to a local coding agent, Codex or Claude Code, through the shared contract in [Coding agents](agents/README.md). Both have been exercised end to end with synthetic CLIs; a live Codex fix also completed through GitHub CI and a confirmed merge. Agent-specific behavior and known gaps, such as Codex desktop sidebar grouping, are on each agent's page.
 
-The optional plugin is currently read-only (`list_issues`, `get_issue`) and requires Python 3. Native dispatch and status writes have one owner. Hosted MCP Events, plugin mutations/leases, and shared desktop-process ownership remain future integrations. Reply in ScreenClip for app-owned runs; cancel before manually editing the same worktree in another client.
+The optional plugin is read-only (`list_issues`, `get_issue`), requires Python 3.9+, and is packaged for both Codex and Claude Code. Native dispatch and status writes have one owner. Plugin mutations/leases and shared desktop-process ownership remain future integrations. Reply in ScreenClip for app-owned runs; cancel before manually editing the same worktree in another client.
 
 Each issue has an optional-on-decode `reportNumber`, assigned on store save and displayed as `#234`. A snapshot-level `nextReportNumber` is committed with the issues, so deletions cannot recycle a number. Legacy reads assign missing numbers in creation order with a UUID tie-breaker, retaining array order; the next writable save persists the migration. Saves preserve existing ID-to-number bindings and the stored high-water mark even if the caller passes a stale counter. The app publishes the numbered snapshot only after a successful save. Report numbers span all projects and include drafts; UUIDs remain the internal identity. Exact number searches include archived reports and bypass project/status filters. The read-only plugin exposes the number and accepts it in `get_issue.issue_id` alongside UUIDs.
 
 ## Recommended structure
 
-The architecture serves the primary product goal: capture feedback as it is noticed and return the user to their current task. Capture persistence and return-to-app focus must not wait for Codex work, a clarification, or PR automation. Repeated small captures should stay lightweight even while earlier observations are being processed. See the [product specification](product-spec.md#problem-and-intended-outcome) for the capture-first value proposition.
+The architecture serves the primary product goal: capture feedback as it is noticed and return the user to their current task. Capture persistence and return-to-app focus must not wait for agent work, a clarification, or PR automation. Repeated small captures should stay lightweight even while earlier observations are being processed. See the [product specification](product-spec.md#problem-and-intended-outcome) for the capture-first value proposition.
 
 Build a native Swift application with SwiftUI for the composer and queue, AppKit for selection windows and focus behavior, a durable local store, and agent adapters. Keep the native capture experience independent of the particular agent handoff mechanism.
 
@@ -31,14 +31,14 @@ flowchart LR
     H --> I
     I --> J[Menu bar and issue detail]
     J --> K[Exact agent conversation]
-    L[Optional MCP plugin] --> D
+    D -. read-only .-> L[Optional MCP plugin]
 ```
 
-The diagram is a proposed ownership model. In particular, the agent-facing connections require compatibility testing for each agent.
+The diagram shows ownership: ScreenClip is the only writer of the store, and the plugin reads it.
 
 ## Native components
 
-| Component | Proposed responsibility |
+| Component | Responsibility |
 | --- | --- |
 | Menu bar | SwiftUI `MenuBarExtra`, with a queue window for longer interactions |
 | Shortcut registration | System global hotkey registration, conflict detection, and a user-editable shortcut |
@@ -74,9 +74,10 @@ Use an explicit confidence/reason field rather than an unobservable guess. Never
 
 The capture pipeline is agent-neutral for Codex and Claude Code. The dispatcher prepares a worktree, sends one prompt with approved screenshots, and receives a structured `implemented` / `question` / `blocked` result. ScreenClip then validates, publishes, and verifies merges itself. Grok Bot does not take that local turn: ScreenClip pushes the approved screenshots to a `screenclip/` branch and POSTs `screenclip.external.v1`, then still validates and merges the pull request itself. The shared contract, agent selection, readiness gating, and the checklist for adding a local agent are in [Coding agents](agents/README.md). Each agent has its own page:
 
-- [Codex](agents/codex.md): app-server transport, thread identity, desktop deep links, project association, and Codex plugin options.
+- [Codex](agents/codex.md): app-server transport, thread identity, desktop deep links, and project association.
 - [Claude Code](agents/claude-code.md): headless stream-json turns, session identity, sandbox, sign-in, and the Claude Code plugin.
 - [Grok Bot](agents/external-assistant.md): remote hand-off. Approved screenshots go to a `screenclip/` branch; the webhook carries no image data. ScreenClip still validates and merges.
+- Proposal: [Codex plugin research](agents/proposals/codex-plugin.md).
 
 Serialize work on an individual issue. Append new evidence as a later turn. When the user continues work in the agent's own client, reconcile that activity; do not let two clients independently start competing turns. Separate transport progress from product outcomes, and verify PR, check, and merge claims with the source-control host before promoting the state. A normal successful agent response alone is insufficient.
 
@@ -102,22 +103,30 @@ The current in-app worker uses an exclusive process lock and one active job per 
 
 ## Worktrees, checks, and automatic merge
 
-Record the tested revision separately from the agent's base revision. Create one worktree and branch per issue run; use the project base branch and keep the user's testing checkout untouched. Local uncommitted test changes need explicit source evidence; do not silently copy or discard them.
+Record the tested revision separately from the agent's base revision. Each issue run gets one worktree under Application Support and a `screenclip/<id>` branch (older issues keep their `codex/screenclip-<id>` branch). The branch starts from `origin/<base>` after a fetch when the repository has an origin, so a tester's unpushed or work-in-progress commits never enter a PR; without an origin it starts from the local base. The tester's checkout is never the working directory. After a confirmed merge, ScreenClip removes the worktree and local branch; a worktree with uncommitted changes is kept.
+
+Validation runs the project's command in the worktree with a 10-minute limit, and the source fingerprint must be unchanged by it. Initialized submodules are fingerprinted by their checked-out commit; uninitialized ones by a fixed marker. All child processes run with git redirect variables (`GIT_DIR`, `GIT_WORK_TREE`, …) removed. A timed-out command has its whole process tree terminated, and output reading stops shortly after the command exits even if a background grandchild still holds the pipes. Coding agents additionally run without GitHub tokens in their environment; ScreenClip pushes and opens PRs itself. PR bodies redact `NAME=value` assignments and token-like strings from the validation command.
 
 The user's chosen default authorizes automatic implementation, PR creation, and merge. Store that policy per project during onboarding. Merge only the current PR head after relevant validation and required host checks pass, required reviews are satisfied, no unresolved question blocks the fix, and no new capture revision is pending. Missing validation configuration is not equivalent to passing checks.
 
-Serialize merges per repository. If the base branch changes, apply the project's update/revalidation policy before merging. Confirm the merge with the host, record the merge commit, and notify with retest instructions. Keep CI and deployment as distinct facts. Do not force-update the tester's checkout or restart their running app automatically.
+Serialize merges per repository. If the base branch changes, ScreenClip merges the latest base into the issue branch and revalidates before merging; a conflicting base merge is aborted and reported, so the worktree is never left mid-merge. Confirm the merge with the host, record the merge commit, and notify with retest instructions. Keep CI and deployment as distinct facts. Do not force-update the tester's checkout or restart their running app automatically.
 
 ## Distribution and lifecycle
 
-Proposed first delivery is a signed, notarized direct-download app. Evaluate sandbox restrictions and child-process execution before choosing an App Store route. For public release, decide whether to bundle a compatible Codex runtime or require an installed one; verify licensing, redistribution, updates, signatures, and a supported version range. Avoid depending on an undocumented binary inside another app's bundle.
+Proposed first delivery is a signed, notarized direct-download app. Evaluate sandbox restrictions and child-process execution before choosing an App Store route. For public release, keep requiring an installed agent (Codex CLI or Claude Code) rather than bundling one; verify licensing, redistribution, updates, signatures, and a supported version range. Avoid depending on an undocumented binary inside another app's bundle.
 
 The app must explain when work runs: the proposed local worker operates while ScreenClip is running and the Mac is awake. Closing the popover does not stop it; quitting and sleep have explicit recovery behavior. A login item is optional. A permanent launch agent or hosted worker is a later choice.
 
-Keep captures in per-user Application Support, outside source repositories. Use Keychain for ScreenClip's own secrets and supported source-control authentication. Public PR content must not inherit private screenshots automatically. Deleting an issue locally must explain any independent retained Codex history or PR; stop an active run before removing its working evidence.
+Keep captures in per-user Application Support, outside source repositories. Use Keychain for ScreenClip's own secrets and supported source-control authentication. Public PR content must not inherit private screenshots automatically. Deleting an issue locally must explain any independent retained agent history or PR; stop an active run before removing its working evidence.
 
-## Current environment observations
+## Source layout
 
-Read-only checks on November 13, 2026 found an otherwise empty Git repository with no remote configured. The Mac reports macOS 27.0.1 and Swift 6.4.2, with Xcode selected.
-
-`/opt/homebrew/bin/codex --version` failed because its expected native binary was missing from the npm installation (`ENOENT`). The development checks used the configurable runtime at `/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex`, version `0.169.0-alpha.11.1`. Its ChatGPT sign-in, agent conversations, and PR workflow were verified. GitHub authentication also passed outside the build sandbox; its earlier failure was restricted Keychain access. The plugin was tested over stdio but was not installed into the public directory. No Developer ID signing identity was available.
+| Path | Contents |
+| --- | --- |
+| `Sources/ScreenClip/` | The app: `AppModel`, capture (`CaptureCoordinator`, `Annotations`, `ComposerView`), queue (`QueueView`, `IssueDetailView`, `IssueRowViews`, `QuestionCard`, `WelcomeView`, `MenuPopover`), settings (`SettingsView`, `ConnectionControls`, `ProjectEditor`, `ShortcutRecorder`), Grok Bot credentials (`ExternalAssistantKeychain`) |
+| `Sources/ScreenClip/AgentWorker*.swift` | Scheduling and dispatch (`AgentWorker`), Codex (`+Codex`), Claude Code (`+Claude`), Grok Bot hand-off and PR inspection (`+External`), and validation, publication, PR monitoring, and merge (`+Publishing`) |
+| `Sources/ScreenClip/AgentPrompt.swift` | The prompt and result schema every agent receives |
+| `Sources/ScreenClipCore/` | Model (`Models`, `JSONValue`, `Errors`), store (`IssueStore`), routing (`Routing`), agent transports (`CodexClient`, `ClaudeCodeClient`, `ExternalAssistant`, `AgentDetector`), processes (`CommandRunner`, `ProcessEnvironment`), Git (`GitWorkspace`), GitHub (`GitHubService`), and merge evidence (`MergeGuard`) |
+| `plugins/screenclip/` | Read-only MCP server with Codex and Claude Code manifests |
+| `scripts/` | Build, install, package, test, probes, fixtures, and the read-only queue review |
+| `website/` | Static promotional site |

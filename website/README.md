@@ -1,6 +1,6 @@
 # ScreenClip landing page
 
-A small, responsive, one-page site. Lead message: **capture feedback as you notice it, then keep going**. Notes, screenshots, and context stay together; Codex follow-up is a secondary benefit. The product reasoning is in [the product specification](../docs/product-spec.md#problem-and-intended-outcome).
+A small, responsive, one-page site. Lead message: **capture feedback as you notice it, then keep going**. Notes, screenshots, and context stay together; agent follow-up (Codex or Claude Code) is a secondary benefit. The product reasoning is in [the product specification](../docs/product-spec.md#problem-and-intended-outcome).
 
 The site uses plain HTML, CSS, and a small script for the accessible screenshot tabs. It has no package dependencies, third-party fonts, trackers, or remote assets. The app screenshots are real demo previews; the hero is labeled as an illustration.
 

@@ -94,9 +94,21 @@ import UserNotifications
   func perform(_ body: () throws -> Void) {
     do { try body() } catch { banner = error.localizedDescription }
   }
+  /// Saves the Settings form. Processing pause is controlled elsewhere (popover, queue),
+  /// so a form opened earlier never reverts it.
   func saveSettings(_ settings: AppSettings) {
-    perform { try commit { $0.settings = settings } }
+    perform {
+      try commit { state in
+        var merged = settings
+        merged.paused = state.settings.paused
+        state.settings = merged
+      }
+    }
     NotificationCenter.default.post(name: .screenClipSettingsChanged, object: nil)
+  }
+  func togglePaused() {
+    perform { try commit { $0.settings.paused.toggle() } }
+    worker.pump()
   }
   func saveProject(_ project: Project) throws {
     guard FileManager.default.fileExists(atPath: project.path + "/.git") else {
@@ -119,6 +131,10 @@ import UserNotifications
     agent: AgentKind? = nil
   ) throws {
     let chosenAgent = agent ?? snapshot.settings.preferredAgent
+    if draft, let existingID, let target = issue(existingID), target.status != .draft {
+      throw ScreenClipError.message(
+        "Drafts cannot be added to a submitted issue. Submit the capture, or choose New issue.")
+    }
     if !draft, chosenAgent == .external, projectID != nil {
       let availability = AgentPicker.externalAvailability(
         configured: loadExternalAssistant().isConfigured, hasProject: true,
@@ -354,7 +370,7 @@ import UserNotifications
   }
   func delete(_ id: UUID) {
     perform {
-      guard let issue = issue(id), ![.working, .needsYou, .prOpen].contains(issue.status) else {
+      guard let issue = issue(id), issue.canDelete, !worker.isActive(id) else {
         throw ScreenClipError.message(
           "Cancel or finish the active run before deleting its evidence.")
       }

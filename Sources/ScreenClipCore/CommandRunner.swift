@@ -1,4 +1,4 @@
-import CryptoKit
+import Darwin
 import Foundation
 
 public struct CommandResult {
@@ -6,14 +6,25 @@ public struct CommandResult {
   public let error: String
   public let status: Int32
 }
+
 public enum CommandRunner {
+  /// How long to keep reading output after the command exits. A background grandchild
+  /// that inherited the pipes (an SSH ControlPersist master, `npm run dev &`) would
+  /// otherwise keep them open forever.
+  static let drainGrace: TimeInterval = 3
+
   public static func run(
     _ executable: String, _ arguments: [String], cwd: String? = nil, timeout: TimeInterval = 120
   ) async throws -> CommandResult {
-    try await Task.detached(priority: .utility) {
-      try runBlocking(executable, arguments, cwd: cwd, timeout: timeout)
-    }.value
+    // A dedicated thread, not the cooperative pool: commands can run for minutes.
+    try await withCheckedThrowingContinuation { continuation in
+      DispatchQueue.global(qos: .utility).async {
+        continuation.resume(
+          with: Result { try runBlocking(executable, arguments, cwd: cwd, timeout: timeout) })
+      }
+    }
   }
+
   private static func runBlocking(
     _ executable: String, _ arguments: [String], cwd: String?, timeout: TimeInterval
   ) throws -> CommandResult {
@@ -21,46 +32,82 @@ public enum CommandRunner {
     process.executableURL = URL(fileURLWithPath: executable)
     process.arguments = arguments
     if let cwd { process.currentDirectoryURL = URL(fileURLWithPath: cwd) }
-    var environment = ProcessInfo.processInfo.environment
-    environment["PATH"] =
-      "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:"
-      + (environment["PATH"] ?? "")
-    environment["GIT_TERMINAL_PROMPT"] = "0"
+    var environment = ProcessEnvironment.tools()
     environment["GIT_LFS_SKIP_SMUDGE"] = "1"
-    environment["GH_PROMPT_DISABLED"] = "1"
     process.environment = environment
     let stdout = Pipe()
     let stderr = Pipe()
     process.standardOutput = stdout
     process.standardError = stderr
     process.standardInput = FileHandle.nullDevice
-    let group = DispatchGroup()
-    let out = DataBox()
-    let err = DataBox()
-    try process.run()
-    group.enter()
-    DispatchQueue.global().async {
-      out.data = stdout.fileHandleForReading.readDataToEndOfFile()
-      group.leave()
+    let out = OutputBuffer()
+    let err = OutputBuffer()
+    let drained = DispatchGroup()
+    for (pipe, buffer) in [(stdout, out), (stderr, err)] {
+      drained.enter()
+      pipe.fileHandleForReading.readabilityHandler = { handle in
+        let chunk = handle.availableData
+        if chunk.isEmpty {
+          handle.readabilityHandler = nil
+          drained.leave()
+        } else {
+          buffer.append(chunk)
+        }
+      }
     }
-    group.enter()
-    DispatchQueue.global().async {
-      err.data = stderr.fileHandleForReading.readDataToEndOfFile()
-      group.leave()
+    let exited = DispatchSemaphore(value: 0)
+    process.terminationHandler = { _ in exited.signal() }
+    do {
+      try process.run()
+    } catch {
+      stdout.fileHandleForReading.readabilityHandler = nil
+      stderr.fileHandleForReading.readabilityHandler = nil
+      throw error
     }
-    let deadline = Date().addingTimeInterval(timeout)
-    while process.isRunning && Date() < deadline { Thread.sleep(forTimeInterval: 0.05) }
-    if process.isRunning {
-      process.terminate()
+    if exited.wait(timeout: .now() + timeout) == .timedOut {
+      terminateTree(process.processIdentifier)
+      _ = exited.wait(timeout: .now() + 5)
+      stopReading(stdout, stderr)
       throw ScreenClipError.message(
-        "Command timed out: \(URL(fileURLWithPath: executable).lastPathComponent)")
+        "Command timed out after \(Int(timeout))s: \(URL(fileURLWithPath: executable).lastPathComponent)"
+      )
     }
-    process.waitUntilExit()
-    group.wait()
+    if drained.wait(timeout: .now() + drainGrace) == .timedOut { stopReading(stdout, stderr) }
     return CommandResult(
       output: String(decoding: out.data, as: UTF8.self),
       error: String(decoding: err.data, as: UTF8.self), status: process.terminationStatus)
   }
+
+  private static func stopReading(_ pipes: Pipe...) {
+    for pipe in pipes { pipe.fileHandleForReading.readabilityHandler = nil }
+  }
+
+  /// SIGTERM the process and its descendants (a validation shell's test runners, for
+  /// example), then SIGKILL anything still alive after a short grace period.
+  static func terminateTree(_ root: pid_t) {
+    var pids = [root]
+    var index = 0
+    while index < pids.count {
+      pids += childPIDs(of: pids[index])
+      index += 1
+    }
+    for pid in pids { kill(pid, SIGTERM) }
+    Thread.sleep(forTimeInterval: 0.5)
+    for pid in pids where kill(pid, 0) == 0 { kill(pid, SIGKILL) }
+  }
+
+  private static func childPIDs(of parent: pid_t) -> [pid_t] {
+    let count = proc_listchildpids(parent, nil, 0)
+    guard count > 0 else { return [] }
+    var children = [pid_t](repeating: 0, count: Int(count) * 2)
+    let filled = children.withUnsafeMutableBytes { buffer in
+      proc_listchildpids(parent, buffer.baseAddress, Int32(buffer.count))
+    }
+    guard filled > 0 else { return [] }
+    // proc_listchildpids reports a PID count, not a byte count.
+    return Array(children.prefix(Int(filled))).filter { $0 > 0 }
+  }
+
   public static func checked(
     _ executable: String, _ arguments: [String], cwd: String? = nil, timeout: TimeInterval = 120
   ) async throws -> String {
@@ -72,76 +119,18 @@ public enum CommandRunner {
     return result.output.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 }
-private final class DataBox: @unchecked Sendable { var data = Data() }
 
-public enum GitWorkspace {
-  public static func fingerprint(path: String) async throws -> String {
-    let listing = try await CommandRunner.run(
-      "/usr/bin/git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd: path)
-    guard listing.status == 0 else { throw ScreenClipError.message(listing.error) }
-    var hash = SHA256()
-    for name in Set(listing.output.split(separator: "\0").map(String.init)).sorted() {
-      let file = URL(fileURLWithPath: path).appendingPathComponent(name)
-      hash.update(data: Data(name.utf8))
-      hash.update(data: Data([0]))
-      let attributes: [FileAttributeKey: Any]
-      do {
-        attributes = try FileManager.default.attributesOfItem(atPath: file.path)
-      } catch CocoaError.fileReadNoSuchFile {
-        hash.update(data: Data("deleted".utf8))
-        continue
-      }
-      hash.update(data: Data(String(describing: attributes[.posixPermissions]).utf8))
-      if attributes[.type] as? FileAttributeType == .typeSymbolicLink {
-        hash.update(
-          data: Data(try FileManager.default.destinationOfSymbolicLink(atPath: file.path).utf8))
-      } else if attributes[.type] as? FileAttributeType == .typeDirectory {
-        // Git submodules are recorded by their checked-out revision.
-        hash.update(
-          data: Data(
-            try await CommandRunner.checked("/usr/bin/git", ["rev-parse", "HEAD"], cwd: file.path)
-              .utf8))
-      } else {
-        hash.update(data: try Data(contentsOf: file, options: .mappedIfSafe))
-      }
-    }
-    return hash.finalize().map { String(format: "%02x", $0) }.joined()
+private final class OutputBuffer: @unchecked Sendable {
+  private let lock = NSLock()
+  private var storage = Data()
+  func append(_ chunk: Data) {
+    lock.lock()
+    storage.append(chunk)
+    lock.unlock()
   }
-  public static func prepare(
-    project: Project, issueID: UUID, root: URL, branch requestedBranch: String? = nil
-  ) async throws -> (path: String, branch: String) {
-    let branch =
-      requestedBranch
-      ?? "codex/screenclip-" + String(issueID.uuidString.lowercased().prefix(8))
-    let path = root.appendingPathComponent("worktrees").appendingPathComponent(issueID.uuidString)
-      .path
-    let repo = try await CommandRunner.checked(
-      "/usr/bin/git", ["rev-parse", "--show-toplevel"], cwd: project.path)
-    guard
-      URL(fileURLWithPath: repo).standardizedFileURL.resolvingSymlinksInPath().path
-        == URL(fileURLWithPath: project.path).standardizedFileURL.resolvingSymlinksInPath().path
-    else { throw ScreenClipError.message("Choose the repository root for \(project.name).") }
-    _ = try await CommandRunner.checked(
-      "/usr/bin/git", ["check-ref-format", "--branch", project.baseBranch], cwd: project.path)
-    if FileManager.default.fileExists(atPath: path) {
-      let actual = try await CommandRunner.checked(
-        "/usr/bin/git", ["branch", "--show-current"], cwd: path)
-      guard actual == branch else {
-        throw ScreenClipError.message(
-          "The issue worktree has an unexpected branch. Inspect it before retrying.")
-      }
-      return (path, branch)
-    }
-    let existing = try await CommandRunner.run(
-      "/usr/bin/git", ["show-ref", "--verify", "--quiet", "refs/heads/\(branch)"], cwd: project.path)
-    if existing.status == 0 {
-      _ = try await CommandRunner.checked(
-        "/usr/bin/git", ["worktree", "add", path, branch], cwd: project.path)
-    } else {
-      _ = try await CommandRunner.checked(
-        "/usr/bin/git", ["worktree", "add", "-b", branch, path, project.baseBranch],
-        cwd: project.path)
-    }
-    return (path, branch)
+  var data: Data {
+    lock.lock()
+    defer { lock.unlock() }
+    return storage
   }
 }
