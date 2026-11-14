@@ -24,16 +24,50 @@ def configured_url(config, key):
     return value
 
 
-def download_option(url, icon, eyebrow, title):
+def download_option(url, icon, eyebrow, title, status=None):
     tag = "a" if url else "div"
     attributes = f'href="{html.escape(url, quote=True)}"' if url else 'aria-disabled="true"'
-    status = "Get it" if url else "Coming soon"
+    if status is None:
+        status = "Get it" if url else "Coming soon"
     return (
         f'<{tag} class="download-button" {attributes}>'
         f'<svg class="icon" aria-hidden="true"><use href="#{icon}"/></svg>'
         f'<span><small>{eyebrow}</small><strong>{title}</strong></span>'
         f'<span class="availability">{status}</span></{tag}>'
     )
+
+
+def download_options(app_store_url, download_url):
+    options = []
+    if app_store_url:
+        options.append(download_option(app_store_url, "apple", "For your Mac", "Mac App Store"))
+    if download_url:
+        options.append(
+            download_option(
+                download_url, "icon-download", "Notarized DMG", "Download for Mac", "Latest release"))
+    else:
+        options.append(
+            download_option("", "icon-download", "Notarized DMG", "Download for Mac"))
+    return options
+
+
+def release_note(app_store_url, download_url):
+    if download_url and not app_store_url:
+        return "Download for Mac tracks the latest notarized DMG on GitHub Releases."
+    if download_url or app_store_url:
+        return "Choose an available download above."
+    return "Public downloads aren’t available yet. Check back here for release links."
+
+
+def availability_answer(app_store_url, download_url):
+    if download_url and not app_store_url:
+        return (
+            "Use Download for Mac. It links to the latest GitHub Release of the notarized DMG. "
+            "The file is there after a version tag is published."
+        )
+    if download_url or app_store_url:
+        return "Use an available download link above to get ScreenClip for Mac. An option marked ‘Coming soon’ is not available yet."
+    return "Not yet. Public downloads are being prepared. Download for Mac will track the latest GitHub Release."
 
 
 def main():
@@ -71,13 +105,10 @@ def main():
         "SOCIAL_IMAGE": html.escape(f"{base}assets/social-preview.png", quote=True),
         "URL_METADATA": url_metadata,
         "STRUCTURED_DATA": json.dumps(app, ensure_ascii=False).replace("<", "\\u003c"),
-        "DOWNLOAD_OPTIONS": "\n        ".join([
-            download_option(app_store_url, "apple", "For your Mac", "Mac App Store"),
-            download_option(download_url, "icon-download", "Direct from ScreenClip", "Download for Mac"),
-        ]),
+        "DOWNLOAD_OPTIONS": "\n        ".join(download_options(app_store_url, download_url)),
         "DOWNLOAD_INTRO": "Get ScreenClip for Mac." if available else "ScreenClip for Mac is on its way.",
-        "RELEASE_NOTE": "Choose an available download above." if available else "Public downloads aren’t available yet. Check back here for release links.",
-        "AVAILABILITY_ANSWER": "Use an available download link above to get ScreenClip for Mac. An option marked ‘Coming soon’ is not available yet." if available else "Not yet. ScreenClip is in development and public downloads are being prepared. The App Store and direct-download options above are placeholders until release links are available.",
+        "RELEASE_NOTE": release_note(app_store_url, download_url),
+        "AVAILABILITY_ANSWER": availability_answer(app_store_url, download_url),
         "YEAR": str(datetime.now().year),
     }
     document = (ROOT / "src/index.html").read_text()

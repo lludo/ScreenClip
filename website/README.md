@@ -23,11 +23,11 @@ Edit `site.config.json`, then rebuild:
 {
   "siteUrl": "",
   "appStoreUrl": "",
-  "downloadUrl": ""
+  "downloadUrl": "https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg"
 }
 ```
 
-All three values are intentionally empty today. Empty download URLs render as non-clickable **Coming soon** options. Adding a real HTTPS URL enables that download and updates the availability copy. Configure each channel only once it is actually available; no App Store acceptance, pricing, or public release is implied by a placeholder.
+`downloadUrl` is the latest notarized DMG on GitHub Releases. The button stays a non-clickable **Coming soon** control while that value is empty. `appStoreUrl` is empty on purpose: ScreenClip is not going on the Mac App Store, and an empty App Store URL is not shown. The DMG link has a file only after the first version tag is published. See [direct distribution](../docs/release/direct-distribution.md).
 
 Set `siteUrl` to the final HTTPS site address, including a subdirectory if applicable. The build then adds the canonical URL, absolute social-image URL, Open Graph URL, app URL, `sitemap.xml`, and sitemap reference in `robots.txt`. No domain is invented while it is unset.
 
@@ -40,6 +40,6 @@ Set `siteUrl` to the final HTTPS site address, including a subdirectory if appli
 - SVG favicon, touch icon, image dimensions, lazy-loaded app screenshots, and responsive layouts.
 - Keyboard-operated tabs, visible focus, skip link, reduced-motion support, native FAQ disclosure controls, and descriptive image alt text.
 
-Before public launch, set the real domain and release links, build again, and upload `dist/`. Submit the generated sitemap to the search engines you use after the domain is live. Metadata supports discovery; ranking depends on public indexing and other factors beyond the page.
+Before public launch, set the real domain, build again, and upload `dist/`. The download link is already the GitHub Release asset. Submit the generated sitemap to the search engines you use after the domain is live. Metadata supports discovery; ranking depends on public indexing and other factors beyond the page.
 
 The generated images can optionally be refreshed on a Mac with `swift website/render-assets.swift`. This is not required to build or host the site.
