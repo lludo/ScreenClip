@@ -105,15 +105,16 @@ python3 scripts/test_external_assistant.py
 python3 website/build.py
 ```
 
-`bash scripts/package.sh` creates the Release bundle and `build/ScreenClip-macOS.zip`. Public distribution requires a Developer ID identity through `SCREENCLIP_SIGNING_IDENTITY` and a configured Keychain `SCREENCLIP_NOTARY_PROFILE`. No third-party agent runtime is redistributed.
+`bash scripts/test.sh` accepts `swift test` arguments, such as `--filter SafetyTests`. `bash scripts/package.sh` creates the Release bundle and `build/ScreenClip-macOS.zip`. Public distribution requires a Developer ID identity through `SCREENCLIP_SIGNING_IDENTITY`, a configured Keychain `SCREENCLIP_NOTARY_PROFILE`, and the hardened runtime, which the project does not enable yet (see the [roadmap](docs/roadmap.md#open-gates)). No third-party agent runtime is redistributed.
 
-ScreenClip is a working local app; public downloads and notarized distribution are still being prepared. See [validation evidence and remaining checks](docs/validation.md) for what has been tested.
+ScreenClip is a working local app; public downloads and notarized distribution are still being prepared. See [validation](docs/validation.md) for what has been tested and the [roadmap](docs/roadmap.md) for what is left.
 
 ## Documentation
 
 - [Product specification](docs/product-spec.md) — workflow, scope, screens, and status meanings.
 - [Technical design](docs/technical-design.md) — native components, storage, agent integration, and constraints.
-- [Implementation plan](docs/implementation-plan.md) — feasibility gates and acceptance criteria.
+- [Roadmap](docs/roadmap.md) — open gates, next features, and deferred cleanups.
+- [Validation](docs/validation.md) — what is verified, how, and how to reproduce it.
 - [Coding agents](docs/agents/README.md) — how agents plug in, choosing one, and adding a new agent.
-  - [Codex](docs/agents/codex.md) · [Claude Code](docs/agents/claude-code.md) · [Grok Bot](docs/agents/external-assistant.md)
+  - [Codex](docs/agents/codex.md) · [Claude Code](docs/agents/claude-code.md) · [Grok Bot](docs/agents/external-assistant.md) · proposals: [Codex plugin](docs/agents/proposals/codex-plugin.md)
 - [Promotional website](website/README.md) — local preview, SEO, and release links.

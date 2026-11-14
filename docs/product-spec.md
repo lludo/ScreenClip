@@ -1,6 +1,6 @@
 # ScreenClip product specification
 
-Updated: November 14, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot; confirmed decisions and proposed future behavior. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md).
+Updated: November 14, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot; confirmed decisions and remaining product choices. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md).
 
 ## Problem and intended outcome
 
@@ -8,7 +8,7 @@ ScreenClip's primary value is capturing feedback immediately without breaking th
 
 The intended experience is **notice it, capture it, keep going**. A session may contain dozens or hundreds of small observations; this describes the intended usage pattern, not a measured throughput or capacity claim. Capture must remain lightweight enough that users do not have to decide whether each little thing is worth the interruption. A screenshot alone is valid; a short note or annotation adds clarity when useful. Related observations can be grouped without requiring an elaborate report for each one.
 
-Preserving the screenshot and capture-time context removes the need to reconstruct the observation later. Codex dispatch, investigation, questions, implementation, testing, pull requests, merge, and retest extend the feedback loop after capture. They are secondary benefits; ScreenClip's lead promise is uninterrupted feedback capture, not “turn screenshots into fixes.”
+Preserving the screenshot and capture-time context removes the need to reconstruct the observation later. Agent dispatch (Codex or Claude Code), investigation, questions, implementation, testing, pull requests, merge, and retest extend the feedback loop after capture. They are secondary benefits; ScreenClip's lead promise is uninterrupted feedback capture, not “turn screenshots into fixes.”
 
 Example: while moving through a checkout flow, the tester notices a clipped button, captures it, optionally writes “Label is cut off at this width,” submits, and immediately continues. They capture a spacing problem, unclear copy, and a missing confirmation state as they go. ScreenClip keeps those observations and their context organized; downstream work and questions remain visible from the menu bar.
 
@@ -17,8 +17,8 @@ Example: while moving through a checkout flow, the tester notices a clipped butt
 - Lead with fast capture at the moment of noticing and immediately continuing the current task.
 - Include feedback, polish, and improvement ideas as well as bugs. Not every observation is a broken feature or needs an immediate code change.
 - Show the repeated-capture workflow, not just one screenshot leading to one fix. Do not invent timing guarantees or claim measured support for a particular number of reports.
-- Keep context and related captures together, with one conversation per issue, without imposing a title, severity, or report template on each observation. Codex and Claude Code keep that conversation locally. Grok Bot keeps it in the assistant's chat.
-- Explain Codex work and fix tracking after the capture value is clear. Marketing should not make an automatic fix the reason to capture feedback.
+- Keep context and related captures together, with one agent conversation per issue, without imposing a title, severity, or report template on each observation. Codex and Claude Code keep that conversation locally. Grok Bot keeps it in the assistant's chat.
+- Explain agent work and fix tracking after the capture value is clear. Marketing should not make an automatic fix the reason to capture feedback.
 
 ## Confirmed requirements
 
@@ -30,21 +30,21 @@ Example: while moving through a checkout flow, the tester notices a clipped butt
 | Entry point | Menu bar utility plus a global keyboard shortcut |
 | Capture | Region selection resembling Command–Shift–4 |
 | Composer | Screenshot overlay with a short description and image annotations |
-| Capturing ScreenClip itself | Keep its windows and menu bar popover available; provide a setting to hide/exclude them |
+| Capturing ScreenClip itself | Hidden by default; turn off **Hide ScreenClip during capture** to capture its windows and menu bar popover |
 | Submission | Save to the queue and begin AI work immediately |
 | Organization | One conversation per issue; related captures share that issue. Codex uses a thread, Claude Code a session, and Grok Bot a GitHub branch plus webhook |
 | Project routing | Infer from app/browser context; user can correct it |
 | Visibility | Counts, statuses, and the conversation link the agent supports (Codex deep link, Claude resume command, or the Grok Bot pull request once known) |
 | Agent outcome | Implement, test, open a PR, and merge when checks pass. ScreenClip decides merges for every agent, including Grok Bot |
-| Communication | Codex and Claude questions are answered in ScreenClip. Grok Bot questions stay in Grok Bot's chat |
+| Communication | Follow-up questions and completion feedback. Codex and Claude questions are answered in ScreenClip; Grok Bot questions stay in Grok Bot's chat |
 | Audience | Eventual public distribution |
-| Integration exploration | Consider Codex's plugin system |
+| Agents | Codex, Claude Code, or Grok Bot, chosen per report with a default in Settings; see [Coding agents](agents/README.md) |
 
-Everything below is a proposed implementation or interaction choice unless covered by this table.
+Sections below describe the implemented behavior; open questions are listed under [Remaining decisions](#remaining-decisions).
 
 ## Capture and submission
 
-1. Invoke a configurable global shortcut. Proposed initial shortcut: Command–Shift–2, subject to availability; the built-in screenshot shortcut stays available.
+1. Invoke a configurable global shortcut. Default shortcut: Command–Shift–2, subject to availability; the built-in screenshot shortcut stays available.
 2. Preserve the source app and available context before ScreenClip takes focus.
 3. Show a crosshair and region selection. Escape cancels. The selection should work across multiple monitors, Retina scales, and full-screen apps.
 4. Show a compact overlay with the image, a focused note field, an inferred project chip, and an issue destination: **New issue** or **Add to issue…**.
@@ -82,7 +82,7 @@ If evidence is missing or conflicting, save the submission as **Needs project** 
 
 ## Menu bar and issue view
 
-Proposed compact menu bar label: icon plus the count of submitted, unresolved issues. A separate attention indicator signals questions, failures, or routing problems. The popover provides explicit counts by state; color alone must not carry meaning.
+Menu bar label: icon plus the count of submitted, unresolved issues. A separate attention indicator signals questions, failures, or routing problems. The popover provides explicit counts by state; color alone must not carry meaning.
 
 | Surface | Contents and actions |
 | --- | --- |
@@ -97,7 +97,7 @@ The queue has resizable panes with a status filter and feedback search above the
 
 Counts represent issues, so adding a second screenshot to an existing issue does not increment the count. Drafts are counted separately. **Merged** issues leave the active count and appear under **To retest**. Keep row positions stable during updates; offer explicit sorting and filtering.
 
-Assign a sequential report number when an issue or draft is first saved, unique within the local queue across projects. Retain it through draft submission, related captures, renames, retries, archive, and reopening. Number existing reports in creation order without reordering the queue. Never reuse a deleted number. Searching `#234` or `234` finds that exact report even when its project or status is outside the current filters. Include the reference in new Codex chat names, agent prompts, notifications, exports, PR descriptions, and plugin results; keep the UUID as the internal identity.
+Assign a sequential report number when an issue or draft is first saved, unique within the local queue across projects. Retain it through draft submission, related captures, renames, retries, archive, and reopening. Number existing reports in creation order without reordering the queue. Never reuse a deleted number. Searching `#234` or `234` finds that exact report even when its project or status is outside the current filters. Include the reference in new agent conversation names, agent prompts, notifications, exports, PR descriptions, and plugin results; keep the UUID as the internal identity.
 
 Notify on a question, blocked run, or completed merge. Do not interrupt testing with a notification for every agent action. Clicking a notification opens the relevant issue. Notification permission is optional; the queue remains usable without it.
 
@@ -122,7 +122,7 @@ A completed agent turn does not prove that a fix works or that a PR merged. “M
 
 ## Agent workflow
 
-1. Claim the issue, retrieve the submitted image and context, and open or resume its Codex chat.
+1. Claim the issue, retrieve the submitted image and context, and open or resume its agent conversation.
 2. Investigate and reproduce where practical. Ask a focused question if the intended behavior is unclear; do not invent it.
 3. Work in an isolated Git worktree and branch; preserve the tester's checkout and local changes.
 4. Implement and run the repository's relevant validation, including a visual check when the issue is visual and the environment supports it.
@@ -134,7 +134,7 @@ Related captures received during work are appended to the same issue. Track thei
 
 ## First usable release
 
-Include region capture, a quick composer, core annotations, project mapping/inference, local persistence, issue grouping, immediate Codex dispatch, status updates, inline questions, exact chat links, PR/merge tracking, retry/cancel/pause, and restart recovery.
+Include region capture, a quick composer, core annotations, project mapping/inference, local persistence, issue grouping, immediate agent dispatch, status updates, inline questions, exact chat links, PR/merge tracking, retry/cancel/pause, and restart recovery.
 
 Defer video, voice notes, scrolling screenshots, browser DOM/console/network capture, automatic duplicate merging, other operating systems, other AI providers, and team assignment/shared queues. Public packaging and updates follow the working personal prototype; public distribution remains an architectural requirement.
 
@@ -146,9 +146,9 @@ These are open product choices, with proposed defaults so implementation can pro
 | --- | --- |
 | Which source-control host first? | GitHub, behind a provider interface |
 | Which browsers first? | Safari and Chrome; confirm how URL access is granted during the native prototype |
-| Local execution or a hosted plugin/event service? | Local Codex worker first; evaluate the plugin as a companion |
+| Local execution or a hosted plugin/event service? | Local agents (Codex, Claude Code) first; the read-only plugin is a companion |
 | Should a merge refresh/relaunch the app under test? | Notify and offer a retest action; keep the running testing session stable |
-| Can AI ask and receive replies inside ScreenClip? | Yes, with an Open in Codex action for longer discussion |
+| Can AI ask and receive replies inside ScreenClip? | Yes, with a link to the agent's own conversation for longer discussion |
 | Old screenshots and notes? | Retain locally until deletion; add a configurable retention policy before public release |
 | Minimum supported macOS? | macOS 14+ candidate; verify every chosen API and the worker's requirements |
 | Distribution channel? | Direct signed/notarized download first; evaluate App Store feasibility separately |

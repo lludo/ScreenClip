@@ -32,10 +32,11 @@ Separately from automatic dispatch, Codex and Claude Code can **read** the queue
 Codex and Claude Code follow the same contract, so the rest of ScreenClip stays agent-neutral. Grok Bot is the remote exception described after the usage table.
 
 **ScreenClip provides**
-- An isolated worktree and issue branch (`GitWorkspace.prepare`) as the agent's working directory. The tester's checkout is never the working directory.
-- One prompt per turn (`AgentWorker.prompt`) with the issue, project, worktree, branch, validation command, capture context, user replies, and previous validation feedback. Notes, screenshot contents, titles, and URLs are labeled as untrusted evidence.
+- An isolated worktree and `screenclip/<id>` branch (`GitWorkspace.prepare`), started from `origin/<base>`, as the agent's working directory. The tester's checkout is never the working directory.
+- One prompt per turn (`AgentPrompt.text`) with the issue, project, worktree, branch, validation command, capture context, user replies, and previous validation feedback. Notes, screenshot contents, titles, and URLs are labeled as untrusted evidence.
 - The approved screenshots only (annotated, with redactions flattened), never unredacted originals.
-- A JSON Schema for the result (`AgentWorker.resultSchema`).
+- A JSON Schema for the result (`AgentPrompt.resultSchema`).
+- An environment without GitHub tokens or git redirect variables (`ProcessEnvironment.agent`). Agents cannot push or open PRs with ScreenClip's credentials.
 
 **The agent returns** one structured result per turn:
 
@@ -43,7 +44,7 @@ Codex and Claude Code follow the same contract, so the rest of ScreenClip stays 
 { "outcome": "implemented | question | blocked", "summary": "…", "question": "…" }
 ```
 
-**ScreenClip owns everything after the result.** `AgentWorker.finish` turns `question` and `blocked` into **Needs you**. For `implemented`, it runs the project's validation, commits, pushes, opens the PR, watches checks, schedules up to two repair turns, and merges only after independently verifying the PR head, checks, reviews, and input revision. Agents are told not to commit, push, open PRs, or merge. Each integration also blocks those operations where the agent supports it.
+**ScreenClip owns everything after the result.** `finish` in [AgentWorker+Publishing.swift](../../Sources/ScreenClip/AgentWorker+Publishing.swift) turns `question` and `blocked` into **Needs you**. For `implemented`, it runs the project's validation, commits, pushes, opens the PR, watches checks, schedules up to two repair turns, and merges only after independently verifying the PR head, checks, reviews, and input revision. Agents are told not to commit, push, open PRs, or merge. Each integration also blocks those operations where the agent supports it.
 
 **Conversation identity.** `Issue.threadID` holds the agent's conversation ID (a Codex thread or a Claude session UUID). Replies and new evidence continue the same conversation. `Issue.turnID` is non-nil while a turn runs.
 
@@ -68,7 +69,7 @@ Adding a case to `AgentKind` makes the compiler point at most switch statements 
 1. **Model.** Add the case and its `title` to `AgentKind` in [Models.swift](../../Sources/ScreenClipCore/Models.swift). Add any settings (executable path, model) to `AppSettings` as **optional** properties, so older queues still decode.
 2. **Detection.** Add a default-path search and a `detect…` function to [AgentDetector.swift](../../Sources/ScreenClipCore/AgentDetector.swift), and include it in `detectAll`. Report `signedIn` when the agent exposes it, otherwise `nil`.
 3. **Client.** Add a client in `Sources/ScreenClipCore` that can start or resume a conversation by ID, send the prompt and PNG images, stream progress text, return the structured result, and cancel. Prefer the agent's own schema or structured-output support, and its own sandbox, with edits limited to the worktree.
-4. **Worker.** In [AgentWorker.swift](../../Sources/ScreenClip/AgentWorker.swift), branch on `issue.resolvedAgent` in `dispatch` the way `runClaude` does: set `threadID` and `turnID`, record progress, put the result JSON in `texts[id]`, then call `finish(id)`. Add the agent's branch to `cancel` and `reconcile`. Keep disconnects scoped to that agent's jobs.
+4. **Worker.** Add an `AgentWorker+<Agent>.swift` extension, like [AgentWorker+Claude.swift](../../Sources/ScreenClip/AgentWorker+Claude.swift), with a `run<Agent>(_:project:path:)` that sets `threadID` and `turnID`, records progress, puts the result JSON in `texts[id]`, then calls `finish(id)`. Route to it from `dispatch` in [AgentWorker.swift](../../Sources/ScreenClip/AgentWorker.swift), and add the agent's branch to `cancel` and `reconcile`. Clear `turnID` on every exit path, and keep disconnects scoped to that agent's jobs. Launch the agent with `ProcessEnvironment.agent()`.
 5. **App model and UI.**
    - `AppModel.agentStatus`: add the status line.
    - A sign-in action, if the agent needs one.

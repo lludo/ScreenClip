@@ -172,7 +172,7 @@ struct ComposerView: View {
         }
         if let error { Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
         HStack {
-          if existing == nil || existing?.status == .draft {
+          if canSaveDraft {
             Button("Save draft") { submit(draft: true) }.keyboardShortcut("s", modifiers: .command)
           }
           Spacer()
@@ -200,6 +200,10 @@ struct ComposerView: View {
     .onChange(of: issueID) { _, _ in
       agent = lockedAgent ?? existing?.agent ?? model.snapshot.settings.preferredAgent
     }
+  }
+  /// Drafts are new reports or the draft being edited, never evidence on a submitted issue.
+  private var canSaveDraft: Bool {
+    issueID == nil || (issueID == existing?.id && existing?.status == .draft)
   }
   /// Adding evidence to a submitted issue keeps that issue's agent and session.
   private var lockedAgent: AgentKind? {

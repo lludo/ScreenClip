@@ -19,10 +19,7 @@ public actor CodexClient {
     let proc = Process()
     proc.executableURL = URL(fileURLWithPath: path)
     proc.arguments = ["app-server", "--listen", "stdio://"]
-    var env = ProcessInfo.processInfo.environment
-    env["PATH"] =
-      "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:" + (env["PATH"] ?? "")
-    proc.environment = env
+    proc.environment = ProcessEnvironment.agent()
     let stdin = Pipe()
     let stdout = Pipe()
     let stderr = Pipe()
