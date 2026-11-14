@@ -1,6 +1,6 @@
 # ScreenClip website
 
-Static pages for [screenclipai.com](https://screenclipai.com). The copy describes the Mac app as it works today: capture a region, annotate or redact it, hand it to Codex, Claude Code, or Grok Bot, then track the GitHub pull request through an optional merge and retest. Plain HTML and CSS. No framework, no third-party fonts, no analytics, and no page script. The page follows the system light and dark setting, and the menu bar demo uses the matching screenshot.
+Static pages for [screenclipai.com](https://screenclipai.com). The copy describes the Mac app as it works today: capture a region, annotate or redact it, hand it to Codex, Claude Code, or Grok Bot, then track the GitHub pull request through an optional merge and retest. Plain HTML and CSS, plus one small script for the language choice. No framework, no third-party fonts, and no analytics. The page follows the system light and dark setting, and the menu bar demo uses the matching screenshot.
 
 `build.py` reads `site.config.json` and `src/`, then writes `dist/`. Python’s standard library is enough. `dist/` is generated and gitignored.
 
@@ -52,6 +52,38 @@ Edit `site.config.json`, then rebuild. Every value is either an absolute `https:
 `hero.title` is the whole headline. `[[this part]]` is the optional accent; the brackets are not shown. Replace that one key when the tagline changes. Product names, `Cmd` / `Shift` / `2`, setting labels, and `{code:…}` paths stay as written.
 
 The footer lists every language as a normal link. Choosing one stores `screenclip_lang` in a cookie and in local storage. On `/`, `middleware.js` reads `Accept-Language` when that cookie is absent and redirects (307) to the best match. It does not redirect known crawlers, and it does not redirect any path except `/`. The page script repeats that choice with `navigator.languages` when the edge redirect did not run. English stays at `/`.
+
+## Screenshots
+
+`website/scripts/screenshots.mjs` builds the site, serves it, and saves a full-page capture of home, privacy, and support for every locale, in light and dark, at 1440×900 and 390×844. The window size is the viewport. Each file is the whole page, so the hero is the top of the image. Output is gitignored:
+
+```text
+website/screenshots/<locale>/<theme>-<viewport>-<page>.png
+website/screenshots/index.html
+```
+
+`theme` is `light` or `dark`. `viewport` is `desktop` or `mobile`. `page` is `home`, `privacy`, or `support`. The index is a contact sheet: each card shows the top of a capture and links to the full image.
+
+From the repository root, after installing the screenshot tool once:
+
+```sh
+cd website
+npm install
+npx playwright install chromium
+cd ..
+node website/scripts/screenshots.mjs
+```
+
+Pass a base URL to shoot a preview or production instead of building locally. The script sets the `screenclip_lang` cookie so a preview’s language redirect does not move the English home page.
+
+```sh
+node website/scripts/screenshots.mjs --url https://screenclipai.com
+node website/scripts/screenshots.mjs --url https://your-preview.vercel.app
+```
+
+Playwright is a dev dependency. Vercel installs with `npm install --omit=dev`, so deploys still only install `@vercel/functions`.
+
+GitHub Actions can run the same script when minutes are available: **Website screenshots** is a manual `workflow_dispatch` job on `ubuntu-latest`. It uploads `website/screenshots` as an artifact. The local command does not need Actions.
 
 ## Search and sharing
 
