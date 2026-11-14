@@ -103,11 +103,15 @@ Diagnostics are saved to `~/Library/Application Support/ScreenClip/capture-diagn
 
 ```sh
 bash scripts/test.sh
+python3 scripts/check_localizations.py
+bash scripts/render-localizations.sh
 python3 scripts/test_plugin.py
 python3 scripts/test_review_queue.py
 python3 scripts/test_external_assistant.py
 python3 website/build.py
 ```
+
+Localization screenshots are written to `build/localization-screenshots/`. See [Localization](docs/localization.md).
 
 `bash scripts/test.sh` accepts `swift test` arguments, such as `--filter SafetyTests`. `bash scripts/package.sh` creates the Release bundle and `build/ScreenClip-macOS.zip`. Release builds enable the hardened runtime. A local notarization still uses `SCREENCLIP_SIGNING_IDENTITY` and a Keychain profile in `SCREENCLIP_NOTARY_PROFILE`. No third-party agent runtime is redistributed.
 
@@ -117,6 +121,7 @@ Public downloads are a notarized DMG on GitHub Releases, with an optional tip. T
 
 **Product and development**
 
+- [Localization](docs/localization.md) — string catalogs, screenshots, and the translation check.
 - [Product specification](docs/product-spec.md) — workflow, scope, screens, and status meanings.
 - [Technical design](docs/technical-design.md) — native components, storage, agent integration, and constraints.
 - [Roadmap](docs/roadmap.md) — open gates, next features, and deferred cleanups.

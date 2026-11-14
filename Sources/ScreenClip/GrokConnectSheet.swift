@@ -15,6 +15,7 @@ struct GrokBotConnectionRow: View {
     self._authorization = authorization
     self.onConnect = onConnect
   }
+  @Environment(\.locale) private var locale
   @State private var sendingTest = false
   @State private var testResult: String?
   @State private var testOK = false
@@ -22,7 +23,14 @@ struct GrokBotConnectionRow: View {
   private var connected: Bool { saved.isConfigured }
   private var statusText: String {
     let host = saved.endpoint?.host ?? ""
-    return connected && !host.isEmpty ? "Connected · \(host)" : "Not connected — Connect Grok Bot"
+    if connected && !host.isEmpty {
+      return Chrome.format(
+        "grok.connectedHost", "Connected · \(host)", locale: locale,
+        comment: "Grok Bot is connected. %@ is the webhook host.")
+    }
+    return Chrome.text(
+      "Not connected — Connect Grok Bot", locale: locale,
+      comment: "Grok Bot has not been connected.")
   }
   var body: some View {
     VStack(alignment: .leading, spacing: 8) {
@@ -31,32 +39,54 @@ struct GrokBotConnectionRow: View {
           .foregroundStyle(connected ? Color.green : Color.secondary)
         VStack(alignment: .leading, spacing: 2) {
           AgentLabel(kind: .external)
-          Text(statusText)
+          Text(verbatim: statusText)
             .font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
           if let testResult {
-            Text(testResult).font(.caption).foregroundStyle(testOK ? Color.green : Color.secondary)
+            Text(verbatim: Chrome.stored(testResult, locale: locale))
+              .font(.caption).foregroundStyle(testOK ? Color.green : Color.secondary)
               .textSelection(.enabled)
           }
         }
         Spacer(minLength: 12)
         if connected {
-          Button(sendingTest ? "Checking…" : "Test again") { testAgain() }.disabled(sendingTest)
-          Button("Disconnect") { disconnect() }
+          Button {
+            testAgain()
+          } label: {
+            if sendingTest {
+              Text(chrome: "Checking…", comment: "A Grok Bot check is in progress.")
+            } else {
+              Text(chrome: "Test again", comment: "Rechecks the saved Grok Bot connection.")
+            }
+          }.disabled(sendingTest)
+          Button { disconnect() } label: {
+            Text(chrome: "Disconnect", comment: "Removes the saved Grok Bot connection.")
+          }
         } else {
-          Button("Connect Grok Bot", action: onConnect)
+          Button(action: onConnect) {
+            Text(chrome: "Connect Grok Bot", comment: "Opens the Grok Bot setup sheet.")
+          }
         }
       }
-      DisclosureGroup("Advanced") {
-        TextField("Webhook URL", text: $webhookURL, prompt: Text("https://"))
-        SecureField("Authorization header", text: $authorization)
+      DisclosureGroup {
+        TextField(text: $webhookURL, prompt: Text(verbatim: "https://")) {
+          Text(chrome: "Webhook URL", comment: "Grok Bot address field.")
+        }
+        SecureField(text: $authorization) {
+          Text(chrome: "Authorization header", comment: "Grok Bot secret field.")
+        }
         HStack {
-          Button("Disconnect") { disconnect() }
-            .disabled(!connected && webhookURL.isEmpty && authorization.isEmpty)
+          Button { disconnect() } label: {
+            Text(chrome: "Disconnect", comment: "Removes the saved Grok Bot connection.")
+          }.disabled(!connected && webhookURL.isEmpty && authorization.isEmpty)
           if sendingTest { ProgressView().controlSize(.small) }
         }
         Text(
-          "The address and secret, if you already have them. ScreenClip keeps both in the Keychain and sends the secret unchanged. Save settings stores edits here. Disconnect removes the saved connection."
-        ).font(.caption).foregroundStyle(.secondary)
+          chrome:
+            "The address and secret, if you already have them. ScreenClip keeps both in the Keychain and sends the secret unchanged. Save settings stores edits here. Disconnect removes the saved connection.",
+          comment: "Explains the advanced Grok Bot fields. Keep ScreenClip and Keychain."
+        ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+      } label: {
+        Text(chrome: "Advanced", comment: "Shows the saved Grok Bot address and secret.")
       }
     }
   }
@@ -98,6 +128,7 @@ struct GrokConnectSheet: View {
     self.onSaved = onSaved
   }
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.locale) private var locale
   @State private var code = ""
   @State private var copied = false
   @State private var clipboardOffer: String?
@@ -111,81 +142,121 @@ struct GrokConnectSheet: View {
   @State private var lastAttempt = ""
   var body: some View {
     VStack(alignment: .leading, spacing: 18) {
-      Text("Connect Grok Bot").font(.title2.weight(.semibold))
-      step("1", "Ask Grok Bot") {
-        Text("In Grok Bot, open your ScreenClip assistant and ask it: \"\(ExternalConnectCode.askPhrase)\"")
+      Text(chrome: "Connect Grok Bot", comment: "Setup sheet title.").font(.title2.weight(.semibold))
+      step("1", Chrome.text("Ask Grok Bot", locale: locale, comment: "First setup step.")) {
+        Text(
+          verbatim: Chrome.format(
+            "grok.ask",
+            "In Grok Bot, open your ScreenClip assistant and ask it: \"\(ExternalConnectCode.askPhrase)\"",
+            locale: locale,
+            comment: "Tells the person what to ask. %@ is the English phrase sent to Grok Bot.")
+        ).fixedSize(horizontal: false, vertical: true)
         HStack(spacing: 8) {
-          Button("Copy") {
+          Button {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(ExternalConnectCode.askPhrase, forType: .string)
             copied = true
+          } label: {
+            Text(chrome: "Copy", comment: "Copies the English phrase to ask Grok Bot.")
           }
           if copied {
-            Text("Copied").font(.caption).foregroundStyle(.secondary)
+            Text(chrome: "Copied", comment: "The phrase is on the clipboard.").font(.caption)
+              .foregroundStyle(.secondary)
           }
         }
-        Text("Grok Bot replies with a setup code.").font(.caption).foregroundStyle(.secondary)
+        Text(chrome: "Grok Bot replies with a setup code.", comment: "What comes back from Grok Bot.")
+          .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
       }
-      step("2", "Paste the setup code") {
-        TextField("Paste the setup code here", text: $code, axis: .vertical)
+      step("2", Chrome.text("Paste the setup code", locale: locale, comment: "Second setup step.")) {
+        TextField(text: $code, axis: .vertical) {
+          Text(chrome: "Paste the setup code here", comment: "Setup code field.")
+        }
           .lineLimit(2...5)
           .font(.system(.body, design: .monospaced))
           .textFieldStyle(.roundedBorder)
         if let clipboardOffer, clipboardOffer != code {
-          Button("Use code from clipboard") {
+          Button {
             lastAttempt = ""
             if code == clipboardOffer {
               consider(clipboardOffer, aggressive: true)
             } else {
               code = clipboardOffer
             }
+          } label: {
+            Text(chrome: "Use code from clipboard", comment: "Fills the setup code from the clipboard.")
           }
         }
       }
-      step("3", "Check the connection") {
+      step("3", Chrome.text("Check the connection", locale: locale, comment: "Third setup step.")) {
         if checking {
           HStack(spacing: 8) {
             ProgressView().controlSize(.small)
-            Text("Checking the connection…").foregroundStyle(.secondary)
+            Text(chrome: "Checking the connection…", comment: "A Grok Bot check is in progress.")
+              .foregroundStyle(.secondary)
           }
         } else if let outcome {
           if outcome.connected {
-            Text("✅ Connected").font(.body.weight(.semibold)).foregroundStyle(.green)
+            Text(chrome: "✅ Connected", comment: "The Grok Bot check succeeded.")
+              .font(.body.weight(.semibold)).foregroundStyle(.green)
             if let host = outcome.host, !host.isEmpty {
-              Text("Grok Bot is connected at \(host).").font(.caption).foregroundStyle(.secondary)
+              Text(
+                verbatim: Chrome.format(
+                  "grok.connectedAt", "Grok Bot is connected at \(host).", locale: locale,
+                  comment: "Successful check. %@ is the webhook host.")
+              ).font(.caption).foregroundStyle(.secondary)
             }
           } else {
-            Text(outcome.message).font(.callout).foregroundStyle(.red).textSelection(.enabled)
+            Text(verbatim: Chrome.stored(outcome.message, locale: locale))
+              .font(.callout).foregroundStyle(.red).textSelection(.enabled)
+              .fixedSize(horizontal: false, vertical: true)
           }
         } else {
-          Text("The check runs as soon as the setup code is in the field.")
-            .font(.caption).foregroundStyle(.secondary)
+          Text(
+            chrome: "The check runs as soon as the setup code is in the field.",
+            comment: "The connection check starts automatically."
+          ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
       }
       Divider()
       projectToggle
-      DisclosureGroup("Advanced") {
-        TextField("Webhook URL", text: $advancedURL, prompt: Text("https://"))
-          .textFieldStyle(.roundedBorder)
-        SecureField("Authorization header", text: $advancedAuthorization)
-          .textFieldStyle(.roundedBorder)
+      DisclosureGroup {
+        TextField(text: $advancedURL, prompt: Text(verbatim: "https://")) {
+          Text(chrome: "Webhook URL", comment: "Grok Bot address field.")
+        }.textFieldStyle(.roundedBorder)
+        SecureField(text: $advancedAuthorization) {
+          Text(chrome: "Authorization header", comment: "Grok Bot secret field.")
+        }.textFieldStyle(.roundedBorder)
         HStack {
-          Button(checking ? "Checking…" : "Check connection") {
+          Button {
             run(url: advancedURL, authorization: advancedAuthorization)
+          } label: {
+            if checking {
+              Text(chrome: "Checking…", comment: "A Grok Bot check is in progress.")
+            } else {
+              Text(chrome: "Check connection", comment: "Checks the address and secret typed above.")
+            }
           }.disabled(checking)
-          Button("Disconnect") { disconnect() }
+          Button { disconnect() } label: {
+            Text(chrome: "Disconnect", comment: "Removes the saved Grok Bot connection.")
+          }
         }
         Text(
-          "The address and secret, if you already have them. ScreenClip keeps both in the Keychain and sends the secret unchanged."
-        ).font(.caption).foregroundStyle(.secondary)
+          chrome:
+            "The address and secret, if you already have them. ScreenClip keeps both in the Keychain and sends the secret unchanged.",
+          comment: "Explains the advanced Grok Bot fields. Keep ScreenClip and Keychain."
+        ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+      } label: {
+        Text(chrome: "Advanced", comment: "Shows the saved Grok Bot address and secret.")
       }
       HStack {
         Spacer()
-        Button("Done") { dismiss() }.keyboardShortcut(.cancelAction)
+        Button { dismiss() } label: {
+          Text(chrome: "Done", comment: "Closes the Grok Bot setup sheet.")
+        }.keyboardShortcut(.cancelAction)
       }
     }
     .padding(24)
-    .frame(width: 520)
+    .frame(minWidth: 520, idealWidth: 640, maxWidth: 720)
     .onAppear {
       let saved = model.loadExternalAssistant()
       advancedURL = saved.webhookURL
@@ -218,19 +289,25 @@ struct GrokConnectSheet: View {
   @ViewBuilder private var projectToggle: some View {
     if model.snapshot.projects.isEmpty {
       Text(
-        "Add a project in Settings, then turn on sharing screenshots for it. Approved annotated screenshots are pushed to a branch in the project's GitHub repo. A private repo is recommended."
-      ).font(.caption).foregroundStyle(.secondary)
+        chrome:
+          "Add a project in Settings, then turn on sharing screenshots for it. Approved annotated screenshots are pushed to a branch in the project's GitHub repo. A private repo is recommended.",
+        comment: "Shown when no project exists yet. Keep GitHub."
+      ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     } else {
       VStack(alignment: .leading, spacing: 8) {
         if model.snapshot.projects.count > 1 {
-          Picker("Project", selection: projectSelection) {
+          Picker(selection: projectSelection) {
             ForEach(model.snapshot.projects) { project in
-              Text(project.name.isEmpty ? "Untitled project" : project.name).tag(project.id)
+              Text(verbatim: project.name.isEmpty
+                ? Chrome.text("Untitled project", locale: locale, comment: "A project with no name.")
+                : project.name
+              ).tag(project.id)
             }
+          } label: {
+            Text(chrome: "Project", comment: "Project picker in the Grok Bot sheet.")
           }
         }
         Toggle(
-          "Turn on for this project",
           isOn: Binding(
             get: { model.project(projectSelection.wrappedValue)?.sendsExternalScreenshots == true },
             set: { allowed in
@@ -240,12 +317,18 @@ struct GrokConnectSheet: View {
               } catch {
                 projectError = error.localizedDescription
               }
-            }))
+            })) {
+          Text(chrome: "Turn on for this project", comment: "Opts this project into sharing screenshots.")
+            .fixedSize(horizontal: false, vertical: true)
+        }
         Text(
-          "Approved annotated screenshots are pushed to a branch in the project's GitHub repo. A private repo is recommended."
-        ).font(.caption).foregroundStyle(.secondary)
+          chrome:
+            "Approved annotated screenshots are pushed to a branch in the project's GitHub repo. A private repo is recommended.",
+          comment: "Explains screenshot sharing. Keep GitHub."
+        ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         if let projectError {
-          Text(projectError).font(.caption).foregroundStyle(.red)
+          Text(verbatim: Chrome.stored(projectError, locale: locale)).font(.caption).foregroundStyle(.red)
+            .fixedSize(horizontal: false, vertical: true)
         }
       }
     }
@@ -257,7 +340,7 @@ struct GrokConnectSheet: View {
       Text(number).font(.caption.weight(.semibold)).frame(width: 22, height: 22).background(
         .quaternary, in: Circle())
       VStack(alignment: .leading, spacing: 8) {
-        Text(title).fontWeight(.semibold)
+        Text(verbatim: title).fontWeight(.semibold).fixedSize(horizontal: false, vertical: true)
         content()
       }
     }

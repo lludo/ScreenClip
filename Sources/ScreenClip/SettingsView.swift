@@ -6,6 +6,8 @@ import UserNotifications
 struct SettingsView: View {
   @ObservedObject var model: AppModel
   let close: () -> Void
+  var initialTab = 0
+  @Environment(\.locale) private var locale
   @State private var settings = AppSettings()
   @State private var editProject: Project?
   @State private var tab = 0
@@ -20,30 +22,54 @@ struct SettingsView: View {
       Group {
         if tab == 0 {
         Form {
-          Section("Capture") {
+          Section {
             ScreenCapturePermissionControls(model: model, permission: model.capturePermission)
-            LabeledContent("Global shortcut") {
-              ShortcutRecorder(settings: $settings).frame(width: 180, height: 26)
+            LabeledContent {
+              ShortcutRecorder(settings: $settings).frame(minWidth: 160, idealWidth: 200, height: 26)
+            } label: {
+              Text(chrome: "Global shortcut", comment: "Settings label for the capture shortcut.")
+                .fixedSize(horizontal: false, vertical: true)
             }
-            Toggle(
-              "Hide ScreenClip during capture",
-              isOn: Binding(
-                get: { settings.shouldHideScreenClipDuringCapture },
-                set: { settings.hideScreenClipDuringCapture = $0 }))
+            Toggle(isOn: Binding(
+              get: { settings.shouldHideScreenClipDuringCapture },
+              set: { settings.hideScreenClipDuringCapture = $0 })) {
+              Text(chrome: "Hide ScreenClip during capture", comment: "Hides ScreenClip windows while capturing.")
+                .fixedSize(horizontal: false, vertical: true)
+            }
             Text(
-              "Leave this off to capture ScreenClip's windows and menu bar popover when reporting bugs in ScreenClip."
+              chrome:
+                "Leave this off to capture ScreenClip's windows and menu bar popover when reporting bugs in ScreenClip.",
+              comment: "Explains the hide-during-capture setting."
             )
-            .font(.caption).foregroundStyle(.secondary)
-            Toggle(
-              "Read the active browser URL for project matching", isOn: $settings.browserContext)
+            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Toggle(isOn: $settings.browserContext) {
+              Text(
+                chrome: "Read the active browser URL for project matching",
+                comment: "Enables optional browser URL routing."
+              ).fixedSize(horizontal: false, vertical: true)
+            }
             Text(
-              "Safari and Chrome may ask for Automation permission. ScreenClip reads only the active tab when you capture."
-            ).font(.caption).foregroundStyle(.secondary)
-            TextField("Testing session (optional)", text: $settings.sessionName)
-            TextField("Tested build or version (optional)", text: $settings.testedVersion)
+              chrome:
+                "Safari and Chrome may ask for Automation permission. ScreenClip reads only the active tab when you capture.",
+              comment: "Explains browser automation permission. Keep Safari and Chrome."
+            ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            TextField(
+              "", text: $settings.sessionName,
+              prompt: Text(chrome: "Testing session (optional)", comment: "Optional testing session name."))
+            TextField(
+              "", text: $settings.testedVersion,
+              prompt: Text(
+                chrome: "Tested build or version (optional)", comment: "Optional tested build label."))
+          } header: {
+            Text(chrome: "Capture", comment: "Settings section for capture preferences.")
           }
-          Section("Notifications") {
-            Toggle("Notify me about questions and merged fixes", isOn: $settings.notifications)
+          Section {
+            Toggle(isOn: $settings.notifications) {
+              Text(
+                chrome: "Notify me about questions and merged fixes",
+                comment: "Enables notifications for questions and merges."
+              ).fixedSize(horizontal: false, vertical: true)
+            }
               .onChange(of: settings.notifications) { _, enabled in
                 // Ask only when the user turns it on, not when the saved value loads.
                 if enabled && !model.snapshot.settings.notifications {
@@ -58,10 +84,11 @@ struct SettingsView: View {
                   }
                 }
               }
+          } header: {
+            Text(chrome: "Notifications", comment: "Settings section for notifications.")
           }
-          Section("Startup") {
+          Section {
             Toggle(
-              "Open ScreenClip at login",
               isOn: Binding(
                 get: { SMAppService.mainApp.status == .enabled },
                 set: { enabled in
@@ -74,44 +101,78 @@ struct SettingsView: View {
                       }
                     } catch { self.error = error.localizedDescription }
                   }
-                }))
+                })) {
+              Text(chrome: "Open ScreenClip at login", comment: "Launches ScreenClip when you log in.")
+                .fixedSize(horizontal: false, vertical: true)
+            }
+          } header: {
+            Text(chrome: "Startup", comment: "Settings section for login behavior.")
           }
           #if !SCREENCLIP_APP_STORE
-          Section("Support") {
-            Button("Send a tip…") { model.supportAction?() }
-            Text("ScreenClip is free. A tip is optional and opens GitHub Sponsors.")
-              .font(.caption).foregroundStyle(.secondary)
-          }
-          #endif
-          Section("Local data") {
-            HStack {
-              Button("Export queue…") { export() }
-              Button("Show storage folder") { NSWorkspace.shared.open(model.store.root) }
+          Section {
+            Button { model.supportAction?() } label: {
+              Text(chrome: "Send a tip…", comment: "Opens the optional tip window.")
             }
             Text(
-              "Exports include approved screenshots and notes. Deleting evidence in ScreenClip does not delete the agent's own conversation history or PRs."
-            ).font(.caption).foregroundStyle(.secondary)
+              chrome: "ScreenClip is free. A tip is optional and opens GitHub Sponsors.",
+              comment: "Explains that tips are optional. Keep GitHub Sponsors."
+            )
+            .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          } header: {
+            Text(chrome: "Support", comment: "Settings section for optional tips.")
+          }
+          #endif
+          Section {
+            FlowLayout {
+              Button { export() } label: {
+                Text(chrome: "Export queue…", comment: "Exports the local report queue.")
+              }
+              Button { NSWorkspace.shared.open(model.store.root) } label: {
+                Text(chrome: "Show storage folder", comment: "Opens the Application Support folder.")
+              }
+            }
+            Text(
+              chrome:
+                "Exports include approved screenshots and notes. Deleting evidence in ScreenClip does not delete the agent's own conversation history or PRs.",
+              comment: "Explains export contents. Keep PRs."
+            ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          } header: {
+            Text(chrome: "Local data", comment: "Settings section for the local queue.")
           }
         }.formStyle(.grouped)
         } else if tab == 1 {
         VStack(alignment: .leading, spacing: 16) {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
-              Text("Projects").font(.title2.weight(.semibold))
-              Text("Teach ScreenClip where each observation belongs.").foregroundStyle(.secondary)
+              Text(chrome: "Projects", comment: "Projects settings title.").font(.title2.weight(.semibold))
+              Text(
+                chrome: "Teach ScreenClip where each observation belongs.",
+                comment: "Projects settings subtitle."
+              ).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             }
             Spacer()
             Button {
               editProject = Project(name: "", path: "")
             } label: {
-              Label("Add project", systemImage: "plus")
+              Label {
+                Text(chrome: "Add project", comment: "Adds a project.")
+              } icon: {
+                Image(systemName: "plus")
+              }
             }
           }
           if model.snapshot.projects.isEmpty {
-            ContentUnavailableView(
-              "Add your first repository", systemImage: "folder.badge.plus",
-              description: Text("Map a website or Mac app and set the checks a fix must pass.")
-            ).frame(maxWidth: .infinity, maxHeight: .infinity)
+            ContentUnavailableView {
+              Label {
+                Text(chrome: "Add your first repository", comment: "Empty projects list.")
+              } icon: {
+                Image(systemName: "folder.badge.plus")
+              }
+            } description: {
+              Text(
+                chrome: "Map a website or Mac app and set the checks a fix must pass.",
+                comment: "Empty projects explanation.")
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
           } else {
             List(model.snapshot.projects) { project in
               HStack {
@@ -127,7 +188,9 @@ struct SettingsView: View {
                   }
                 }
                 Spacer()
-                Button("Edit") { editProject = project }
+                Button { editProject = project } label: {
+                  Text(chrome: "Edit", comment: "Edits a project.")
+                }.fixedSize()
               }.padding(.vertical, 8)
                 .listRowInsets(EdgeInsets())
             }
@@ -135,15 +198,19 @@ struct SettingsView: View {
         }.padding(24)
         } else {
         Form {
-          Section("AI agent") {
+          Section {
             Picker(
-              "Default agent",
               selection: Binding(
                 get: { settings.preferredAgent }, set: { settings.defaultAgent = $0 })
             ) {
               ForEach(agentChoices) { kind in
-                AgentLabel(kind: kind, title: model.detection(kind)?.label ?? kind.title).tag(kind)
+                AgentLabel(
+                  kind: kind, title: model.detection(kind)?.localizedLabel(locale: locale) ?? kind.title
+                ).tag(kind)
               }
+            } label: {
+              Text(chrome: "Default agent", comment: "Picker for the default coding agent.")
+                .fixedSize(horizontal: false, vertical: true)
             }
             ForEach(AgentKind.allCases) { kind in
               if kind == .external {
@@ -155,43 +222,81 @@ struct SettingsView: View {
               }
             }
             HStack {
-              Button(model.detectingAgents ? "Detecting…" : "Detect agents") { detectAgents() }
-                .disabled(model.detectingAgents)
+              Button { detectAgents() } label: {
+                if model.detectingAgents {
+                  Text(chrome: "Detecting…", comment: "Agent detection is running.")
+                } else {
+                  Text(chrome: "Detect agents", comment: "Looks for installed coding agents.")
+                }
+              }.disabled(model.detectingAgents)
               Spacer()
             }
             Stepper(
-              "Run up to \(settings.parallelReportLimit) reports per project at once",
               value: Binding(
                 get: { settings.parallelReportLimit }, set: { settings.maxParallelReports = $0 }),
-              in: AppSettings.parallelReportRange)
+              in: AppSettings.parallelReportRange
+            ) {
+              Text(verbatim: Chrome.format(
+                "settings.parallel",
+                "Run up to \(settings.parallelReportLimit) reports per project at once",
+                locale: locale,
+                comment: "Parallel report limit. %lld is the number of reports."))
+                .fixedSize(horizontal: false, vertical: true)
+            }
             Text(
-              "New captures use the default agent. You can pick a different agent for any single report in the capture window. Each issue keeps the agent it started with. Connect Grok Bot from its row."
-            ).font(.caption).foregroundStyle(.secondary)
+              chrome:
+                "New captures use the default agent. You can pick a different agent for any single report in the capture window. Each issue keeps the agent it started with. Connect Grok Bot from its row.",
+              comment: "Explains agent selection. Product names stay untranslated."
+            ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          } header: {
+            Text(chrome: "AI agent", comment: "Settings section for the default agent.")
           }
-          Section("Claude Code") {
+          Section {
             TextField(
-              "Claude Code executable",
               text: Binding(get: { settings.claudePath ?? "" }, set: { settings.claudePath = $0 }),
-              prompt: Text(AgentDetector.defaultClaudePath().isEmpty
-                ? "Not found" : AgentDetector.defaultClaudePath()))
-            HStack {
-              Button("Choose…") { chooseExecutable { settings.claudePath = $0 } }
-              Button("Sign in to Claude") {
+              prompt: Text(verbatim: AgentDetector.defaultClaudePath().isEmpty
+                ? Chrome.text("Not found", locale: locale, comment: "No Claude Code executable was found.")
+                : AgentDetector.defaultClaudePath())
+            ) {
+              Text(chrome: "Claude Code executable", comment: "Path to the Claude Code CLI.")
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            FlowLayout {
+              Button { chooseExecutable { settings.claudePath = $0 } } label: {
+                Text(chrome: "Choose…", comment: "Picks the Claude Code executable.")
+              }
+              Button {
                 model.saveSettings(settings)
                 model.signInToClaude()
+              } label: {
+                Text(chrome: "Sign in to Claude", comment: "Opens Terminal for Claude Code sign-in.")
               }
-              Button("Check") { detectAgents() }
+              Button { detectAgents() } label: {
+                Text(chrome: "Check", comment: "Checks the Claude Code installation.")
+              }
             }
             TextField(
-              "Model (empty uses Claude Code's default)",
               text: Binding(get: { settings.claudeModel ?? "" }, set: { settings.claudeModel = $0 }),
-              prompt: Text("e.g. opus, sonnet"))
+              prompt: Text(chrome: "e.g. opus, sonnet", comment: "Example Claude Code model names. Keep opus and sonnet.")
+            ) {
+              Text(
+                chrome: "Model (empty uses Claude Code's default)",
+                comment: "Optional Claude Code model. Keep Claude Code."
+              ).fixedSize(horizontal: false, vertical: true)
+            }
             Text(
-              "Runs claude -p in each issue's isolated worktree with edits auto-approved and Bash inside Claude Code's sandbox. git push and gh are blocked; ScreenClip validates, commits, and opens the PR itself. Sign-in opens Terminal for claude auth login."
-            ).font(.caption).foregroundStyle(.secondary)
+              chrome:
+                "Runs claude -p in each issue's isolated worktree with edits auto-approved and Bash inside Claude Code's sandbox. git push and gh are blocked; ScreenClip validates, commits, and opens the PR itself. Sign-in opens Terminal for claude auth login.",
+              comment: "Explains Claude Code. Keep command names and PR."
+            ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          } header: {
+            Text(chrome: "Claude Code", comment: "Settings section. Do not translate Claude Code.")
           }
-          Section("Codex") {
-            TextField("Codex executable", text: $settings.codexPath)
+          Section {
+            TextField(text: $settings.codexPath) {
+              Text(chrome: "Codex executable", comment: "Path to the Codex CLI.")
+                .fixedSize(horizontal: false, vertical: true)
+            }
             CodexConnectionControls(
               model: model, authentication: model.worker.authentication,
               choose: { chooseExecutable { settings.codexPath = $0 } },
@@ -200,24 +305,42 @@ struct SettingsView: View {
                 model.saveSettings(settings)
                 Task { await model.worker.signIn(method: method) }
               })
-            TextField("Model (empty uses Codex's default)", text: $settings.model)
+            TextField(text: $settings.model) {
+              Text(
+                chrome: "Model (empty uses Codex's default)",
+                comment: "Optional Codex model. Keep Codex."
+              ).fixedSize(horizontal: false, vertical: true)
+            }
             Text(
-              "Use an installed Codex CLI that supports app-server. A detected desktop-bundled runtime can be used for development; it is not redistributed with ScreenClip."
-            ).font(.caption).foregroundStyle(.secondary)
+              chrome:
+                "Use an installed Codex CLI that supports app-server. A detected desktop-bundled runtime can be used for development; it is not redistributed with ScreenClip.",
+              comment: "Explains the Codex CLI requirement. Keep Codex and app-server."
+            ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          } header: {
+            Text(chrome: "Codex", comment: "Settings section. Do not translate Codex.")
           }
-          Section("GitHub") {
-            TextField("GitHub CLI executable", text: $settings.ghPath)
-            Button("Check GitHub sign-in") {
+          Section {
+            TextField(text: $settings.ghPath) {
+              Text(chrome: "GitHub CLI executable", comment: "Path to the GitHub CLI. Keep GitHub.")
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            Button {
               Task {
                 do {
                   _ = try await CommandRunner.checked(settings.ghPath, ["auth", "status"])
                   error = "GitHub sign-in is ready."
                 } catch { self.error = "GitHub needs setup: " + error.localizedDescription }
               }
+            } label: {
+              Text(chrome: "Check GitHub sign-in", comment: "Checks gh auth status. Keep GitHub.")
             }
             Text(
-              "Authenticate GitHub CLI with gh auth login. Fixes are published from isolated branches; project checks and required reviews govern automatic merge."
-            ).font(.caption).foregroundStyle(.secondary)
+              chrome:
+                "Authenticate GitHub CLI with gh auth login. Fixes are published from isolated branches; project checks and required reviews govern automatic merge.",
+              comment: "Explains GitHub CLI setup. Keep gh auth login."
+            ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          } header: {
+            Text(chrome: "GitHub", comment: "Settings section. Do not translate GitHub.")
           }
         }.formStyle(.grouped)
         }
@@ -226,27 +349,34 @@ struct SettingsView: View {
       Divider()
       HStack {
         if let error {
-          Text(error).font(.caption).foregroundStyle(.secondary).lineLimit(3).textSelection(
-            .enabled)
+          Text(verbatim: Chrome.stored(error, locale: locale)).font(.caption)
+            .foregroundStyle(.secondary).lineLimit(4).fixedSize(horizontal: false, vertical: true)
+            .textSelection(.enabled)
         }
         Spacer()
-        Button("Save settings") {
+        Button {
           do {
             try model.saveExternalAssistant(webhookURL: webhookURL, authorization: authorization)
             model.saveSettings(settings)
             Task { await model.refreshAgents() }
             close()
           } catch { self.error = error.localizedDescription }
+        } label: {
+          Text(chrome: "Save settings", comment: "Saves settings and closes the window.")
         }.buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
       }.padding(16)
-    }.frame(width: 700, height: 680)
+    }.frame(minWidth: 720, idealWidth: 780, minHeight: 680)
       .toolbar {
         ToolbarItem(placement: .principal) {
           HStack(spacing: 0) {
-            ForEach(Array(["General", "Projects", "Connections"].enumerated()), id: \.offset) { index, title in
-              Button(title) { tab = index }
-                .buttonStyle(SettingsTabButtonStyle(isSelected: tab == index))
-                .accessibilityAddTraits(tab == index ? .isSelected : [])
+            ForEach(Array(["General", "Projects", "Connections"].enumerated()), id: \.offset) {
+              index, title in
+              Button { tab = index } label: {
+                Text(verbatim: Chrome.stored(title, locale: locale))
+                  .fixedSize(horizontal: false, vertical: true)
+              }
+              .buttonStyle(SettingsTabButtonStyle(isSelected: tab == index))
+              .accessibilityAddTraits(tab == index ? .isSelected : [])
             }
           }
           .padding(2)
@@ -257,6 +387,7 @@ struct SettingsView: View {
         settings = model.snapshot.settings
         reloadGrokConnection()
         if model.snapshot.projects.isEmpty { tab = 1 }
+        if initialTab != 0 { tab = initialTab }
         presentGrokConnectIfNeeded()
       }
       .onChange(of: model.grokConnectRequest?.id) { _, id in
@@ -323,7 +454,7 @@ struct SettingsView: View {
     panel.canChooseDirectories = true
     panel.canChooseFiles = false
     panel.canCreateDirectories = true
-    panel.prompt = "Export here"
+    panel.prompt = Chrome.text("Export here", locale: locale, comment: "Open-panel button for choosing an export folder.")
     if panel.runModal() == .OK, let root = panel.url {
       do {
         let folder = root.appendingPathComponent(

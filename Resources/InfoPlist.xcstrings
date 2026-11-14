@@ -1,0 +1,138 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSScreenCaptureUsageDescription": {
+      "comment": "System prompt for Screen Recording permission.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture a region you select to report an app issue to your AI coding assistant."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "捕获你选择的区域，以便把应用问题报告给你的 AI 编程助手。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura una región que elijas para informar de un problema de una app a tu asistente de programación con IA."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "選択した範囲をキャプチャし、アプリの問題を AI コーディングアシスタントに報告します。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture uma região que você selecionar para relatar um problema do app ao seu assistente de programação com IA."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nimm einen von dir gewählten Bereich auf, um ein App-Problem an deinen KI-Programmierassistenten zu melden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturez une zone de votre choix pour signaler un problème d’app à votre assistant de programmation IA."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "선택한 영역을 캡처해 앱 문제를 AI 코딩 도우미에게 보고합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Захватите выбранную область, чтобы сообщить о проблеме приложения вашему ИИ-ассистенту для кода."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "擷取你選擇的區域，以便把 App 問題報告給你的 AI 程式設計助手。"
+          }
+        }
+      }
+    },
+    "NSAppleEventsUsageDescription": {
+      "comment": "System prompt for Automation permission used to read the active browser tab.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the active Safari or Chrome tab URL when you capture, so ScreenClip can match the right project."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在你捕获时读取 Safari 或 Chrome 当前标签页的 URL，以便 ScreenClip 匹配正确的项目。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lee la URL de la pestaña activa de Safari o Chrome cuando capturas, para que ScreenClip asocie el proyecto correcto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャプチャ時に Safari または Chrome の前面タブの URL を読み、ScreenClip が正しいプロジェクトを判定できるようにします。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lê a URL da aba ativa do Safari ou do Chrome quando você captura, para o ScreenClip associar o projeto certo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Liest beim Aufnehmen die URL des aktiven Safari- oder Chrome-Tabs, damit ScreenClip das richtige Projekt zuordnen kann."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lit l’URL de l’onglet Safari ou Chrome actif lors de la capture, afin que ScreenClip associe le bon projet."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "캡처할 때 활성 Safari 또는 Chrome 탭 URL을 읽어 ScreenClip이 올바른 프로젝트를 맞춥니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "При захвате читает URL активной вкладки Safari или Chrome, чтобы ScreenClip выбрал нужный проект."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在你擷取時讀取 Safari 或 Chrome 目前分頁的 URL，以便 ScreenClip 比對正確的專案。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

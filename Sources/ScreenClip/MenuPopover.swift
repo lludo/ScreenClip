@@ -5,52 +5,92 @@ import UserNotifications
 
 struct MenuPopover: View {
   @ObservedObject var model: AppModel
+  @Environment(\.locale) private var locale
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      HStack {
-        Label("ScreenClip", systemImage: "viewfinder").font(.headline)
-        Spacer()
+      HStack(alignment: .firstTextBaseline) {
+        Label {
+          Text(chrome: "ScreenClip", comment: "Product name in the menu bar popover. Do not translate.")
+        } icon: {
+          Image(systemName: "viewfinder")
+        }.font(.headline)
+        Spacer(minLength: 8)
         if model.snapshot.settings.paused {
-          Text("Paused").font(.caption).foregroundStyle(.secondary)
+          Text(chrome: "Paused", comment: "Shown in the menu bar when report processing is paused.")
+            .font(.caption).foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
         }
         Button {
           model.settingsAction?()
         } label: {
           Image(systemName: "gearshape")
         }.buttonStyle(.plain)
+          .accessibilityLabel(Text(chrome: "Settings", comment: "Opens Settings from the menu bar."))
       }
-      HStack(spacing: 25) {
-        metric("Open", model.snapshot.activeCount)
-        metric("Needs you", model.snapshot.attentionCount)
+      HStack(alignment: .top, spacing: 12) {
         metric(
-          "To retest", model.snapshot.issues.filter { $0.status == .merged && !$0.archived }.count)
+          Chrome.format(
+            "metric.open.caption", "\(model.snapshot.activeCount) Open", locale: locale,
+            comment: "Caption under the open-report count. The number is shown separately."),
+          model.snapshot.activeCount,
+          phrase: Chrome.format(
+            "metric.open.phrase", "\(model.snapshot.activeCount) Open", locale: locale,
+            comment: "Accessibility label for the open-report count. %lld is the count."))
+        metric(
+          Chrome.format(
+            "metric.needsYou.caption", "\(model.snapshot.attentionCount) Needs you", locale: locale,
+            comment: "Caption under the needs-you count. The number is shown separately."),
+          model.snapshot.attentionCount,
+          phrase: Chrome.format(
+            "metric.needsYou.phrase", "\(model.snapshot.attentionCount) Needs you", locale: locale,
+            comment: "Accessibility label for reports that need the user. %lld is the count."))
+        metric(
+          Chrome.format(
+            "metric.retest.caption",
+            "\(retestCount) To retest", locale: locale,
+            comment: "Caption under the retest count. The number is shown separately."),
+          retestCount,
+          phrase: Chrome.format(
+            "metric.retest.phrase", "\(retestCount) To retest", locale: locale,
+            comment: "Accessibility label for merged reports waiting to be retested. %lld is the count."))
       }
       Button {
         model.captureAction?()
       } label: {
-        HStack {
-          Label("New capture", systemImage: "plus")
-          Spacer()
+        HStack(alignment: .firstTextBaseline) {
+          Label {
+            Text(chrome: "New capture", comment: "Starts a screen capture from the menu bar.")
+          } icon: {
+            Image(systemName: "plus")
+          }
+          Spacer(minLength: 8)
           Text(model.snapshot.settings.shortcutDescription).foregroundStyle(.secondary)
+            .fixedSize()
         }.frame(maxWidth: .infinity)
       }.buttonStyle(.borderedProminent).tint(.orange)
-      // Banners raised outside the queue window (quit, relaunch, shortcut conflicts).
       if let banner = model.banner {
-        HStack(alignment: .top) {
+        HStack(alignment: .top, spacing: 8) {
           Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)
-          Text(banner).font(.caption).lineLimit(4).textSelection(.enabled)
-          Spacer()
+          Text(verbatim: Chrome.stored(banner, locale: locale)).font(.caption).lineLimit(6)
+            .fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+          Spacer(minLength: 4)
           Button {
             model.banner = nil
           } label: {
             Image(systemName: "xmark")
-          }.buttonStyle(.plain).accessibilityLabel("Dismiss message")
+          }.buttonStyle(.plain).accessibilityLabel(
+            Text(chrome: "Dismiss message", comment: "Clears the menu bar banner."))
         }
       }
       Divider()
       if model.snapshot.issues.isEmpty {
-        Text("Your observations will appear here.").font(.callout).foregroundStyle(.secondary)
-          .frame(maxWidth: .infinity, minHeight: 110)
+        Text(
+          chrome: "Your observations will appear here.",
+          comment: "Empty state in the menu bar popover."
+        )
+        .font(.callout).foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(maxWidth: .infinity, minHeight: 110)
       } else {
         ScrollView {
           VStack(spacing: 0) {
@@ -67,29 +107,57 @@ struct MenuPopover: View {
           }
         }.frame(maxHeight: 245)
       }
-      HStack {
-        Button("Open queue") { model.queueAction?() }
-        Spacer()
-        Button(model.snapshot.settings.paused ? "Resume" : "Pause") {
+      HStack(alignment: .center) {
+        Button {
+          model.queueAction?()
+        } label: {
+          Text(chrome: "Open queue", comment: "Opens the report queue window.")
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        Spacer(minLength: 8)
+        Button {
           model.togglePaused()
+        } label: {
+          if model.snapshot.settings.paused {
+            Text(chrome: "Resume", comment: "Resumes paused report processing.")
+          } else {
+            Text(chrome: "Pause", comment: "Pauses report processing.")
+          }
         }
         Menu {
           #if !SCREENCLIP_APP_STORE
-          Button("Support ScreenClip…") { model.supportAction?() }
+          Button {
+            model.supportAction?()
+          } label: {
+            Text(chrome: "Support ScreenClip…", comment: "Opens the optional tip window.")
+          }
           #endif
-          Button("Quit ScreenClip") { NSApp.terminate(nil) }
+          Button {
+            NSApp.terminate(nil)
+          } label: {
+            Text(chrome: "Quit ScreenClip", comment: "Quits the app from the menu bar.")
+          }
         } label: {
           Image(systemName: "ellipsis").frame(width: 28, height: 24).contentShape(Rectangle())
         }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
-          .accessibilityLabel("More options").help("More options")
+          .accessibilityLabel(
+            Text(chrome: "More options", comment: "Menu for support and quit."))
+          .help(Text(chrome: "More options", comment: "Menu for support and quit."))
       }
-    }.padding(20).frame(width: 370)
+    }.padding(20).frame(minWidth: 400, idealWidth: 460, maxWidth: 520)
   }
-  func metric(_ title: String, _ value: Int) -> some View {
+  private var retestCount: Int {
+    model.snapshot.issues.filter { $0.status == .merged && !$0.archived }.count
+  }
+  func metric(_ title: String, _ value: Int, phrase: String) -> some View {
     VStack(alignment: .leading, spacing: 3) {
-      Text("\(value)").font(.system(size: 24, weight: .semibold, design: .rounded))
-        .monospacedDigit()
-      Text(title).font(.caption).foregroundStyle(.secondary)
+      Text(value, format: .number).font(.system(size: 24, weight: .semibold, design: .rounded))
+        .monospacedDigit().minimumScaleFactor(0.7).lineLimit(1)
+      Text(verbatim: title).font(.caption).foregroundStyle(.secondary)
+        .fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.leading)
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(Text(verbatim: phrase))
   }
 }

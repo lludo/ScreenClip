@@ -15,15 +15,26 @@ struct ProjectEditor: View {
   @State private var bundles = ""
   @State private var error: String?
   @Environment(\.dismiss) var dismiss
+  @Environment(\.locale) private var locale
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text(isExisting ? "Project settings" : "New project").font(.title2.weight(.semibold))
+      Group {
+        if isExisting {
+          Text(chrome: "Project settings", comment: "Project editor title.")
+        } else {
+          Text(chrome: "New project", comment: "Title when creating a project.")
+        }
+      }.font(.title2.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
       Form {
-        TextField("Name", text: $project.name)
+        TextField(text: $project.name) {
+          Text(chrome: "Name", comment: "Project name field.")
+        }
         ProjectSymbolPicker(symbol: $project.symbol)
         HStack {
-          TextField("Repository root", text: $project.path)
-          Button("Choose…") {
+          TextField(text: $project.path) {
+            Text(chrome: "Repository root", comment: "Git repository path field.")
+          }
+          Button {
             let panel = NSOpenPanel()
             panel.canChooseFiles = false
             panel.canChooseDirectories = true
@@ -31,61 +42,116 @@ struct ProjectEditor: View {
               project.path = url.path
               if project.name.isEmpty { project.name = url.lastPathComponent }
             }
+          } label: {
+            Text(chrome: "Choose…", comment: "Picks a repository folder.")
           }
         }
-        TextField("Base branch", text: $project.baseBranch)
+        TextField(text: $project.baseBranch) {
+          Text(chrome: "Base branch", comment: "Git base branch field. The branch name itself is not translated.")
+        }
         TextField(
-          "Websites", text: $origins, prompt: Text("One per line"), axis: .vertical
-        ).lineLimit(2...4)
+          text: $origins,
+          prompt: Text(chrome: "One per line", comment: "Placeholder for a multiline list."),
+          axis: .vertical
+        ) {
+          Text(chrome: "Websites", comment: "Website origins used for project routing.")
+        }.lineLimit(2...4)
         Text(
-          "Include the scheme and port, for example http://localhost:3000 or https://example.com/app."
-        ).font(.caption).foregroundStyle(.secondary)
+          chrome:
+            "Include the scheme and port, for example http://localhost:3000 or https://example.com/app.",
+          comment: "Example website origins. Keep the example URLs."
+        ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         TextField(
-          "Mac app bundle IDs", text: $bundles, prompt: Text("One per line"), axis: .vertical
-        ).lineLimit(1...3)
-        LabeledContent("Validation command") {
-          TextField("Validation command", text: $project.validationCommand, axis: .vertical)
-            .labelsHidden().lineLimit(2...4).font(.system(.body, design: .monospaced))
+          text: $bundles,
+          prompt: Text(chrome: "One per line", comment: "Placeholder for a multiline list."),
+          axis: .vertical
+        ) {
+          Text(chrome: "Mac app bundle IDs", comment: "Native app bundle identifiers.")
+        }.lineLimit(1...3)
+        LabeledContent {
+          TextField(text: $project.validationCommand, axis: .vertical)
+            .lineLimit(2...4).font(.system(.body, design: .monospaced))
+        } label: {
+          Text(chrome: "Validation command", comment: "Command that must pass before publishing.")
+            .fixedSize(horizontal: false, vertical: true)
         }
         Text(
-          "This command runs in the issue's worktree before publishing. Automatic merge also requires passing GitHub checks and required reviews."
-        ).font(.caption).foregroundStyle(.secondary)
-        Toggle("Merge fixes automatically after checks pass", isOn: $project.autoMerge)
+          chrome:
+            "This command runs in the issue's worktree before publishing. Automatic merge also requires passing GitHub checks and required reviews.",
+          comment: "Explains validation. Keep GitHub."
+        ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        Toggle(isOn: $project.autoMerge) {
+          Text(
+            chrome: "Merge fixes automatically after checks pass",
+            comment: "Enables automatic merge."
+          ).fixedSize(horizontal: false, vertical: true)
+        }
         Toggle(
-          "Allow sending screenshots to the external assistant",
           isOn: Binding(
             get: { project.sendsExternalScreenshots },
-            set: { project.allowExternalScreenshots = $0 }))
+            set: { project.allowExternalScreenshots = $0 })) {
+          Text(
+            chrome: "Allow sending screenshots to the external assistant",
+            comment: "Project opt-in for sending screenshots to Grok Bot."
+          ).fixedSize(horizontal: false, vertical: true)
+        }
         Text(
-          "Grok Bot receives approved screenshots as files on a screenclip/ branch in this repository. Leave this off unless that is acceptable. Public repositories need this too, because those files would be readable by anyone who can see the repository, and pushed files stay in GitHub history even after the branch is deleted. The toggle is off until you turn it on."
-        ).font(.caption).foregroundStyle(.secondary)
+          chrome:
+            "Grok Bot receives approved screenshots as files on a screenclip/ branch in this repository. Leave this off unless that is acceptable. Public repositories need this too, because those files would be readable by anyone who can see the repository, and pushed files stay in GitHub history even after the branch is deleted. The toggle is off until you turn it on.",
+          comment: "Explains the screenshot opt-in. Keep Grok Bot, screenclip/, and GitHub."
+        ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
       }.textFieldStyle(.roundedBorder)
-      if let error { Text(error).font(.caption).foregroundStyle(.red) }
+      if let error {
+        Text(verbatim: Chrome.stored(error, locale: locale)).font(.caption).foregroundStyle(.red)
+          .fixedSize(horizontal: false, vertical: true)
+      }
       HStack {
         if isExisting {
-          Button("Remove project", role: .destructive) {
+          Button(role: .destructive) {
             model.perform { try model.commit { $0.projects.removeAll { $0.id == project.id } } }
             close(removed: true)
+          } label: {
+            Text(chrome: "Remove project", comment: "Removes a project that has no reports.")
           }.disabled(model.snapshot.issues.contains { $0.projectID == project.id })
             .help(
-              model.snapshot.issues.contains { $0.projectID == project.id }
-                ? "Projects with reports can't be removed." : "")
+              Text(
+                verbatim: model.snapshot.issues.contains { $0.projectID == project.id }
+                  ? Chrome.text(
+                    "Projects with reports can't be removed.", locale: locale,
+                    comment: "Why the remove button is disabled.")
+                  : "")
+            )
         }
         Spacer()
         if embedded {
           if savedAt != nil, error == nil {
-            Label("Saved", systemImage: "checkmark").font(.caption).foregroundStyle(.secondary)
+            Label {
+              Text(chrome: "Saved", comment: "Confirms an embedded project editor saved.")
+            } icon: {
+              Image(systemName: "checkmark")
+            }.font(.caption).foregroundStyle(.secondary)
           }
           if isExisting {
-            Button("Revert") { load(model.project(project.id) ?? project) }
+            Button { load(model.project(project.id) ?? project) } label: {
+              Text(chrome: "Revert", comment: "Restores the saved project fields.")
+            }
           }
         } else {
-          Button("Cancel", role: .cancel) { dismiss() }
+          Button(role: .cancel) { dismiss() } label: {
+            Text(chrome: "Cancel", comment: "Closes project settings without saving.")
+          }
         }
-        Button(isExisting || !embedded ? "Save project" : "Add project") { save() }
-          .buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
+        Button { save() } label: {
+          if isExisting || !embedded {
+            Text(chrome: "Save project", comment: "Saves the project.")
+          } else {
+            Text(chrome: "Add project", comment: "Adds a project.")
+          }
+        }.buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
       }
-    }.padding(24).frame(width: embedded ? nil : 680).onAppear { load(project) }
+    }.padding(24).frame(minWidth: embedded ? 0 : 620, idealWidth: embedded ? nil : 720)
+      .frame(maxWidth: embedded ? .infinity : nil, alignment: .leading)
+      .onAppear { load(project) }
   }
   private var isExisting: Bool { model.snapshot.projects.contains(where: { $0.id == project.id }) }
   private func load(_ value: Project) {

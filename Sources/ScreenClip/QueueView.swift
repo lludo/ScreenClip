@@ -49,6 +49,7 @@ enum SidebarSelection: Hashable {
 
 struct QueueView: View {
   @ObservedObject var model: AppModel
+  @Environment(\.locale) private var locale
   @State private var selection: SidebarSelection
   @State private var projectFilter: UUID?
   @State private var agentFilter: AgentKind?
@@ -81,7 +82,7 @@ struct QueueView: View {
         sidebarFooter
       }
       // Fixed width so the sidebar doesn't jump when the panes beside it change.
-      .frame(width: 220).frame(maxHeight: .infinity)
+      .frame(width: 240).frame(maxHeight: .infinity)
       .background(Color(nsColor: .windowBackgroundColor))
       switch selection {
       case .status:
@@ -103,13 +104,22 @@ struct QueueView: View {
       if let banner = model.banner {
         HStack {
           Image(systemName: "exclamationmark.circle")
-          Text(banner).lineLimit(4)
+          Text(verbatim: Chrome.stored(banner, locale: locale)).lineLimit(6)
+            .fixedSize(horizontal: false, vertical: true)
           if model.capturePermissionIssue {
-            Button("Open Settings") { model.openCaptureSettings() }
-            Button("Check again") { Task { await model.recheckCapturePermission() } }
-            Button("Reopen app") { model.relaunchAction?() }
+            Button { model.openCaptureSettings() } label: {
+              Text(chrome: "Open Settings", comment: "Opens Screen Recording settings from the banner.")
+            }
+            Button { Task { await model.recheckCapturePermission() } } label: {
+              Text(chrome: "Check again", comment: "Rechecks screen capture permission.")
+            }
+            Button { model.relaunchAction?() } label: {
+              Text(chrome: "Reopen app", comment: "Relaunches ScreenClip so capture permission can refresh.")
+            }
           }
-          Button("Dismiss") { model.banner = nil }
+          Button { model.banner = nil } label: {
+            Text(chrome: "Dismiss", comment: "Closes the queue banner.")
+          }
         }.padding(14).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
           .overlay(
             RoundedRectangle(cornerRadius: 12).stroke(.primary.opacity(0.06), lineWidth: 0.5)
@@ -132,7 +142,8 @@ struct QueueView: View {
         // The sidebar picks the status; this menu narrows it by project and by agent.
         HStack(alignment: .center, spacing: 8) {
           if isReportLookup {
-            Text("Report search").fontWeight(.semibold)
+            Text(chrome: "Report search", comment: "Heading when the list is showing a report-number search.")
+              .fontWeight(.semibold)
           } else {
             filterMenu
           }
@@ -140,27 +151,41 @@ struct QueueView: View {
             model.captureAction?()
           } label: {
             Image(systemName: "plus").frame(width: 16, height: 16)
-          }.help("New capture").accessibilityLabel("New capture")
+          }.help(Text(chrome: "New capture", comment: "Help for the button that starts a capture."))
+            .accessibilityLabel(Text(chrome: "New capture", comment: "Help for the button that starts a capture."))
           Button {
             model.settingsAction?()
           } label: {
             Image(systemName: "gearshape").frame(width: 16, height: 16)
-          }.help("Settings").accessibilityLabel("Settings")
+          }.help(Text(chrome: "Settings", comment: "Help for the button that opens Settings."))
+            .accessibilityLabel(Text(chrome: "Settings", comment: "Help for the button that opens Settings."))
         }.controlSize(.regular).buttonStyle(.bordered)
-        TextField("Search reports and feedback", text: $search)
-          .textFieldStyle(.roundedBorder).accessibilityLabel("Search reports and feedback")
+        TextField(text: $search) {
+          Text(chrome: "Search reports and feedback", comment: "Search field in the report list.")
+        }.textFieldStyle(.roundedBorder)
+          .accessibilityLabel(Text(chrome: "Search reports and feedback", comment: "Search field in the report list."))
       }.padding(20)
       Divider()
       if filtered.isEmpty {
         ContentUnavailableView {
-          Label(search.isEmpty ? "Nothing here yet" : "No matches", systemImage: "viewfinder")
+          Label {
+            if search.isEmpty {
+              Text(chrome: "Nothing here yet", comment: "Empty report list title.")
+            } else {
+              Text(chrome: "No matches", comment: "Empty search title.")
+            }
+          } icon: {
+            Image(systemName: "viewfinder")
+          }
         } description: {
-          Text(emptyDescription)
+          Text(verbatim: emptyDescription)
         } actions: {
           if isFiltered && search.isEmpty {
-            Button("Show everything") {
+            Button {
               projectFilter = nil
               agentFilter = nil
+            } label: {
+              Text(chrome: "Show everything", comment: "Clears the project and agent filters.")
             }
           }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -168,8 +193,14 @@ struct QueueView: View {
         List(filtered, selection: $model.selectedIssueID) { issue in
           IssueRow(issue: issue, project: model.project(issue.projectID)).tag(issue.id)
             .contextMenu {
-              Button(issue.archived ? "Restore report" : "Archive report") {
+              Button {
                 model.setArchived(issue.id, archived: !issue.archived)
+              } label: {
+                if issue.archived {
+                  Text(chrome: "Restore report", comment: "Puts an archived report back in the queue.")
+                } else {
+                  Text(chrome: "Archive report", comment: "Moves a finished report out of the active queue.")
+                }
               }.disabled(!issue.archived && !issue.canArchive)
             }
         }.listStyle(.inset)
@@ -187,16 +218,30 @@ struct QueueView: View {
     }.frame(minWidth: 450, maxWidth: .infinity, maxHeight: .infinity).layoutPriority(1)
   }
   private var emptyDescription: String {
-    if !search.isEmpty { return "Try a report number or another description." }
-    if isFiltered { return "No \(filter.rawValue.lowercased()) reports for \(filterSummary)." }
-    return "Capture an observation to start the next fix."
+    if !search.isEmpty {
+      return Chrome.text(
+        "Try a report number or another description.", locale: locale,
+        comment: "Empty search description.")
+    }
+    if isFiltered {
+      return Chrome.format(
+        "queue.filteredEmpty",
+        "No \(filter.localizedTitle(locale: locale).lowercased()) reports for \(filterSummary).",
+        locale: locale,
+        comment: "Empty list when a project or agent filter matches nothing. The first value is the status, the second is the filter summary.")
+    }
+    return Chrome.text(
+      "Capture an observation to start the next fix.", locale: locale,
+      comment: "Empty queue description.")
   }
   private var isFiltered: Bool { projectFilter != nil || agentFilter != nil }
   /// "All", one name, or "Project – Agent"; an "All" side is left out of a combined summary.
   private var filterSummary: String {
     let project = projectFilter.flatMap { model.project($0)?.name }
     let parts = [project, agentFilter?.title].compactMap { $0 }
-    return parts.isEmpty ? "All" : parts.joined(separator: " – ")
+    return parts.isEmpty
+      ? Chrome.text("All", locale: locale, comment: "Filter meaning every project and every agent.")
+      : parts.joined(separator: " – ")
   }
   private func filterCount(project: UUID? = nil, agent: AgentKind? = nil) -> Int {
     model.snapshot.issues.filter { filter.includes($0, projectID: project, agent: agent) }.count
@@ -213,9 +258,9 @@ struct QueueView: View {
           .opacity(selected ? 1 : 0).frame(width: 12)
         if let agent { AgentIcon(kind: agent).frame(width: 16) }
         else if let symbol { Image(systemName: symbol).frame(width: 16) }
-        Text(title)
+        Text(verbatim: title)
         Spacer(minLength: 16)
-        Text("\(count)").foregroundStyle(.secondary).monospacedDigit()
+        Text(count, format: .number.locale(locale)).foregroundStyle(.secondary).monospacedDigit()
       }
       .padding(.horizontal, 8).padding(.vertical, 5)
       .contentShape(Rectangle())
@@ -240,9 +285,14 @@ struct QueueView: View {
     .frame(maxWidth: .infinity)
     .popover(isPresented: $showingFilters, arrowEdge: .bottom) {
       VStack(alignment: .leading, spacing: 2) {
-        Text("Projects").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+        Text(chrome: "Projects", comment: "Filter menu heading.")
+          .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
           .padding(.horizontal, 8).padding(.top, 4)
-        filterOption("All projects", symbol: "square.grid.2x2", count: filterCount(agent: agentFilter), selected: projectFilter == nil) { projectFilter = nil }
+        filterOption(
+          Chrome.text("All projects", locale: locale, comment: "Clears the project filter."),
+          symbol: "square.grid.2x2", count: filterCount(agent: agentFilter),
+          selected: projectFilter == nil
+        ) { projectFilter = nil }
         ForEach(model.snapshot.projects) { project in
           let count = filterCount(project: project.id, agent: agentFilter)
           if count > 0 || projectFilter == project.id {
@@ -250,9 +300,13 @@ struct QueueView: View {
           }
         }
         Divider().padding(.vertical, 4)
-        Text("AI agents").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+        Text(chrome: "AI agents", comment: "Filter menu heading.")
+          .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
           .padding(.horizontal, 8)
-        filterOption("All AI agents", symbol: "sparkles", count: filterCount(project: projectFilter), selected: agentFilter == nil) { agentFilter = nil }
+        filterOption(
+          Chrome.text("All AI agents", locale: locale, comment: "Clears the agent filter."),
+          symbol: "sparkles", count: filterCount(project: projectFilter), selected: agentFilter == nil
+        ) { agentFilter = nil }
         ForEach(AgentKind.allCases) { agent in
           let count = filterCount(project: projectFilter, agent: agent)
           if count > 0 || agentFilter == agent {
@@ -261,8 +315,22 @@ struct QueueView: View {
         }
       }.padding(8).frame(minWidth: 210)
     }
-    .help(isFiltered ? "Showing \(filterSummary)" : "Filter reports by project and AI agent")
-    .accessibilityLabel("Filter: \(filterSummary)")
+    .help(
+      Text(
+        verbatim: isFiltered
+          ? Chrome.format(
+            "queue.showing", "Showing \(filterSummary)", locale: locale,
+            comment: "Help while a project or agent filter is active. %@ is the filter summary.")
+          : Chrome.text(
+            "Filter reports by project and AI agent", locale: locale,
+            comment: "Help for the report filter button."))
+    )
+    .accessibilityLabel(
+      Text(
+        verbatim: Chrome.format(
+          "queue.filterAccess", "Filter: \(filterSummary)", locale: locale,
+          comment: "Accessibility label for the report filter. %@ is the current summary."))
+    )
   }
   private func projectSettings(_ project: Project, isNew: Bool) -> some View {
     ScrollView {
@@ -288,13 +356,22 @@ struct QueueView: View {
           Button {
             selection = .status(item)
           } label: {
-            HStack {
-              Label(item.rawValue, systemImage: item.symbol)
-              Spacer()
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+              Label {
+                Text(verbatim: item.localizedTitle(locale: locale))
+                  .fixedSize(horizontal: false, vertical: true)
+                  .lineLimit(2)
+              } icon: {
+                Image(systemName: item.symbol)
+              }
+              Spacer(minLength: 8)
               // Counts follow the toolbar's filters so they match the list they open.
               Text(
-                "\(model.snapshot.issues.filter { item.includes($0, projectID: projectFilter, agent: agentFilter) }.count)"
-              ).foregroundStyle(.secondary).monospacedDigit()
+                model.snapshot.issues.filter {
+                  item.includes($0, projectID: projectFilter, agent: agentFilter)
+                }.count,
+                format: .number
+              ).foregroundStyle(.secondary).monospacedDigit().fixedSize()
             }
             .padding(.vertical, 4).contentShape(Rectangle())
             .fontWeight(selection == .status(item) ? .semibold : .regular)
@@ -303,7 +380,7 @@ struct QueueView: View {
             .accessibilityAddTraits(selection == .status(item) ? .isSelected : [])
         }
       } header: {
-        sidebarHeader("WORKSPACE")
+        sidebarHeader(Chrome.text("WORKSPACE", locale: locale, comment: "Sidebar section heading for status filters."))
       }
       Section {
         ForEach(model.snapshot.projects) { project in
@@ -313,22 +390,27 @@ struct QueueView: View {
             Label(project.name, systemImage: project.displaySymbol)
               .fontWeight(selection == .project(project.id) ? .semibold : .regular)
               .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-          }.buttonStyle(.plain).help("Project settings")
+          }.buttonStyle(.plain).help(
+            Text(chrome: "Project settings", comment: "Opens settings for this project."))
             .listRowBackground(sidebarHighlight(selection == .project(project.id)))
             .accessibilityAddTraits(selection == .project(project.id) ? .isSelected : [])
         }
         Button {
           selection = .newProject
         } label: {
-          Label("Add project…", systemImage: "plus")
-            .fontWeight(selection == .newProject ? .semibold : .regular)
-            .foregroundStyle(selection == .newProject ? Color.primary : Color.secondary)
-            .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+          Label {
+            Text(chrome: "Add project…", comment: "Starts a new project from the sidebar.")
+          } icon: {
+            Image(systemName: "plus")
+          }
+          .fontWeight(selection == .newProject ? .semibold : .regular)
+          .foregroundStyle(selection == .newProject ? Color.primary : Color.secondary)
+          .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
         }.buttonStyle(.plain)
           .listRowBackground(sidebarHighlight(selection == .newProject))
           .accessibilityAddTraits(selection == .newProject ? .isSelected : [])
       } header: {
-        sidebarHeader("PROJECTS")
+        sidebarHeader(Chrome.text("PROJECTS", locale: locale, comment: "Sidebar section heading for projects."))
       }
     }.listStyle(.sidebar).scrollContentBackground(.hidden).labelStyle(SidebarLabelStyle())
       // Sidebar rows tint icons with the system accent unless told otherwise.
@@ -336,7 +418,9 @@ struct QueueView: View {
   }
   /// Section titles in Finder's gray (secondary label), not the extra-dimmed default.
   private func sidebarHeader(_ title: String) -> some View {
-    Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Color(nsColor: .secondaryLabelColor))
+    Text(verbatim: title).font(.subheadline.weight(.semibold))
+      .foregroundStyle(Color(nsColor: .secondaryLabelColor))
+      .fixedSize(horizontal: false, vertical: true)
   }
   /// Finder-style selection: a rounded neutral pill behind the row, with bolder text.
   @ViewBuilder private func sidebarHighlight(_ selected: Bool) -> some View {
@@ -352,16 +436,23 @@ struct QueueView: View {
       ForEach(model.agentStatuses, id: \.kind) { status in
         HStack(spacing: 6) {
           Circle().fill(status.ready ? .green : .secondary).frame(width: 6, height: 6)
-          Text(status.text).lineLimit(2).font(.caption)
+          Text(verbatim: Chrome.stored(status.text, locale: locale)).lineLimit(3).font(.caption)
+            .fixedSize(horizontal: false, vertical: true)
             .foregroundStyle(status.ready ? .primary : .secondary)
         }
       }
       Button {
         model.togglePaused()
       } label: {
-        Label(
-          model.snapshot.settings.paused ? "Resume processing" : "Pause processing",
-          systemImage: model.snapshot.settings.paused ? "play.fill" : "pause.fill")
+        Label {
+          if model.snapshot.settings.paused {
+            Text(chrome: "Resume processing", comment: "Resumes the report queue.")
+          } else {
+            Text(chrome: "Pause processing", comment: "Pauses the report queue.")
+          }
+        } icon: {
+          Image(systemName: model.snapshot.settings.paused ? "play.fill" : "pause.fill")
+        }
       }.buttonStyle(.plain).font(.caption)
     }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
       .background(Color(nsColor: .windowBackgroundColor))
