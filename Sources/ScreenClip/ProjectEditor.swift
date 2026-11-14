@@ -34,12 +34,12 @@ struct ProjectEditor: View {
           }
         }
         TextField("Base branch", text: $project.baseBranch)
-        TextField("Websites (one per line)", text: $origins, axis: .vertical).lineLimit(2...4)
+        TextField("Websites", text: $origins, axis: .vertical).lineLimit(2...4)
         Text(
-          "Include the scheme and port, for example http://localhost:3000 or https://example.com/app."
+          "One per line. Include the scheme and port, for example http://localhost:3000 or https://example.com/app."
         ).font(.caption).foregroundStyle(.secondary)
-        TextField("Mac app bundle IDs (one per line)", text: $bundles, axis: .vertical).lineLimit(
-          1...3)
+        TextField("Mac app bundle IDs", text: $bundles, axis: .vertical).lineLimit(1...3)
+        Text("One per line.").font(.caption).foregroundStyle(.secondary)
         LabeledContent("Validation command") {
           TextField("Validation command", text: $project.validationCommand, axis: .vertical)
             .labelsHidden().lineLimit(2...4).font(.system(.body, design: .monospaced))
@@ -82,7 +82,7 @@ struct ProjectEditor: View {
         Button(isExisting || !embedded ? "Save project" : "Add project") { save() }
           .buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
       }
-    }.padding(24).frame(width: embedded ? nil : 620).onAppear { load(project) }
+    }.padding(24).frame(width: embedded ? nil : 680).onAppear { load(project) }
   }
   private var isExisting: Bool { model.snapshot.projects.contains(where: { $0.id == project.id }) }
   private func load(_ value: Project) {
