@@ -299,6 +299,7 @@ struct QueueView: View {
             .fontWeight(selection == .status(item) ? .semibold : .regular)
           }.buttonStyle(.plain)
             .listRowBackground(sidebarHighlight(selection == .status(item)))
+            .accessibilityAddTraits(selection == .status(item) ? .isSelected : [])
         }
       } header: {
         sidebarHeader("WORKSPACE")
@@ -313,6 +314,7 @@ struct QueueView: View {
               .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
           }.buttonStyle(.plain).help("Project settings")
             .listRowBackground(sidebarHighlight(selection == .project(project.id)))
+            .accessibilityAddTraits(selection == .project(project.id) ? .isSelected : [])
         }
         Button {
           selection = .newProject
@@ -323,6 +325,7 @@ struct QueueView: View {
             .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
         }.buttonStyle(.plain)
           .listRowBackground(sidebarHighlight(selection == .newProject))
+          .accessibilityAddTraits(selection == .newProject ? .isSelected : [])
       } header: {
         sidebarHeader("PROJECTS")
       }
