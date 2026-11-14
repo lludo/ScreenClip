@@ -324,6 +324,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
           self?.settingsWindow?.close()
         }),
         size: NSSize(width: 780, height: 720))
+      settingsWindow?.toolbarStyle = .unified
     }
     settingsWindow?.makeKeyAndOrderFront(nil)
     NSApp.activate(ignoringOtherApps: true)
