@@ -91,9 +91,11 @@ If capture fails even though access is enabled, use **Check screen access** in G
 If an older ad-hoc build left an unusable permission entry, quit ScreenClip, reset its screen-capture approval, then reopen the Applications copy and capture again:
 
 ```sh
-tccutil reset ScreenCapture com.screenclip.app
+tccutil reset ScreenCapture com.mirageteam.screenclip
 open /Applications/ScreenClip.app
 ```
+
+The bundle ID changed from `com.screenclip.app` to `com.mirageteam.screenclip` in November 2026. macOS treats that as a new app, so the first run of a newer build asks again for Screen Recording, browser Automation, and notifications, and **Open ScreenClip at login** must be turned on again. The queue in Application Support is unaffected. To remove the old entries, run `tccutil reset All com.screenclip.app`.
 
 Diagnostics are saved to `~/Library/Application Support/ScreenClip/capture-diagnostics.log`. They contain build and API error metadata, without screenshots, notes, browser URLs, or window titles.
 

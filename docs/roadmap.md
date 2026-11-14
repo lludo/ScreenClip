@@ -23,6 +23,10 @@ Updated: November 14, 2026. The local app is working: capture, markup, the queue
 
 These were found in a full review and judged lower risk than the fixes that shipped.
 
+- **Routing memory.** Learned app identifiers are stored like hand-entered ones, so a later pick of a different project cannot replace a learned mapping, and moving a report does not unlearn it. Edit the project's bundle IDs in Settings to correct one. Store learned identifiers separately.
+- **Grok Bot recovery.** Restart recovery reads activity wording to decide whether the current revision was delivered. Persist the delivered revision instead.
+- **Sidebar counts with search.** Counts follow the selected project but ignore search text.
+
 - **Settings form.** The form still edits a copy of all settings. Pause state is now preserved and the form reloads each time Settings opens, but Detect, Check, and Sign-in buttons save half-edited fields. Move to a draft model that saves only edited fields.
 - **Capture timing.** Browser URL lookup (AppleScript, up to 2 seconds) runs before the screen freezes. Freeze first, then look up the URL in the background.
 - **Annotation scale.** Minimum text size and the legacy stroke minimum are in canvas points on screen but pixels in the exported PNG, so small crops export relatively larger labels.

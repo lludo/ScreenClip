@@ -22,16 +22,28 @@ enum ExternalAssistantKeychain {
   }
 
   static func save(_ configuration: ExternalAssistantConfiguration) throws {
+    // Clearing both fields removes the item instead of storing empty strings.
+    if configuration.normalizedURL.isEmpty && configuration.normalizedAuthorization.isEmpty {
+      let status = SecItemDelete(baseQuery as CFDictionary)
+      guard status == errSecSuccess || status == errSecItemNotFound else {
+        throw ScreenClipError.message(
+          "Could not remove the Grok Bot connection from the Keychain (error \(status)).")
+      }
+      return
+    }
+    let current = load()
+    if current.normalizedURL == configuration.normalizedURL
+      && current.normalizedAuthorization == configuration.normalizedAuthorization
+      && current.testSucceeded == (configuration.testSucceeded && configuration.isConfigured)
+    {
+      return  // Unchanged: avoid rewriting the item on every Settings save.
+    }
     let data = try JSONEncoder().encode(
       Record(
         webhookURL: configuration.normalizedURL,
         authorization: configuration.normalizedAuthorization,
         testSucceeded: configuration.testSucceeded && configuration.isConfigured))
-    let base: [String: Any] = [
-      kSecClass as String: kSecClassGenericPassword,
-      kSecAttrService as String: service,
-      kSecAttrAccount as String: account,
-    ]
+    let base = baseQuery
     let updated = SecItemUpdate(
       base as CFDictionary, [kSecValueData as String: data] as CFDictionary)
     if updated == errSecSuccess { return }
@@ -47,6 +59,14 @@ enum ExternalAssistantKeychain {
       throw ScreenClipError.message(
         "Could not save the Grok Bot connection in the Keychain (error \(status)).")
     }
+  }
+
+  private static var baseQuery: [String: Any] {
+    [
+      kSecClass as String: kSecClassGenericPassword,
+      kSecAttrService as String: service,
+      kSecAttrAccount as String: account,
+    ]
   }
 
   private static func read() -> Data? {

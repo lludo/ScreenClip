@@ -152,7 +152,8 @@ import UserNotifications
         context: context)
       try commit { state in
         // Remember the app for the project the tester chose, so its next capture routes itself.
-        if let projectID,
+        // Drafts are not a confirmed choice yet.
+        if !draft, let projectID,
           let identifier = ProjectRouter.identifierToLearn(
             from: context, for: projectID, projects: state.projects),
           let index = state.projects.firstIndex(where: { $0.id == projectID })
@@ -212,7 +213,8 @@ import UserNotifications
   }
   /// Whether a report can move to another project from its detail view.
   func canMove(_ issue: Issue) -> Bool {
-    !worker.isActive(issue.id) && !issue.dispatchUncertain && !issue.archived
+    // A pull request belongs to the old repository and would no longer be tracked.
+    !worker.isActive(issue.id) && !issue.dispatchUncertain && !issue.archived && issue.prURL == nil
       && [.needsProject, .queued, .needsYou, .failed, .canceled].contains(issue.status)
   }
   /// Moves a report filed under the wrong project. Before agent work starts the report is simply
@@ -224,12 +226,19 @@ import UserNotifications
       throw ScreenClipError.message("Report or project no longer exists.")
     }
     guard issue.projectID != projectID else { return issueID }
+    guard issue.prURL == nil else {
+      throw ScreenClipError.message(
+        "This report has a pull request in its current repository. Close or merge it before moving the report."
+      )
+    }
     guard canMove(issue) else {
       throw ScreenClipError.message("Cancel active work before moving this report to another project.")
     }
     if issue.threadID == nil && issue.worktreePath == nil {
       try updateIssue(issueID) {
         $0.projectID = projectID
+        $0.lastError = nil
+        $0.repairAttempts = 0
         $0.record("Moved to \(target.name)", status: $0.status == .canceled ? .canceled : .queued)
       }
       worker.pump()

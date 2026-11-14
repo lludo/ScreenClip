@@ -10,8 +10,18 @@ public struct RoutingDecision: Equatable {
 }
 public enum ProjectRouter {
   static let browsers: Set<String> = [
-    "com.apple.Safari", "com.google.Chrome", "com.microsoft.edgemac", "org.mozilla.firefox",
-    "company.thebrowser.Browser",
+    "com.apple.Safari", "com.apple.SafariTechnologyPreview", "com.google.Chrome",
+    "com.google.Chrome.canary", "com.microsoft.edgemac", "org.mozilla.firefox",
+    "org.mozilla.firefoxdeveloperedition", "company.thebrowser.Browser", "company.thebrowser.dia",
+    "com.brave.Browser", "com.operasoftware.Opera", "com.vivaldi.Vivaldi",
+  ]
+  /// Apps shared across projects. Captures from them are never learned as a project's app,
+  /// so one pick cannot pin every later Simulator or Xcode capture to that project.
+  static let sharedTools: Set<String> = [
+    "com.apple.dt.Xcode", "com.apple.iphonesimulator", "com.apple.Terminal",
+    "com.googlecode.iterm2", "dev.warp.Warp-Stable", "com.mitchellh.ghostty", "com.apple.finder",
+    "com.apple.Preview", "com.microsoft.VSCode", "com.todesktop.230313mzl4w4u92",
+    "com.mirageteam.screenclip", "com.screenclip.app",
   ]
   static func isAppCapture(_ context: CaptureContext) -> Bool {
     !context.bundleID.isEmpty && !browsers.contains(context.bundleID)
@@ -61,7 +71,9 @@ public enum ProjectRouter {
   public static func identifierToLearn(
     from context: CaptureContext, for projectID: UUID, projects: [Project]
   ) -> String? {
-    guard isAppCapture(context), projects.contains(where: { $0.id == projectID }),
+    guard isAppCapture(context), !sharedTools.contains(context.bundleID),
+      context.bundleID != Bundle.main.bundleIdentifier,
+      projects.contains(where: { $0.id == projectID }),
       !projects.contains(where: { $0.bundleIDs.contains(context.bundleID) })
     else { return nil }
     return context.bundleID

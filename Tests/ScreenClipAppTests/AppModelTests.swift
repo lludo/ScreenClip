@@ -110,6 +110,14 @@ import XCTest
     // Active work must be canceled first.
     try model.updateIssue(movedID) { $0.record("Working", status: .working) }
     XCTAssertThrowsError(try model.moveToProject(movedID, projectID: wrong.id))
+    // A report whose pull request is still in the old repository cannot move.
+    try model.updateIssue(movedID) {
+      $0.prURL = "https://github.com/owner/repo/pull/9"
+      $0.record("CI still fails", status: .needsYou)
+    }
+    XCTAssertFalse(model.canMove(try XCTUnwrap(model.issue(movedID))))
+    XCTAssertThrowsError(try model.moveToProject(movedID, projectID: wrong.id))
+    XCTAssertEqual(model.issue(movedID)?.projectID, right.id)
   }
 
   func testADraftCannotBeAddedToASubmittedIssue() throws {

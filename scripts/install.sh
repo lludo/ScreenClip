@@ -10,7 +10,8 @@ if [[ ! -d "$app" || "$app" == "$destination" ]]; then
     printf '%s\n' 'Supply the Xcode-built app, not the installed copy.' >&2; exit 1
 fi
 identifier=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' "$app/Contents/Info.plist")
-[[ "$identifier" == com.screenclip.app ]] || { printf '%s\n' 'This is not a ScreenClip app bundle.' >&2; exit 1; }
+# Bundle ID set in ScreenClip.xcodeproj (PRODUCT_BUNDLE_IDENTIFIER).
+[[ "$identifier" == com.mirageteam.screenclip ]] || { printf '%s\n' 'This is not a ScreenClip app bundle.' >&2; exit 1; }
 codesign --verify --deep --strict "$app"
 signature=$(codesign -dvv "$app" 2>&1)
 if ! [[ "$signature" == *Authority=* ]]; then
