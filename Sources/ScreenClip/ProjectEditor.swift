@@ -40,6 +40,14 @@ struct ProjectEditor: View {
           "This command runs in the issue's worktree before publishing. Automatic merge also requires passing GitHub checks and required reviews."
         ).font(.caption).foregroundStyle(.secondary)
         Toggle("Merge fixes automatically after checks pass", isOn: $project.autoMerge)
+        Toggle(
+          "Allow sending screenshots to the external assistant",
+          isOn: Binding(
+            get: { project.sendsExternalScreenshots },
+            set: { project.allowExternalScreenshots = $0 }))
+        Text(
+          "Grok Bot receives approved screenshots as files on a screenclip/ branch in this repository. Leave this off unless that is acceptable. Public repositories need this too, because those files would be readable by anyone who can see the repository. The toggle is off until you turn it on."
+        ).font(.caption).foregroundStyle(.secondary)
       }.textFieldStyle(.roundedBorder)
       if let error { Text(error).font(.caption).foregroundStyle(.red) }
       HStack {

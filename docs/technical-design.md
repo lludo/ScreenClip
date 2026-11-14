@@ -6,7 +6,7 @@ Updated: November 14, 2026. The native app and local worker are implemented. The
 
 The native app is built through the shared Xcode project/scheme, including from Terminal and CI. Swift Package Manager supplies its local core library and command-line tests. Normal runs install and launch `/Applications/ScreenClip.app`, preserving the bundle ID and development certificate across builds. Xcode Run and `scripts/run.sh` use the same installer: verify a certificate-signed staging bundle, ask running copies to quit, then replace the installed bundle with rollback on failure. Build-only output stays in DerivedData. A local ignored certificate configuration supplies development signing. The SQLite store persists a versioned snapshot containing projects, issues, ordered captures, activity, questions, and settings. Queued state acts as the durable outbox; dispatch uncertainty is persisted before external creation. A process file lock enforces a single writer, and recovery pauses interrupted work for reconciliation.
 
-Each issue goes to a local coding agent, Codex or Claude Code, through the shared contract in [Coding agents](agents/README.md). Both have been exercised end to end with synthetic CLIs; a live Codex fix also completed through GitHub CI and a confirmed merge. Agent-specific behavior and known gaps, such as Codex desktop sidebar grouping, are on each agent's page.
+Each issue goes to Codex, Claude Code, or Grok Bot. Codex and Claude Code follow the shared local contract in [Coding agents](agents/README.md). Both local agents have been exercised end to end with synthetic CLIs; a live Codex fix also completed through GitHub CI and a confirmed merge. Grok Bot is the remote webhook destination. Agent-specific behavior and known gaps, such as Codex desktop sidebar grouping, are on each agent's page.
 
 The optional plugin is read-only (`list_issues`, `get_issue`), requires Python 3.9+, and is packaged for both Codex and Claude Code. Native dispatch and status writes have one owner. Plugin mutations/leases and shared desktop-process ownership remain future integrations. Reply in ScreenClip for app-owned runs; cancel before manually editing the same worktree in another client.
 
@@ -47,7 +47,7 @@ The diagram shows ownership: ScreenClip is the only writer of the store, and the
 | Context adapters | Source app/window identity; optional browser and build-context adapters |
 | Issue store | SQLite metadata/event history and image files in Application Support |
 | Dispatcher | Outbox delivery, issue ownership, retry, capacity, and worktree allocation |
-| Agent adapters | Codex and Claude Code transport, conversation identity, progress, questions, cancellation, and recovery ([details](agents/README.md)) |
+| Agent adapters | Codex and Claude Code locally, plus Grok Bot as a remote webhook destination ([details](agents/README.md)) |
 | Git provider adapter | PR identity, checks, mergeability, and confirmed merge state |
 
 Apple documents menu bar utility support through [MenuBarExtra](https://developer.apple.com/documentation/swiftui/menubarextra) and still-image capture through [SCScreenshotManager](https://developer.apple.com/documentation/screencapturekit/scscreenshotmanager). The latter is available from macOS 14. Use the content-filter/configuration capture path for that baseline; availability-check newer convenience APIs.
@@ -72,11 +72,12 @@ Use an explicit confidence/reason field rather than an unobservable guess. Never
 
 ## Agent integrations
 
-The capture pipeline is agent-neutral. The dispatcher prepares a worktree, sends one prompt with approved screenshots to the issue's agent, and receives a structured `implemented` / `question` / `blocked` result. ScreenClip then validates, publishes, and verifies merges itself. The shared contract, agent selection, readiness gating, and the checklist for adding an agent are in [Coding agents](agents/README.md). Each agent has its own page:
+The capture pipeline is agent-neutral for Codex and Claude Code. The dispatcher prepares a worktree, sends one prompt with approved screenshots, and receives a structured `implemented` / `question` / `blocked` result. ScreenClip then validates, publishes, and verifies merges itself. Grok Bot does not take that local turn: ScreenClip pushes the approved screenshots to a `screenclip/` branch and POSTs `screenclip.external.v1`, then still validates and merges the pull request itself. The shared contract, agent selection, readiness gating, and the checklist for adding a local agent are in [Coding agents](agents/README.md). Each agent has its own page:
 
 - [Codex](agents/codex.md): app-server transport, thread identity, desktop deep links, and project association.
 - [Claude Code](agents/claude-code.md): headless stream-json turns, session identity, sandbox, sign-in, and the Claude Code plugin.
-- Proposals: [Codex plugin research](agents/proposals/codex-plugin.md) and an [external assistant](agents/proposals/external-assistant.md) hand-off.
+- [Grok Bot](agents/external-assistant.md): remote hand-off. Approved screenshots go to a `screenclip/` branch; the webhook carries no image data. ScreenClip still validates and merges.
+- Proposal: [Codex plugin research](agents/proposals/codex-plugin.md).
 
 Serialize work on an individual issue. Append new evidence as a later turn. When the user continues work in the agent's own client, reconcile that activity; do not let two clients independently start competing turns. Separate transport progress from product outcomes, and verify PR, check, and merge claims with the source-control host before promoting the state. A normal successful agent response alone is insufficient.
 
@@ -122,10 +123,10 @@ Keep captures in per-user Application Support, outside source repositories. Use 
 
 | Path | Contents |
 | --- | --- |
-| `Sources/ScreenClip/` | The app: `AppModel`, capture (`CaptureCoordinator`, `Annotations`, `ComposerView`), queue (`QueueView`, `IssueDetailView`, `IssueRowViews`, `QuestionCard`, `WelcomeView`, `MenuPopover`), settings (`SettingsView`, `ConnectionControls`, `ProjectEditor`, `ShortcutRecorder`) |
-| `Sources/ScreenClip/AgentWorker*.swift` | Scheduling and dispatch (`AgentWorker`), Codex (`+Codex`), Claude Code (`+Claude`), and validation, publication, PR monitoring, and merge (`+Publishing`) |
+| `Sources/ScreenClip/` | The app: `AppModel`, capture (`CaptureCoordinator`, `Annotations`, `ComposerView`), queue (`QueueView`, `IssueDetailView`, `IssueRowViews`, `QuestionCard`, `WelcomeView`, `MenuPopover`), settings (`SettingsView`, `ConnectionControls`, `ProjectEditor`, `ShortcutRecorder`), Grok Bot credentials (`ExternalAssistantKeychain`) |
+| `Sources/ScreenClip/AgentWorker*.swift` | Scheduling and dispatch (`AgentWorker`), Codex (`+Codex`), Claude Code (`+Claude`), Grok Bot hand-off and PR inspection (`+External`), and validation, publication, PR monitoring, and merge (`+Publishing`) |
 | `Sources/ScreenClip/AgentPrompt.swift` | The prompt and result schema every agent receives |
-| `Sources/ScreenClipCore/` | Model (`Models`, `JSONValue`, `Errors`), store (`IssueStore`), routing (`Routing`), agent transports (`CodexClient`, `ClaudeCodeClient`, `AgentDetector`), processes (`CommandRunner`, `ProcessEnvironment`), Git (`GitWorkspace`), GitHub (`GitHubService`), and merge evidence (`MergeGuard`) |
+| `Sources/ScreenClipCore/` | Model (`Models`, `JSONValue`, `Errors`), store (`IssueStore`), routing (`Routing`), agent transports (`CodexClient`, `ClaudeCodeClient`, `ExternalAssistant`, `AgentDetector`), processes (`CommandRunner`, `ProcessEnvironment`), Git (`GitWorkspace`), GitHub (`GitHubService`), and merge evidence (`MergeGuard`) |
 | `plugins/screenclip/` | Read-only MCP server with Codex and Claude Code manifests |
 | `scripts/` | Build, install, package, test, probes, fixtures, and the read-only queue review |
 | `website/` | Static promotional site |
