@@ -22,8 +22,8 @@ DIST = ROOT / "dist"
 
 HOME_TITLE = "ScreenClip — Screenshot feedback for AI coding agents"
 HOME_DESCRIPTION = (
-    "Capture a Mac screenshot, annotate it, and hand it to Claude Code, Codex, or Grok Bot. "
-    "ScreenClip tracks the pull request through checks, merge, and retest."
+    "Free Mac menu bar app. Capture a screenshot, hand it to Codex, Claude Code, or Grok Bot, "
+    "and track the pull request through checks, merge, and retest."
 )
 OG_TITLE = "From a screenshot to a pull request"
 OG_ALT = "ScreenClip. From a screenshot to a pull request, for Codex, Claude Code, and Grok Bot."
@@ -127,7 +127,7 @@ def render_actions(config):
 def header_cta(config):
     for kind, url, label in action_rows(config)[0]:
         if kind == "primary":
-            return link(url, label, "button button-primary button-small")
+            return link(url, "Download for Mac", "button button-primary button-small")
     return ""
 
 
@@ -263,7 +263,7 @@ def structured_data(config):
         "@type": "SoftwareApplication",
         "name": "ScreenClip",
         "applicationCategory": "DeveloperApplication",
-        "operatingSystem": "macOS 14+",
+        "operatingSystem": "macOS 14 or later",
         "description": HOME_DESCRIPTION,
         "offers": offers,
         "featureList": [
@@ -299,27 +299,47 @@ def structured_data(config):
 
 
 def nav(current):
+    def home_link(fragment):
+        return f"/#{fragment}" if current != "home" else f"#{fragment}"
+
     items = [
-        ("/#loop" if current != "home" else "#loop", "How it works", None),
-        ("/privacy", "Privacy", "privacy"),
-        ("/#download" if current != "home" else "#download", "Download", None),
-        ("/support", "Support", "support"),
+        (home_link("loop"), "How it works", None, ""),
+        (home_link("agents"), "Coding agents", None, ""),
+        (home_link("faq"), "Questions", None, ""),
+        (home_link("download"), "Download", None, "nav-download"),
     ]
     parts = []
-    for href, label, page in items:
+    for href, label, page, class_name in items:
         current_attr = ' aria-current="page"' if page and page == current else ""
-        parts.append(f'<a href="{href}"{current_attr}>{label}</a>')
+        class_attr = f' class="{class_name}"' if class_name else ""
+        parts.append(f'<a href="{href}"{class_attr}{current_attr}>{label}</a>')
     return "".join(parts)
 
 
 def footer_nav(config):
-    items = [("/", "Home"), ("/privacy", "Privacy"), ("/support", "Support")]
+    items = [
+        ("/privacy", "Privacy policy"),
+        ("/support", "Support"),
+        ("/#faq", "Questions"),
+    ]
     if config.github_url:
-        items.append((config.github_url, "GitHub"))
+        items.append((config.github_url, "Source on GitHub"))
     return "".join(f'<a href="{esc(href)}">{esc(label)}</a>' for href, label in items)
 
 
-def layout(config, *, title, description, slug, robots, current, body, json_ld, css_href, js_href, preload):
+def render_preloads(preloads):
+    tags = []
+    for href, media, mime in preloads:
+        attrs = f'rel="preload" as="image" href="{esc(href)}"'
+        if mime:
+            attrs += f' type="{esc(mime)}"'
+        if media:
+            attrs += f' media="{esc(media)}"'
+        tags.append(f"<link {attrs}>")
+    return "\n  ".join(tags)
+
+
+def layout(config, *, title, description, slug, robots, current, body, json_ld, css_href, preloads):
     canonical = ""
     og_url = ""
     if config.origin and slug != "404":
@@ -327,11 +347,7 @@ def layout(config, *, title, description, slug, robots, current, body, json_ld, 
         canonical = f'<link rel="canonical" href="{esc(url)}">'
         og_url = f'<meta property="og:url" content="{esc(url)}">'
     image = f"{config.origin}/assets/og.png" if config.origin else "/assets/og.png"
-    script = f'<script src="{esc(js_href)}" defer></script>' if js_href else ""
     json_tag = f'<script type="application/ld+json">{json_ld}</script>' if json_ld else ""
-    preload_tag = (
-        f'<link rel="preload" as="image" href="{esc(preload)}">' if preload else ""
-    )
     return f"""<!doctype html>
 <html lang="en">
 <head>
@@ -350,6 +366,7 @@ def layout(config, *, title, description, slug, robots, current, body, json_ld, 
   <meta property="og:image" content="{esc(image)}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
   <meta property="og:image:alt" content="{esc(OG_ALT)}">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{esc(OG_TITLE if slug == "home" else title)}">
@@ -363,10 +380,9 @@ def layout(config, *, title, description, slug, robots, current, body, json_ld, 
   <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  {preload_tag}
+  {render_preloads(preloads)}
   <link rel="stylesheet" href="{esc(css_href)}">
   {json_tag}
-  {script}
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -395,6 +411,13 @@ def layout(config, *, title, description, slug, robots, current, body, json_ld, 
 def sha256_file(path):
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     return digest[:12]
+
+
+def png_size(path):
+    data = path.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise SystemExit(f"{path.name} is not a PNG")
+    return struct.unpack(">II", data[16:24])
 
 
 def fingerprinted(path, dest_dir):
@@ -601,7 +624,21 @@ def check_output(config, pages):
         raise SystemExit("Donate link rendered without donateUrl")
     if '"price":"0"' not in text:
         raise SystemExit("JSON-LD is missing the free offer")
-    for href in re.findall(r'(?:href|src)="([^"]+)"', text):
+    if '"@type":"FAQPage"' not in text or '"@type":"SoftwareApplication"' not in text:
+        raise SystemExit("JSON-LD is missing SoftwareApplication or FAQPage")
+    if '"operatingSystem":"macOS 14 or later"' not in text:
+        raise SystemExit("JSON-LD operatingSystem must name macOS")
+    if config.download_url and '"downloadUrl":' not in text:
+        raise SystemExit("JSON-LD is missing downloadUrl")
+    home = (DIST / "index.html").read_text()
+    lcp = re.search(r"<img[^>]*fetchpriority=\"high\"[^>]*>", home)
+    if not lcp or "loading=" in lcp.group(0) or 'alt=""' in lcp.group(0):
+        raise SystemExit("The menu bar image must be eager, sized, and described")
+    if 'width="' not in lcp.group(0) or 'height="' not in lcp.group(0):
+        raise SystemExit("The menu bar image needs explicit width and height")
+    if "image/avif" not in home or "image/webp" not in home or "prefers-color-scheme: dark" not in home:
+        raise SystemExit("The menu bar picture is missing a dark or modern source")
+    for href in re.findall(r'(?:href|src|srcset)="([^"]+)"', text):
         if href.startswith(("https://", "http://", "mailto:")):
             continue
         check_local_ref(href, pages)
@@ -646,9 +683,21 @@ def build():
     shutil.copyfile(SRC / "assets" / "icon.svg", assets / "icon.svg")
     shutil.copyfile(SRC / "assets" / "og.png", assets / "og.png")
     css_href = fingerprinted(SRC / "styles.css", hashed)
-    js_href = fingerprinted(SRC / "site.js", hashed)
-    composer = fingerprinted(SRC / "assets" / "composer-preview.png", hashed)
-    queue = fingerprinted(SRC / "assets" / "queue-preview.png", hashed)
+    popup_width, popup_height = png_size(SRC / "assets" / "popup-light.png")
+    popup = {
+        "POPUP_LIGHT_AVIF": fingerprinted(SRC / "assets" / "popup-light.avif", hashed),
+        "POPUP_LIGHT_WEBP": fingerprinted(SRC / "assets" / "popup-light.webp", hashed),
+        "POPUP_LIGHT_PNG": fingerprinted(SRC / "assets" / "popup-light.png", hashed),
+        "POPUP_DARK_AVIF": fingerprinted(SRC / "assets" / "popup-dark.avif", hashed),
+        "POPUP_DARK_WEBP": fingerprinted(SRC / "assets" / "popup-dark.webp", hashed),
+        "POPUP_DARK_PNG": fingerprinted(SRC / "assets" / "popup-dark.png", hashed),
+        "POPUP_W": str(popup_width),
+        "POPUP_H": str(popup_height),
+    }
+    home_preloads = [
+        (popup["POPUP_LIGHT_AVIF"], "(prefers-color-scheme: light)", "image/avif"),
+        (popup["POPUP_DARK_AVIF"], "(prefers-color-scheme: dark)", "image/avif"),
+    ]
     print("Drawing icons…")
     write_icons(assets)
 
@@ -656,23 +705,26 @@ def build():
         "ACTIONS": render_actions(config),
         "PRICE": esc(price_copy(config)),
         "FAQ": render_faq(config),
-        "IMG_COMPOSER": composer,
-        "IMG_QUEUE": queue,
         "SOURCE_LINE": source_line(config),
         "ISSUES_HTML": issues_html(config),
         "DOWNLOAD_STATUS": download_status(config),
         "SOURCE_HTML": source_html(config),
         "GITHUB_BUTTON": github_button(config),
+        **popup,
     }
+    privacy_description = (
+        "What ScreenClip stores on your Mac, what can be sent to Codex, Claude Code, Grok Bot, or GitHub, "
+        "and how redaction works."
+    )
     pages = [
-        ("home", "index.html", HOME_TITLE, HOME_DESCRIPTION, "index, follow, max-image-preview:large", True, composer),
-        ("privacy", "privacy.html", "Privacy policy — ScreenClip", "What ScreenClip stores on your Mac, what can be sent to an agent or GitHub, and how redaction works.", "index, follow", False, ""),
-        ("support", "support.html", "Support — ScreenClip", "Get ScreenClip help through GitHub issues, plus what you need to run or build the Mac app.", "index, follow", False, ""),
-        ("404", "404.html", "Page not found — ScreenClip", "That page is not on the ScreenClip site.", "noindex", False, ""),
+        ("home", "index.html", HOME_TITLE, HOME_DESCRIPTION, "index, follow, max-image-preview:large", True),
+        ("privacy", "privacy.html", "Privacy policy — ScreenClip", privacy_description, "index, follow", False),
+        ("support", "support.html", "Support — ScreenClip", "Get ScreenClip help through GitHub issues, plus what you need to run or build the Mac app.", "index, follow", False),
+        ("404", "404.html", "Page not found — ScreenClip", "That page is not on the ScreenClip site.", "noindex", False),
     ]
     written = {}
     hashes = []
-    for slug, filename, title, description, robots, with_json, preload in pages:
+    for slug, filename, title, description, robots, with_json in pages:
         body = (SRC / "pages" / ("home.html" if slug == "home" else f"{slug}.html")).read_text()
         for key, value in tokens.items():
             body = body.replace(f"@@{key}@@", value)
@@ -687,8 +739,7 @@ def build():
             body=body,
             json_ld=json_ld,
             css_href=css_href,
-            js_href=js_href if slug == "home" else "",
-            preload=preload,
+            preloads=home_preloads if slug == "home" else [],
         )
         (DIST / filename).write_text(document)
         written[slug] = document
@@ -732,7 +783,13 @@ def self_test():
         ("#5c564e", "#f6f3ec", 4.5),
         ("#b8430a", "#f6f3ec", 4.5),
         ("#1a120c", "#f76826", 4.5),
+        ("#1a120c", "#ff7a3c", 4.5),
+        ("#5c564e", "#fffdf8", 4.5),
+        ("#b8430a", "#fffdf8", 4.5),
         ("#f4efe6", "#161411", 7),
+        ("#c8bfb2", "#221e1a", 4.5),
+        ("#ffb088", "#221e1a", 4.5),
+        ("#f4efe6", "#221e1a", 7),
         ("#c8bfb2", "#161411", 4.5),
         ("#ffb088", "#161411", 4.5),
         ("#f6f1e8", "#2a211c", 7),
@@ -769,6 +826,8 @@ class PreviewHandler(SimpleHTTPRequestHandler):
         ".webmanifest": "application/manifest+json",
         ".svg": "image/svg+xml",
         ".ico": "image/x-icon",
+        ".avif": "image/avif",
+        ".webp": "image/webp",
     }
 
     def __init__(self, *args, **kwargs):

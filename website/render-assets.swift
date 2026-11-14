@@ -49,7 +49,7 @@ try png(name: "og.png", width: 1200, height: 630) {
   text("From a screenshot", at: NSPoint(x: 72, y: 330), size: 76, weight: .bold, color: ink)
   text("to a pull request.", at: NSPoint(x: 72, y: 240), size: 76, weight: .bold, color: accent)
   text("Codex  ·  Claude Code  ·  Grok Bot", at: NSPoint(x: 72, y: 150), size: 30, weight: .medium, color: ink.withAlphaComponent(0.72))
-  text("Screenshot feedback for AI coding agents on Mac", at: NSPoint(x: 72, y: 78), size: 22, weight: .medium, color: ink.withAlphaComponent(0.72))
+  text("Free menu bar app for macOS", at: NSPoint(x: 72, y: 78), size: 26, weight: .medium, color: ink.withAlphaComponent(0.72))
   orange.setFill()
   NSRect(x: 1124, y: 0, width: 76, height: 630).fill()
 }
