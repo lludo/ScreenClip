@@ -8,6 +8,9 @@ import XCTest
   func testNativeWorkerGroupsEvidenceAndContinuesQuestionInSameChat() async throws {
     try await exerciseWorker(projectLookupSupported: true)
   }
+  func testContextAddedDuringWorkIsIncludedInANewTurnBeforeAcceptingTheResult() async throws {
+    try await exerciseWorker(projectLookupSupported: true, contextDuringTurn: true)
+  }
   func testNativeWorkerIncludesRepositoryContextWhenProjectAPIIsUnavailable() async throws {
     try await exerciseWorker(projectLookupSupported: false)
   }
@@ -26,7 +29,7 @@ import XCTest
   }
   private func exerciseWorker(
     projectLookupSupported: Bool, cancelDuring: String? = nil, retryAfterCancel: Bool = false,
-    requestedAgent: AgentKind = .codex
+    requestedAgent: AgentKind = .codex, contextDuringTurn: Bool = false
   )
     async throws
   {
@@ -69,6 +72,7 @@ import XCTest
           if method=='turn/start': result={'turn':{'id':'turn-1'}}
           send({'id':m['id'],'result':result})
           if method=='turn/start':
+              if \(contextDuringTurn ? "True" : "False"): time.sleep(0.3)
               send({'method':'item/completed','params':{'threadId':'test-thread','item':{'type':'agentMessage','phase':'final_answer','text':json.dumps({'outcome':'question','summary':'Need context','question':'Should this label wrap?'})}}})
               send({'method':'turn/completed','params':{'threadId':'test-thread','turn':{'id':'turn-1','status':'completed'}}})
       """
@@ -135,11 +139,26 @@ import XCTest
       await model.worker.resetConnection()
       return
     }
+    if contextDuringTurn {
+      try await wait { model.issue(id)?.turnID != nil }
+      try model.addContext(id, text: "Context added while the agent was working")
+    }
     try await wait { model.issue(id)?.status == .needsYou }
     let issue = try XCTUnwrap(model.issue(id))
     XCTAssertEqual(issue.reportNumber, 1)
     XCTAssertEqual(issue.threadID, "test-thread")
     XCTAssertEqual(issue.questions.count, 1)
+    if contextDuringTurn {
+      let turns = try recordedRequests().filter { $0["method"].string == "turn/start" }
+      XCTAssertEqual(turns.count, 2)
+      XCTAssertFalse(
+        turns[0]["params"]["input"].array[0]["text"].string?.contains(
+          "Context added while the agent was working") == true)
+      XCTAssertTrue(
+        turns[1]["params"]["input"].array[0]["text"].string?.contains(
+          "Context added while the agent was working") == true)
+    }
+    try model.addContext(id, text: "Extra context without a screenshot")
     try model.submit(
       imageData: Data([2]), originalData: nil, annotations: [], note: "More detail",
       context: context, projectID: project.id, existingID: id, draft: false)
@@ -152,7 +171,7 @@ import XCTest
     XCTAssertEqual(continued.captures.count, 2)
     XCTAssertEqual(continued.reportNumber, issue.reportNumber)
     XCTAssertEqual(continued.questions[0].reply, "Yes, wrap it")
-    XCTAssertEqual(continued.coveredRevision, 2)
+    XCTAssertEqual(continued.coveredRevision, contextDuringTurn ? 4 : 3)
     let requests = try String(
       contentsOf: root.appendingPathComponent("requests.jsonl"), encoding: .utf8
     )
@@ -165,6 +184,11 @@ import XCTest
     let turn = try XCTUnwrap(requests.first { $0["method"].string == "turn/start" })
     let prompt = try XCTUnwrap(turn["params"]["input"].array.first?["text"].string)
     XCTAssertTrue(prompt.contains("Report number: #1."))
+    let lastTurn = try XCTUnwrap(requests.last { $0["method"].string == "turn/start" })
+    let lastPrompt = try XCTUnwrap(lastTurn["params"]["input"].array.first?["text"].string)
+    XCTAssertTrue(lastPrompt.contains("<additional_context>"))
+    XCTAssertTrue(lastPrompt.contains("Extra context without a screenshot"))
+    XCTAssertEqual(lastTurn["params"]["threadId"].string, issue.threadID)
     let name = requests.first { $0["method"].string == "thread/name/set" }
     XCTAssertEqual(name?["params"]["name"].string, "ScreenClip: #1 First capture")
     XCTAssertTrue(prompt.contains("Repository (tester's original checkout): \(project.path)"))
