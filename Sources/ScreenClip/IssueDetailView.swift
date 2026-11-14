@@ -36,10 +36,17 @@ struct IssueDetailView: View {
           AgentLabel(kind: issue.resolvedAgent).font(.caption)
             .foregroundStyle(.secondary)
             .help(Text(chrome: "Agent working on this issue", comment: "Help for the agent name on a report."))
-          if issue.resolvedAgent == .external, issue.prURL == nil {
+          if issue.externalConversationNote != nil {
             Text(verbatim: ExternalAssistant.localizedConversationNote(locale: locale))
               .font(.caption).foregroundStyle(.secondary)
               .fixedSize(horizontal: false, vertical: true)
+          }
+          if let agentURL = issue.externalAgentLink {
+            Link(destination: agentURL) {
+              Text(
+                chrome: "Open Grok Bot agent",
+                comment: "Opens the Grok Bot cloud agent for this report. It is not a pull request.")
+            }
           }
           if issue.codexURL != nil {
             Button {
@@ -210,10 +217,21 @@ struct IssueDetailView: View {
             }
           }
           if [.working, .queued, .needsYou, .prOpen].contains(issue.status) {
-            Button(role: .destructive) {
-              Task { await model.worker.cancel(issue.id) }
-            } label: {
-              Text(chrome: "Cancel work", comment: "Cancels local work on this report.")
+            if grokCancelIsBestEffort {
+              Button(role: .destructive) {
+                Task { await model.worker.cancel(issue.id) }
+              } label: {
+                Text(chrome: "Cancel work", comment: "Cancels local work on this report.")
+              }
+              .help(Text(
+                chrome: "Asks Grok Bot to stop. This is best-effort and may not stop work it already started.",
+                comment: "Help for Cancel when Grok Bot can be asked to stop. The stop is not guaranteed."))
+            } else {
+              Button(role: .destructive) {
+                Task { await model.worker.cancel(issue.id) }
+              } label: {
+                Text(chrome: "Cancel work", comment: "Cancels local work on this report.")
+              }
             }
           }
           if issue.status == .merged {
@@ -240,6 +258,14 @@ struct IssueDetailView: View {
               chrome: "Describe what was not addressed; the agent starts a new fix with your feedback.",
               comment: "Help for the follow-up button."))
           }
+        }
+        if grokCancelIsBestEffort {
+          Text(
+            chrome: "Asks Grok Bot to stop. This is best-effort and may not stop work it already started.",
+            comment: "Shown beside Cancel when Grok Bot can be asked to stop. The stop is not guaranteed."
+          )
+          .font(.caption).foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true)
         }
         if let summary = issue.resultSummary {
           Text(verbatim: summary).textSelection(.enabled).padding(16).frame(
@@ -398,6 +424,11 @@ struct IssueDetailView: View {
         locale: locale,
         comment: "Deletion warning. %@ is the agent product name. Keep Git."))
     }
+  }
+  private var grokCancelIsBestEffort: Bool {
+    issue.resolvedAgent == .external
+      && [.working, .queued, .needsYou, .prOpen].contains(issue.status)
+      && model.loadExternalAssistant().supportsCancel
   }
   func contextLine(_ label: String, _ value: String) -> some View {
     HStack(alignment: .firstTextBaseline, spacing: 12) {

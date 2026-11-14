@@ -137,6 +137,7 @@ extension AgentWorker {
       try model.updateIssue(id) {
         $0.handoffCommit = commit
         $0.handoffRevision = preparedRevision
+        $0.handoffAttempts = nil
         $0.branch = workspace.branch
         $0.worktreePath = workspace.path
       }
@@ -172,25 +173,29 @@ extension AgentWorker {
         revision: preparedRevision, handoffRevision: current.handoffRevision,
         handoffCommit: commit, uncertain: false),
       revision: preparedRevision, commit: commit)
+    let attempt = ExternalDeliveryAttempt.next(
+      stored: current.handoffAttempts, handoffRevision: current.handoffRevision,
+      revision: preparedRevision)
     try model.updateIssue(id) {
       $0.handoffRevision = begun.handoffRevision
       $0.handoffCommit = begun.handoffCommit
+      $0.handoffAttempts = attempt
       $0.coveredRevision = preparedRevision
       $0.dispatchUncertain = true
       $0.record("Sending report revision \(preparedRevision) to Grok Bot", status: .working)
     }
+    let sending = model.issue(id) ?? current
     let wire = ExternalAssistant.makePayload(
-      issue: model.issue(id) ?? current, project: project, repo: repo, branch: workspace.branch,
-      includePageContext: model.snapshot.settings.browserContext, commit: commit)
+      issue: sending, project: project, repo: repo, branch: workspace.branch,
+      includePageContext: model.snapshot.settings.browserContext, commit: commit, attempt: attempt,
+      previousPullRequests: ExternalAssistant.previousPullRequests(in: sending.activities))
     let response = try await ExternalAssistantClient.post(
       url: endpoint, authorization: configuration.normalizedAuthorization,
-      body: try ExternalAssistant.json(wire))
+      body: try ExternalAssistant.json(wire), idempotencyKey: wire.delivery?.key)
     guard model.issue(id)?.status != .canceled else { return }
     guard response.succeeded else {
-      let snippet = response.body.trimmingCharacters(in: .whitespacesAndNewlines)
-      let detail = snippet.isEmpty ? "" : " " + snippet
-      throw ScreenClipError.message(
-        "Grok Bot rejected the report (HTTP \(response.status)).\(detail)")
+      // The body can repeat the Authorization secret. The status code is enough.
+      throw ScreenClipError.message(ExternalAssistant.rejectionMessage(status: response.status))
     }
     let latestRevision = model.issue(id)?.revision
     try model.updateIssue(id) { updated in
@@ -346,12 +351,14 @@ extension AgentWorker {
         "Updated the pull request onto the current base branch. Waiting for checks.", status: .prOpen)
     }
   }
-  /// A report waiting for Grok Bot's pull request: still working, or flagged after no PR arrived.
+  /// A report waiting for Grok Bot's pull request: still working, or flagged after no PR or no status.
   static func awaitsExternalPullRequest(_ issue: Issue) -> Bool {
-    issue.status == .working
-      || (issue.status == .needsYou && issue.lastError == ExternalAssistant.noPullRequestActivity)
+    let revision = issue.handoffRevision ?? issue.revision
+    return issue.status == .working
+      || (issue.status == .needsYou && ExternalAssistant.isReminder(issue.lastError, revision: revision))
   }
   func discoverExternalPullRequests(now: Date = Date()) async {
+    await pollExternalStatuses(now: now)
     let pending = model.snapshot.issues.filter {
       $0.resolvedAgent == .external && Self.awaitsExternalPullRequest($0) && $0.prURL == nil
         && !$0.dispatchUncertain && !$0.archived && $0.branch != nil && $0.worktreePath != nil
@@ -362,10 +369,11 @@ extension AgentWorker {
         let number = issue.reportNumber
       else { continue }
       do {
+        let repo = await repositorySlug(for: issue)
         let candidates = try await GitHubService.pullRequests(
           head: branch, gh: model.snapshot.settings.ghPath, cwd: path)
         if let match = ExternalPullRequestFinder.match(
-          reportNumber: number, branch: branch, candidates: candidates)
+          reportNumber: number, issueID: issue.id, branch: branch, candidates: candidates, repo: repo)
         {
           guard let current = model.issue(issue.id), Self.awaitsExternalPullRequest(current),
             current.prURL == nil, !isActive(issue.id)
@@ -374,9 +382,14 @@ extension AgentWorker {
             $0.prURL = match.url
             $0.lastError = nil
             $0.record("Pull request opened: " + match.url, status: .prOpen)
+            if match.draft == true {
+              $0.checkSummary = ExternalAssistant.draftPullRequestSummary
+              $0.record(ExternalAssistant.draftPullRequestSummary)
+            }
           }
         } else if ExternalPullRequestFinder.closedMatch(
-          reportNumber: number, branch: branch, candidates: candidates) != nil
+          reportNumber: number, issueID: issue.id, branch: branch, candidates: candidates, repo: repo)
+          != nil
         {
           let text =
             "The pull request for \(branch) is closed. Grok Bot can open another from the same branch."
@@ -400,6 +413,108 @@ extension AgentWorker {
             try model.updateIssue(issue.id) { $0.lastError = error.localizedDescription }
           }
         }
+      }
+    }
+  }
+  /// Best-effort. A failure still leaves the report canceled locally and does not show the reply body.
+  func sendExternalCancel(_ issue: Issue) async {
+    let configuration = model.loadExternalAssistant()
+    guard configuration.supportsCancel, let endpoint = configuration.endpoint,
+      let project = model.project(issue.projectID), let branch = issue.branch
+    else { return }
+    let repo: String
+    do { repo = try await githubRepo(project) } catch { return }
+    guard let payload = ExternalAssistant.makeCancelPayload(issue: issue, repo: repo, branch: branch)
+    else { return }
+    do {
+      let response = try await ExternalAssistantClient.post(
+        url: endpoint, authorization: configuration.normalizedAuthorization,
+        body: try ExternalAssistant.jsonCancel(payload))
+      guard !response.succeeded else { return }
+      model.perform {
+        try model.updateIssue(issue.id) {
+          $0.record(ExternalAssistant.cancelFailureMessage(status: response.status))
+        }
+      }
+    } catch {
+      model.perform {
+        try model.updateIssue(issue.id) {
+          $0.record(ExternalAssistant.cancelUnreachableActivity)
+        }
+      }
+    }
+  }
+  private func repositorySlug(for issue: Issue) async -> String {
+    guard let project = model.project(issue.projectID) else { return "" }
+    return (try? await githubRepo(project)) ?? ""
+  }
+  /// Reads `screenclip/grok-bot` on the evidence commit. No status leaves today's behavior,
+  /// except an earlier warning once this connection has posted a status before.
+  func pollExternalStatuses(now: Date = Date()) async {
+    let watching = model.snapshot.issues.filter { issue in
+      guard issue.resolvedAgent == .external, !issue.archived, !issue.dispatchUncertain,
+        let commit = issue.handoffCommit, !commit.isEmpty, issue.worktreePath != nil,
+        !isActive(issue.id)
+      else { return false }
+      if issue.status == .prOpen { return true }
+      return Self.awaitsExternalPullRequest(issue) && issue.prURL == nil
+    }
+    for issue in watching {
+      guard let commit = issue.handoffCommit, let path = issue.worktreePath else { continue }
+      let repo = await repositorySlug(for: issue)
+      guard GitHubService.isRepositorySlug(repo), GitHubService.isCommit(commit) else { continue }
+      let status: ExternalStatus?
+      do {
+        status = try await GitHubService.externalStatus(
+          repo: repo, commit: commit, gh: model.snapshot.settings.ghPath, cwd: path)
+      } catch {
+        continue
+      }
+      guard let current = model.issue(issue.id), !isActive(issue.id) else { continue }
+      if let status {
+        let effect = ExternalAssistant.statusEffect(issue: current, status: status, repo: repo)
+        let unchanged =
+          effect.activity == nil && !effect.clearReminder && !effect.resumeWatching
+          && effect.agentURL == current.externalAgentURL
+          && effect.ackRevision == current.externalAckRevision
+          && effect.statusText == current.externalStatusText
+        if model.snapshot.settings.externalStatusSeen != true {
+          model.perform { try model.commit { $0.settings.externalStatusSeen = true } }
+        }
+        if unchanged { continue }
+        model.perform {
+          try model.updateIssue(issue.id) { updated in
+            if let url = effect.agentURL { updated.externalAgentURL = url }
+            updated.externalAckRevision = effect.ackRevision
+            updated.externalStatusText = effect.statusText
+            if effect.clearReminder { updated.lastError = nil }
+            if effect.resumeWatching { updated.status = .working }
+            if let activity = effect.activity { updated.record(activity) }
+          }
+        }
+      } else {
+        let revision = current.handoffRevision ?? current.revision
+        let warning = ExternalAssistant.pickupWarning(revision: revision)
+        let acknowledged = current.externalAckRevision == revision
+        let alreadyWarned =
+          current.activities.contains { $0.text == warning }
+          || ExternalAssistant.isReminder(current.lastError, revision: revision)
+        guard
+          ExternalAssistant.shouldWarnAboutMissingStatus(
+            statusSeen: model.snapshot.settings.externalStatusSeen == true,
+            acknowledged: acknowledged, alreadyWarned: alreadyWarned,
+            awaitingPullRequest: Self.awaitsExternalPullRequest(current) && current.prURL == nil
+              && current.status == .working,
+            sentAt: ExternalAssistant.sentDate(current), now: now)
+        else { continue }
+        model.perform {
+          try model.updateIssue(issue.id) {
+            $0.lastError = warning
+            $0.unread = true
+            $0.record(warning, status: .needsYou)
+          }
+        }
+        model.notify(current, text: warning)
       }
     }
   }

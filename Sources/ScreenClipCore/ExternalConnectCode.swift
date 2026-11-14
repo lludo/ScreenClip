@@ -16,9 +16,12 @@ public enum ExternalConnectCode {
   public struct Credentials: Equatable, Sendable {
     public var url: String
     public var authorization: String
-    public init(url: String, authorization: String) {
+    /// Optional and not secret. Older setup codes omit it. Unknown values are ignored by older apps.
+    public var capabilities: [String]
+    public init(url: String, authorization: String, capabilities: [String] = []) {
       self.url = url
       self.authorization = authorization
+      self.capabilities = capabilities
     }
   }
 
@@ -43,15 +46,26 @@ public enum ExternalConnectCode {
     }
   }
 
-  public static func encode(url: String, authorization: String) -> Result<String, Failure> {
-    switch validate(Credentials(url: url, authorization: authorization)) {
+  public static func encode(
+    url: String, authorization: String, capabilities: [String] = []
+  ) -> Result<String, Failure> {
+    switch validate(Credentials(url: url, authorization: authorization, capabilities: capabilities)) {
     case .failure(let error):
       return .failure(error)
     case .success(let credentials):
-      let json =
-        "{\"authorization\":" + jsonString(credentials.authorization) + ",\"url\":"
-        + jsonString(credentials.url) + "}"
-      return .success(prefix + base64URLEncode(Data(json.utf8)))
+      var fields = [
+        "\"authorization\":" + jsonString(credentials.authorization),
+        "\"url\":" + jsonString(credentials.url),
+      ]
+      let capabilities = credentials.capabilities.filter {
+        $0.range(of: #"^[A-Za-z0-9_-]{1,32}$"#, options: .regularExpression) != nil
+      }
+      if !capabilities.isEmpty {
+        let list = capabilities.map(jsonString).joined(separator: ",")
+        fields.append("\"capabilities\":[\(list)]")
+      }
+      fields.sort()
+      return .success(prefix + base64URLEncode(Data(("{" + fields.joined(separator: ",") + "}").utf8)))
     }
   }
 
@@ -97,7 +111,9 @@ public enum ExternalConnectCode {
       return .failure(configuration.normalizedAuthorization.isEmpty ? .empty : .unsafeAuthorization)
     }
     return .success(
-      Credentials(url: configuration.normalizedURL, authorization: configuration.normalizedAuthorization))
+      Credentials(
+        url: configuration.normalizedURL, authorization: configuration.normalizedAuthorization,
+        capabilities: credentials.capabilities))
   }
 
   private static func parseLoose(_ text: String) -> Result<Credentials, Failure> {
@@ -184,7 +200,27 @@ public enum ExternalConnectCode {
       let url = stringValue(object, keys: ["url"]),
       let authorization = stringValue(object, keys: ["authorization", "header"])
     else { return nil }
-    return Credentials(url: url, authorization: authorization)
+    return Credentials(url: url, authorization: authorization, capabilities: capabilityList(object))
+  }
+
+  /// Only short tokens. A capability is not a secret, and a value that looks like one is dropped.
+  private static func capabilityList(_ object: [String: Any]) -> [String] {
+    guard
+      let match = object.first(where: { $0.key.caseInsensitiveCompare("capabilities") == .orderedSame }),
+      let values = match.value as? [Any]
+    else { return [] }
+    var result: [String] = []
+    for value in values {
+      guard let text = value as? String else { continue }
+      let token = text.trimmingCharacters(in: .whitespacesAndNewlines)
+      guard token.range(of: #"^[A-Za-z0-9_-]{1,32}$"#, options: .regularExpression) != nil else {
+        continue
+      }
+      if !result.contains(where: { $0.caseInsensitiveCompare(token) == .orderedSame }) {
+        result.append(token)
+      }
+    }
+    return result
   }
 
   private static func stringValue(_ object: [String: Any], keys: [String]) -> String? {

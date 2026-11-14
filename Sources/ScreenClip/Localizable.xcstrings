@@ -37140,6 +37140,666 @@
           }
         }
       }
+    },
+    "Open Grok Bot agent": {
+      "comment": "Opens the Grok Bot cloud agent for this report. It is not a pull request.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Grok Bot agent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开 Grok Bot 代理"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir el agente de Grok Bot"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot のエージェントを開く"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir o agente do Grok Bot"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot-Agent öffnen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir l’agent Grok Bot"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 에이전트 열기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть агент Grok Bot"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟 Grok Bot 代理"
+          }
+        }
+      }
+    },
+    "Asks Grok Bot to stop. This is best-effort and may not stop work it already started.": {
+      "comment": "Help for Cancel when Grok Bot can be asked to stop. The stop is not guaranteed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Asks Grok Bot to stop. This is best-effort and may not stop work it already started."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求 Grok Bot 停止。这只是尽力而为，可能无法停止它已经开始的工作。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pide a Grok Bot que se detenga. Es un intento y puede no detener el trabajo que ya empezó."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot に停止を依頼します。ベストエフォートであり、すでに始めた作業は止まらないことがあります。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pede ao Grok Bot para parar. É o melhor esforço e pode não interromper o trabalho já iniciado."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bittet Grok Bot anzuhalten. Das ist ein Best-Effort und stoppt vielleicht keine Arbeit, die schon begonnen hat."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demande à Grok Bot d’arrêter. C’est un effort au mieux et cela peut ne pas arrêter un travail déjà commencé."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot에게 중지를 요청합니다. 최선의 시도이며, 이미 시작한 작업을 멈추지 못할 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Просит Grok Bot остановиться. Это лучшее усилие и может не остановить уже начатую работу."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要求 Grok Bot 停止。這只是盡力而為，可能無法停止它已經開始的工作。"
+          }
+        }
+      }
+    },
+    "Cancel requested. This is best-effort: Grok Bot may still finish work it already started.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel requested. This is best-effort: Grok Bot may still finish work it already started."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已请求取消。这只是尽力而为：Grok Bot 仍可能完成已经开始的工作。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelación solicitada. Es un intento: Grok Bot aún puede terminar el trabajo que ya empezó."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセルを依頼しました。ベストエフォートです。Grok Bot はすでに始めた作業を終えることがあります。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelamento solicitado. É o melhor esforço: o Grok Bot ainda pode concluir o trabalho já iniciado."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbruch angefordert. Das ist ein Best-Effort: Grok Bot kann bereits begonnene Arbeit trotzdem abschließen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulation demandée. C’est un effort au mieux : Grok Bot peut encore terminer un travail déjà commencé."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취소를 요청했습니다. 최선의 시도입니다. Grok Bot은 이미 시작한 작업을 끝낼 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запрошена отмена. Это лучшее усилие: Grok Bot может всё же закончить уже начатую работу."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已要求取消。這只是盡力而為：Grok Bot 仍可能完成已經開始的工作。"
+          }
+        }
+      }
+    },
+    "Could not reach Grok Bot to ask it to stop.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not reach Grok Bot to ask it to stop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连上 Grok Bot 以请求停止。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo contactar con Grok Bot para pedirle que se detenga."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止を頼むために Grok Bot へ到達できませんでした。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível alcançar o Grok Bot para pedir que pare."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot war nicht erreichbar, um einen Stopp zu bitten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de joindre Grok Bot pour lui demander d’arrêter."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "중지를 요청하려고 Grok Bot에 연결하지 못했습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось связаться с Grok Bot, чтобы попросить остановиться."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法連上 Grok Bot 以要求停止。"
+          }
+        }
+      }
+    },
+    "Draft PR. Automatic merge waits until the pull request is marked ready.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft PR. Automatic merge waits until the pull request is marked ready."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿 PR。自动合并会等到拉取请求被标为可合并。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR en borrador. La fusión automática espera a que la pull request se marque como lista."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ドラフト PR。pull request が準備完了になるまで自動マージは待ちます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR em rascunho. A mesclagem automática espera o pull request ser marcado como pronto."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR-Entwurf. Die automatische Zusammenführung wartet, bis der Pull Request als bereit markiert ist."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR en brouillon. La fusion automatique attend que la pull request soit marquée prête."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "초안 PR. pull request가 준비됨으로 표시될 때까지 자동 병합은 기다립니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Черновик PR. Автоматическое слияние ждёт, пока pull request не будет отмечен готовым."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿 PR。自動合併會等到拉取請求被標為可合併。"
+          }
+        }
+      }
+    },
+    "activity.grokPickup": {
+      "comment": "Activity when Grok Bot has not acknowledged a revision. %lld is the revision. Keep Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot hasn't picked up revision %lld yet (run may have failed or hit a rate limit). Continue resends it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 还没有接收修订 %lld（运行可能失败或达到了速率限制）。继续会重新发送。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot todavía no ha recogido la revisión %lld (la ejecución puede haber fallado o alcanzado un límite). Continuar la reenvía."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot はリビジョン %lld をまだ受け取っていません（実行が失敗したか、レート制限の可能性があります）。続けると再送信します。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Grok Bot ainda não recebeu a revisão %lld (a execução pode ter falhado ou atingido um limite). Continuar reenvia."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot hat Revision %lld noch nicht übernommen (der Lauf kann fehlgeschlagen sein oder ein Limit erreicht haben). Weiter sendet erneut."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot n’a pas encore pris la révision %lld (l’exécution a pu échouer ou atteindre une limite). Continuer la renvoie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot이 개정 %lld을(를) 아직 받지 않았습니다(실행이 실패했거나 한도에 걸렸을 수 있습니다). 계속하면 다시 보냅니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot ещё не принял ревизию %lld (запуск мог завершиться ошибкой или упереться в лимит). Продолжение отправит снова."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 還沒有接收修訂 %lld（執行可能失敗或達到了速率限制）。繼續會重新傳送。"
+          }
+        }
+      }
+    },
+    "activity.grokAcknowledged": {
+      "comment": "Activity when a Grok Bot status has no description. %lld is the revision. Keep Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot acknowledged revision %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 已确认修订 %lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot confirmó la revisión %lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot がリビジョン %lld を確認しました"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Grok Bot confirmou a revisão %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot hat Revision %lld bestätigt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot a confirmé la révision %lld"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot이 개정 %lld을(를) 확인했습니다"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot подтвердил ревизию %lld"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 已確認修訂 %lld"
+          }
+        }
+      }
+    },
+    "activity.grokRejected": {
+      "comment": "Delivery error. %lld is the HTTP status. Keep Grok Bot and HTTP.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot rejected the report (HTTP %lld)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 拒绝了这份报告（HTTP %lld）。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot rechazó el informe (HTTP %lld)."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot はレポートを拒否しました（HTTP %lld）。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Grok Bot recusou o relatório (HTTP %lld)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot hat den Bericht abgelehnt (HTTP %lld)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot a rejeté le rapport (HTTP %lld)."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot이 리포트를 거부했습니다(HTTP %lld)."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot отклонил отчёт (HTTP %lld)."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 拒絕了這份報告（HTTP %lld）。"
+          }
+        }
+      }
+    },
+    "activity.grokCancelHTTP": {
+      "comment": "Best-effort cancel failed. %lld is the HTTP status. Keep Grok Bot and HTTP.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot could not be asked to stop (HTTP %lld)."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法请求 Grok Bot 停止（HTTP %lld）。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo pedir a Grok Bot que se detenga (HTTP %lld)."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot に停止を依頼できませんでした（HTTP %lld）。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível pedir ao Grok Bot para parar (HTTP %lld)."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot konnte nicht zum Stoppen aufgefordert werden (HTTP %lld)."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de demander à Grok Bot d’arrêter (HTTP %lld)."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot에게 중지를 요청하지 못했습니다(HTTP %lld)."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось попросить Grok Bot остановиться (HTTP %lld)."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法要求 Grok Bot 停止（HTTP %lld）。"
+          }
+        }
+      }
+    },
+    "activity.grokStatus": {
+      "comment": "Activity from a Grok Bot commit status. %@ stays unchanged. Keep Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot：%@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot: %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot: %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot: %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot: %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot : %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot: %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot: %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot：%@"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

@@ -86,7 +86,7 @@ public enum GitHubService {
       gh,
       [
         "pr", "view", url, "--json",
-        "url,headRefOid,baseRefName,state,mergeCommit,statusCheckRollup,mergeStateStatus,mergeable,reviewDecision",
+        "url,headRefOid,baseRefName,state,mergeCommit,statusCheckRollup,mergeStateStatus,mergeable,reviewDecision,isDraft",
       ], cwd: path)
     return PRState.parse(try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)))
   }
@@ -133,13 +133,41 @@ public enum GitHubService {
   {
     let text = try await CommandRunner.checked(
       gh,
-      ["pr", "list", "--head", head, "--state", "all", "--json", "url,headRefName,body,state"],
+      [
+        "pr", "list", "--head", head, "--state", "all", "--json",
+        "url,headRefName,body,state,isCrossRepository,headRepositoryOwner,isDraft",
+      ],
       cwd: cwd)
     return try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)).array.map {
+      candidate in
       ExternalPullRequestCandidate(
-        url: $0["url"].string ?? "", headRefName: $0["headRefName"].string ?? "",
-        body: $0["body"].string ?? "", state: $0["state"].string ?? "")
+        url: candidate["url"].string ?? "", headRefName: candidate["headRefName"].string ?? "",
+        body: candidate["body"].string ?? "", state: candidate["state"].string ?? "",
+        crossRepository: candidate["isCrossRepository"].bool, draft: candidate["isDraft"].bool,
+        headOwner: candidate["headRepositoryOwner"].string
+          ?? candidate["headRepositoryOwner"]["login"].string)
     }
+  }
+  /// Latest `screenclip/grok-bot` commit status, or nil when the routine has not posted one.
+  /// GitHub returns newest first. A missing status is not an error.
+  public static func externalStatus(repo: String, commit: String, gh: String, cwd: String)
+    async throws -> ExternalStatus?
+  {
+    guard isRepositorySlug(repo), isCommit(commit) else {
+      throw ScreenClipError.message("Could not read the Grok Bot status for this report.")
+    }
+    let text = try await CommandRunner.checked(
+      gh, ["api", "--paginate", "repos/\(repo)/commits/\(commit)/statuses"], cwd: cwd)
+    guard let value = try? JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)) else {
+      return nil
+    }
+    return ExternalStatus.first(in: value)
+  }
+  public static func isRepositorySlug(_ repo: String) -> Bool {
+    repo.range(of: #"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"#, options: .regularExpression) != nil
+  }
+  public static func isCommit(_ commit: String) -> Bool {
+    commit.range(of: #"^[0-9a-fA-F]{40}$"#, options: .regularExpression) != nil
   }
   public static func listScreenclipPaths(revision: String, cwd: String) async throws -> [String] {
     let result = try await CommandRunner.run(

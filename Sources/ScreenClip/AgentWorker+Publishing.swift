@@ -209,9 +209,11 @@ extension AgentWorker {
         mergeable: pr.mergeable && pr.base == project.baseBranch,
         reviewSatisfied: pr.reviewSatisfied,
         unresolvedQuestions: currentIssue.questions.contains { $0.reply == nil },
-        screenclipEvidenceCleared: screenclipEvidenceCleared)
+        screenclipEvidenceCleared: screenclipEvidenceCleared, draft: pr.draft)
       let checkSummary: String
-      if currentIssue.prHead != pr.head {
+      if pr.draft {
+        checkSummary = ExternalAssistant.draftPullRequestSummary
+      } else if currentIssue.prHead != pr.head {
         checkSummary = "The PR changed; run validation again before merging."
       } else if !pr.checksPassed {
         checkSummary = pr.details
@@ -329,6 +331,7 @@ extension AgentWorker {
         issue.prHead = nil
         issue.handoffCommit = nil
         issue.handoffRevision = nil
+        issue.handoffAttempts = nil
       }
     }
   }

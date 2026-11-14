@@ -237,11 +237,9 @@ final class ExternalAssistantTests: XCTestCase {
     XCTAssertEqual(sending.handoffCommit, "abc")
     XCTAssertEqual(sending.handoffRevision, 2)
     XCTAssertEqual(ExternalHandoff.action(sending), .postExisting(commit: "abc"))
-    let failed = ExternalHandoff.finishSend(sending, succeeded: false)
-    XCTAssertFalse(failed.uncertain)
-    XCTAssertEqual(failed.handoffCommit, "abc")
-    XCTAssertEqual(ExternalHandoff.action(failed), .postExisting(commit: "abc"))
-    XCTAssertEqual(ExternalHandoff.beginSend(failed, revision: 2, commit: "abc"), sending)
+    XCTAssertEqual(ExternalDeliveryAttempt.next(stored: nil, handoffRevision: 2, revision: 2), 1)
+    XCTAssertEqual(ExternalDeliveryAttempt.next(stored: 1, handoffRevision: 2, revision: 2), 2)
+    XCTAssertEqual(ExternalDeliveryAttempt.next(stored: 4, handoffRevision: 2, revision: 3), 1)
     let followUp = ExternalHandoffState(
       revision: 3, handoffRevision: 2, handoffCommit: "abc", uncertain: false)
     XCTAssertEqual(ExternalHandoff.action(followUp), .commitEvidence)
@@ -273,6 +271,7 @@ final class ExternalAssistantTests: XCTestCase {
   }
 
   func testPullRequestMatchRequiresBranchAndReportMarker() {
+    let issueID = UUID(uuidString: "00000000-0000-4000-8000-000000000000")!
     let branch = "screenclip/234-clipped-button"
     let open = ExternalPullRequestCandidate(
       url: "https://github.com/lludo/ScreenClip/pull/9", headRefName: branch,
@@ -291,19 +290,20 @@ final class ExternalAssistantTests: XCTestCase {
       body: "ScreenClip: #234", state: "MERGED")
     XCTAssertEqual(
       ExternalPullRequestFinder.match(
-        reportNumber: 234, branch: branch, candidates: [prefixed, otherBranch, closed, merged, open]
+        reportNumber: 234, issueID: issueID, branch: branch,
+        candidates: [prefixed, otherBranch, closed, merged, open]
       )?.url,
       open.url)
     XCTAssertEqual(
       ExternalPullRequestFinder.match(
-        reportNumber: 234, branch: branch, candidates: [merged, closed])?.url,
+        reportNumber: 234, issueID: issueID, branch: branch, candidates: [merged, closed])?.url,
       merged.url)
     XCTAssertNil(
       ExternalPullRequestFinder.match(
-        reportNumber: 234, branch: branch, candidates: [prefixed, otherBranch]))
+        reportNumber: 234, issueID: issueID, branch: branch, candidates: [prefixed, otherBranch]))
     XCTAssertEqual(
       ExternalPullRequestFinder.closedMatch(
-        reportNumber: 234, branch: branch, candidates: [closed])?.url,
+        reportNumber: 234, issueID: issueID, branch: branch, candidates: [closed])?.url,
       closed.url)
   }
 
@@ -403,6 +403,309 @@ final class ExternalAssistantTests: XCTestCase {
     XCTAssertEqual(ExternalHeaderCapture.snapshot().authorization, "Token raw")
   }
 
+  func testForkAndMismatchedReportAreRejectedAndTheReportLineIsOptional() {
+    let issueID = UUID(uuidString: "00000000-0000-4000-8000-000000000000")!
+    let otherID = UUID(uuidString: "11111111-1111-4111-8111-111111111111")!
+    let branch = "screenclip/234-clipped-button"
+    let repo = "owner/name"
+    func candidate(
+      _ url: String, body: String, crossRepository: Bool? = nil, draft: Bool? = nil,
+      headOwner: String? = "owner"
+    ) -> ExternalPullRequestCandidate {
+      ExternalPullRequestCandidate(
+        url: url, headRefName: branch, body: body, state: "OPEN", crossRepository: crossRepository,
+        draft: draft, headOwner: headOwner)
+    }
+    let marker = candidate(
+      "https://github.com/owner/name/pull/9", body: "ScreenClip: #234")
+    let fork = candidate(
+      "https://github.com/other/name/pull/3", body: "ScreenClip: #234", crossRepository: true,
+      headOwner: "other")
+    let wrongReport = candidate(
+      "https://github.com/owner/name/pull/4",
+      body: "ScreenClip: #234\nScreenClip-Report: \(otherID.uuidString)\n")
+    let rightReport = candidate(
+      "https://github.com/owner/name/pull/5",
+      body: "ScreenClip-Report: \(issueID.uuidString.lowercased())\nScreenClip-Revision: 2\n")
+    let draft = candidate(
+      "https://github.com/owner/name/pull/6", body: "ScreenClip: #234", draft: true)
+    XCTAssertEqual(
+      ExternalPullRequestFinder.match(
+        reportNumber: 234, issueID: issueID, branch: branch, candidates: [fork, marker], repo: repo
+      )?.url,
+      marker.url)
+    XCTAssertNil(
+      ExternalPullRequestFinder.match(
+        reportNumber: 234, issueID: issueID, branch: branch, candidates: [fork], repo: repo))
+    XCTAssertNil(
+      ExternalPullRequestFinder.match(
+        reportNumber: 234, issueID: issueID, branch: branch, candidates: [wrongReport], repo: repo))
+    XCTAssertEqual(
+      ExternalPullRequestFinder.match(
+        reportNumber: 234, issueID: issueID, branch: branch, candidates: [rightReport], repo: repo
+      )?.url,
+      rightReport.url)
+    XCTAssertEqual(
+      ExternalPullRequestFinder.match(
+        reportNumber: 234, issueID: issueID, branch: branch, candidates: [draft], repo: repo)?.draft,
+      true)
+    let ownerMismatch = candidate(
+      "https://github.com/other/name/pull/7", body: "ScreenClip: #234", crossRepository: nil,
+      headOwner: "other")
+    XCTAssertNil(
+      ExternalPullRequestFinder.match(
+        reportNumber: 234, issueID: issueID, branch: branch, candidates: [ownerMismatch], repo: repo))
+  }
+
+  func testAgentLinkAllowlistAcceptsOnlyTheAgentOrThisReposPullRequest() {
+    let agent = "https://cursor.com/agents/bc-00000000-0000-4000-8000-000000000000"
+    let repo = "owner/name"
+    XCTAssertEqual(ExternalAssistant.acceptedAgentURL(agent, repo: repo)?.absoluteString, agent)
+    XCTAssertEqual(
+      ExternalAssistant.cursorAgentURL(agent.uppercased())?.absoluteString, agent)
+    XCTAssertEqual(
+      ExternalAssistant.acceptedAgentURL("https://github.com/owner/name/pull/12", repo: repo)?
+        .absoluteString,
+      "https://github.com/owner/name/pull/12")
+    XCTAssertEqual(
+      ExternalAssistant.acceptedAgentURL("https://github.com/OWNER/name/pull/12", repo: repo)?
+        .absoluteString,
+      "https://github.com/owner/name/pull/12")
+    let rejected = [
+      "http://cursor.com/agents/bc-00000000-0000-4000-8000-000000000000",
+      "grokbot://app/v1/prompt?id=bot&text=ScreenClip%20%23234",
+      "https://evil.example/agents/bc-00000000-0000-4000-8000-000000000000",
+      "https://cursor.com/agents/bc-00000000-0000-4000-8000-000000000000/extra",
+      "https://cursor.com/agents/bc-00000000-0000-4000-8000-000000000000?x=1",
+      "https://github.com/other/name/pull/12",
+      "https://github.com/owner/name/pull/12/files",
+      "https://github.com/owner/name/issues/12",
+    ]
+    for value in rejected {
+      XCTAssertNil(ExternalAssistant.acceptedAgentURL(value, repo: repo), value)
+      XCTAssertNil(ExternalAssistant.cursorAgentURL(value), value)
+    }
+    XCTAssertNil(
+      ExternalAssistant.cursorAgentURL("https://github.com/owner/name/pull/12"))
+    let dirty = "Grok Bot: rev 2 accepted\u{0007}\n· agent working " + String(repeating: "x", count: 200)
+    let cleaned = ExternalAssistant.statusText(dirty)
+    XCTAssertFalse(cleaned.contains("\u{0007}"))
+    XCTAssertFalse(cleaned.contains("\n"))
+    XCTAssertEqual(cleaned.count, 140)
+    XCTAssertTrue(cleaned.hasPrefix("Grok Bot: rev 2 accepted"))
+  }
+
+  func testStatusEffectKeepsTheAgentLinkAndClearsTheReminder() {
+    var issue = sampleIssue()
+    issue.handoffRevision = 2
+    issue.status = .needsYou
+    issue.prURL = nil
+    issue.lastError = ExternalAssistant.noPullRequestActivity
+    let status = ExternalStatus(
+      state: "pending",
+      targetURL: "https://cursor.com/agents/bc-00000000-0000-4000-8000-000000000000",
+      description: "Grok Bot: rev 2 accepted · agent working", updatedAt: "2026-11-14T00:00:00Z")
+    let effect = ExternalAssistant.statusEffect(issue: issue, status: status, repo: "owner/name")
+    XCTAssertEqual(
+      effect.agentURL, "https://cursor.com/agents/bc-00000000-0000-4000-8000-000000000000")
+    XCTAssertEqual(effect.ackRevision, 2)
+    XCTAssertEqual(effect.activity, "Grok Bot: rev 2 accepted · agent working")
+    XCTAssertTrue(effect.clearReminder)
+    XCTAssertTrue(effect.resumeWatching)
+    issue.externalAgentURL = effect.agentURL
+    issue.externalAckRevision = effect.ackRevision
+    issue.externalStatusText = effect.statusText
+    let pull = ExternalStatus(
+      state: "success", targetURL: "https://github.com/owner/name/pull/12",
+      description: "Grok Bot: PR #12 opened", updatedAt: nil)
+    let later = ExternalAssistant.statusEffect(issue: issue, status: pull, repo: "owner/name")
+    XCTAssertEqual(later.agentURL, effect.agentURL)
+    XCTAssertEqual(later.activity, "Grok Bot: PR #12 opened")
+    let rows = """
+      [{"context":"other","state":"failure","description":"ignore","target_url":"https://evil.example"},
+       {"context":"screenclip/grok-bot","state":"pending","description":"Grok Bot: rev 2","target_url":"\(status.targetURL!)",
+        "updated_at":"2026-11-14T00:00:00Z"}]
+      """
+    let parsed = ExternalStatus.first(
+      in: try! JSONDecoder().decode(JSONValue.self, from: Data(rows.utf8)))
+    XCTAssertEqual(parsed?.state, "pending")
+    XCTAssertEqual(parsed?.description, "Grok Bot: rev 2")
+    XCTAssertNil(ExternalStatus.first(in: .array([])))
+  }
+
+  func testMissingStatusWarnsEarlyOnlyAfterAStatusWasSeen() {
+    let sent = Date(timeIntervalSince1970: 1_000)
+    let early = sent.addingTimeInterval(14 * 60)
+    let due = sent.addingTimeInterval(15 * 60)
+    XCTAssertFalse(
+      ExternalAssistant.shouldWarnAboutMissingStatus(
+        statusSeen: false, acknowledged: false, alreadyWarned: false, awaitingPullRequest: true,
+        sentAt: sent, now: due))
+    XCTAssertFalse(
+      ExternalAssistant.shouldWarnAboutMissingStatus(
+        statusSeen: true, acknowledged: false, alreadyWarned: false, awaitingPullRequest: true,
+        sentAt: sent, now: early))
+    XCTAssertTrue(
+      ExternalAssistant.shouldWarnAboutMissingStatus(
+        statusSeen: true, acknowledged: false, alreadyWarned: false, awaitingPullRequest: true,
+        sentAt: sent, now: due))
+    XCTAssertFalse(
+      ExternalAssistant.shouldWarnAboutMissingStatus(
+        statusSeen: true, acknowledged: true, alreadyWarned: false, awaitingPullRequest: true,
+        sentAt: sent, now: due))
+    XCTAssertFalse(
+      ExternalAssistant.shouldWarnAboutMissingStatus(
+        statusSeen: true, acknowledged: false, alreadyWarned: true, awaitingPullRequest: true,
+        sentAt: sent, now: due))
+    XCTAssertEqual(
+      ExternalAssistant.pickupWarning(revision: 2),
+      "Grok Bot hasn't picked up revision 2 yet (run may have failed or hit a rate limit). Continue resends it.")
+  }
+
+  func testDeliveryKeyStaysOutOfTheReportFileAndAttemptsDoNotChangeTheKey() throws {
+    var issue = sampleIssue()
+    issue.activities.append(Activity("Previous fix: https://github.com/owner/name/pull/12"))
+    issue.activities.append(Activity("Previous fix: https://github.com/owner/name/pull/12"))
+    let project = Project(name: "ScreenClip", path: "/repo", validationCommand: "true")
+    let commit = "0123456789abcdef0123456789abcdef01234567"
+    let file = ExternalAssistant.makePayload(
+      issue: issue, project: project, repo: "owner/name", branch: "screenclip/234-clipped-button",
+      includePageContext: false, commit: nil, attempt: 2,
+      previousPullRequests: ExternalAssistant.previousPullRequests(in: issue.activities))
+    let fileObject = try jsonObject(try ExternalAssistant.json(file, pretty: true))
+    XCTAssertNil(fileObject["delivery"])
+    XCTAssertFalse(String(decoding: try ExternalAssistant.json(file), as: UTF8.self).contains(":r2:"))
+    XCTAssertEqual(fileObject["workspaceID"] as? String, issue.workspaceID.uuidString)
+    XCTAssertEqual(
+      fileObject["previousPullRequests"] as? [String], ["https://github.com/owner/name/pull/12"])
+    let wire = ExternalAssistant.makePayload(
+      issue: issue, project: project, repo: "owner/name", branch: "screenclip/234-clipped-button",
+      includePageContext: false, commit: commit, attempt: 2,
+      previousPullRequests: ExternalAssistant.previousPullRequests(in: issue.activities))
+    let wireObject = try jsonObject(try ExternalAssistant.json(wire))
+    let delivery = try XCTUnwrap(wireObject["delivery"] as? [String: Any])
+    XCTAssertEqual(
+      delivery["key"] as? String, "\(issue.id.uuidString):r2:\(commit)")
+    XCTAssertEqual(delivery["attempt"] as? Int, 2)
+    XCTAssertEqual(wireObject["schema"] as? String, "screenclip.external.v1")
+    let retried = ExternalAssistant.makePayload(
+      issue: issue, project: project, repo: "owner/name", branch: "screenclip/234-clipped-button",
+      includePageContext: false, commit: commit, attempt: 3)
+    let retriedDelivery = try XCTUnwrap(
+      (try jsonObject(try ExternalAssistant.json(retried)))["delivery"] as? [String: Any])
+    XCTAssertEqual(retriedDelivery["key"] as? String, delivery["key"] as? String)
+    XCTAssertEqual(retriedDelivery["attempt"] as? Int, 3)
+    XCTAssertEqual(
+      ExternalAssistant.rejectionMessage(status: 401), "Grok Bot rejected the report (HTTP 401).")
+    XCTAssertFalse(ExternalAssistant.rejectionMessage(status: 401).contains("secret"))
+  }
+
+  func testIdempotencyHeaderIsSentAndTheReplyBodyIsNotRequired() async throws {
+    let configuration = URLSessionConfiguration.ephemeral
+    configuration.protocolClasses = [ExternalHeaderCapture.self]
+    let session = URLSession(configuration: configuration)
+    let key = "00000000-0000-4000-8000-000000000000:r2:0123456789abcdef0123456789abcdef01234567"
+    _ = try await ExternalAssistantClient.post(
+      url: try XCTUnwrap(URL(string: "https://assistant.example/hook")),
+      authorization: "Bearer secret", body: Data("{}".utf8), session: session, idempotencyKey: key)
+    XCTAssertEqual(ExternalHeaderCapture.snapshot().idempotencyKey, key)
+    _ = try await ExternalAssistantClient.post(
+      url: try XCTUnwrap(URL(string: "https://assistant.example/hook")),
+      authorization: "Bearer secret", body: Data("{}".utf8), session: session)
+    XCTAssertNil(ExternalHeaderCapture.snapshot().idempotencyKey)
+  }
+
+  func testCancelPayloadAndCapabilityGate() throws {
+    var issue = sampleIssue()
+    let payload = try XCTUnwrap(
+      ExternalAssistant.makeCancelPayload(
+        issue: issue, repo: "owner/name", branch: "screenclip/234-clipped-button-a1b2c3d4"))
+    let object = try jsonObject(try ExternalAssistant.jsonCancel(payload))
+    XCTAssertEqual(object["schema"] as? String, "screenclip.external.v1.cancel")
+    XCTAssertEqual(object["issueID"] as? String, issue.id.uuidString)
+    XCTAssertEqual(object["reportNumber"] as? Int, 234)
+    XCTAssertEqual(object["revision"] as? Int, issue.revision)
+    XCTAssertEqual((object["project"] as? [String: Any])?["repo"] as? String, "owner/name")
+    XCTAssertEqual(
+      (object["evidence"] as? [String: Any])?["branch"] as? String,
+      "screenclip/234-clipped-button-a1b2c3d4")
+    XCTAssertEqual(object.count, 6)
+    XCTAssertNil(object["delivery"])
+    let absent = ExternalAssistantConfiguration(
+      webhookURL: "https://assistant.example/hook", authorization: "Bearer secret",
+      testSucceeded: true)
+    XCTAssertFalse(absent.supportsCancel)
+    let present = ExternalAssistantConfiguration(
+      webhookURL: "https://assistant.example/hook", authorization: "Bearer secret",
+      testSucceeded: true, capabilities: ["cancel"])
+    XCTAssertTrue(present.supportsCancel)
+    XCTAssertFalse(
+      ExternalAssistantConfiguration(
+        webhookURL: "https://assistant.example/hook", authorization: "Bearer secret",
+        testSucceeded: true, capabilities: ["ask"]
+      ).supportsCancel)
+    XCTAssertEqual(
+      ExternalAssistantConfiguration.resolvedCapabilities(
+        explicit: nil, url: "https://assistant.example/hook", previous: present),
+      ["cancel"])
+    XCTAssertEqual(
+      ExternalAssistantConfiguration.resolvedCapabilities(
+        explicit: nil, url: "https://other.example/hook", previous: present),
+      [])
+    issue.reportNumber = nil
+    XCTAssertNil(
+      ExternalAssistant.makeCancelPayload(issue: issue, repo: "owner/name", branch: "screenclip/1"))
+  }
+
+  func testDraftPullRequestIsNeverReadyToMerge() {
+    var evidence = MergeEvidence(
+      expectedHead: "abc", currentHead: "abc", inputRevision: 2, coveredRevision: 2,
+      validationPassed: true, hasValidation: true, checksPassed: true, mergeable: true,
+      reviewSatisfied: true, unresolvedQuestions: false, screenclipEvidenceCleared: true,
+      draft: true)
+    XCTAssertFalse(evidence.canMerge)
+    evidence.draft = false
+    XCTAssertTrue(evidence.canMerge)
+    let draftState = try! JSONDecoder().decode(
+      JSONValue.self, from: Data("{\"isDraft\":true,\"state\":\"OPEN\"}".utf8))
+    XCTAssertTrue(PRState.parse(draftState).draft)
+    let older = try! JSONDecoder().decode(JSONValue.self, from: Data("{\"state\":\"OPEN\"}".utf8))
+    XCTAssertFalse(PRState.parse(older).draft)
+  }
+
+  func testOldQueueDecodesWithoutTheNewHandoffFields() throws {
+    var issue = sampleIssue()
+    issue.externalAgentURL = "https://cursor.com/agents/bc-00000000-0000-4000-8000-000000000000"
+    issue.externalAckRevision = 2
+    issue.externalStatusText = "working"
+    issue.handoffAttempts = 2
+    var stored = try JSONSerialization.jsonObject(with: JSONEncoder().encode(issue)) as? [String: Any]
+    stored?.removeValue(forKey: "externalAgentURL")
+    stored?.removeValue(forKey: "externalAckRevision")
+    stored?.removeValue(forKey: "externalStatusText")
+    stored?.removeValue(forKey: "handoffAttempts")
+    stored?.removeValue(forKey: "handoffRevision")
+    stored?.removeValue(forKey: "handoffCommit")
+    let decoded = try JSONDecoder().decode(
+      Issue.self, from: JSONSerialization.data(withJSONObject: try XCTUnwrap(stored)))
+    XCTAssertNil(decoded.externalAgentURL)
+    XCTAssertNil(decoded.externalAgentLink)
+    XCTAssertNil(decoded.externalAckRevision)
+    XCTAssertNil(decoded.externalStatusText)
+    XCTAssertNil(decoded.handoffAttempts)
+    XCTAssertEqual(decoded.externalConversationNote, ExternalAssistant.conversationNote)
+    issue.prURL = nil
+    issue.externalAgentURL = "https://cursor.com/agents/bc-00000000-0000-4000-8000-000000000000"
+    XCTAssertNil(issue.externalConversationNote)
+    XCTAssertNotNil(issue.externalAgentLink)
+    var settings = try JSONSerialization.jsonObject(with: JSONEncoder().encode(AppSettings()))
+      as? [String: Any]
+    settings?.removeValue(forKey: "externalStatusSeen")
+    let decodedSettings = try JSONDecoder().decode(
+      AppSettings.self, from: JSONSerialization.data(withJSONObject: try XCTUnwrap(settings)))
+    XCTAssertNil(decodedSettings.externalStatusSeen)
+  }
+
   private func sampleIssue() -> Issue {
     var issue = Issue(
       id: UUID(uuidString: "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE") ?? UUID(), projectID: UUID(),
@@ -433,19 +736,22 @@ private final class ExternalHeaderCapture: URLProtocol, @unchecked Sendable {
   private static let lock = NSLock()
   private static var authorization: String?
   private static var body: Data?
-  static func snapshot() -> (authorization: String?, body: Data?) {
+  private static var idempotencyKey: String?
+  static func snapshot() -> (authorization: String?, body: Data?, idempotencyKey: String?) {
     lock.lock()
     defer { lock.unlock() }
-    return (authorization, body)
+    return (authorization, body, idempotencyKey)
   }
   override class func canInit(with request: URLRequest) -> Bool { true }
   override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
   override func startLoading() {
     let authorization = request.value(forHTTPHeaderField: "Authorization")
     let body = Self.bodyData(from: request)
+    let idempotencyKey = request.value(forHTTPHeaderField: "Idempotency-Key")
     Self.lock.lock()
     Self.authorization = authorization
     Self.body = body
+    Self.idempotencyKey = idempotencyKey
     Self.lock.unlock()
     let response = HTTPURLResponse(
       url: request.url ?? URL(fileURLWithPath: "/"), statusCode: Self.statusCode, httpVersion: nil,

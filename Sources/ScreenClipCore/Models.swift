@@ -247,6 +247,14 @@ public struct Issue: Codable, Identifiable, Equatable {
   /// Evidence commit already pushed for this revision. A retry of the same revision reuses it.
   public var handoffRevision: Int? = nil
   public var handoffCommit: String? = nil
+  /// How many times this revision was POSTed. Reset when the revision changes. Optional for old queues.
+  public var handoffAttempts: Int? = nil
+  /// cursor.com agent link reported by the `screenclip/grok-bot` commit status. Kept across revisions.
+  public var externalAgentURL: String? = nil
+  /// Revision whose evidence commit Grok Bot has acknowledged.
+  public var externalAckRevision: Int? = nil
+  /// Latest status description, with control characters removed and length capped.
+  public var externalStatusText: String? = nil
   /// The latest validation or CI failure to hand back to the agent. Kept apart from
   /// `lastError`, which can be any error (a disconnect, a gh failure) and is only shown.
   public var validationFeedback: String? = nil
@@ -288,10 +296,15 @@ public struct Issue: Codable, Identifiable, Equatable {
     }
     return "cd \(quote(worktreePath)) && claude --resume \(quote(threadID))"
   }
-  /// Grok Bot has no deep link. The pull request is the link once it exists.
+  /// Shown until a pull request or a Grok Bot agent link exists.
   public var externalConversationNote: String? {
-    guard resolvedAgent == .external, prURL == nil else { return nil }
+    guard resolvedAgent == .external, prURL == nil, externalAgentLink == nil else { return nil }
     return ExternalAssistant.conversationNote
+  }
+  /// Validated `https://cursor.com/agents/bc-<uuid>` link. Other stored values are not opened.
+  public var externalAgentLink: URL? {
+    guard resolvedAgent == .external, let externalAgentURL else { return nil }
+    return ExternalAssistant.cursorAgentURL(externalAgentURL)
   }
   public var wantsAttention: Bool {
     status.needsAttention
@@ -375,6 +388,7 @@ public struct Issue: Codable, Identifiable, Equatable {
       mergeCommit = nil
       handoffCommit = nil
       handoffRevision = nil
+      handoffAttempts = nil
     }
   }
   public mutating func record(_ text: String, status: IssueStatus? = nil, kind: String = "update") {
@@ -420,6 +434,9 @@ public struct AppSettings: Codable, Equatable {
   public var shortcutDescription = "⌘⇧2"
   public var sessionName = ""
   public var testedVersion = ""
+  /// This Grok Bot connection has posted a `screenclip/grok-bot` status. Optional so old queues decode.
+  /// While it is unset, a missing status keeps the 2-hour reminder and does not warn at 15 minutes.
+  public var externalStatusSeen: Bool? = nil
   public init() {}
 }
 

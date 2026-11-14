@@ -12,6 +12,8 @@ public struct PRState {
   public var checksFailed: Bool
   public var mergeable: Bool
   public var reviewSatisfied: Bool
+  /// A draft is never ready to merge. Missing `isDraft` stays false so older responses still parse.
+  public var draft: Bool
   public var details: String
   public static func parse(_ value: JSONValue) -> PRState {
     let checks = value["statusCheckRollup"].array
@@ -34,6 +36,7 @@ public struct PRState {
         && value["mergeable"].string == "MERGEABLE",
       reviewSatisfied: !["REVIEW_REQUIRED", "CHANGES_REQUESTED"].contains(
         value["reviewDecision"].string ?? ""),
+      draft: value["isDraft"].bool == true,
       details: checks.isEmpty
         ? "Waiting for check results. Configure at least one required CI check for automatic merge."
         : (failed
@@ -63,10 +66,13 @@ public struct MergeEvidence: Equatable {
   public var unresolvedQuestions: Bool
   /// Grok Bot deletes `.screenclip/` in its last commit. Automatic merge waits until that is gone.
   public var screenclipEvidenceCleared: Bool
+  /// Draft pull requests are attached and watched, and are never merged.
+  public var draft: Bool
   public init(
     expectedHead: String, currentHead: String, inputRevision: Int, coveredRevision: Int,
     validationPassed: Bool, hasValidation: Bool, checksPassed: Bool, mergeable: Bool,
-    reviewSatisfied: Bool, unresolvedQuestions: Bool, screenclipEvidenceCleared: Bool = true
+    reviewSatisfied: Bool, unresolvedQuestions: Bool, screenclipEvidenceCleared: Bool = true,
+    draft: Bool = false
   ) {
     self.expectedHead = expectedHead
     self.currentHead = currentHead
@@ -79,10 +85,11 @@ public struct MergeEvidence: Equatable {
     self.reviewSatisfied = reviewSatisfied
     self.unresolvedQuestions = unresolvedQuestions
     self.screenclipEvidenceCleared = screenclipEvidenceCleared
+    self.draft = draft
   }
   public var canMerge: Bool {
     !expectedHead.isEmpty && expectedHead == currentHead && inputRevision == coveredRevision
       && validationPassed && hasValidation && checksPassed && mergeable && reviewSatisfied
-      && !unresolvedQuestions && screenclipEvidenceCleared
+      && !unresolvedQuestions && screenclipEvidenceCleared && !draft
   }
 }
