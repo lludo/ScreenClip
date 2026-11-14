@@ -1,6 +1,6 @@
 # ScreenClip product specification
 
-Updated: November 14, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot; confirmed decisions and remaining product choices. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md).
+Updated: November 14, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md). Closed product questions are under [Decisions](#decisions). The older open-question table is in the [archive](archive/remaining-decisions.md).
 
 ## Problem and intended outcome
 
@@ -40,13 +40,13 @@ Example: while moving through a checkout flow, the tester notices a clipped butt
 | Audience | Eventual public distribution |
 | Agents | Codex, Claude Code, or Grok Bot, chosen per report with a default in Settings; see [Coding agents](agents/README.md) |
 
-Sections below describe the implemented behavior; open questions are listed under [Remaining decisions](#remaining-decisions).
+Sections below describe the implemented behavior. Closed product questions are under [Decisions](#decisions).
 
 ## Capture and submission
 
 1. Invoke a configurable global shortcut. Default shortcut: Command–Shift–2, subject to availability; the built-in screenshot shortcut stays available.
 2. Preserve the source app and available context before ScreenClip takes focus.
-3. Show a crosshair and region selection. Escape cancels. The selection should work across multiple monitors, Retina scales, and full-screen apps.
+3. Show a crosshair and region selection. Escape cancels. A selection that spans two displays is not implemented. Retina scales, full-screen Spaces, and mixed-scale monitors are still on the [roadmap](roadmap.md#open-gates).
 4. Show a compact overlay with the image, a focused note field, an inferred project chip, and an issue destination: **New issue** or **Add to issue…**.
 5. Immediately offer freehand marks, arrows, rectangles, circles/ellipses, text, color and stroke-thickness choices, undo/redo, and an opaque redaction tool. A redaction is a rectangle the user draws; it is flattened to opaque black and is the only mark that hides pixels. Notes and annotations are optional; allow an image-only observation.
 6. Submit using the primary button or Command–Return. Persist the report before acknowledging success, dismiss the overlay, and return focus to the tested app.
@@ -78,7 +78,7 @@ Register a local repository once, then associate it with website origins/path pa
 
 Show the inferred destination before submission. Prefer explicit saved mappings and a user-selected session over guesses from window titles. A browser's app identity alone cannot identify which web project is being tested.
 
-If evidence is missing or conflicting, save the submission as **Needs project** and offer a quick correction. Never start coding in a guessed repository. A correction to an issue already in progress pauses dispatch, retains its history, and asks how to handle any work already produced; it must not silently move edits between projects.
+If evidence is missing or conflicting, save the submission as **Needs project** and offer a quick correction. Never start coding in a guessed repository. Before a chat or worktree exists, assigning a project reassigns the report. After agent work exists, **Move to project** cancels the old report and queues a copy with the same screenshots and notes. It does not move a worktree or a pull request into another repository. A report that already has a pull request cannot be moved until that pull request is closed or merged. Cancel active work first.
 
 ## Menu bar and issue view
 
@@ -126,7 +126,7 @@ A completed agent turn does not prove that a fix works or that a PR merged. “M
 2. Investigate and reproduce where practical. Ask a focused question if the intended behavior is unclear; do not invent it.
 3. Work in an isolated Git worktree and branch; preserve the tester's checkout and local changes.
 4. Implement and run the repository's relevant validation, including a visual check when the issue is visual and the environment supports it.
-5. Open a PR with a concise explanation and evidence. Screenshots stay private by default; attaching them to a public PR is a separate sharing choice.
+5. Open a PR with a concise explanation and evidence. Codex and Claude Code screenshots stay on the Mac. Grok Bot pushes the approved screenshots to a `screenclip/` branch in the project repository; that push is a separate opt-in. See [Grok Bot](agents/external-assistant.md).
 6. Repair failing checks where possible. Merge automatically once configured verification passes and hosting-service policies allow it. Do not bypass required checks or reviews.
 7. Return a concise result: what changed, tests run, PR/merge reference, and how to retest. Show deployment/build status only when independently known.
 
@@ -136,23 +136,25 @@ Related captures received during work are appended to the same issue. Track thei
 
 Include region capture, a quick composer, core annotations, project mapping/inference, local persistence, issue grouping, immediate agent dispatch, status updates, inline questions, exact chat links, PR/merge tracking, retry/cancel/pause, and restart recovery.
 
-Defer video, voice notes, scrolling screenshots, browser DOM/console/network capture, automatic duplicate merging, other operating systems, other AI providers, and team assignment/shared queues. Public packaging and updates follow the working personal prototype; public distribution remains an architectural requirement.
+Codex, Claude Code, and Grok Bot are included. Defer video, voice notes, scrolling screenshots, browser DOM/console/network capture, automatic duplicate merging, other operating systems, further AI providers, and team assignment/shared queues. Public packaging is the notarized GitHub Release described in [Release and distribution](release/README.md). There is no automatic update feed.
 
-## Remaining decisions
+## Decisions
 
-These are open product choices, with proposed defaults so implementation can proceed after the integration prototype:
+These were open while the app was being built. The original table, with the proposed default next to what shipped, is in the [archive](archive/remaining-decisions.md).
 
-| Question | Proposed default |
+| Topic | Decision |
 | --- | --- |
-| Which source-control host first? | GitHub, behind a provider interface |
-| Which browsers first? | Safari and Chrome; confirm how URL access is granted during the native prototype |
-| Local execution or a hosted plugin/event service? | Local agents (Codex, Claude Code) first; the read-only plugin is a companion |
-| Should a merge refresh/relaunch the app under test? | Notify and offer a retest action; keep the running testing session stable |
-| Can AI ask and receive replies inside ScreenClip? | Yes, with a link to the agent's own conversation for longer discussion |
-| Old screenshots and notes? | Retain locally until deletion; add a configurable retention policy before public release |
-| Minimum supported macOS? | macOS 14+ candidate; verify every chosen API and the worker's requirements |
-| Distribution channel? | Direct signed/notarized download first; evaluate App Store feasibility separately |
-| Product name, shortcut, pricing? | ScreenClip is a working name; shortcut configurable; pricing undecided |
+| Source control | GitHub only |
+| Browsers | Safari and Chrome, optional, off until the URL preference is on |
+| Agents | Codex and Claude Code locally; Grok Bot by webhook; the MCP plugin is read-only |
+| After a merge | **To retest**. ScreenClip does not relaunch the app under test |
+| Questions | Answered in ScreenClip for Codex and Claude Code. Grok Bot questions stay in Grok Bot's chat |
+| Old screenshots | Kept until the report is deleted. No automatic expiry yet ([roadmap](roadmap.md)) |
+| macOS | 14 or later |
+| Distribution | Notarized DMG on GitHub Releases. No Mac App Store build |
+| Name, shortcut, price | ScreenClip. Default shortcut ⌘⇧2, configurable. Free, with an optional tip |
+
+Publishing blockers that are still open (license, support email, Sponsors, release secrets) are listed only in [Open source](open-source.md).
 
 ## Release acceptance examples
 

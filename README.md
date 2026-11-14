@@ -2,136 +2,40 @@
 
 **File bugs as you go, without breaking your flow.**
 
-A native macOS menu bar app for capturing the little things you notice: a clipped button, confusing copy, a missing detail, or an idea for improvement. Grab a screenshot, add a note if you need one, and keep going. ScreenClip keeps the image and context together, with Codex, Claude Code, or Grok Bot handling the follow-up work.
+A native macOS menu bar app for the small things you notice: a clipped button, confusing copy, a missing detail, or an idea. Grab a screenshot, add a note if you want one, and keep going. ScreenClip keeps the image and the context together. Codex, Claude Code, or Grok Bot does the follow-up.
 
 <p align="center">
   <img src="docs/screenshots/composer-preview.png" width="780" alt="ScreenClip capture editor with annotation tools, an optional note, and project, issue, and agent selectors.">
 </p>
 
-*The native capture editor, shown with sample data. [See the report queue →](docs/screenshots/queue-preview.png)*
+*The capture editor, with sample data. [Report queue →](docs/screenshots/queue-preview.png)*
 
-## How it works
+## Download
 
-1. **Notice something.** Press **⌘⇧2** and select a region of a website or native Mac app.
-2. **Capture the thought.** Add an optional note, draw an arrow, or redact sensitive details. A screenshot alone works too. ScreenClip suggests a project from the app or browser context; you can correct it before submitting.
-3. **Keep going.** Submit a new report or add evidence to an existing one. Follow progress and answer questions from the menu bar or report queue.
+The public download is a notarized disk image on GitHub Releases:
 
-Each issue keeps its own agent conversation and isolated Git worktree. ScreenClip validates the changes and opens a GitHub PR. Automatic merge runs when enabled for the project and its checks and policies pass; merged fixes appear under **To retest**.
+[Download for Mac](https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg)
 
-## What’s included
+That file exists after a `vX.Y.Z` tag is published. Until then, build from source. The app is free. An optional tip is separate from the download. There is no Mac App Store build: the sandbox blocks `git` and `gh`, which the app has to run. Details are in [Release and distribution](docs/release/README.md).
 
-- **Quick capture and markup.** A configurable global shortcut, freehand drawing, arrows, shapes, text, opaque redaction, and undo/redo.
-- **Context that stays attached.** Source app, optional browser URL, project routing, related captures, and drafts.
-- **Your choice of agent.** Codex, Claude Code, or Grok Bot, with a default in Settings and an override for each new report. Follow-up captures keep the issue’s original agent. Grok Bot is remote: approved screenshots are pushed to a branch in the project repository, then a small webhook is sent. See [Coding agents](docs/agents/README.md).
-- **A searchable feedback queue.** Permanent report numbers such as **#234**, status and project filters, inline replies, and archive/restore without losing evidence. Search a report number across projects, statuses, and archived reports.
-- **The rest of the fix.** Validation, PR checks, merge tracking, recovery after interruptions, and a retest queue.
+Requires **macOS 14 or later**, a local Git repository, GitHub CLI, and one of Codex, Claude Code, or Grok Bot.
 
-## Get started
+## Quick start
 
-Requires **macOS 14+**, **Xcode 16+ with Swift 6**, and a local Git repository. Install and sign in to at least one supported agent: **Codex CLI** with `app-server`, **Claude Code**, or **Grok Bot** (connect it with a setup code). **GitHub CLI** is required for PR automation, and for sending screenshots to Grok Bot. There are no external Swift package dependencies.
+1. **Build and install** with Xcode, or `bash scripts/run.sh`. The shared scheme installs `/Applications/ScreenClip.app`. Signing setup and the first-run checklist are in [Getting started](docs/getting-started.md).
+2. **Add a project** (repository, base branch, routing, validation command) and **connect an agent** in Settings. For Grok Bot, ask the assistant **Connect ScreenClip** and paste the setup code, then turn the project switch on.
+3. Press **⌘⇧2**, select a region, and submit. ScreenClip suggests a project. You can correct it before the report is sent.
 
-### Build and run
-
-```sh
-cp Config/LocalSigning.xcconfig.example Config/LocalSigning.xcconfig
-open ScreenClip.xcodeproj
-```
-
-Set your Apple Development certificate and team in `Config/LocalSigning.xcconfig` before running. This file is ignored by Git. Select **ScreenClip → My Mac** and press **⌘R**. The shared scheme builds, installs, and runs **`/Applications/ScreenClip.app`**. Save any open capture and finish or cancel active work before installing an update. **⌘B** builds without installing or launching.
-
-For the same build-and-install flow from Terminal:
-
-```sh
-bash scripts/run.sh
-```
-
-Local installation requires a signing certificate to keep macOS permissions stable across updates. Build-only checks can use ad-hoc signing. `bash scripts/build.sh [debug|release]` builds without installing; products are under `build/DerivedData/Build/Products/`.
-
-### First capture
-
-1. **Add a project** in **Settings → Projects**: its Git repository, base branch, website URLs or native app bundle IDs, and validation command.
-2. **Connect an agent** in **Settings → Connections**. Use **Detect agents**, choose **Default agent** under **AI agent**, and check sign-in. Codex reuses an existing session when available; **Sign in to Claude** opens Terminal for Claude Code’s login flow. You can also set **Claude Code executable** and **Model (empty uses Claude Code's default)**. For Grok Bot, click **Connect Grok Bot** on its row (or in the capture window). Ask your ScreenClip assistant **Connect ScreenClip**, paste the setup code it replies with, and turn on **Turn on for this project**. That shares approved annotated screenshots by pushing them to a branch in the project's GitHub repo. A private repo is recommended. The same switch in **Settings → Projects** stays off until you enable it.
-3. **Press ⌘⇧2**, grant macOS Screen Recording permission, select a region, and submit. Change the shortcut in Settings if needed.
-
-A native app with no bundle ID listed still routes when exactly one project’s name or repository folder matches the app’s name. When you pick a project for an app capture yourself, ScreenClip remembers that app’s bundle ID for the project, unless another project already lists it.
-
-Browser URL context is optional and may request Safari or Chrome Automation access. Without it, select the project yourself when routing is unavailable.
-
-ScreenClip hides its own windows during capture by default. To report a bug in ScreenClip itself, turn off **Settings → General → Capture → Hide ScreenClip during capture** and save.
-
-## Working with reports
-
-Captures save locally before dispatch, under `~/Library/Application Support/ScreenClip`. Each report runs in its own worktree, and a project runs up to three reports at once by default; change the limit (1–6) in Settings → AI agent. Keep ScreenClip running and the Mac awake while Codex or Claude Code works. Grok Bot keeps working in the cloud if the Mac sleeps; ScreenClip updates the pull request status the next time it is running. Use the report’s reply controls to answer Codex or Claude questions; Grok Bot questions stay in Grok Bot’s chat. Click a report number to copy a reference.
-
-Redaction is only the black rectangles you draw with the redact tool. Those pixels are flattened to opaque black in the saved screenshot. Arrows, pen strokes, shapes, and text do not hide what is underneath. When a capture has a redaction, ScreenClip does not keep the unredacted crop.
-
-Codex and Claude Code see the approved screenshots only on this Mac. Grok Bot is different: the approved PNGs, notes, and report fields are pushed to a `screenclip/` branch in the project repository, and a small JSON message is sent. The browser URL and window title are included only when **Read the active browser URL for project matching** is on. The connection from the setup code stays in the Keychain, not in the queue database. A public repository makes those screenshot files readable by anyone who can see the repo, which is why the project opt-in stays off until you turn it on.
-
-Filed under the wrong project? Choose **Move to project** in the report’s **…** menu. Before an agent starts, the report simply moves. After that, the old report is canceled and a copy with the same screenshots and notes is queued under the right project, because the old chat and worktree belong to the other repository. Cancel active work first.
-
-Forgot a detail? Choose **Add context** in the report to save a text note without another screenshot, including while it is queued or working. Notes stay with the report and are included when the agent next works on it. Adding context during a turn triggers follow-up work; completed reports reopen for a follow-up. Pending questions still use their reply controls.
-
-**Open in Codex** takes you to the exact issue chat. Claude reports offer **Copy Claude resume command**. Grok Bot has no deep link: the report shows the pull request once ScreenClip finds it, and otherwise says the conversation is in Grok Bot’s chat. Cancel stops only the local record; it does not stop Grok Bot. Cancel active work before taking over a local worktree in another coding client. Codex chats may still appear in Recents instead of the expected desktop project; the [repository association review](docs/validation.md#repository-association-review) documents that limitation.
-
-After an interruption, **Reconcile chat** can recover a saved Codex result and independently validate it before publication. For Claude Code, reconciliation checks for an active session process before allowing Continue; it does not recover completed results from Claude history. **Refresh PR status** updates checks immediately. Archive a report to retain its screenshots and outcome while clearing it from the active queue.
-
-Claude session handling and dispatch are covered by synthetic CLI tests. A live Claude fix through validation, PR publication, and merge remains unverified.
-
-The optional [local MCP plugin](plugins/screenclip/README.md) lets an assistant inspect reports, notes, approved screenshots, and status. Automatic pickup is handled by the native app and needs no plugin. For a quick read-only queue review:
-
-```sh
-python3 scripts/review_queue.py --project ScreenClip --details
-```
-
-<details>
-<summary>Screen Recording troubleshooting</summary>
-
-If capture fails even though access is enabled, use **Check screen access** in General settings. After changing access in System Settings, choose **Check again** or **Reopen app** from the permission banner.
-
-If an older ad-hoc build left an unusable permission entry, quit ScreenClip, reset its screen-capture approval, then reopen the Applications copy and capture again:
-
-```sh
-tccutil reset ScreenCapture com.mirageteam.screenclip
-open /Applications/ScreenClip.app
-```
-
-Diagnostics are saved to `~/Library/Application Support/ScreenClip/capture-diagnostics.log`. They contain build and API error metadata, without screenshots, notes, browser URLs, or window titles.
-
-</details>
-
-## Development
-
-```sh
-bash scripts/test.sh
-python3 scripts/check_localizations.py
-bash scripts/render-localizations.sh
-python3 scripts/test_plugin.py
-python3 scripts/test_review_queue.py
-python3 scripts/test_external_assistant.py
-python3 website/build.py
-```
-
-Localization screenshots are written to `build/localization-screenshots/`. See [Localization](docs/localization.md).
-
-`bash scripts/test.sh` accepts `swift test` arguments, such as `--filter SafetyTests`. `bash scripts/package.sh` creates the Release bundle and `build/ScreenClip-macOS.zip`. Release builds enable the hardened runtime. A local notarization still uses `SCREENCLIP_SIGNING_IDENTITY` and a Keychain profile in `SCREENCLIP_NOTARY_PROFILE`. No third-party agent runtime is redistributed.
-
-Public downloads are a notarized DMG on GitHub Releases, with an optional tip. The Mac App Store build is not the plan. See [direct distribution](docs/release/direct-distribution.md) and [validation](docs/validation.md).
+Each report keeps its own agent conversation and an isolated Git worktree. ScreenClip opens a GitHub pull request. Automatic merge runs only when the project allows it and the checks pass. Merged fixes show up under **To retest**.
 
 ## Documentation
 
-**Product and development**
+The full map is the [documentation index](docs/README.md).
 
-- [Localization](docs/localization.md) — string catalogs, screenshots, and the translation check.
-- [Product specification](docs/product-spec.md) — workflow, scope, screens, and status meanings.
-- [Technical design](docs/technical-design.md) — native components, storage, agent integration, and constraints.
-- [Roadmap](docs/roadmap.md) — open gates, next features, and deferred cleanups.
-- [Validation](docs/validation.md) — what is verified, how, and how to reproduce it.
-- [Coding agents](docs/agents/README.md) — how agents plug in, choosing one, and adding a new agent.
-  - [Codex](docs/agents/codex.md) · [Claude Code](docs/agents/claude-code.md) · [Grok Bot](docs/agents/external-assistant.md)
+- [Getting started](docs/getting-started.md) — requirements, build, first capture
+- [User guide](docs/user-guide.md) — the queue, moving a report, privacy, screen recording
+- [Coding agents](docs/agents/README.md) — Codex, Claude Code, and Grok Bot
+- [Development](docs/development.md) — tests, CI, contributing
+- [Website](docs/website.md) — [screenclipai.com](https://screenclipai.com)
 
-**Release and distribution**
-
-- [Direct distribution](docs/release/direct-distribution.md) — GitHub Releases, notarization, and the tip prompt.
-- [Mac App Store sandbox](docs/release/app-store-sandbox.md) — why the sandbox does not fit ScreenClip.
-- [Open-source audit](docs/release/open-source-audit.md) — secret scan of the git history.
-- [Promotional website](website/README.md) — local preview, SEO, and release links.
+Items still open before a public release (support email, license, Sponsors, release secrets) are listed in one place: [Open source](docs/open-source.md).
