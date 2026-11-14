@@ -1,18 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0"><dict>
-    <key>CFBundleName</key><string>ScreenClip</string>
-    <key>CFBundleDisplayName</key><string>ScreenClip</string>
-    <key>CFBundleIdentifier</key><string>com.screenclip.app</string>
-    <key>CFBundleExecutable</key><string>ScreenClip</string>
-    <key>CFBundleIconFile</key><string>AppIcon</string>
-    <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleShortVersionString</key><string>0.1.7</string>
-    <key>CFBundleVersion</key><string>8</string>
-    <key>LSMinimumSystemVersion</key><string>14.0</string>
-    <key>LSUIElement</key><true/>
-    <key>NSHighResolutionCapable</key><true/>
-    <key>NSScreenCaptureUsageDescription</key><string>Capture a region you select to report an app issue to your AI coding assistant.</string>
-    <key>NSAppleEventsUsageDescription</key><string>Read the active Safari or Chrome tab URL when you capture, so ScreenClip can match the right project.</string>
-    <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>ScreenClip issue</string><key>CFBundleURLSchemes</key><array><string>screenclip</string></array></dict></array>
-</dict></plist>
+<plist version="1.0">
+<dict>
+	<key>CFBundleDisplayName</key>
+	<string>ScreenClip</string>
+	<key>CFBundleExecutable</key>
+	<string>ScreenClip</string>
+	<key>CFBundleIconFile</key>
+	<string>AppIcon</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>CFBundleName</key>
+	<string>ScreenClip</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>0.1.7</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>ScreenClip issue</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>screenclip</string>
+			</array>
+		</dict>
+	</array>
+	<key>CFBundleVersion</key>
+	<string>8</string>
+	<key>LSMinimumSystemVersion</key>
+	<string>14.0</string>
+	<key>LSUIElement</key>
+	<true/>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>Read the active Safari or Chrome tab URL when you capture, so ScreenClip can match the right project.</string>
+	<key>NSHighResolutionCapable</key>
+	<true/>
+	<key>NSScreenCaptureUsageDescription</key>
+	<string>Capture a region you select to report an app issue to your AI coding assistant.</string>
+</dict>
+</plist>
