@@ -231,7 +231,9 @@ public struct Issue: Codable, Identifiable, Equatable {
   /// Shell command that reopens this issue's Claude Code session interactively.
   public var claudeResumeCommand: String? {
     guard resolvedAgent == .claude, let threadID, let worktreePath else { return nil }
-    func quote(_ value: String) -> String { "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'" }
+    func quote(_ value: String) -> String {
+      "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
+    }
     return "cd \(quote(worktreePath)) && claude --resume \(quote(threadID))"
   }
   public var reportReference: String? { reportNumber.map { "#\($0)" } }
@@ -250,8 +252,23 @@ public struct Issue: Codable, Identifiable, Equatable {
     let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
     if trimmed.isEmpty { return true }
     if let number = Self.parseReportReference(trimmed) { return reportNumber == number }
-    return title.localizedCaseInsensitiveContains(trimmed)
-      || captures.contains { $0.note.localizedCaseInsensitiveContains(trimmed) }
+    return matchesFeedback(trimmed)
+  }
+  public var canArchive: Bool {
+    !dispatchUncertain && ![.working, .queued, .prOpen].contains(status)
+      && questions.allSatisfy { $0.requestID == nil || $0.reply != nil }
+  }
+  public func matchesFeedback(_ query: String) -> Bool {
+    let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    if text.isEmpty { return true }
+    return title.localizedCaseInsensitiveContains(text)
+      || captures.contains { $0.note.localizedCaseInsensitiveContains(text) }
+      || resultSummary?.localizedCaseInsensitiveContains(text) == true
+      || activities.contains { $0.text.localizedCaseInsensitiveContains(text) }
+      || questions.contains {
+        $0.title.localizedCaseInsensitiveContains(text)
+          || $0.reply?.localizedCaseInsensitiveContains(text) == true
+      }
   }
   public mutating func add(_ capture: Capture) {
     repairAttempts = 0
