@@ -367,6 +367,7 @@ kbd {
 .lang-switcher {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 0.15rem 0.35rem;
   padding-bottom: 1.5rem;
 }
