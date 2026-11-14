@@ -90,7 +90,7 @@ struct QueueView: View {
           }.buttonStyle(.plain).foregroundStyle(.secondary)
         }
       }.listStyle(.sidebar).frame(minWidth: 190, idealWidth: 210)
-        .safeAreaInset(edge: .bottom) {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
           VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 6) {
               Circle().fill(model.connection == "Connected to Codex" ? .green : .secondary).frame(
@@ -106,6 +106,8 @@ struct QueueView: View {
                 systemImage: model.snapshot.settings.paused ? "play.fill" : "pause.fill")
             }.buttonStyle(.plain).font(.caption)
           }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
+            .background(Color(nsColor: .windowBackgroundColor))
+            .overlay(alignment: .top) { Divider() }
         }
       VStack(spacing: 0) {
         VStack(alignment: .leading, spacing: 12) {
