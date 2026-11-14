@@ -1,4 +1,5 @@
 import Foundation
+import ScreenClipCore
 import Security
 
 enum ExternalAssistantKeychain {
