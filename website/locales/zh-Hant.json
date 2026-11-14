@@ -37,7 +37,7 @@
   },
   "hero": {
     "eyebrow": "給 AI 程式代理的截圖回饋",
-    "title": "擷取你注意到的問題。在這裡追蹤修復。",
+    "title": "邊用邊記問題，不打斷你的節奏。",
     "lead": "在 Mac 上框選區域，標出重點，交給 Codex、Claude Code 或 Grok Bot。ScreenClip 追蹤 GitHub 拉取請求，只在你允許時合併，並把結果留待再測。"
   },
   "demo": {

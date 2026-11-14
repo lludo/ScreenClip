@@ -66,7 +66,7 @@ The support email on `/support` is the literal placeholder **TODO** in `website/
 | Russian | `/ru/` |
 | Chinese Traditional | `/zh-hant/` |
 
-`hero.title` is the whole headline. `[[this part]]` is the optional accent; the brackets are not shown. Replace that one key when the tagline changes. Product names, `Cmd` / `Shift` / `2`, setting labels, and `{code:…}` paths stay as written.
+`hero.title` is the whole headline. `[[this part]]` is the optional accent; the brackets are not shown. The English headline breaks after its first comma; other languages wrap naturally. Replace that one key when the tagline changes. Product names, `Cmd` / `Shift` / `2`, setting labels, and `{code:…}` paths stay as written.
 
 The footer lists every language as a normal link. Choosing one stores `screenclip_lang` in a cookie and in local storage.
 

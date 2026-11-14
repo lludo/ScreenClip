@@ -37,7 +37,7 @@
   },
   "hero": {
     "eyebrow": "Feedback por captura para agentes de código",
-    "title": "Capture o que você notar. Acompanhe a correção aqui.",
+    "title": "Registre bugs no fluxo, sem interromper o ritmo.",
     "lead": "Selecione uma região no Mac, marque o que importa e entregue ao Codex, Claude Code ou Grok Bot. O ScreenClip acompanha o pull request no GitHub, faz o merge só quando você permite e guarda o resultado para testar de novo."
   },
   "demo": {

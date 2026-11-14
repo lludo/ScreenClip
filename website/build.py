@@ -707,6 +707,7 @@ def build():
             (popup["POPUP_DARK_PNG"], "(prefers-color-scheme: dark)", "image/png"),
         ]
         tokens = {
+            "HERO_TITLE": catalog.html("hero.title", config).replace(", ", ",<br>", 1) if catalog.id == "en" else catalog.html("hero.title", config),
             "ACTIONS": render_actions(config, catalog),
             "FAQ": render_faq(config, catalog),
             "SOURCE_LINE": source_line(config, catalog),

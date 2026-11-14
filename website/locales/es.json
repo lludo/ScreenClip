@@ -37,7 +37,7 @@
   },
   "hero": {
     "eyebrow": "Comentarios con captura para agentes de código",
-    "title": "Captura lo que notes. Sigue la corrección aquí.",
+    "title": "Registra fallos sobre la marcha, sin romper tu ritmo.",
     "lead": "Selecciona una zona en el Mac, marca lo importante y entrégalo a Codex, Claude Code o Grok Bot. ScreenClip sigue la pull request de GitHub, la fusiona solo si tú lo permites y guarda el resultado para volver a probarlo."
   },
   "demo": {
