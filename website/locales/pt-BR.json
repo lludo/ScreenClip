@@ -42,7 +42,7 @@
   },
   "demo": {
     "title": "A barra de menus",
-    "alt": "Janela da barra de menus do ScreenClip com relatórios de exemplo: 1 aberto, 1 que precisa de você e 19 para testar de novo. A lista mostra títulos, o projeto ScreenClip, o status Needs you ou Merged, e New capture, Open queue e Pause.",
+    "alt": "Menu do ScreenClip com três relatórios de exemplo de uma loja de demonstração: em andamento, precisa de você e mesclado.",
     "caption": "Abertos, precisam de você e prontos para reteste."
   },
   "loop": {

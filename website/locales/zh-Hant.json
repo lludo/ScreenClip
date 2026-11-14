@@ -42,7 +42,7 @@
   },
   "demo": {
     "title": "選單列",
-    "alt": "ScreenClip 選單列彈出視窗，範例報告為：1 個未完成、1 個需要你處理、19 個待再測。清單包含標題、ScreenClip 專案、Needs you 或 Merged 狀態，以及 New capture、Open queue 與 Pause。",
+    "alt": "ScreenClip 選單顯示示範商店的三份範例報告，狀態分別為處理中、需要處理和已合併。",
     "caption": "未完成、需要你處理，以及可以再測。"
   },
   "loop": {

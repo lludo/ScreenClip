@@ -617,8 +617,8 @@ def check_output(config, pages):
         raise SystemExit("The menu bar image must be eager, sized, and described")
     if 'width="' not in lcp.group(0) or 'height="' not in lcp.group(0):
         raise SystemExit("The menu bar image needs explicit width and height")
-    if "image/avif" not in home or "image/webp" not in home or "prefers-color-scheme: dark" not in home:
-        raise SystemExit("The menu bar picture is missing a dark or modern source")
+    if "image/png" not in home or "prefers-color-scheme: dark" not in home:
+        raise SystemExit("The menu bar picture is missing its dark source")
     for href in re.findall(r'(?:href|src|srcset)="([^"]+)"', text):
         if href.startswith(("https://", "http://", "mailto:")):
             continue
@@ -670,18 +670,14 @@ def build():
     css_href = fingerprinted(SRC / "styles.css", hashed)
     popup_width, popup_height = png_size(SRC / "assets" / "popup-light.png")
     popup = {
-        "POPUP_LIGHT_AVIF": fingerprinted(SRC / "assets" / "popup-light.avif", hashed),
-        "POPUP_LIGHT_WEBP": fingerprinted(SRC / "assets" / "popup-light.webp", hashed),
         "POPUP_LIGHT_PNG": fingerprinted(SRC / "assets" / "popup-light.png", hashed),
-        "POPUP_DARK_AVIF": fingerprinted(SRC / "assets" / "popup-dark.avif", hashed),
-        "POPUP_DARK_WEBP": fingerprinted(SRC / "assets" / "popup-dark.webp", hashed),
         "POPUP_DARK_PNG": fingerprinted(SRC / "assets" / "popup-dark.png", hashed),
         "POPUP_W": str(popup_width),
         "POPUP_H": str(popup_height),
     }
     home_preloads = [
-        (popup["POPUP_LIGHT_AVIF"], "(prefers-color-scheme: light)", "image/avif"),
-        (popup["POPUP_DARK_AVIF"], "(prefers-color-scheme: dark)", "image/avif"),
+        (popup["POPUP_LIGHT_PNG"], "(prefers-color-scheme: light)", "image/png"),
+        (popup["POPUP_DARK_PNG"], "(prefers-color-scheme: dark)", "image/png"),
     ]
     print("Drawing icons…")
     write_icons(assets)

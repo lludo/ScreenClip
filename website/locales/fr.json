@@ -42,7 +42,7 @@
   },
   "demo": {
     "title": "La barre des menus",
-    "alt": "Fenêtre de la barre des menus ScreenClip avec des rapports d’exemple : 1 ouvert, 1 qui a besoin de vous et 19 à retester. La liste montre les titres, le projet ScreenClip, l’état Needs you ou Merged, ainsi que New capture, Open queue et Pause.",
+    "alt": "Menu ScreenClip affichant trois rapports fictifs pour une boutique de démonstration, en cours, à traiter et fusionnés.",
     "caption": "Ouverts, à traiter et prêts à retester."
   },
   "loop": {

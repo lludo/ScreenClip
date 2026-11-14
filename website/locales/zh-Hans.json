@@ -42,7 +42,7 @@
   },
   "demo": {
     "title": "菜单栏",
-    "alt": "ScreenClip 菜单栏弹窗，示例报告为：1 个未完成、1 个需要你处理、19 个待复测。列表包含标题、ScreenClip 项目、Needs you 或 Merged 状态，以及 New capture、Open queue 和 Pause。",
+    "alt": "ScreenClip 菜单显示演示商店的三份示例报告，状态分别为处理中、需要处理和已合并。",
     "caption": "未完成、需要你处理，以及可以复测。"
   },
   "loop": {

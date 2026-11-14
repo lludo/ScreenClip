@@ -42,7 +42,7 @@
   },
   "demo": {
     "title": "The menu bar",
-    "alt": "ScreenClip menu bar popup with sample reports: 1 open, 1 that needs you, and 19 to retest. The list shows report titles, the ScreenClip project, and Needs you or Merged status, with New capture, Open queue, and Pause.",
+    "alt": "ScreenClip menu bar showing three sample reports for a demo storefront, with working, needs-you, and merged statuses.",
     "caption": "Open, needs you, and ready to retest."
   },
   "loop": {

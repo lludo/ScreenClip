@@ -159,17 +159,22 @@ import SwiftUI
       try bitmap.representation(using: .png, properties: [:])?.write(
         to: root.appendingPathComponent("settings-preview.png"))
     }
-    window.contentView = NSHostingView(
-      rootView: MenuPopover(model: model).preferredColorScheme(.dark))
     window.setContentSize(NSSize(width: 370, height: 440))
-    window.display()
-    RunLoop.main.run(until: Date().addingTimeInterval(0.5))
-    if let view = window.contentView,
-      let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)
-    {
-      view.cacheDisplay(in: view.bounds, to: bitmap)
-      try bitmap.representation(using: .png, properties: [:])?.write(
-        to: root.appendingPathComponent("menu-preview.png"))
+    for scheme in [ColorScheme.light, .dark] {
+      window.contentView = NSHostingView(
+        rootView: MenuPopover(model: model)
+          .background(scheme == .light ? Color(white: 0.97) : Color(white: 0.13))
+          .clipShape(RoundedRectangle(cornerRadius: 12))
+          .preferredColorScheme(scheme))
+      window.display()
+      RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+      if let view = window.contentView,
+        let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)
+      {
+        view.cacheDisplay(in: view.bounds, to: bitmap)
+        try bitmap.representation(using: .png, properties: [:])?.write(
+          to: root.appendingPathComponent("menu-\(scheme == .light ? "light" : "dark")-preview.png"))
+      }
     }
     window.orderOut(nil)
   }
