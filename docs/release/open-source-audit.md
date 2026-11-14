@@ -6,7 +6,7 @@ A rewrite earlier the same day already removed the real queue snapshot and the r
 
 ## Current branch tips
 
-`main`, `claude/unstick-agent-runs`, and `cursor/grok-bot-handoff-trace-debb` do not contain `Fixtures/ScreenshotData`, `/Users/ludo`, `MemoVault`, or `com.ludoviclandry.Genealogy`.
+`main`, `claude/unstick-agent-runs`, and `cursor/grok-bot-handoff-trace-debb` do not contain `Fixtures/ScreenshotData`, `/Users/<redacted>`, `MemoVault`, or `com.ludoviclandry.Genealogy`.
 
 | Checked on `main` | Result |
 | --- | --- |
@@ -54,10 +54,10 @@ The other pull refs (1–23, 31, 32) do not contain those commits or blobs.
 
 | String | Where |
 | --- | --- |
-| `/Users/ludo/Documents-Local/GitHub/ScreenClip` | Project path |
-| `/Users/ludo/Documents-Local/GitHub/Genealogy` | Project path |
-| `/Users/ludo/Documents-Local/GitHub/MemoVault` | Project path |
-| `/Users/ludo/Library/Application Support/ScreenClip/{assets,originals,worktrees}/…` | Capture and worktree paths |
+| `/Users/<redacted>/Documents-Local/GitHub/ScreenClip` | Project path |
+| `/Users/<redacted>/Documents-Local/GitHub/Genealogy` | Project path |
+| `/Users/<redacted>/Documents-Local/GitHub/MemoVault` | Project path |
+| `/Users/<redacted>/Library/Application Support/ScreenClip/{assets,originals,worktrees}/…` | Capture and worktree paths |
 | `com.ludoviclandry.Genealogy` | Bundle id |
 | `Ludo Library`, `Greek Gods v8` | Window titles |
 | `https://github.com/lludo/Genealogy/pull/1429`–`1433` and `1435`–`1437` | Result links |
@@ -65,7 +65,7 @@ The other pull refs (1–23, 31, 32) do not contain those commits or blobs.
 
 The same commit also stored this Swift string, which the rewrite removed from the branches and which the pull refs still have:
 
-`/Users/ludo/Library/Application Support/ScreenClip/`
+`/Users/<redacted>/Library/Application Support/ScreenClip/`
 
 in `Sources/ScreenClip/ScreenshotFixture.swift` at `336b09f`.
 
