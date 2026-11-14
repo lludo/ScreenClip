@@ -12,7 +12,7 @@ let package = Package(
   targets: [
     .systemLibrary(name: "CSQLite"),
     .target(name: "ScreenClipCore", dependencies: ["CSQLite"]),
-    .executableTarget(name: "ScreenClip", dependencies: ["ScreenClipCore"]),
+    .executableTarget(name: "ScreenClip", dependencies: ["ScreenClipCore"], resources: [.process("Assets.xcassets"), .copy("AgentIcons-LICENSE.txt")]),
     .executableTarget(name: "ScreenClipProbe", dependencies: ["ScreenClipCore"]),
     .testTarget(name: "ScreenClipCoreTests", dependencies: ["ScreenClipCore"]),
     .testTarget(name: "ScreenClipAppTests", dependencies: ["ScreenClip"]),

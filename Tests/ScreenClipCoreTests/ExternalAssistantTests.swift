@@ -3,6 +3,16 @@ import XCTest
 @testable import ScreenClipCore
 
 final class ExternalAssistantTests: XCTestCase {
+  func testFilingChoicesIncludeOnlyUsableAgentsForTheProject() {
+    let detections = [
+      AgentDetection(kind: .codex, path: "/codex", version: "1", signedIn: nil, detail: ""),
+      AgentDetection(kind: .claude, path: "/claude", version: "1", signedIn: false, detail: ""),
+      AgentDetection(kind: .external, path: "", version: "configured", signedIn: true, detail: ""),
+    ]
+    XCTAssertEqual(AgentPicker.filingChoices(detections: [], externalAvailable: true), [])
+    XCTAssertEqual(AgentPicker.filingChoices(detections: detections, externalAvailable: false), [.codex])
+    XCTAssertEqual(AgentPicker.filingChoices(detections: detections, externalAvailable: true), [.codex, .external])
+  }
   func testPayloadOmitsPageContextAndImageBytesUntilContextIsAllowed() throws {
     let issue = sampleIssue()
     let project = Project(

@@ -202,7 +202,7 @@ struct QueueView: View {
     model.snapshot.issues.filter { filter.includes($0, projectID: project, agent: agent) }.count
   }
   private func filterOption(
-    _ title: String, symbol: String? = nil, count: Int, selected: Bool, action: @escaping () -> Void
+    _ title: String, symbol: String? = nil, agent: AgentKind? = nil, count: Int, selected: Bool, action: @escaping () -> Void
   ) -> some View {
     Button {
       action()
@@ -211,7 +211,8 @@ struct QueueView: View {
       HStack(spacing: 8) {
         Image(systemName: selected ? "checkmark" : "circle.fill")
           .opacity(selected ? 1 : 0).frame(width: 12)
-        if let symbol { Image(systemName: symbol).frame(width: 16) }
+        if let agent { AgentIcon(kind: agent).frame(width: 16) }
+        else if let symbol { Image(systemName: symbol).frame(width: 16) }
         Text(title)
         Spacer(minLength: 16)
         Text("\(count)").foregroundStyle(.secondary).monospacedDigit()
@@ -255,7 +256,7 @@ struct QueueView: View {
         ForEach(AgentKind.allCases) { agent in
           let count = filterCount(project: projectFilter, agent: agent)
           if count > 0 || agentFilter == agent {
-            filterOption(agent.title, symbol: "sparkles", count: count, selected: agentFilter == agent) { agentFilter = agent }
+            filterOption(agent.title, agent: agent, count: count, selected: agentFilter == agent) { agentFilter = agent }
           }
         }
       }.padding(8).frame(minWidth: 210)

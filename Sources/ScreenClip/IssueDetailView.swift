@@ -28,7 +28,7 @@ struct IssueDetailView: View {
         }
         Text(issue.title).font(.system(size: 25, weight: .semibold)).textSelection(.enabled)
         HStack(spacing: 12) {
-          Label(issue.resolvedAgent.title, systemImage: "cpu").font(.caption)
+          AgentLabel(kind: issue.resolvedAgent).font(.caption)
             .foregroundStyle(.secondary).help("Agent working on this issue")
           if let note = issue.externalConversationNote {
             Text(note).font(.caption).foregroundStyle(.secondary)

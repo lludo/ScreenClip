@@ -13,7 +13,6 @@ struct ComposerView: View {
   @State private var issueID: UUID?
   @State private var agent: AgentKind = .codex
   @State private var error: String?
-  @State private var showGrokConnect = false
   @FocusState private var noteFocused: Bool
   var body: some View {
     VStack(spacing: 0) {
@@ -110,73 +109,59 @@ struct ComposerView: View {
       }.padding(20)
       Divider()
       VStack(alignment: .leading, spacing: 12) {
-        HStack(alignment: .top, spacing: 20) {
-          VStack(alignment: .leading, spacing: 6) {
-            Text("Project").font(.caption).foregroundStyle(.secondary)
-            Picker("Project", selection: $projectID) {
-              Text("Choose project…").tag(nil as UUID?)
-              ForEach(model.snapshot.projects) {
-                Label($0.name, systemImage: $0.displaySymbol).tag(Optional($0.id))
-              }
-            }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityLabel("Project")
-              .disabled(existing != nil && existing?.status != .draft)
-          }.frame(maxWidth: .infinity, alignment: .leading)
-          VStack(alignment: .leading, spacing: 6) {
-            Text("Issue").font(.caption).foregroundStyle(.secondary)
-            Picker("Issue", selection: $issueID) {
-              Text("New issue").tag(nil as UUID?)
-              ForEach(
-                model.snapshot.issues.filter {
-                  !$0.archived && $0.projectID == projectID && $0.status != .draft
+        GeometryReader { geometry in
+          HStack(alignment: .top, spacing: 20) {
+            VStack(alignment: .leading, spacing: 6) {
+              Text("Project").font(.caption).foregroundStyle(.secondary)
+              Picker("Project", selection: $projectID) {
+                Text("Choose project…").tag(nil as UUID?)
+                ForEach(model.snapshot.projects) {
+                  Label($0.name, systemImage: $0.displaySymbol).tag(Optional($0.id))
                 }
-              ) { Text($0.referencedTitle).tag(Optional($0.id)) }
-              if let existing, existing.status == .draft {
-                Text(existing.reportReference.map { "Current draft \($0)" } ?? "Current draft")
-                  .tag(Optional(existing.id))
-              }
-            }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityLabel("Issue")
-          }.frame(maxWidth: .infinity, alignment: .leading)
-          VStack(alignment: .leading, spacing: 6) {
-            Text("Agent").font(.caption).foregroundStyle(.secondary)
-            Menu {
-              ForEach(agentOptions) { option in
-                Button {
-                  agent = option.kind
-                } label: {
-                  if option.kind == agent {
-                    Label(option.title, systemImage: "checkmark")
-                  } else {
-                    Text(option.title)
+              }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityLabel("Project")
+                .disabled(existing != nil && existing?.status != .draft)
+            }.frame(width: max(0, (geometry.size.width - 40) / 3), alignment: .leading)
+            VStack(alignment: .leading, spacing: 6) {
+              Text("Issue").font(.caption).foregroundStyle(.secondary)
+              Picker("Issue", selection: $issueID) {
+                Text("New issue").tag(nil as UUID?)
+                ForEach(
+                  model.snapshot.issues.filter {
+                    !$0.archived && $0.projectID == projectID && $0.status != .draft
+                  }
+                ) { Text($0.referencedTitle).tag(Optional($0.id)) }
+                if let existing, existing.status == .draft {
+                  Text(existing.reportReference.map { "Current draft \($0)" } ?? "Current draft")
+                    .tag(Optional(existing.id))
+                }
+              }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityLabel("Issue")
+            }.frame(width: max(0, (geometry.size.width - 40) / 3), alignment: .leading)
+            VStack(alignment: .leading, spacing: 6) {
+              Text("Agent").font(.caption).foregroundStyle(.secondary)
+              Picker("Agent", selection: $agent) {
+                if agentChoices.isEmpty && lockedAgent == nil {
+                  Text(model.detectingAgents ? "Checking agents…" : "No agents available").tag(agent)
+                } else {
+                  ForEach(agentChoices, id: \.self) { kind in
+                    AgentLabel(kind: kind).tag(kind)
                   }
                 }
-                .disabled(!option.enabled)
               }
-            } label: {
-              Text(model.detection(agent)?.label ?? agent.title)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .menuStyle(.borderlessButton)
-            .disabled(lockedAgent != nil)
-            .accessibilityLabel("Agent")
-            .help(
-              lockedAgent != nil
-                ? "Follow-up captures continue with the issue's existing agent."
-                : "Which agent works on this report.")
-          }.frame(maxWidth: 230, alignment: .leading)
-        }
-        if lockedAgent == nil, agent != .external, let found = model.detection(agent), !found.usable {
-          Text(found.detail + " The report will wait in the queue until it is ready.")
-            .font(.caption).foregroundStyle(.orange)
-        }
-        if let hint = externalAvailability.hint, lockedAgent == nil || lockedAgent == .external {
-          VStack(alignment: .leading, spacing: 6) {
-            Text(hint).font(.caption).foregroundStyle(.orange)
-            if showsGrokConnect {
-              Button("Connect Grok Bot") { showGrokConnect = true }.controlSize(.small)
-            }
+              .labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+              .disabled(lockedAgent != nil || agentChoices.isEmpty)
+              .accessibilityLabel("Agent")
+              .help(
+                lockedAgent != nil
+                  ? "Follow-up captures continue with the issue's existing agent."
+                  : "Which agent works on this report.")
+            }.frame(width: max(0, (geometry.size.width - 40) / 3), alignment: .leading)
           }
+        }
+        .frame(height: 52)
+        if lockedAgent == .external, let hint = externalAvailability.hint {
+          Text(hint).font(.caption).foregroundStyle(.orange)
         }
         if let error { Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
         HStack {
@@ -188,6 +173,7 @@ struct ComposerView: View {
           Button("Submit", action: { submit(draft: false) }).buttonStyle(.borderedProminent).tint(
             .orange
           ).keyboardShortcut(.return, modifiers: .command)
+            .disabled(lockedAgent == nil && agentChoices.isEmpty)
         }
       }.padding(20)
     }
@@ -199,18 +185,21 @@ struct ComposerView: View {
         ?? ProjectRouter.infer(context, projects: model.snapshot.projects).projectID
       issueID = existing?.id
       agent = lockedAgent ?? existing?.agent ?? model.snapshot.settings.preferredAgent
+      reconcileAgent()
       if let existing, existing.status == .draft, let capture = existing.captures.first {
         note = capture.note
         if capture.originalPath != nil { document.marks = capture.annotations }
       }
     }
-    .onChange(of: projectID) { _, _ in if existing == nil { issueID = nil } }
+    .onChange(of: projectID) { _, _ in
+      if existing == nil { issueID = nil }
+      reconcileAgent()
+    }
     .onChange(of: issueID) { _, _ in
       agent = lockedAgent ?? existing?.agent ?? model.snapshot.settings.preferredAgent
+      reconcileAgent()
     }
-    .sheet(isPresented: $showGrokConnect) {
-      GrokConnectSheet(model: model, initialCode: nil, projectID: projectID, onSaved: {})
-    }
+    .onChange(of: model.agents) { _, _ in reconcileAgent() }
   }
   /// Drafts are new reports or the draft being edited, never evidence on a submitted issue.
   private var canSaveDraft: Bool {
@@ -223,30 +212,19 @@ struct ComposerView: View {
     }
     return target.resolvedAgent
   }
-  private struct AgentOption: Identifiable {
-    var kind: AgentKind
-    var title: String
-    var enabled: Bool
-    var id: AgentKind { kind }
-  }
-  private var showsGrokConnect: Bool {
-    !model.loadExternalAssistant().isConfigured && (lockedAgent == nil || lockedAgent == .external)
-  }
   private var externalAvailability: ExternalAgentAvailability {
     AgentPicker.externalAvailability(
       configured: model.loadExternalAssistant().isConfigured, hasProject: projectID != nil,
       projectOptIn: model.project(projectID)?.sendsExternalScreenshots == true)
   }
-  private var agentOptions: [AgentOption] {
-    agentChoices.map { kind in
-      let title = model.detection(kind)?.label ?? kind.title
-      let enabled = kind == .external ? externalAvailability.enabled : true
-      return AgentOption(kind: kind, title: title, enabled: enabled)
-    }
-  }
   private var agentChoices: [AgentKind] {
-    let available = model.availableAgents
-    return AgentKind.allCases.filter { available.contains($0) || $0 == agent }
+    if let lockedAgent { return [lockedAgent] }
+    return AgentPicker.filingChoices(
+      detections: model.agents, externalAvailable: externalAvailability.enabled)
+  }
+  private func reconcileAgent() {
+    if let lockedAgent { agent = lockedAgent }
+    else if !agentChoices.contains(agent), let first = agentChoices.first { agent = first }
   }
   private func symbol(_ tool: MarkKind) -> String {
     switch tool {

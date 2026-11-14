@@ -298,6 +298,16 @@ public struct ExternalAgentAvailability: Equatable {
 }
 
 public enum AgentPicker {
+  /// Only offer agents that can be used for this project when filing a report.
+  public static func filingChoices(
+    detections: [AgentDetection], externalAvailable: Bool
+  ) -> [AgentKind] {
+    AgentKind.allCases.filter { kind in
+      detections.contains { $0.kind == kind && $0.usable }
+        && (kind != .external || externalAvailable)
+    }
+  }
+
   public static func externalAvailability(
     configured: Bool, hasProject: Bool, projectOptIn: Bool
   ) -> ExternalAgentAvailability {

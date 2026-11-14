@@ -30,7 +30,7 @@ struct GrokBotConnectionRow: View {
         Image(systemName: connected ? "checkmark.circle.fill" : "xmark.circle")
           .foregroundStyle(connected ? Color.green : Color.secondary)
         VStack(alignment: .leading, spacing: 2) {
-          Text("Grok Bot")
+          AgentLabel(kind: .external)
           Text(statusText)
             .font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
           if let testResult {
