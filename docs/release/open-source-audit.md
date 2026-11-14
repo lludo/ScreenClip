@@ -31,7 +31,7 @@ The new history does not contain the 68 paths under `Fixtures/ScreenshotData/` o
 | `website/src/assets/popup-light.avif` | `f75888249489060441223a23ab53eb0e7a16e06f` |
 | `website/src/assets/popup-dark.avif` | `dd763bb83cbdc2aaa6f8a35b968bded9305bb70d` |
 
-The synthetic PNGs that replaced them are `44b2b3e754a972670492d8df3eb2624adff2281d` (light) and `d642fa8eee5a2620040d17a42259c0a660ad49db` (dark). Leave those in place.
+The synthetic PNGs that replaced them are `44b2b3e754a972670492d8df3eb2624adff2281d` (light) and `d642fa8eee5a2620040d17a42259c0a660ad49db` (dark). That was the release-audit guidance at the time. The website now uses localized menu images rendered from an isolated snapshot of real ScreenClip reports, at the owner’s request; reassess their contents before publication.
 
 Most author addresses on the rewritten branches are `631630+lludo@users.noreply.github.com`. The home-directory string in the old `docs/agent-integrations.md` example is gone.
 

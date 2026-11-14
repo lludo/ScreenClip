@@ -37,12 +37,12 @@
   },
   "hero": {
     "eyebrow": "Screenshot-Feedback für Coding-Agenten",
-    "title": "Vom Screenshot zum [[Pull Request.]]",
+    "title": "Halte fest, was dir auffällt. Verfolge den Fix hier.",
     "lead": "Markiere einen Bereich auf dem Mac, hebe hervor, was zählt, und übergib es an Codex, Claude Code oder Grok Bot. ScreenClip verfolgt den GitHub-Pull-Request, mergt nur wenn du es erlaubst, und behält das Ergebnis für den erneuten Test."
   },
   "demo": {
     "title": "Die Menüleiste",
-    "alt": "ScreenClip-Menü mit drei Beispielberichten für einen Demo-Shop: in Bearbeitung, benötigt deine Hilfe und zusammengeführt.",
+    "alt": "ScreenClip-Menü mit echten Meldungen, darunter Meldungen mit Handlungsbedarf und ein zusammengeführter Fix.",
     "caption": "Offen, braucht dich und bereit zum erneuten Test."
   },
   "loop": {
@@ -136,8 +136,14 @@
         "q": "Wo erscheinen Fragen des Agenten?",
         "a": "Fragen von Codex und Claude Code erscheinen im Bericht, und du antwortest dort. Fragen von Grok Bot bleiben im Chat von Grok Bot. Cancel stoppt nur den lokalen Eintrag. Es stoppt keinen Grok-Bot-Lauf, der schon gesendet wurde."
       },
-      { "id": "cost", "q": "Was kostet es?" },
-      { "id": "download", "q": "Kann ich es laden?" },
+      {
+        "id": "cost",
+        "q": "Was kostet es?"
+      },
+      {
+        "id": "download",
+        "q": "Kann ich es laden?"
+      },
       {
         "q": "Funktioniert das mit Websites und Mac-Apps?",
         "a": "Ja. Erfasse einen Bereich einer Website oder einer nativen Mac-App. Registriere ein Repository und verknüpfe es mit Website-Adressen oder Bundle-IDs von Apps. Das Projekt kannst du vor dem Senden ändern. Ist das Projekt unklar, speichert ScreenClip den Bericht und wartet, statt ein Repository zu raten."
@@ -223,5 +229,15 @@
     "eyebrow": "404",
     "title": "Diese Seite ist nicht hier.",
     "body": "Die Adresse ist vielleicht falsch geschrieben, oder die Seite ist umgezogen. Die Links unten sind die Seiten, die es auf dieser Website wirklich gibt."
+  },
+  "benefits": {
+    "eyebrow": "Warum ScreenClip",
+    "title": "Teste weiter. Bleib konzentriert.",
+    "clearTitle": "Ein aufgeräumter Schreibtisch",
+    "clearBody": "Bewahre Aufnahmen bei ihren Meldungen auf, statt Screenshots auf dem Schreibtisch zu verteilen.",
+    "flowTitle": "Bleib im Arbeitsfluss",
+    "flowBody": "Melde eine Beobachtung schnell, ohne ständig zu wechseln oder in deinem KI-Tool von Hand einen neuen Thread zu erstellen.",
+    "noticeTitle": "Kleine Dinge festhalten",
+    "noticeBody": "Erfasse kleine Fehler, störende Details und Ideen, sobald sie dir auffallen, damit sie beim Testen nicht verloren gehen."
   }
 }

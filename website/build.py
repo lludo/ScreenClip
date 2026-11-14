@@ -668,17 +668,6 @@ def build():
     shutil.copyfile(SRC / "assets" / "icon.svg", assets / "icon.svg")
     shutil.copyfile(SRC / "assets" / "og.png", assets / "og.png")
     css_href = fingerprinted(SRC / "styles.css", hashed)
-    popup_width, popup_height = png_size(SRC / "assets" / "popup-light.png")
-    popup = {
-        "POPUP_LIGHT_PNG": fingerprinted(SRC / "assets" / "popup-light.png", hashed),
-        "POPUP_DARK_PNG": fingerprinted(SRC / "assets" / "popup-dark.png", hashed),
-        "POPUP_W": str(popup_width),
-        "POPUP_H": str(popup_height),
-    }
-    home_preloads = [
-        (popup["POPUP_LIGHT_PNG"], "(prefers-color-scheme: light)", "image/png"),
-        (popup["POPUP_DARK_PNG"], "(prefers-color-scheme: dark)", "image/png"),
-    ]
     print("Drawing icons…")
     write_icons(assets)
 
@@ -701,6 +690,22 @@ def build():
     written = {}
     hashes = []
     for catalog in catalogs:
+        popup_dir = SRC / "assets" / "localized-menu"
+        light = popup_dir / f"{catalog.id}-light.png"
+        dark = popup_dir / f"{catalog.id}-dark.png"
+        popup_width, popup_height = png_size(light)
+        if png_size(dark) != (popup_width, popup_height):
+            raise SystemExit(f"Mismatched menu image sizes for {catalog.id}")
+        popup = {
+            "POPUP_LIGHT_PNG": fingerprinted(light, hashed),
+            "POPUP_DARK_PNG": fingerprinted(dark, hashed),
+            "POPUP_W": str(popup_width),
+            "POPUP_H": str(popup_height),
+        }
+        home_preloads = [
+            (popup["POPUP_LIGHT_PNG"], "(prefers-color-scheme: light)", "image/png"),
+            (popup["POPUP_DARK_PNG"], "(prefers-color-scheme: dark)", "image/png"),
+        ]
         tokens = {
             "ACTIONS": render_actions(config, catalog),
             "FAQ": render_faq(config, catalog),

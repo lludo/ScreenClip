@@ -37,12 +37,12 @@
   },
   "hero": {
     "eyebrow": "Retours par capture pour les agents de code",
-    "title": "D’une capture à une [[pull request.]]",
+    "title": "Capturez ce que vous remarquez. Suivez le correctif ici.",
     "lead": "Sélectionnez une zone sur le Mac, marquez ce qui compte et confiez-la à Codex, Claude Code ou Grok Bot. ScreenClip suit la pull request GitHub, ne la fusionne que si vous l’autorisez, et garde le résultat pour un nouveau test."
   },
   "demo": {
     "title": "La barre des menus",
-    "alt": "Menu ScreenClip affichant trois rapports fictifs pour une boutique de démonstration, en cours, à traiter et fusionnés.",
+    "alt": "Menu ScreenClip affichant de vrais signalements, dont certains demandent une intervention et un correctif fusionné.",
     "caption": "Ouverts, à traiter et prêts à retester."
   },
   "loop": {
@@ -136,8 +136,14 @@
         "q": "Où apparaissent les questions de l’agent ?",
         "a": "Les questions de Codex et Claude Code apparaissent dans le rapport, et vous y répondez. Celles de Grok Bot restent dans le chat de Grok Bot. Cancel n’arrête que l’enregistrement local. Il n’arrête pas une exécution Grok Bot déjà envoyée."
       },
-      { "id": "cost", "q": "Combien ça coûte ?" },
-      { "id": "download", "q": "Puis-je le télécharger ?" },
+      {
+        "id": "cost",
+        "q": "Combien ça coûte ?"
+      },
+      {
+        "id": "download",
+        "q": "Puis-je le télécharger ?"
+      },
       {
         "q": "Cela fonctionne-t-il avec les sites et les apps Mac ?",
         "a": "Oui. Capturez une zone d’un site ou d’une app Mac native. Enregistrez un dépôt et associez-le à des adresses de sites ou à des bundle ID d’apps. Vous pouvez changer de projet avant d’envoyer. Si le projet est ambigu, ScreenClip enregistre le rapport et attend, au lieu de deviner un dépôt."
@@ -223,5 +229,15 @@
     "eyebrow": "404",
     "title": "Cette page n’est pas ici.",
     "body": "L’adresse est peut-être mal saisie, ou la page a été déplacée. Les liens ci-dessous sont les pages que ce site propose vraiment."
+  },
+  "benefits": {
+    "eyebrow": "Pourquoi ScreenClip",
+    "title": "Continuez vos tests. Restez concentré.",
+    "clearTitle": "Un bureau plus dégagé",
+    "clearBody": "Gardez les captures avec leurs signalements au lieu de les laisser éparpillées sur votre bureau.",
+    "flowTitle": "Gardez votre élan",
+    "flowBody": "Signalez rapidement une observation sans passer d’une application à l’autre ni créer un fil manuellement dans votre outil d’IA.",
+    "noticeTitle": "Ne laissez pas filer les détails",
+    "noticeBody": "Capturez les petits bugs, les détails gênants et les idées dès que vous les remarquez, pour ne pas les oublier pendant vos tests."
   }
 }

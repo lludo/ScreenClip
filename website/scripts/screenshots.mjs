@@ -156,7 +156,10 @@ function contactSheet(shots, origin) {
 }
 
 async function capture(origin) {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    ...(process.env.SCREENCLIP_CHROMIUM_PATH ? { executablePath: process.env.SCREENCLIP_CHROMIUM_PATH } : {}),
+  });
   const shots = [];
   try {
     for (const locale of LOCALES) {

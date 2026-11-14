@@ -37,12 +37,12 @@
   },
   "hero": {
     "eyebrow": "Screenshot feedback for AI coding agents",
-    "title": "From a screenshot to a [[pull request.]]",
+    "title": "Capture what you notice. Follow the fix here.",
     "lead": "Capture a region on your Mac, mark what matters, and hand it to Codex, Claude Code, or Grok Bot. ScreenClip tracks the GitHub pull request, merges when you allow it, and keeps the result for retest."
   },
   "demo": {
     "title": "The menu bar",
-    "alt": "ScreenClip menu bar showing three sample reports for a demo storefront, with working, needs-you, and merged statuses.",
+    "alt": "ScreenClip menu bar showing real ScreenClip reports, including reports that need attention and a merged report.",
     "caption": "Open, needs you, and ready to retest."
   },
   "loop": {
@@ -229,5 +229,15 @@
     "eyebrow": "404",
     "title": "That page is not here.",
     "body": "The address may be mistyped, or the page may have moved. The links below are the pages this site actually has."
+  },
+  "benefits": {
+    "eyebrow": "Why ScreenClip",
+    "title": "Keep testing. Keep your focus.",
+    "clearTitle": "A clearer desktop",
+    "clearBody": "Keep captures with their reports instead of leaving screenshots scattered across your desktop.",
+    "flowTitle": "Stay in your flow",
+    "flowBody": "File an observation quickly without switching back and forth or manually starting a new thread in your AI tool.",
+    "noticeTitle": "Catch the little things",
+    "noticeBody": "Capture small bugs, awkward details, and ideas as you notice them, so they don’t get lost while you test."
   }
 }
