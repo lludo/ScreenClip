@@ -90,7 +90,11 @@ public enum GitHubService {
         "The source or issue changed after validation. Publication stopped.")
     }
     if !changes.isEmpty {
-      _ = try await CommandRunner.checked("/usr/bin/git", ["add", "--all"], cwd: path)
+      let files = try await CommandRunner.checked(
+        "/usr/bin/git", ["ls-files", "--modified", "--deleted", "--others", "--exclude-standard", "-z"], cwd: path)
+      let paths = Array(Set(files.split(separator: "\0").map(String.init))).sorted()
+      guard !paths.isEmpty else { throw ScreenClipError.message("No source paths to publish.") }
+      _ = try await CommandRunner.checked("/usr/bin/git", ["add", "--"] + paths, cwd: path)
       guard await shouldContinue() else { throw CancellationError() }
       _ = try await CommandRunner.checked(
         "/usr/bin/git", ["commit", "-m", "Fix: " + String(issue.title.prefix(120))], cwd: path)

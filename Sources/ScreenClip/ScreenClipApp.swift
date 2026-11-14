@@ -73,6 +73,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         return
       }
       if previewMode { try PreviewSupport.seed(model: model) } else { model.worker.start() }
+      if arguments.contains("--recover-reports") {
+        Task { @MainActor [self] in
+          let reports = model.snapshot.issues.filter {
+            [.needsYou, .failed].contains($0.status) && !$0.archived
+          }
+          for report in reports {
+            await model.worker.reconcile(report.id)
+            if let current = model.issue(report.id), current.status == .needsYou,
+              !current.dispatchUncertain, current.questions.allSatisfy({ $0.reply != nil }),
+              current.lastError == nil, model.banner == nil
+            {
+              model.retry(report.id)
+            }
+          }
+        }
+      }
       if model.snapshot.projects.isEmpty || previewMode || arguments.contains("--show-queue") {
         showQueue()
       }

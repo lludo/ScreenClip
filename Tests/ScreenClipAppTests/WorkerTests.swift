@@ -30,7 +30,10 @@ import XCTest
           m=json.loads(line); method=m.get('method')
           if 'id' not in m: continue
           result={}
-          if method in ['thread/start','thread/resume']: result={'thread':{'id':'test-thread','status':{'type':'idle'}}}
+          if method=='thread/resume':
+              send({'id':m['id'],'error':{'code':-1,'message':'thread test-thread already has an active writer'}})
+              continue
+          if method in ['thread/start','thread/read']: result={'thread':{'id':'test-thread','status':{'type':'idle'}}}
           if method=='turn/start': result={'turn':{'id':'turn-1'}}
           send({'id':m['id'],'result':result})
           if method=='turn/start':
@@ -89,6 +92,45 @@ import XCTest
     XCTAssertEqual(model.issue(id)?.projectID, project)
     XCTAssertEqual(model.issue(id)?.captures.count, 1)
     XCTAssertEqual(model.issue(id)?.status, .queued)
+  }
+  func testReconcileRecoversCompletedFixWithoutAnotherModelTurn() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-recover-" + UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let repo = root.appendingPathComponent("repo")
+    try FileManager.default.createDirectory(at: repo, withIntermediateDirectories: true)
+    _ = try await CommandRunner.checked("/usr/bin/git", ["init", "-b", "main"], cwd: repo.path)
+    try Data("source".utf8).write(to: repo.appendingPathComponent("source.txt"))
+    _ = try await CommandRunner.checked("/usr/bin/git", ["add", "source.txt"], cwd: repo.path)
+    _ = try await CommandRunner.checked("/usr/bin/git", ["-c", "user.name=Test", "-c", "user.email=test@example.invalid", "commit", "-m", "initial"], cwd: repo.path)
+    let script = root.appendingPathComponent("fake-codex")
+    try """
+      #!/usr/bin/python3
+      import json,sys,os
+      for line in sys.stdin:
+          m=json.loads(line)
+          if 'id' not in m: continue
+          method=m.get('method'); result={}
+          with open(os.path.join(os.path.dirname(__file__),'requests'),'a') as f: f.write(method+'\\n')
+          if method=='thread/read': result={'thread':{'cwd':os.path.join(os.path.dirname(__file__),'repo'),'status':{'type':'idle'}}}
+          if method=='thread/turns/list': result={'data':[{'status':'completed','items':[{'type':'agentMessage','phase':'final_answer','text':json.dumps({'outcome':'implemented','summary':'Recovered fix','question':''})}]}]}
+          print(json.dumps({'id':m['id'],'result':result}),flush=True)
+      """.write(to: script, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
+    let model = try AppModel(root: root.appendingPathComponent("queue"))
+    let project = Project(name: "Test", path: repo.path, validationCommand: "true")
+    try model.saveProject(project)
+    try model.commit { $0.settings.paused = true; $0.settings.codexPath = script.path; $0.settings.ghPath = "/usr/bin/true" }
+    try model.submit(imageData: Data([1]), originalData: nil, annotations: [], note: "Fix", context: CaptureContext(), projectID: project.id, existingID: nil, draft: false)
+    let id = try XCTUnwrap(model.snapshot.issues.first?.id)
+    try model.updateIssue(id) { $0.threadID = "saved"; $0.worktreePath = repo.path; $0.branch = "main"; $0.coveredRevision = $0.revision; $0.status = .needsYou }
+    await model.worker.reconcile(id)
+    XCTAssertEqual(model.issue(id)?.resultSummary, "Recovered fix")
+    XCTAssertEqual(model.issue(id)?.status, .needsYou)
+    XCTAssertNotNil(model.issue(id)?.lastError) // No origin: validation cannot silently claim publication.
+    let requests = try String(contentsOf: root.appendingPathComponent("requests"), encoding: .utf8)
+    XCTAssertFalse(requests.contains("turn/start"))
+    await model.worker.resetConnection()
   }
   private func wait(_ condition: () -> Bool) async throws {
     let deadline = Date().addingTimeInterval(12)

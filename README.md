@@ -50,13 +50,15 @@ This uses the same Xcode project, installs the app in Applications, and opens it
 
 The editor appears immediately after selection. Draw freehand, add an arrow, rectangle, circle/ellipse or text, choose a color and thin/medium/bold stroke, and undo/redo before submitting. Redaction always produces an opaque black block.
 
-**Settings → General → Capture → Hide ScreenClip during capture** controls whether the shortcut hides ScreenClip's windows/popover and excludes them from the captured image. It is off by default, so you can report bugs in ScreenClip itself. Turn it on and Save settings when you want ScreenClip hidden. Capturing its open menu bar popover identifies ScreenClip as the source app.
+**Settings → General → Capture → Hide ScreenClip during capture** controls whether the shortcut hides ScreenClip's windows/popover and excludes them from the captured image. It is on by default. Turn it off and Save settings when reporting bugs in ScreenClip itself. Capturing its open menu bar popover identifies ScreenClip as the source app.
 
 If System Settings shows access enabled but capture still fails, use **Check screen access** in General settings. ScreenClip tries ScreenCaptureKit even when the older preflight check says no, and rechecks after returning from System Settings following a denial. The permission banner also offers Settings, Check again, and Reopen app. If a previous ad-hoc build left an unusable permission entry, quit ScreenClip, run `tccutil reset ScreenCapture com.screenclip.app`, reopen `/Applications/ScreenClip.app`, invoke capture and grant access again. This targeted reset affects only ScreenClip's screen-capture approval and is a repair step, not part of ordinary installation. Capture diagnostics are written to `~/Library/Application Support/ScreenClip/capture-diagnostics.log` and include build/API error metadata, without screenshots, notes, browser URLs, or window titles.
 
 Captures save locally before dispatch. Related images share an issue and Codex chat. A fix runs in its own worktree, passes the configured validation, and opens a GitHub PR. Automatic merge requires passing CI, satisfied host policies, the validated PR head, and the current input revision. ScreenClip makes up to two repair attempts for failing checks, then requests input. Merged fixes appear under **To retest**.
 
 Keep ScreenClip running and the Mac awake for local work. Use ScreenClip's reply controls for active jobs. Cancel an issue before taking over its worktree in another coding client; simultaneous editing from separate Codex processes is not coordinated automatically.
+
+After an interrupted run, **Reconcile chat** recovers a completed structured fix and independently validates it before publication. Continue reuses a chat already owned by ScreenClip and restores an archived chat when necessary. `--recover-reports` reconciles the saved reports and continues those without unanswered questions. PR details retain the link and confirmed merge commit; **Refresh PR status** updates checks immediately.
 
 ## Validation and delivery
 
