@@ -144,11 +144,18 @@ public actor ClaudeCodeClient {
     process.standardOutput = stdout
     process.standardError = stderr
     let errors = StderrBuffer()
-    stderr.fileHandleForReading.readabilityHandler = { handle in errors.append(handle.availableData) }
+    let exit = ExitSignal()
+    process.terminationHandler = { _ in exit.signal() }
     try process.run()
+    let errorReader = Task.detached {
+      while true {
+        let chunk = stderr.fileHandleForReading.availableData
+        if chunk.isEmpty { break }
+        errors.append(chunk)
+      }
+    }
     processes[request.sessionID] = process
     defer {
-      stderr.fileHandleForReading.readabilityHandler = nil
       processes.removeValue(forKey: request.sessionID)
     }
     var line = Self.userMessage(for: request).data
@@ -192,7 +199,8 @@ public actor ClaudeCodeClient {
       }
       if data.isEmpty { break }
     }
-    await Task.detached { process.waitUntilExit() }.value
+    await exit.wait()
+    await errorReader.value
     if canceled.remove(request.sessionID) != nil { throw CancellationError() }
     if let result, process.terminationStatus == 0 || result.isError { return result }
     let detail = errors.text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -232,6 +240,18 @@ public actor ClaudeCodeClient {
   }
 
   public func isRunning(sessionID: String) -> Bool { processes[sessionID] != nil }
+
+  /// A child can survive a ScreenClip crash, or be resumed in Terminal. Check
+  /// those processes before allowing a recovered session to run again.
+  public func sessionIsRunning(sessionID: String) async throws -> Bool {
+    if processes[sessionID] != nil { return true }
+    let listing = try await CommandRunner.checked("/bin/ps", ["-axww", "-o", "command="])
+    let pattern = "(?:--session-id|--resume)(?:=|\\s+)"
+      + NSRegularExpression.escapedPattern(for: sessionID) + "(?=\\s|$)"
+    return processes[sessionID] != nil || listing.split(separator: "\n").contains {
+      $0.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil
+    }
+  }
 }
 
 private final class StderrBuffer: @unchecked Sendable {
@@ -247,5 +267,32 @@ private final class StderrBuffer: @unchecked Sendable {
     lock.lock()
     defer { lock.unlock() }
     return String(decoding: data, as: UTF8.self)
+  }
+}
+
+/// Resumes waiters once the process terminates, without blocking a thread in waitUntilExit.
+private final class ExitSignal: @unchecked Sendable {
+  private let lock = NSLock()
+  private var exited = false
+  private var waiters: [CheckedContinuation<Void, Never>] = []
+  func signal() {
+    lock.lock()
+    exited = true
+    let pending = waiters
+    waiters = []
+    lock.unlock()
+    pending.forEach { $0.resume() }
+  }
+  func wait() async {
+    await withCheckedContinuation { continuation in
+      lock.lock()
+      if exited {
+        lock.unlock()
+        continuation.resume()
+      } else {
+        waiters.append(continuation)
+        lock.unlock()
+      }
+    }
   }
 }

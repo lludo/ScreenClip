@@ -10,8 +10,9 @@ import UserNotifications
   @Published var connection = "Not connected"
   @Published var captureBusy = false
   @Published var capturePermissionIssue = false
-  /// Reserved for the agent selection UI; dispatch currently uses Codex.
+  /// Locally installed coding agents, refreshed at launch and from Settings.
   @Published var agents: [AgentDetection] = []
+  @Published var detectingAgents = false
   let store: IssueStore
   let captureDiagnostics: CaptureDiagnostics
   let capturePermission: ScreenCapturePermission
@@ -97,8 +98,10 @@ import UserNotifications
   }
   func submit(
     imageData: Data, originalData: Data?, annotations: [Annotation], note: String,
-    context: CaptureContext, projectID: UUID?, existingID: UUID?, draft: Bool
+    context: CaptureContext, projectID: UUID?, existingID: UUID?, draft: Bool,
+    agent: AgentKind? = nil
   ) throws {
+    let chosenAgent = agent ?? snapshot.settings.preferredAgent
     let approved = try store.writeAsset(imageData)
     // A redacted original is never retained where a local coding agent could read it.
     var original: String?
@@ -115,6 +118,7 @@ import UserNotifications
             throw ScreenClipError.message("Related captures must use the issue's existing project.")
           }
           if state.issues[index].status == .draft {
+            state.issues[index].agent = chosenAgent
             state.issues[index].projectID = projectID
             state.issues[index].captures = [capture]
             state.issues[index].revision += 1
@@ -131,7 +135,8 @@ import UserNotifications
             note.split(separator: "\n").first.map(String.init).flatMap {
               $0.isEmpty ? nil : String($0.prefix(100))
             } ?? (context.appName.isEmpty ? "New observation" : "Observation in " + context.appName)
-          let issue = Issue(projectID: projectID, title: title, capture: capture, draft: draft)
+          let issue = Issue(
+            projectID: projectID, title: title, capture: capture, draft: draft, agent: chosenAgent)
           state.issues.append(issue)
           selectedIssueID = issue.id
         }
@@ -170,6 +175,57 @@ import UserNotifications
       }
     }
     worker.pump()
+  }
+  func refreshAgents() async {
+    detectingAgents = true
+    defer { detectingAgents = false }
+    agents = await AgentDetector.detectAll(snapshot.settings)
+    worker.pump()
+  }
+  func detection(_ kind: AgentKind) -> AgentDetection? { agents.first { $0.kind == kind } }
+  /// Agents offered in pickers: those found locally, plus the default so it is never hidden.
+  var availableAgents: [AgentKind] {
+    let installed = agents.filter(\.installed).map(\.kind)
+    if agents.isEmpty { return AgentKind.allCases }
+    return AgentKind.allCases.filter {
+      installed.contains($0) || $0 == snapshot.settings.preferredAgent
+    }
+  }
+  /// One-line status for the default agent, shown in the queue sidebar.
+  var agentStatus: (text: String, ready: Bool) {
+    switch snapshot.settings.preferredAgent {
+    case .codex: return (connection, connection == "Connected to Codex")
+    case .claude:
+      guard let found = detection(.claude) else { return ("Checking Claude Code…", false) }
+      if !found.installed { return ("Claude Code not found", false) }
+      if found.signedIn == false { return ("Sign in to Claude Code to start work", false) }
+      return ("Claude Code ready", true)
+    }
+  }
+  /// `claude auth login` needs an interactive terminal and a browser, so run it in Terminal.
+  func signInToClaude() {
+    perform {
+      let path = AgentDetector.claudePath(snapshot.settings)
+      guard FileManager.default.isExecutableFile(atPath: path) else {
+        throw ScreenClipError.message("Install Claude Code or choose its executable first.")
+      }
+      let script = store.root.appendingPathComponent("claude-sign-in.command")
+      let quoted = "'" + path.replacingOccurrences(of: "'", with: "'\\''") + "'"
+      try """
+        #!/bin/zsh
+        \(quoted) auth login
+        echo
+        echo "Return to ScreenClip and click Detect agents."
+        """.write(to: script, atomically: true, encoding: .utf8)
+      try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
+      NSWorkspace.shared.open(script)
+    }
+  }
+  func copyClaudeResumeCommand(_ issue: Issue) {
+    guard let command = issue.claudeResumeCommand else { return }
+    NSPasteboard.general.clearContents()
+    NSPasteboard.general.setString(command, forType: .string)
+    banner = "Copied. Paste in Terminal to continue this issue's Claude Code session."
   }
   func notify(_ issue: Issue, text: String) {
     guard snapshot.settings.notifications else { return }

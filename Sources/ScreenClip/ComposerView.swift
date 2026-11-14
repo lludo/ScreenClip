@@ -11,6 +11,7 @@ struct ComposerView: View {
   @State private var note = ""
   @State private var projectID: UUID?
   @State private var issueID: UUID?
+  @State private var agent: AgentKind = .codex
   @State private var error: String?
   @FocusState private var noteFocused: Bool
   var body: some View {
@@ -134,6 +135,24 @@ struct ComposerView: View {
             }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
               .accessibilityLabel("Issue")
           }.frame(maxWidth: .infinity, alignment: .leading)
+          VStack(alignment: .leading, spacing: 6) {
+            Text("Agent").font(.caption).foregroundStyle(.secondary)
+            Picker("Agent", selection: $agent) {
+              ForEach(agentChoices) { kind in
+                Text(model.detection(kind)?.label ?? kind.title).tag(kind)
+              }
+            }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+              .accessibilityLabel("Agent")
+              .disabled(lockedAgent != nil)
+              .help(
+                lockedAgent != nil
+                  ? "Follow-up captures continue with the issue's existing agent."
+                  : "Which local coding agent works on this report.")
+          }.frame(maxWidth: 200, alignment: .leading)
+        }
+        if lockedAgent == nil, let found = model.detection(agent), !found.usable {
+          Text(found.detail + " The report will wait in the queue until it is ready.")
+            .font(.caption).foregroundStyle(.orange)
         }
         if let error { Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
         HStack {
@@ -155,12 +174,27 @@ struct ComposerView: View {
         existing?.projectID
         ?? ProjectRouter.infer(context, projects: model.snapshot.projects).projectID
       issueID = existing?.id
+      agent = lockedAgent ?? existing?.agent ?? model.snapshot.settings.preferredAgent
       if let existing, existing.status == .draft, let capture = existing.captures.first {
         note = capture.note
         if capture.originalPath != nil { document.marks = capture.annotations }
       }
     }
     .onChange(of: projectID) { _, _ in if existing == nil { issueID = nil } }
+    .onChange(of: issueID) { _, _ in
+      agent = lockedAgent ?? existing?.agent ?? model.snapshot.settings.preferredAgent
+    }
+  }
+  /// Adding evidence to a submitted issue keeps that issue's agent and session.
+  private var lockedAgent: AgentKind? {
+    guard let issueID, let target = model.issue(issueID), target.status != .draft else {
+      return nil
+    }
+    return target.resolvedAgent
+  }
+  private var agentChoices: [AgentKind] {
+    let available = model.availableAgents
+    return AgentKind.allCases.filter { available.contains($0) || $0 == agent }
   }
   private func symbol(_ tool: MarkKind) -> String {
     switch tool {
@@ -186,7 +220,8 @@ struct ComposerView: View {
         ? nil : try AnnotationRenderer.png(image: image, marks: [])
       try model.submit(
         imageData: data, originalData: original, annotations: document.marks, note: note,
-        context: captured, projectID: projectID, existingID: issueID, draft: draft)
+        context: captured, projectID: projectID, existingID: issueID, draft: draft,
+        agent: lockedAgent ?? agent)
       close()
     } catch { self.error = error.localizedDescription }
   }

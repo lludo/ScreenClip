@@ -5,6 +5,7 @@ import ScreenClipCore
 @MainActor final class AgentWorker {
   unowned let model: AppModel
   let client = CodexClient()
+  let claude = ClaudeCodeClient()
   private var connected = false
   private var connecting: Task<Void, Error>?
   private var eventsTask: Task<Void, Never>?
@@ -35,7 +36,11 @@ import ScreenClipCore
         await self?.refreshPRs()
       }
     }
-    Task { await checkConnection() }
+    Task {
+      await model.refreshAgents()
+      // Only probe Codex sign-in when Codex is present, so a Claude-only Mac shows no Codex error.
+      if model.detection(.codex)?.installed != false { await checkConnection() }
+    }
     pump()
   }
   func checkConnection() async {
@@ -92,6 +97,8 @@ import ScreenClipCore
       guard let project = model.project(issue.projectID), !busyProjects.contains(project.id) else {
         continue
       }
+      // Hold work for an agent that detection found missing or signed out; detecting again resumes it.
+      if model.detection(issue.resolvedAgent)?.usable == false { continue }
       jobs.insert(issue.id)
       dispatching.insert(issue.id)
       busyProjects.insert(project.id)
@@ -104,16 +111,14 @@ import ScreenClipCore
       pump()
     }
     do {
-      try await connect()
       guard var issue = model.issue(id), let project = model.project(issue.projectID) else {
         throw ScreenClipError.message("Choose a project.")
       }
+      if issue.resolvedAgent == .codex { try await connect() }
+      issue = model.issue(id) ?? issue
       guard issue.status == .queued && jobs.contains(id) else {
         jobs.remove(id)
         return
-      }
-      guard issue.resolvedAgent == .codex else {
-        throw ScreenClipError.message("Claude Code dispatch is not available in this build.")
       }
       try model.updateIssue(id) {
         $0.record("Preparing isolated workspace", status: .working)
@@ -133,6 +138,10 @@ import ScreenClipCore
       }
       guard let path = issue.worktreePath else {
         throw ScreenClipError.message("Workspace preparation failed.")
+      }
+      if issue.resolvedAgent == .claude {
+        try await runClaude(id, project: project, path: path)
+        return
       }
       var threadParams: [String: JSONValue] = [
         "cwd": .string(path), "approvalPolicy": .string("on-request"),
@@ -208,18 +217,7 @@ import ScreenClipCore
             "url": .string("data:image/png;base64," + image.base64EncodedString()),
           ]))
       }
-      let schema: JSONValue = .object([
-        "type": .string("object"), "additionalProperties": .bool(false),
-        "required": .array(["outcome", "summary", "question"].map(JSONValue.string)),
-        "properties": .object([
-          "outcome": .object([
-            "type": .string("string"),
-            "enum": .array(["implemented", "question", "blocked"].map(JSONValue.string)),
-          ]),
-          "summary": .object(["type": .string("string")]),
-          "question": .object(["type": .string("string")]),
-        ]),
-      ])
+      let schema = Self.resultSchema
       try model.updateIssue(id) {
         $0.dispatchUncertain = true
         $0.coveredRevision = issue.revision
@@ -255,6 +253,129 @@ import ScreenClipCore
         }
       }
     }
+  }
+  static let resultSchema: JSONValue = .object([
+    "type": .string("object"), "additionalProperties": .bool(false),
+    "required": .array(["outcome", "summary", "question"].map(JSONValue.string)),
+    "properties": .object([
+      "outcome": .object([
+        "type": .string("string"),
+        "enum": .array(["implemented", "question", "blocked"].map(JSONValue.string)),
+      ]),
+      "summary": .object(["type": .string("string")]),
+      "question": .object(["type": .string("string")]),
+    ]),
+  ])
+  /// Runs one headless Claude Code turn in the issue's worktree and hands the
+  /// structured result to the same finish/publish path Codex uses.
+  private func runClaude(_ id: UUID, project: Project, path: String) async throws {
+    guard var issue = model.issue(id) else { return }
+    let executable = AgentDetector.claudePath(model.snapshot.settings)
+    // ScreenClip chooses the session ID before starting the process.
+    let resume = issue.threadID != nil
+    let sessionID = issue.threadID ?? UUID().uuidString.lowercased()
+    if resume, try await claude.sessionIsRunning(sessionID: sessionID) {
+      throw ScreenClipError.message(
+        "This Claude Code session is still running. Wait or cancel it before continuing.")
+    }
+    guard let current = model.issue(id), current.status == .working, jobs.contains(id) else {
+      jobs.remove(id)
+      return
+    }
+    issue = current
+    var images: [Data] = []
+    for capture in issue.captures {
+      images.append(try Data(contentsOf: URL(fileURLWithPath: capture.imagePath)))
+    }
+    try model.updateIssue(id) {
+      $0.threadID = sessionID
+      $0.turnID = "claude:" + sessionID
+      $0.dispatchUncertain = false
+      $0.coveredRevision = issue.revision
+      $0.record("Investigating capture revision \(issue.revision) with Claude Code", status: .working)
+    }
+    issue = model.issue(id)!
+    texts[id] = nil
+    var request = ClaudeTurnRequest(
+      executable: executable, cwd: path, sessionID: sessionID, resume: resume,
+      name: "ScreenClip: " + issue.referencedTitle,
+      model: model.snapshot.settings.claudeModel, prompt: prompt(issue, project: project),
+      images: images, schema: Self.resultSchema)
+    let progress: @Sendable (String) async -> Void = { [weak self] text in
+      await self?.recordProgress(id, text: text)
+    }
+    var result: ClaudeTurnResult
+    do {
+      do {
+        result = try await claude.run(request, progress: progress)
+        if resume, result.isError,
+          result.text.localizedCaseInsensitiveContains("no conversation found")
+        {
+          throw ScreenClipError.message(result.text)
+        }
+      } catch {
+        // Missing sessions may be reported as a JSON result or only on stderr.
+        guard resume,
+          error.localizedDescription.localizedCaseInsensitiveContains("no conversation found")
+        else { throw error }
+        guard model.issue(id)?.status == .working, jobs.contains(id) else {
+          throw CancellationError()
+        }
+        let fresh = UUID().uuidString.lowercased()
+        try model.updateIssue(id) {
+          $0.threadID = fresh
+          $0.turnID = "claude:" + fresh
+          $0.record("Previous Claude Code session was not found; starting a new session")
+        }
+        request.sessionID = fresh
+        request.resume = false
+        result = try await claude.run(request, progress: progress)
+      }
+    } catch is CancellationError {
+      jobs.remove(id)
+      model.perform { try model.updateIssue(id) { $0.turnID = nil } }
+      return
+    }
+    model.perform {
+      try model.updateIssue(id) {
+        $0.turnID = nil
+        $0.record("Claude Code turn finished · " + result.usageSummary, kind: "usage")
+      }
+    }
+    guard model.issue(id)?.status == .working, jobs.contains(id) else {
+      jobs.remove(id)
+      return
+    }
+    if result.isError {
+      let text = result.text.isEmpty ? "Claude Code reported an error." : result.text
+      throw ScreenClipError.message(
+        text.localizedCaseInsensitiveContains("not logged in")
+          ? "Claude Code is signed out. Open Settings → Connections and use Sign in to Claude."
+          : String(text.prefix(3000)))
+    }
+    if var json = result.outputJSON {
+      // Surface blocked tools so a "blocked" outcome says what needs approval.
+      if !result.permissionDenials.isEmpty,
+        var report = try? JSONDecoder().decode(JSONValue.self, from: Data(json.utf8)),
+        report["outcome"].string != "implemented", case .object(var fields) = report
+      {
+        let blocked = "Blocked tools: " + result.permissionDenials.prefix(5).joined(separator: "; ")
+        let question = fields["question"]?.string ?? ""
+        fields["question"] = .string(question.isEmpty ? blocked : question + "\n" + blocked)
+        report = .object(fields)
+        json = String(decoding: report.data, as: UTF8.self)
+      }
+      texts[id] = json
+    }
+    if !finishing.contains(id) {
+      finishing.insert(id)
+      await finish(id)
+      finishing.remove(id)
+    }
+  }
+  private func recordProgress(_ id: UUID, text: String) {
+    guard model.issue(id)?.status == .working else { return }
+    model.perform { try model.updateIssue(id) { $0.record(String(text.prefix(3000))) } }
   }
   private func recordProjectLinkIssue(_ id: UUID, message: String) throws {
     let text =
@@ -305,20 +426,22 @@ import ScreenClipCore
       authentication.reset(message: "Codex disconnected. Check the connection to reconnect.")
       pendingRequests.removeAll()
       model.connection = "Codex disconnected"
-      for id in jobs {
+      for id in jobs where model.issue(id)?.resolvedAgent == .codex {
         model.perform {
           try model.updateIssue(id) {
             $0.record(
               "Worker disconnected. Reconcile the chat before continuing.", status: .needsYou)
           }
         }
+        jobs.remove(id)
       }
-      jobs.removeAll()
       return
     }
     let p = message["params"]
     let threadID = p["threadId"].string ?? p["thread"]["id"].string
-    guard let issue = model.snapshot.issues.first(where: { $0.threadID == threadID }), let threadID
+    guard let issue = model.snapshot.issues.first(where: {
+      $0.resolvedAgent == .codex && $0.threadID == threadID
+    }), let threadID
     else {
       if message["id"] != .null {
         try? await client.reject(
@@ -442,7 +565,7 @@ import ScreenClipCore
       model.perform {
         try model.updateIssue(id) {
           $0.record(
-            "Codex finished without a structured result. Open the chat to review.",
+            issue.resolvedAgent.title + " finished without a structured result. Open the chat to review.",
             status: .needsYou)
         }
       }
@@ -577,7 +700,9 @@ import ScreenClipCore
         $0.record("Canceled; existing workspace and PR retained", status: .canceled)
       }
     }
-    if let thread = issue.threadID, let turn = issue.turnID {
+    if issue.resolvedAgent == .claude, let session = issue.threadID {
+      await claude.cancel(sessionID: session)
+    } else if let thread = issue.threadID, let turn = issue.turnID {
       await interrupt(threadID: thread, turnID: turn)
     }
     jobs.remove(id)
@@ -588,6 +713,10 @@ import ScreenClipCore
   }
   func reconcile(_ id: UUID, linkingThread: String? = nil) async {
     guard let issue = model.issue(id) else { return }
+    if issue.resolvedAgent == .claude {
+      await reconcileClaude(id, linkingSession: linkingThread)
+      return
+    }
     do {
       try await connect()
       guard !jobs.contains(id) else {
@@ -649,6 +778,35 @@ import ScreenClipCore
       }
     } catch { model.banner = error.localizedDescription }
   }
+  /// Reconciliation checks for surviving children and Terminal sessions before
+  /// allowing another turn. Claude history is resumed on Continue.
+  private func reconcileClaude(_ id: UUID, linkingSession: String?) async {
+    do {
+      guard !jobs.contains(id), !dispatching.contains(id) else {
+        throw ScreenClipError.message("Cancel the active run before changing its session.")
+      }
+      if let linkingSession {
+        guard UUID(uuidString: linkingSession) != nil else {
+          throw ScreenClipError.message("Enter the Claude Code session ID (a UUID).")
+        }
+      }
+      if let session = linkingSession ?? model.issue(id)?.threadID,
+        try await claude.sessionIsRunning(sessionID: session)
+      {
+        throw ScreenClipError.message("This Claude Code session is still running.")
+      }
+      guard !jobs.contains(id), !dispatching.contains(id) else {
+        throw ScreenClipError.message("Cancel the active run before changing its session.")
+      }
+      try model.updateIssue(id) { issue in
+        if let linkingSession { issue.threadID = linkingSession.lowercased() }
+        issue.dispatchUncertain = false
+        issue.turnID = nil
+        issue.lastError = nil
+        issue.record("Session reconciled. Continue when ready.", status: .needsYou)
+      }
+    } catch { model.banner = error.localizedDescription }
+  }
   func refreshPRs() async {
     for issue in model.snapshot.issues where issue.status == .prOpen { await refreshPR(issue.id) }
   }
@@ -677,7 +835,7 @@ import ScreenClipCore
         } else {
           try model.updateIssue(id) {
             $0.record(
-              "CI still fails after two repair attempts. Review the PR checks in Codex.",
+              "CI still fails after two repair attempts. Review the PR checks in " + issue.resolvedAgent.title + ".",
               status: .needsYou)
             $0.unread = true
           }
@@ -737,7 +895,7 @@ import ScreenClipCore
         } else {
           try model.updateIssue(id) {
             $0.lastError = error.localizedDescription
-            $0.record("The base update needs attention in Codex.", status: .needsYou)
+            $0.record("The base update needs attention in " + issue.resolvedAgent.title + ".", status: .needsYou)
           }
         }
         return

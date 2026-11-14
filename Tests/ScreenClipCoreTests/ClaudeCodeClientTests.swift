@@ -60,6 +60,20 @@ final class ClaudeCodeClientTests: XCTestCase {
     }
   }
 
+  func testFailureDrainsStderrBeforeReportingItsFinalMessage() async throws {
+    let request = try fixture("""
+      sys.stderr.write('x' * 128000 + ' final failure detail')
+      sys.exit(3)
+      """)
+    do {
+      _ = try await ClaudeCodeClient().run(request) { _ in }
+      XCTFail("Expected a process failure")
+    } catch {
+      XCTAssertTrue(error.localizedDescription.hasSuffix("final failure detail"))
+      XCTAssertTrue(error.localizedDescription.contains("status 3"))
+    }
+  }
+
   func testUnstructuredOutputWithReversedBracesHasNoJSON() {
     let result = ClaudeCodeClient.parseResult(.object(["result": .string("} then {")]), sessionID: nil)
     XCTAssertNil(result.outputJSON)

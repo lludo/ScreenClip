@@ -79,14 +79,14 @@ import XCTest
     try model.saveProject(project)
     var settings = model.snapshot.settings
     settings.codexPath = script.path
+    settings.claudePath = root.appendingPathComponent("missing-claude").path
     settings.paused = false
     model.saveSettings(settings)
     let context = CaptureContext(appName: "Test")
     try model.submit(
       imageData: Data([1]), originalData: nil, annotations: [], note: "First capture",
-      context: context, projectID: project.id, existingID: nil, draft: false)
+      context: context, projectID: project.id, existingID: nil, draft: false, agent: requestedAgent)
     let id = try XCTUnwrap(model.snapshot.issues.first?.id)
-    try model.updateIssue(id) { $0.agent = requestedAgent }
     func recordedRequests() throws -> [JSONValue] {
       guard let data = try? Data(contentsOf: root.appendingPathComponent("requests.jsonl")) else {
         return []
@@ -97,7 +97,7 @@ import XCTest
     }
     if requestedAgent == .claude {
       try await wait { model.issue(id)?.status == .failed }
-      XCTAssertTrue(model.issue(id)?.lastError?.contains("Claude Code dispatch is not available") == true)
+      XCTAssertTrue(model.issue(id)?.lastError?.contains("working Claude Code executable") == true)
       XCTAssertFalse(try recordedRequests().contains { $0["method"].string == "thread/start" })
       await model.worker.resetConnection()
       return
@@ -187,6 +187,191 @@ import XCTest
       try String(contentsOf: repo.appendingPathComponent("source.txt"), encoding: .utf8), "original"
     )
     await model.worker.resetConnection()
+  }
+  func testClaudeIssueAsksQuestionThenResumesTheSameSession() async throws {
+    try await exerciseClaudeWorker()
+  }
+  func testClaudeRestartsWhenResumedSessionIsMissingOnStderr() async throws {
+    try await exerciseClaudeWorker(missingSession: true)
+  }
+  func testCodexDisconnectDoesNotInterruptClaudeWork() async throws {
+    try await exerciseClaudeWorker(disconnectCodex: true)
+  }
+  private func exerciseClaudeWorker(
+    missingSession: Bool = false, disconnectCodex: Bool = false
+  ) async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "screenclip-claude-worker-" + UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let repo = root.appendingPathComponent("repo")
+    try FileManager.default.createDirectory(at: repo, withIntermediateDirectories: true)
+    _ = try await CommandRunner.checked("/usr/bin/git", ["init", "-b", "main"], cwd: repo.path)
+    try Data("original".utf8).write(to: repo.appendingPathComponent("source.txt"))
+    _ = try await CommandRunner.checked("/usr/bin/git", ["add", "source.txt"], cwd: repo.path)
+    _ = try await CommandRunner.checked(
+      "/usr/bin/git",
+      [
+        "-c", "user.name=ScreenClip", "-c", "user.email=test@example.invalid", "commit", "-m",
+        "initial",
+      ], cwd: repo.path)
+    let script = root.appendingPathComponent("fake-claude")
+    try """
+      #!/usr/bin/python3
+      import sys,json,os,time
+      here=os.path.dirname(os.path.abspath(__file__))
+      message=json.loads(sys.stdin.readline())
+      with open(os.path.join(here,'runs.jsonl'),'a') as log:
+          log.write(json.dumps({'args':sys.argv[1:],'cwd':os.getcwd(),'content':message['message']['content']})+'\\n')
+      runs=sum(1 for _ in open(os.path.join(here,'runs.jsonl')))
+      if \(missingSession ? "True" : "False") and runs==2:
+          sys.stderr.write('No conversation found with session ID')
+          sys.exit(1)
+      if \(disconnectCodex ? "True" : "False") and runs==1:
+          while not os.path.exists(os.path.join(here,'continue-claude')): time.sleep(0.02)
+      def send(value): print(json.dumps(value),flush=True)
+      send({'type':'system','subtype':'init','session_id':'x'})
+      send({'type':'assistant','message':{'content':[{'type':'text','text':'Inspecting the screenshot'}]}})
+      report={'outcome':'question','summary':'','question':'Should this label wrap?' if runs==1 else 'Which width?'}
+      send({'type':'result','subtype':'success','is_error':False,'result':'','usage':{'input_tokens':1,'output_tokens':2},'total_cost_usd':0.01,'structured_output':report})
+      """.write(to: script, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
+    let model = try AppModel(root: root.appendingPathComponent("queue"))
+    let project = Project(name: "Test", path: repo.path)
+    try model.saveProject(project)
+    var settings = model.snapshot.settings
+    settings.claudePath = script.path
+    settings.defaultAgent = .codex
+    settings.paused = false
+    model.saveSettings(settings)
+    // The per-report choice overrides the default agent.
+    try model.submit(
+      imageData: Data([1]), originalData: nil, annotations: [], note: "Label clipped",
+      context: CaptureContext(appName: "Test"), projectID: project.id, existingID: nil,
+      draft: false, agent: .claude)
+    let id = try XCTUnwrap(model.snapshot.issues.first?.id)
+    XCTAssertEqual(model.issue(id)?.agent, .claude)
+    if disconnectCodex {
+      try await wait { FileManager.default.fileExists(atPath: root.appendingPathComponent("runs.jsonl").path) }
+      let codex = root.appendingPathComponent("fake-codex")
+      try """
+        #!/usr/bin/python3
+        import sys,json
+        for line in sys.stdin:
+            message=json.loads(line)
+            if 'id' not in message: continue
+            print(json.dumps({'id':message['id'],'result':{}}),flush=True)
+            if message.get('method')=='test/disconnect': break
+        """.write(to: codex, atomically: true, encoding: .utf8)
+      try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: codex.path)
+      try model.commit { $0.settings.codexPath = codex.path }
+      await model.worker.checkConnection()
+      _ = try await model.worker.client.request("test/disconnect")
+      try await wait { model.connection == "Codex disconnected" }
+      XCTAssertEqual(model.issue(id)?.status, .working)
+      try Data().write(to: root.appendingPathComponent("continue-claude"))
+    }
+    try await wait { model.issue(id)?.status == .needsYou }
+    let first = try XCTUnwrap(model.issue(id))
+    let session = try XCTUnwrap(first.threadID)
+    XCTAssertNotNil(UUID(uuidString: session))
+    XCTAssertEqual(first.questions.first?.title, "Should this label wrap?")
+    XCTAssertTrue(first.activities.contains { $0.text == "Inspecting the screenshot" })
+    XCTAssertTrue(first.activities.contains { $0.kind == "usage" && $0.text.contains("$0.01") })
+    XCTAssertNil(first.codexURL)
+    XCTAssertNotNil(first.claudeResumeCommand)
+    // A follow-up capture keeps the issue's agent even if another one is requested.
+    try model.submit(
+      imageData: Data([2]), originalData: nil, annotations: [], note: "More detail",
+      context: CaptureContext(appName: "Test"), projectID: project.id, existingID: id,
+      draft: false, agent: .codex)
+    await model.worker.reply(
+      issueID: id, questionID: first.questions[0].id, answers: ["reply": "Yes, wrap it"])
+    try await wait { model.issue(id)?.questions.count == 2 }
+    let continued = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(continued.agent, .claude)
+    if missingSession {
+      XCTAssertNotEqual(continued.threadID, session)
+      XCTAssertTrue(continued.activities.contains { $0.text.contains("starting a new session") })
+    } else {
+      XCTAssertEqual(continued.threadID, session)
+    }
+    let runs = try String(contentsOf: root.appendingPathComponent("runs.jsonl"), encoding: .utf8)
+      .split(separator: "\n").map { try JSONDecoder().decode(JSONValue.self, from: Data($0.utf8)) }
+    XCTAssertEqual(runs.count, missingSession ? 3 : 2)
+    let firstArgs = runs[0]["args"].array.compactMap(\.string)
+    let secondArgs = runs[1]["args"].array.compactMap(\.string)
+    XCTAssertEqual(firstArgs[firstArgs.firstIndex(of: "--session-id")! + 1], session)
+    XCTAssertEqual(secondArgs[secondArgs.firstIndex(of: "--resume")! + 1], session)
+    if missingSession {
+      let freshArgs = runs[2]["args"].array.compactMap(\.string)
+      XCTAssertEqual(freshArgs[freshArgs.firstIndex(of: "--session-id")! + 1], continued.threadID)
+      XCTAssertFalse(freshArgs.contains("--resume"))
+    }
+    XCTAssertEqual(
+      URL(fileURLWithPath: runs[0]["cwd"].string ?? "").resolvingSymlinksInPath().path,
+      URL(fileURLWithPath: first.worktreePath ?? "").resolvingSymlinksInPath().path)
+    let secondContent = runs[1]["content"].array
+    XCTAssertEqual(secondContent.filter { $0["type"].string == "image" }.count, 2)
+    XCTAssertTrue(secondContent.first?["text"].string?.contains("User reply: Yes, wrap it") == true)
+    XCTAssertEqual(
+      try String(contentsOf: repo.appendingPathComponent("source.txt"), encoding: .utf8), "original")
+    await model.worker.resetConnection()
+  }
+  func testSignedOutAgentHoldsQueuedWork() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "screenclip-held-" + UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = try AppModel(root: root)
+    try model.commit { $0.settings.paused = false }
+    model.agents = [
+      AgentDetection(kind: .claude, path: "/x", version: "1", signedIn: false, detail: "signed out")
+    ]
+    try model.saveProject(Project(name: "P", path: try makeRepo(root)))
+    let project = try XCTUnwrap(model.snapshot.projects.first)
+    try model.submit(
+      imageData: Data([1]), originalData: nil, annotations: [], note: "Held",
+      context: CaptureContext(), projectID: project.id, existingID: nil, draft: false,
+      agent: .claude)
+    try await Task.sleep(nanoseconds: 300_000_000)
+    XCTAssertEqual(model.snapshot.issues.first?.status, .queued)
+    XCTAssertNil(model.snapshot.issues.first?.worktreePath)
+    // Detection lists installed agents plus the default, which stays selectable.
+    XCTAssertEqual(model.availableAgents, [.codex, .claude])
+    model.agents[0].version = nil
+    XCTAssertEqual(model.availableAgents, [.codex])
+  }
+  func testReconcileRefusesClaudeSessionRunningOutsideTheWorker() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "screenclip-external-claude-" + UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = try AppModel(root: root)
+    let session = UUID().uuidString.lowercased()
+    let script = root.appendingPathComponent("external-claude.py")
+    try "import time; time.sleep(30)".write(to: script, atomically: true, encoding: .utf8)
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
+    process.arguments = [script.path, "--session-id", session]
+    try process.run()
+    defer { process.terminate(); process.waitUntilExit() }
+    try model.submit(
+      imageData: Data([1]), originalData: nil, annotations: [], note: "Recovered",
+      context: CaptureContext(), projectID: nil, existingID: nil, draft: true, agent: .claude)
+    let id = try XCTUnwrap(model.snapshot.issues.first?.id)
+    try model.updateIssue(id) {
+      $0.threadID = session
+      $0.status = .needsYou
+      $0.lastError = "Interrupted run"
+    }
+    await model.worker.reconcile(id)
+    XCTAssertTrue(model.banner?.contains("still running") == true)
+    XCTAssertEqual(model.issue(id)?.lastError, "Interrupted run")
+  }
+  private func makeRepo(_ root: URL) throws -> String {
+    let repo = root.appendingPathComponent("repo")
+    try FileManager.default.createDirectory(
+      at: repo.appendingPathComponent(".git"), withIntermediateDirectories: true)
+    return repo.path
   }
   func testDraftCanBeAssignedAProjectBeforeSubmission() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(

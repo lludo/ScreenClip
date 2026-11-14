@@ -1,0 +1,16 @@
+{
+  "name": "screenclip",
+  "owner": {
+    "name": "ScreenClip"
+  },
+  "metadata": {
+    "description": "Local marketplace for the ScreenClip Claude Code plugin."
+  },
+  "plugins": [
+    {
+      "name": "screenclip",
+      "source": "./plugins/screenclip",
+      "description": "Read ScreenClip observations and screenshots in Claude Code and fix reports interactively."
+    }
+  ]
+}

@@ -1,84 +1,111 @@
 # ScreenClip
 
-A macOS menu bar utility for capturing feedback as you notice it, without interrupting what you are doing.
+**File bugs as you go, without breaking your flow.**
 
-The main value is keeping your flow: notice a tiny layout issue, confusing label, missing detail, or improvement; capture it in a few moments; then keep going. ScreenClip should make it practical to collect dozens or hundreds of small observations across a session, rather than stopping to write a formal bug report or losing the details before you finish.
+A native macOS menu bar app for capturing the little things you notice: a clipped button, confusing copy, a missing detail, or an idea for improvement. Grab a screenshot, add a note if you need one, and keep going. ScreenClip keeps the image and context together, with Codex or Claude Code handling the follow-up work.
 
-Press a global shortcut, select a screen region, optionally write a short note or annotate the image, and submit. ScreenClip preserves the context so you do not have to reconstruct it later. Codex pickup and progress, questions, pull requests, and results extend that capture workflow; an automatic fix is a downstream benefit, not the primary product promise.
+<p align="center">
+  <img src="docs/screenshots/composer-preview.png" width="780" alt="ScreenClip capture editor with annotation tools, an optional note, and project, issue, and agent selectors.">
+</p>
 
-## Agreed direction
+*The native capture editor, shown with sample data. [See the report queue →](docs/screenshots/queue-preview.png)*
 
-- macOS only; support testing both websites and native Mac apps.
-- Lead with quick, low-friction feedback capture and returning to the task at hand. Support many small observations in one session; do not require every capture to become a formal bug report.
-- Start work immediately after submission.
-- Keep one Codex chat per issue; attach related screenshots and follow-ups to that issue.
-- Infer the project from the app or browser context, with a visible correction control.
-- Implement, test, open a PR, and merge automatically when the project's checks and policies pass.
-- Design for eventual public distribution, beginning with a working version on the developer's Mac.
-- Investigate a Codex plugin as a companion to the native app.
+## How it works
 
-## Documentation
+1. **Notice something.** Press **⌘⇧2** and select a region of a website or native Mac app.
+2. **Capture the thought.** Add an optional note, draw an arrow, or redact sensitive details. A screenshot alone works too. ScreenClip suggests a project from the app or browser context; you can correct it before submitting.
+3. **Keep going.** Submit a new report or add evidence to an existing one. Follow progress and answer questions from the menu bar or report queue.
 
-- [Product specification](docs/product-spec.md): workflow, screens, status meanings, scope, and remaining questions.
-- [Technical design](docs/technical-design.md): native components, Codex integration, plugin options, storage, and constraints.
-- [Implementation plan](docs/implementation-plan.md): feasibility gates, build sequence, and acceptance criteria.
-- [Promotional website](website/README.md): one-page static site, local preview, SEO setup, and placeholder App Store/download links.
+Each issue keeps its own agent conversation and isolated Git worktree. ScreenClip validates the changes and opens a GitHub PR. Automatic merge runs when enabled for the project and its checks and policies pass; merged fixes appear under **To retest**.
 
-## Build and run
+## What’s included
 
-Requires macOS 14+, Xcode 16 or newer with Swift 6, a working Codex CLI with `app-server`, and GitHub CLI for PR automation. The build has no external Swift package dependencies.
+- **Quick capture and markup.** A configurable global shortcut, freehand drawing, arrows, shapes, text, opaque redaction, and undo/redo.
+- **Context that stays attached.** Source app, optional browser URL, project routing, related captures, and drafts.
+- **Your choice of local agent.** Codex or Claude Code, with a default in Settings and an override for each new report. Follow-up captures keep the issue’s original agent and session.
+- **A searchable feedback queue.** Permanent report numbers such as **#234**, status and project filters, inline replies, and archive/restore without losing evidence. Search a report number across projects, statuses, and archived reports.
+- **The rest of the fix.** Validation, PR checks, merge tracking, recovery after interruptions, and a retest queue.
 
-### In Xcode
+## Get started
 
-Copy `Config/LocalSigning.xcconfig.example` to `Config/LocalSigning.xcconfig` and set your Apple Development certificate and team. This ignored file configures both Xcode and Terminal builds. Ad-hoc signing changes the application's identity when its executable changes and can invalidate a previous permission grant. A checkout can build ad-hoc for CI, but local installation requires a certificate.
+Requires **macOS 14+**, **Xcode 16+ with Swift 6**, and a local Git repository. Install and sign in to at least one supported agent: **Codex CLI** with `app-server`, or **Claude Code**. **GitHub CLI** is required for PR automation. There are no external Swift package dependencies.
 
-Open **ScreenClip.xcodeproj**, select **ScreenClip → My Mac**, then press **⌘R**. The shared scheme builds the native app, installs it at **`/Applications/ScreenClip.app`**, and runs/debugs that installed copy. Its Run pre-action stages and verifies the signed app, asks existing copies to quit, and replaces the installed bundle only after they exit. Save an open capture and finish or cancel active work before installing an update. Command-B builds without installing or launching.
+### Build and run
 
-Normal use always launches the Applications copy. The bundle ID and signing certificate stay stable, while the queue remains in Application Support. The core library and command-line tests remain a local Swift package.
+```sh
+cp Config/LocalSigning.xcconfig.example Config/LocalSigning.xcconfig
+open ScreenClip.xcodeproj
+```
 
-### From Terminal
+Set your Apple Development certificate and team in `Config/LocalSigning.xcconfig` before running. This file is ignored by Git. Select **ScreenClip → My Mac** and press **⌘R**. The shared scheme builds, installs, and runs **`/Applications/ScreenClip.app`**. Save any open capture and finish or cancel active work before installing an update. **⌘B** builds without installing or launching.
+
+For the same build-and-install flow from Terminal:
 
 ```sh
 bash scripts/run.sh
 ```
 
-This uses the same Xcode project, installs the app in Applications, and opens it. `bash scripts/build.sh [debug|release]` only builds; the product is under `build/DerivedData/Build/Products/Debug` or `Release`. The initial global shortcut is **⌘⇧2**. Configure another shortcut in Settings if that combination is taken.
+Local installation requires a signing certificate to keep macOS permissions stable across updates. Build-only checks can use ad-hoc signing. `bash scripts/build.sh [debug|release]` builds without installing; products are under `build/DerivedData/Build/Products/`.
 
-1. Open Settings → Projects. Add a Git repository, its base branch, website URLs or native bundle IDs, and a validation command.
-2. In Connections, check Codex and GitHub sign-in. ScreenClip checks for an existing Codex session automatically and reuses it. Sign in opens a browser only when a new login is needed; Other sign-in options offers a code-based flow. Pending logins can be canceled and failures are shown directly in Settings. A working desktop-bundled Codex runtime is detected as a development fallback; a separately installed supported CLI is preferred for distribution.
-3. Enable browser URL context if desired. Safari/Chrome Automation access is optional; without it, choose the project when inference is unavailable.
-4. Press the shortcut. Grant macOS Screen Recording permission on first capture, select a region, annotate or describe it, and Submit.
+### First capture
 
-The editor appears immediately after selection. Draw freehand, add an arrow, rectangle, circle/ellipse or text, choose a color and thin/medium/bold stroke, and undo/redo before submitting. Redaction always produces an opaque black block.
+1. **Add a project** in **Settings → Projects**: its Git repository, base branch, website URLs or native app bundle IDs, and validation command.
+2. **Connect an agent** in **Settings → Connections**. Use **Detect agents**, choose the default, and check sign-in. Codex reuses an existing session when available; **Sign in to Claude** opens Terminal for Claude Code’s login flow. You can also set a Claude executable path and model.
+3. **Press ⌘⇧2**, grant macOS Screen Recording permission, select a region, and submit. Change the shortcut in Settings if needed.
 
-**Settings → General → Capture → Hide ScreenClip during capture** controls whether the shortcut hides ScreenClip's windows/popover and excludes them from the captured image. It is on by default. Turn it off and Save settings when reporting bugs in ScreenClip itself. Capturing its open menu bar popover identifies ScreenClip as the source app.
+Browser URL context is optional and may request Safari or Chrome Automation access. Without it, select the project yourself when routing is unavailable.
 
-If System Settings shows access enabled but capture still fails, use **Check screen access** in General settings. ScreenClip tries ScreenCaptureKit even when the older preflight check says no, and rechecks after returning from System Settings following a denial. The permission banner also offers Settings, Check again, and Reopen app. If a previous ad-hoc build left an unusable permission entry, quit ScreenClip, run `tccutil reset ScreenCapture com.screenclip.app`, reopen `/Applications/ScreenClip.app`, invoke capture and grant access again. This targeted reset affects only ScreenClip's screen-capture approval and is a repair step, not part of ordinary installation. Capture diagnostics are written to `~/Library/Application Support/ScreenClip/capture-diagnostics.log` and include build/API error metadata, without screenshots, notes, browser URLs, or window titles.
+ScreenClip hides its own windows during capture by default. To report a bug in ScreenClip itself, turn off **Settings → General → Capture → Hide ScreenClip during capture** and save.
 
-Captures save locally before dispatch. Related images share an issue and Codex chat. A fix runs in its own worktree, passes the configured validation, and opens a GitHub PR. Automatic merge requires passing CI, satisfied host policies, the validated PR head, and the current input revision. ScreenClip makes up to two repair attempts for failing checks, then requests input. Merged fixes appear under **To retest**.
+## Working with reports
 
-Every saved report gets a permanent number such as **#234**, shown in the queue, menu bar popover, and details. Click the number in the details to copy it. Search for `#234` or `234` to find that exact report across projects and statuses, including archived reports. Existing reports receive numbers automatically; related captures keep the same number, and deleted numbers are never reused in that queue.
+Captures save locally before dispatch, under `~/Library/Application Support/ScreenClip`. Keep ScreenClip running and the Mac awake while an agent works. Use the report’s reply controls to answer questions; click its number to copy a reference.
 
-Keep ScreenClip running and the Mac awake for local work. Use ScreenClip's reply controls for active jobs. Cancel an issue before taking over its worktree in another coding client; simultaneous editing from separate Codex processes is not coordinated automatically.
+**Open in Codex** takes you to the exact issue chat. Claude reports offer **Copy Claude resume command**. Cancel active work before taking over the worktree in another coding client. Codex chats may still appear in Recents instead of the expected desktop project; the [repository association review](docs/validation.md#repository-association-review) documents that limitation.
 
-Codex chats can still appear in Recents on the tested desktop version, even when ScreenClip targets the correct repository. Use **Open in Codex** on the issue to reach its exact chat. The agent receives the repository, isolated worktree, and branch context explicitly. See the [project-association check](docs/validation.md#repository-association-review) for the current sidebar limitation.
+After an interruption, **Reconcile chat** can recover a saved Codex result and independently validate it before publication. For Claude Code, reconciliation checks for an active session process before allowing Continue; it does not recover completed results from Claude history. **Refresh PR status** updates checks immediately. Archive a report to retain its screenshots and outcome while clearing it from the active queue.
 
-After an interrupted run, **Reconcile chat** recovers a completed structured fix and independently validates it before publication. Continue reuses a chat already owned by ScreenClip and restores an archived chat when necessary. `--recover-reports` reconciles the saved reports and continues those without unanswered questions. PR details retain the link and confirmed merge commit; **Refresh PR status** updates checks immediately.
+Claude session handling and dispatch are covered by synthetic CLI tests. A live Claude fix through validation, PR publication, and merge remains unverified.
 
-## Validation and delivery
+The optional [local MCP plugin](plugins/screenclip/README.md) lets an assistant inspect reports, notes, approved screenshots, and status. Automatic pickup is handled by the native app and needs no plugin. For a quick read-only queue review:
+
+```sh
+python3 scripts/review_queue.py --project ScreenClip --details
+```
+
+<details>
+<summary>Screen Recording troubleshooting</summary>
+
+If capture fails even though access is enabled, use **Check screen access** in General settings. After changing access in System Settings, choose **Check again** or **Reopen app** from the permission banner.
+
+If an older ad-hoc build left an unusable permission entry, quit ScreenClip, reset its screen-capture approval, then reopen the Applications copy and capture again:
+
+```sh
+tccutil reset ScreenCapture com.screenclip.app
+open /Applications/ScreenClip.app
+```
+
+Diagnostics are saved to `~/Library/Application Support/ScreenClip/capture-diagnostics.log`. They contain build and API error metadata, without screenshots, notes, browser URLs, or window titles.
+
+</details>
+
+## Development
 
 ```sh
 bash scripts/test.sh
 python3 scripts/test_plugin.py
 python3 scripts/test_review_queue.py
 python3 website/build.py
-bash scripts/package.sh
 ```
 
-Packaging uses the Xcode Release build and writes `build/ScreenClip-macOS.zip`. The built bundle is `build/DerivedData/Build/Products/Release/ScreenClip.app`. Local builds use the ignored local signing configuration when provided, otherwise ad-hoc signing for build-only checks. `SCREENCLIP_SIGNING_IDENTITY` overrides the local configuration. For a public release, supply a Developer ID signing identity and a preconfigured Keychain `SCREENCLIP_NOTARY_PROFILE` before running the packaging script. An Apple Development signature is for local testing and does not replace public notarization. No third-party runtime is redistributed.
+`bash scripts/package.sh` creates the Release bundle and `build/ScreenClip-macOS.zip`. Public distribution requires a Developer ID identity through `SCREENCLIP_SIGNING_IDENTITY` and a configured Keychain `SCREENCLIP_NOTARY_PROFILE`. No third-party agent runtime is redistributed.
 
-The optional [Codex MCP plugin](plugins/screenclip/README.md) exposes the local queue and approved images for inspection. It is not needed for automatic pickup.
+ScreenClip is a working local app; public downloads and notarized distribution are still being prepared. See [validation evidence and remaining checks](docs/validation.md) for what has been tested.
 
-Claude Code detection, session models, and a headless process client are included as groundwork. Agent selection and Claude dispatch are not yet connected to the app; the current capture workflow uses Codex.
+## Documentation
 
-See [validation evidence and current limits](docs/validation.md) for the live Codex and GitHub checks, native previews, and remaining manual verification. This is a working local app, not yet a publicly notarized release.
+- [Product specification](docs/product-spec.md) — workflow, scope, screens, and status meanings.
+- [Technical design](docs/technical-design.md) — native components, storage, agent integration, and constraints.
+- [Implementation plan](docs/implementation-plan.md) — feasibility gates and acceptance criteria.
+- [Agent integration notes](docs/agent-integrations.md) — design review and external-assistant proposals.
+- [Promotional website](website/README.md) — local preview, SEO, and release links.
