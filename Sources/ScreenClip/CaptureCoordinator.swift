@@ -64,9 +64,11 @@ import ScreenClipCore
           content.windows.first {
             $0.owningApplication?.processID == source?.processIdentifier && $0.windowLayer == 0
           }?.title
-        let ownWindows = content.windows.filter {
-          $0.owningApplication?.processID == ProcessInfo.processInfo.processIdentifier
-        }
+        let ownWindows =
+          model.snapshot.settings.hideScreenClipDuringCapture
+          ? content.windows.filter {
+            $0.owningApplication?.processID == ProcessInfo.processInfo.processIdentifier
+          } : []
         var backdrops: [(NSScreen, CGImage)] = []
         for screen in NSScreen.screens {
           guard

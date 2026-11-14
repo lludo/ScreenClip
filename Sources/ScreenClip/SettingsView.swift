@@ -18,6 +18,7 @@ struct SettingsView: View {
             LabeledContent("Global shortcut") {
               ShortcutRecorder(settings: $settings).frame(width: 180, height: 26)
             }
+            Toggle("Hide ScreenClip during capture", isOn: $settings.hideScreenClipDuringCapture)
             Toggle(
               "Read the active browser URL for project matching", isOn: $settings.browserContext)
             Text(

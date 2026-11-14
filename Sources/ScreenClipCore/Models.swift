@@ -240,6 +240,7 @@ public struct AppSettings: Codable, Equatable {
   public var model = ""
   public var paused = false
   public var browserContext = false
+  public var hideScreenClipDuringCapture = true
   public var notifications = false
   public var shortcutKey: UInt32 = 19  // ANSI 2
   public var shortcutModifiers: UInt32 = 768  // cmdKey | shiftKey
@@ -247,6 +248,29 @@ public struct AppSettings: Codable, Equatable {
   public var sessionName = ""
   public var testedVersion = ""
   public init() {}
+
+  private enum CodingKeys: String, CodingKey {
+    case codexPath, ghPath, model, paused, browserContext, hideScreenClipDuringCapture, notifications
+    case shortcutKey, shortcutModifiers, shortcutDescription, sessionName, testedVersion
+  }
+
+  public init(from decoder: Decoder) throws {
+    let values = try decoder.container(keyedBy: CodingKeys.self)
+    codexPath = try values.decode(String.self, forKey: .codexPath)
+    ghPath = try values.decode(String.self, forKey: .ghPath)
+    model = try values.decode(String.self, forKey: .model)
+    paused = try values.decode(Bool.self, forKey: .paused)
+    browserContext = try values.decode(Bool.self, forKey: .browserContext)
+    // Older snapshots have no preference; keep hiding ScreenClip unless explicitly disabled.
+    hideScreenClipDuringCapture =
+      try values.decodeIfPresent(Bool.self, forKey: .hideScreenClipDuringCapture) ?? true
+    notifications = try values.decode(Bool.self, forKey: .notifications)
+    shortcutKey = try values.decode(UInt32.self, forKey: .shortcutKey)
+    shortcutModifiers = try values.decode(UInt32.self, forKey: .shortcutModifiers)
+    shortcutDescription = try values.decode(String.self, forKey: .shortcutDescription)
+    sessionName = try values.decode(String.self, forKey: .sessionName)
+    testedVersion = try values.decode(String.self, forKey: .testedVersion)
+  }
 }
 
 public struct StoreSnapshot: Codable {

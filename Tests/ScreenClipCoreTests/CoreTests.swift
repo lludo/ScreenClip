@@ -13,6 +13,34 @@ final class CoreTests: XCTestCase {
     Capture(
       note: "A clipped label", imagePath: "/tmp/test.png", context: CaptureContext(appName: "Test"))
   }
+  func testNewStoreHidesScreenClipDuringCaptureByDefault() throws {
+    let store = try temporaryStore()
+    XCTAssertTrue(try store.load().settings.hideScreenClipDuringCapture)
+  }
+  func testLegacySettingsDefaultToHidingScreenClipWithoutChangingOtherPreferences() throws {
+    var settings = AppSettings()
+    settings.browserContext = true
+    settings.sessionName = "Legacy session"
+    settings.shortcutKey = 20
+    settings.testedVersion = "build 42"
+    let legacy = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: JSONEncoder().encode(settings)) as? [String: Any])
+      .filter { $0.key != "hideScreenClipDuringCapture" }
+    let decoded = try JSONDecoder().decode(
+      AppSettings.self, from: JSONSerialization.data(withJSONObject: legacy))
+    XCTAssertTrue(decoded.hideScreenClipDuringCapture)
+    XCTAssertEqual(decoded, settings)
+  }
+  func testCaptureVisibilityChoicePersistsAcrossStoreReloads() throws {
+    let store = try temporaryStore()
+    for hidden in [false, true] {
+      var state = StoreSnapshot()
+      state.settings.hideScreenClipDuringCapture = hidden
+      try store.save(state)
+      let reopened = try IssueStore(root: store.root, readOnly: true).load()
+      XCTAssertEqual(reopened.settings.hideScreenClipDuringCapture, hidden)
+    }
+  }
   func testDurableSubmissionPreservesImageRevisionAndContext() throws {
     let store = try temporaryStore()
     let bytes = Data([1, 2, 3, 4])

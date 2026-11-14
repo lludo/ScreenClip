@@ -201,8 +201,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       return
     }
     popover.performClose(nil)
-    queueWindow?.orderOut(nil)
-    settingsWindow?.orderOut(nil)
+    if model.snapshot.settings.hideScreenClipDuringCapture {
+      queueWindow?.orderOut(nil)
+      settingsWindow?.orderOut(nil)
+    }
     capture.begin()
   }
   func showQueue() {

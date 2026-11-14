@@ -41,6 +41,8 @@ open build/ScreenClip.app
 
 The app lives in the menu bar. The initial global shortcut is **⌘⇧2**. Configure another shortcut in Settings if that combination is taken.
 
+**Hide ScreenClip during capture** is enabled by default in Settings → General. Turn it off to include ScreenClip's own windows in a capture.
+
 1. Open Settings → Projects. Add a Git repository, its base branch, website URLs or native bundle IDs, and a validation command.
 2. In Connections, check Codex and GitHub sign-in. ScreenClip checks for an existing Codex session automatically and reuses it. Sign in opens a browser only when a new login is needed; Other sign-in options offers a code-based flow. Pending logins can be canceled and failures are shown directly in Settings. A working desktop-bundled Codex runtime is detected as a development fallback; a separately installed supported CLI is preferred for distribution.
 3. Enable browser URL context if desired. Safari/Chrome Automation access is optional; without it, choose the project when inference is unavailable.
