@@ -5,36 +5,39 @@ import SwiftUI
   static func exampleImage() -> NSImage {
     let image = NSImage(size: NSSize(width: 800, height: 420))
     image.lockFocus()
-    NSColor(calibratedRed: 0.96, green: 0.96, blue: 0.98, alpha: 1).setFill()
+    NSColor(calibratedRed: 0.96, green: 0.95, blue: 0.93, alpha: 1).setFill()
     NSRect(x: 0, y: 0, width: 800, height: 420).fill()
-    let card = NSRect(x: 70, y: 55, width: 660, height: 310)
+    func text(_ value: String, x: CGFloat, y: CGFloat, size: CGFloat, weight: NSFont.Weight = .regular, color: NSColor = .labelColor) {
+      value.draw(at: NSPoint(x: x, y: y), withAttributes: [
+        .font: NSFont.systemFont(ofSize: size, weight: weight), .foregroundColor: color,
+      ])
+    }
+    func rounded(_ rect: NSRect, radius: CGFloat, color: NSColor) {
+      color.setFill()
+      NSBezierPath(roundedRect: rect, xRadius: radius, yRadius: radius).fill()
+    }
+    let ink = NSColor(calibratedRed: 0.16, green: 0.18, blue: 0.18, alpha: 1)
+    let muted = NSColor(calibratedWhite: 0.43, alpha: 1)
+    text("FIELD / NOTES", x: 48, y: 374, size: 15, weight: .bold, color: ink)
+    text("Shop     Journal     About", x: 470, y: 374, size: 13, color: muted)
+    text("Your order", x: 48, y: 316, size: 27, weight: .semibold, color: ink)
+    text("Review the details before checkout.", x: 49, y: 292, size: 14, color: muted)
     NSColor.white.setFill()
-    NSBezierPath(roundedRect: card, xRadius: 20, yRadius: 20).fill()
-    "Order summary".draw(
-      at: NSPoint(x: 105, y: 300),
-      withAttributes: [
-        .font: NSFont.systemFont(ofSize: 26, weight: .semibold), .foregroundColor: NSColor.black,
-      ])
-    "Your next adventure starts here.".draw(
-      at: NSPoint(x: 105, y: 255),
-      withAttributes: [
-        .font: NSFont.systemFont(ofSize: 17), .foregroundColor: NSColor.secondaryLabelColor,
-      ])
-    NSColor(calibratedRed: 0.94, green: 0.39, blue: 0.16, alpha: 1).setFill()
-    NSBezierPath(
-      roundedRect: NSRect(x: 105, y: 110, width: 290, height: 56), xRadius: 12, yRadius: 12
-    ).fill()
-    "Complete purchase".draw(
-      at: NSPoint(x: 135, y: 128),
-      withAttributes: [
-        .font: NSFont.systemFont(ofSize: 18, weight: .medium), .foregroundColor: NSColor.white,
-      ])
-    "Total          $48.00".draw(
-      at: NSPoint(x: 490, y: 128),
-      withAttributes: [
-        .font: NSFont.monospacedDigitSystemFont(ofSize: 19, weight: .medium),
-        .foregroundColor: NSColor.black,
-      ])
+    rounded(NSRect(x: 48, y: 66, width: 704, height: 204), radius: 15, color: .white)
+    rounded(NSRect(x: 70, y: 150, width: 92, height: 92), radius: 10,
+      color: NSColor(calibratedRed: 0.84, green: 0.87, blue: 0.81, alpha: 1))
+    text("✦", x: 98, y: 175, size: 32, weight: .medium, color: ink)
+    text("Everyday notebook", x: 182, y: 216, size: 17, weight: .semibold, color: ink)
+    text("Moss green  ·  Set of 2", x: 182, y: 190, size: 13, color: muted)
+    text("Qty 1", x: 182, y: 163, size: 13, color: muted)
+    text("$48.00", x: 644, y: 216, size: 16, weight: .semibold, color: ink)
+    NSColor(calibratedWhite: 0.9, alpha: 1).setFill()
+    NSRect(x: 70, y: 134, width: 660, height: 1).fill()
+    text("Total", x: 70, y: 99, size: 15, weight: .medium, color: ink)
+    text("$48.00", x: 644, y: 99, size: 17, weight: .semibold, color: ink)
+    rounded(NSRect(x: 488, y: 13, width: 264, height: 40), radius: 9,
+      color: NSColor(calibratedRed: 0.19, green: 0.25, blue: 0.23, alpha: 1))
+    text("Continue to checkout  →", x: 515, y: 25, size: 15, weight: .semibold, color: .white)
     image.unlockFocus()
     return image
   }
@@ -52,7 +55,7 @@ import SwiftUI
       browserURL: "http://localhost:3000/checkout", sessionName: "Checkout on a narrow window",
       testedVersion: "Preview build", routingReason: "Matched website rule")
     var first = Issue(
-      projectID: project.id, title: "Button label is clipped at this width",
+      projectID: project.id, title: "Checkout button needs more space",
       capture: Capture(
         note: "The purchase button needs a little more breathing room on small windows.",
         imagePath: asset, context: context))
@@ -85,6 +88,9 @@ import SwiftUI
   }
   static func render(model: AppModel, root: URL) throws {
     try seed(model: model)
+    model.applyScreenshotAgentStatus()
+    // Rendering uses a dedicated preview queue and never starts the worker.
+    try model.commit { $0.settings.paused = false }
     let window = NSWindow(
       contentRect: NSRect(x: 0, y: 0, width: 1240, height: 800), styleMask: [.titled],
       backing: .buffered, defer: false)
@@ -130,12 +136,26 @@ import SwiftUI
       image: exampleImage(),
       marks: [Annotation(kind: .redact, points: [MarkPoint(0.1, 0.1), MarkPoint(0.3, 0.25)])])
     try test.write(to: root.appendingPathComponent("redaction-preview.png"))
+    let previewContext = CaptureContext(
+      appName: "Safari", bundleID: "com.apple.Safari",
+      browserURL: "https://field-notes.example/checkout")
+    let previewCapture = Capture(
+      note: "The checkout button is too close to the edge. Add a little breathing room.",
+      imagePath: "preview", originalPath: "preview",
+      annotations: [
+        Annotation(kind: .rectangle, points: [MarkPoint(0.59, 0.865), MarkPoint(0.95, 0.985)],
+          color: .red, lineWidth: 0.006),
+        Annotation(kind: .arrow, points: [MarkPoint(0.48, 0.72), MarkPoint(0.62, 0.89)],
+          color: .red, lineWidth: 0.006),
+      ], context: previewContext)
+    var previewDraft = Issue(
+      projectID: model.snapshot.projects.first?.id, title: "Checkout button spacing",
+      capture: previewCapture)
+    previewDraft.status = .draft
     window.contentView = NSHostingView(
       rootView: ComposerView(
-        model: model, image: exampleImage(),
-        context: CaptureContext(
-          appName: "Safari", bundleID: "com.apple.Safari",
-          browserURL: "http://localhost:3000/checkout"), existing: nil, close: {}
+        model: model, image: exampleImage(), context: previewContext,
+        existing: previewDraft, close: {}
       ).background(Color.white).preferredColorScheme(.light))
     window.setContentSize(NSSize(width: 780, height: 690))
     window.display()

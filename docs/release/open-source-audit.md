@@ -12,7 +12,7 @@ A rewrite earlier the same day already removed the real queue snapshot and the r
 | --- | --- |
 | Screenshot queue | `ScreenshotFixture.materialize()` builds a temporary directory and `PreviewSupport.seed` fills it with the synthetic **Demo storefront** project. |
 | Localization screenshots | `scripts/render-localizations.sh` writes `build/localization-screenshots/`. `build/` is gitignored. Those PNGs are not committed. |
-| Marketing stills | `docs/screenshots/` and `website/src/assets/popup-light.png` / `popup-dark.png` are the Demo storefront images. On `claude/unstick-agent-runs` the `.webp` and `.avif` copies of that same popup are also the Demo storefront, not the earlier real captures. |
+| Marketing stills | The README includes an app screenshot supplied and approved for sharing by the owner; the menu and capture-editor examples use demo data. The website popup images use demo data. |
 | `.gitignore` | Ignores `Fixtures/ScreenshotData/` so a later copy of the queue is not added by accident. |
 | Secrets | No token, private key, webhook URL, or `.env` in the tree. `scripts/send_test_webhook.py` reads the URL from the environment. |
 
@@ -150,7 +150,7 @@ These are not the photographs. They survived the rewrite.
 
 | What | Where |
 | --- | --- |
-| Personal Gmail as the author address (local part starts with `land`) | `70158a2d2009bd4aebb48db566126635d444d98b` and `e32f81b39ed34ccc1304e9be9acbcbb758fba58f`. Both were created after the rewrite. The committer on both is `noreply@github.com`. The address is not repeated here. |
+| Personal Gmail as the author address | The audit found this in two commits created after the initial rewrite. The address is not repeated here; a subsequent branch-history cleanup replaces it with a GitHub noreply address. GitHub pull-request refs may still retain earlier metadata. |
 | Raw ScreenClip note used as the commit subject | `7874fb1` and `de80622`: "Fix: lets fix up the UI here the content is bleading out of the window. Check margins and alignements." `c6a5a07`: "Fix: Right align all the buttons here and verticali align the Edit buttons in their cells." |
 
 No token, private key, or webhook URL turned up in `git log --all -p` or in `git grep` of the rewritten branch tips. `/Users/me` and `/Users/x` in tests are fake home paths.

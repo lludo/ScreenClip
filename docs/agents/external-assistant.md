@@ -8,10 +8,10 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 
 | Topic | Behavior |
 | --- | --- |
-| Where it appears | Settings → Connections → **AI agent** → **Default agent**, the agent list, and the capture window's **Agent** picker, next to Codex and Claude Code. |
+| Where it appears | Settings → Connections → **AI agent** → **Default agent** and the agent list. The capture window offers Grok Bot when its connection and the project opt-in are ready. |
 | Ready | The Grok Bot row says **Connected** and the host once a setup code has been saved in the Keychain. Otherwise it says **Not connected — Connect Grok Bot**. |
 | Evidence | Approved screenshots and `report.json` are committed to `screenclip/<reportNumber>-<slug>-<workspace>` in the project's repository and pushed. The webhook does not contain image bytes. |
-| Opt-in | Each project has **Allow sending screenshots to the external assistant**, off by default. Public and private repositories both need it. The capture window explains why Grok Bot cannot be chosen while it is off. |
+| Opt-in | Each project has **Allow sending screenshots to the external assistant**, off by default. Public and private repositories both need it. A follow-up locked to Grok Bot explains why it cannot be sent while the opt-in is off. |
 | After a 2xx | Activity `Sent to external assistant`. The issue stays **Working** until a pull request is found. |
 | Pull request | The assistant opens a PR from that same branch. The body contains `ScreenClip: #<reportNumber>`. It may also contain `ScreenClip-Report:`, `ScreenClip-Revision:`, and `ScreenClip-Agent:`. ScreenClip polls GitHub and **Refresh PR status** picks it up immediately. A fork PR is ignored. A draft is attached and is not merged. |
 | Merge | ScreenClip decides. The existing auto-merge checks apply (validated head, passing checks, current revision, reviews). A PR that still contains `.screenclip/` files, or that is still a draft, is not auto-merged. |
@@ -75,11 +75,11 @@ The webhook also sends `Idempotency-Key` set to `delivery.key`. Request headers 
 
 ## Setup
 
-1. Open **Settings → Connections**. On the **Grok Bot** row, click **Connect Grok Bot**. The same button is in the capture window when Grok Bot is not connected.
+1. Open **Settings → Connections**. On the **Grok Bot** row, click **Connect Grok Bot**.
 2. In Grok Bot, open your ScreenClip assistant and ask it: **Connect ScreenClip**. It replies with a setup code. Copy that phrase with the button in the sheet.
 3. Paste the setup code. If it is already on the clipboard when the sheet opens, click **Use code from clipboard**. ScreenClip checks the connection and shows **Connected**, or a short explanation of what to do next.
 4. Turn on **Turn on for this project**. Approved annotated screenshots are pushed to a branch in that project's GitHub repo. A private repo is recommended. The same choice lives in **Settings → Projects** as **Allow sending screenshots to the external assistant**, and it stays off until you turn it on.
-5. Choose Grok Bot as **Default agent**, or pick it in the capture window. The capture-window row stays disabled until Grok Bot is connected and that project opt-in is on.
+5. Choose Grok Bot as **Default agent**, or pick it in the capture window once it is connected and that project opt-in is on.
 
 Afterward the row says **Connected** with the host, and offers **Test again** and **Disconnect**. **Advanced** still has the address and secret fields for anyone who already has them. **Save settings** stores edits there. **Disconnect** removes the Keychain item. Leaving both fields blank and clicking **Save settings** does not disconnect.
 
@@ -166,10 +166,10 @@ ScreenClip validates the pull request head with the project's validation command
 
 ## Picker
 
-Grok Bot is listed even when it is not connected.
+Grok Bot stays in Settings even when it is not connected. The capture window offers it when it is ready for the selected project.
 
 - **Settings:** it can be the default agent. The row is green and says **Connected** with the host when the connection is saved. Otherwise it says **Not connected — Connect Grok Bot**.
-- **Capture window:** the menu item is disabled, with **Connect Grok Bot**, until the connection is saved and the selected project has opted in. Follow-up captures stay on Grok Bot, the same way other agents stay locked.
+- **Capture window:** Grok Bot appears in the Agent menu only when it is connected and the selected project has opted in. A follow-up stays on Grok Bot and explains why it cannot be sent if the connection or opt-in is missing.
 
 ## Limitations
 
