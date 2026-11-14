@@ -51,6 +51,18 @@ final class ExternalAssistantTests: XCTestCase {
     let test = try jsonObject(ExternalAssistant.testJSON())
     XCTAssertEqual(test["schema"] as? String, "screenclip.external.v1.test")
     XCTAssertEqual(test.count, 1)
+    var withContext = issue
+    withContext.addContext("The purchase button, not the title.")
+    let contextPayload = ExternalAssistant.makePayload(
+      issue: withContext, project: project, repo: "lludo/ScreenClip",
+      branch: "screenclip/234-clipped-button", includePageContext: false, commit: nil)
+    let contextObject = try jsonObject(try ExternalAssistant.json(contextPayload))
+    XCTAssertEqual(contextObject["notes"] as? [String], ["First", "Second"])
+    XCTAssertEqual(
+      contextObject["contextNotes"] as? [String], ["The purchase button, not the title."])
+    XCTAssertEqual(
+      (contextObject["evidence"] as? [String: Any])?["paths"] as? [String],
+      [".screenclip/234/report.json", ".screenclip/234/capture-1.png", ".screenclip/234/capture-2.png"])
   }
 
   func testEvidenceWriterStoresApprovedFilesOnly() throws {
