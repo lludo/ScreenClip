@@ -100,6 +100,32 @@ import SwiftUI
     view.cacheDisplay(in: view.bounds, to: rep)
     try rep.representation(using: .png, properties: [:])?.write(
       to: root.appendingPathComponent("queue-preview.png"))
+    if let project = model.snapshot.projects.first {
+      window.contentView = NSHostingView(
+        rootView: QueueView(model: model, selection: .project(project.id))
+          .background(Color.white).preferredColorScheme(.light))
+      window.display()
+      RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+      if let view = window.contentView,
+        let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)
+      {
+        view.cacheDisplay(in: view.bounds, to: bitmap)
+        try bitmap.representation(using: .png, properties: [:])?.write(
+          to: root.appendingPathComponent("project-settings-preview.png"))
+      }
+      window.contentView = NSHostingView(
+        rootView: QueueView(model: model, projectFilter: project.id, agentFilter: .codex)
+          .background(Color.white).preferredColorScheme(.light))
+      window.display()
+      RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+      if let view = window.contentView,
+        let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)
+      {
+        view.cacheDisplay(in: view.bounds, to: bitmap)
+        try bitmap.representation(using: .png, properties: [:])?.write(
+          to: root.appendingPathComponent("queue-filtered-preview.png"))
+      }
+    }
     let test = try AnnotationRenderer.png(
       image: exampleImage(),
       marks: [Annotation(kind: .redact, points: [MarkPoint(0.1, 0.1), MarkPoint(0.3, 0.25)])])

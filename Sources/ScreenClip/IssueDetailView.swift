@@ -73,7 +73,7 @@ struct IssueDetailView: View {
               if model.canMove(issue) && model.snapshot.projects.count > 1 {
                 Menu("Move to project") {
                   ForEach(model.snapshot.projects.filter { $0.id != issue.projectID }) { project in
-                    Button(project.name) {
+                    Button(project.name, systemImage: project.displaySymbol) {
                       model.perform { _ = try model.moveToProject(issue.id, projectID: project.id) }
                     }
                   }
@@ -94,7 +94,7 @@ struct IssueDetailView: View {
               .foregroundStyle(.secondary)
             Menu("Choose project") {
               ForEach(model.snapshot.projects) { project in
-                Button(project.name) { model.assignProject(issue.id, projectID: project.id) }
+                Button(project.name, systemImage: project.displaySymbol) { model.assignProject(issue.id, projectID: project.id) }
               }
               Button("Add project…") { model.settingsAction?() }
             }
