@@ -76,18 +76,22 @@ private final class DataBox: @unchecked Sendable { var data = Data() }
 
 public enum GitWorkspace {
   public static func fingerprint(path: String) async throws -> String {
-    let listing = try await CommandRunner.checked(
+    let listing = try await CommandRunner.run(
       "/usr/bin/git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], cwd: path)
+    guard listing.status == 0 else { throw ScreenClipError.message(listing.error) }
     var hash = SHA256()
-    for name in Set(listing.split(separator: "\0").map(String.init)).sorted() {
+    for name in Set(listing.output.split(separator: "\0").map(String.init)).sorted() {
       let file = URL(fileURLWithPath: path).appendingPathComponent(name)
       hash.update(data: Data(name.utf8))
       hash.update(data: Data([0]))
-      if !FileManager.default.fileExists(atPath: file.path) {
+      let attributes: [FileAttributeKey: Any]
+      do {
+        attributes = try FileManager.default.attributesOfItem(atPath: file.path)
+      } catch CocoaError.fileReadNoSuchFile {
         hash.update(data: Data("deleted".utf8))
         continue
       }
-      let attributes = try FileManager.default.attributesOfItem(atPath: file.path)
+      hash.update(data: Data(String(describing: attributes[.posixPermissions]).utf8))
       if attributes[.type] as? FileAttributeType == .typeSymbolicLink {
         hash.update(
           data: Data(try FileManager.default.destinationOfSymbolicLink(atPath: file.path).utf8))
@@ -112,8 +116,8 @@ public enum GitWorkspace {
     let repo = try await CommandRunner.checked(
       "/usr/bin/git", ["rev-parse", "--show-toplevel"], cwd: project.path)
     guard
-      URL(fileURLWithPath: repo).standardizedFileURL.path
-        == URL(fileURLWithPath: project.path).standardizedFileURL.path
+      URL(fileURLWithPath: repo).standardizedFileURL.resolvingSymlinksInPath().path
+        == URL(fileURLWithPath: project.path).standardizedFileURL.resolvingSymlinksInPath().path
     else { throw ScreenClipError.message("Choose the repository root for \(project.name).") }
     _ = try await CommandRunner.checked(
       "/usr/bin/git", ["check-ref-format", "--branch", project.baseBranch], cwd: project.path)

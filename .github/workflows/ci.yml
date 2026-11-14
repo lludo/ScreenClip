@@ -9,8 +9,12 @@ jobs:
       - uses: actions/checkout@v4
       - name: Native tests
         run: bash scripts/test.sh
-      - name: Plugin tests
-        run: python3 scripts/test_plugin.py
+      - name: Python tests
+        run: |
+          python3 scripts/test_plugin.py
+          python3 scripts/test_review_queue.py
+      - name: Website build
+        run: python3 website/build.py
       - name: Xcode Debug app build
         run: bash scripts/build.sh debug
       - name: Xcode Release app build

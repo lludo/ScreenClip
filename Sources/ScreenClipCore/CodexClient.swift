@@ -49,11 +49,43 @@ public actor CodexClient {
       params: .object([
         "clientInfo": .object([
           "name": .string("screenclip"), "title": .string("ScreenClip"),
-          "version": .string("0.1.5"),
+          "version": .string(
+            Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "development"),
         ]), "capabilities": .object(["experimentalApi": .bool(true)]),
       ]))
     try send(.object(["method": .string("initialized"), "params": .object([:])]))
     return stream
+  }
+  public func projectID(forRepositoryPath path: String) async throws -> String? {
+    func canonicalPath(_ path: String) -> String {
+      URL(fileURLWithPath: path).standardizedFileURL.resolvingSymlinksInPath().path
+    }
+    let repository = canonicalPath(path)
+    var matches = Set<String>()
+    var cursors = Set<String>()
+    var cursor: String?
+    repeat {
+      var params: [String: JSONValue] = ["limit": .number(100)]
+      if let cursor { params["cursor"] = .string(cursor) }
+      let result = try await request("project/list", params: .object(params))
+      for project in result["data"].array {
+        guard let id = project["id"].string, !id.isEmpty else { continue }
+        if project["roots"].array.contains(where: { root in
+          guard let rootPath = root["path"].string else { return false }
+          return canonicalPath(rootPath) == repository
+        }) {
+          matches.insert(id)
+        }
+      }
+      cursor = result["nextCursor"].string
+      if let cursor, !cursors.insert(cursor).inserted {
+        throw ScreenClipError.message("Codex returned a repeated project-list cursor.")
+      }
+    } while cursor != nil
+    guard matches.count <= 1 else {
+      throw ScreenClipError.message("Multiple Codex projects use this repository.")
+    }
+    return matches.first
   }
   public func resumeThread(_ threadID: String, params: [String: JSONValue]) async throws -> JSONValue {
     if ownedThreads.contains(threadID) {

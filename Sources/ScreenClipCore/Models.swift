@@ -21,6 +21,18 @@ public enum IssueStatus: String, Codable, CaseIterable, Identifiable {
   public var needsAttention: Bool { [.needsProject, .needsYou, .failed].contains(self) }
 }
 
+/// The local coding agent that investigates and fixes an issue.
+public enum AgentKind: String, Codable, CaseIterable, Identifiable, Sendable {
+  case codex, claude
+  public var id: String { rawValue }
+  public var title: String {
+    switch self {
+    case .codex: return "Codex"
+    case .claude: return "Claude Code"
+    }
+  }
+}
+
 public struct Project: Codable, Identifiable, Equatable {
   public var id: UUID
   public var name: String
@@ -161,6 +173,8 @@ public struct PendingQuestion: Codable, Identifiable, Equatable {
 }
 public struct Issue: Codable, Identifiable, Equatable {
   public var id: UUID
+  // Assigned by the store; optional so queues from earlier versions still decode.
+  public internal(set) var reportNumber: Int?
   public var createdAt: Date
   public var updatedAt: Date
   public var projectID: UUID?
@@ -186,10 +200,15 @@ public struct Issue: Codable, Identifiable, Equatable {
   public var resultSummary: String?
   public var repairAttempts: Int?
   public var checkSummary: String?
+  // Optional so queues from earlier versions decode; those issues were always Codex issues.
+  public var agent: AgentKind?
+  public var resolvedAgent: AgentKind { agent ?? .codex }
   public init(
-    id: UUID = UUID(), projectID: UUID?, title: String, capture: Capture, draft: Bool = false
+    id: UUID = UUID(), projectID: UUID?, title: String, capture: Capture, draft: Bool = false,
+    agent: AgentKind? = nil
   ) {
     self.id = id
+    self.agent = agent
     createdAt = Date()
     updatedAt = createdAt
     self.projectID = projectID
@@ -205,7 +224,35 @@ public struct Issue: Codable, Identifiable, Equatable {
     questions = []
     dispatchUncertain = false
   }
-  public var codexURL: URL? { threadID.flatMap { URL(string: "codex://threads/\($0)") } }
+  public var codexURL: URL? {
+    guard resolvedAgent == .codex else { return nil }
+    return threadID.flatMap { URL(string: "codex://threads/\($0)") }
+  }
+  /// Shell command that reopens this issue's Claude Code session interactively.
+  public var claudeResumeCommand: String? {
+    guard resolvedAgent == .claude, let threadID, let worktreePath else { return nil }
+    func quote(_ value: String) -> String { "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'" }
+    return "cd \(quote(worktreePath)) && claude --resume \(quote(threadID))"
+  }
+  public var reportReference: String? { reportNumber.map { "#\($0)" } }
+  public var referencedTitle: String {
+    reportReference.map { "\($0) \(title)" } ?? title
+  }
+  public static func parseReportReference(_ query: String) -> Int? {
+    let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    let digits = trimmed.hasPrefix("#") ? String(trimmed.dropFirst()) : trimmed
+    guard !digits.isEmpty, digits.allSatisfy({ $0 >= "0" && $0 <= "9" }),
+      let number = Int(digits), number > 0
+    else { return nil }
+    return number
+  }
+  public func matchesSearch(_ query: String) -> Bool {
+    let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.isEmpty { return true }
+    if let number = Self.parseReportReference(trimmed) { return reportNumber == number }
+    return title.localizedCaseInsensitiveContains(trimmed)
+      || captures.contains { $0.note.localizedCaseInsensitiveContains(trimmed) }
+  }
   public mutating func add(_ capture: Capture) {
     repairAttempts = 0
     if [.merged, .verified].contains(status) {
@@ -236,6 +283,11 @@ public struct Issue: Codable, Identifiable, Equatable {
 
 public struct AppSettings: Codable, Equatable {
   public var codexPath = ""
+  // Optional for compatibility with queues saved before Claude Code support.
+  public var claudePath: String?
+  public var claudeModel: String?
+  public var defaultAgent: AgentKind?
+  public var preferredAgent: AgentKind { defaultAgent ?? .codex }
   public var ghPath = "/opt/homebrew/bin/gh"
   public var model = ""
   public var paused = false
@@ -257,7 +309,25 @@ public struct StoreSnapshot: Codable {
   public var projects: [Project] = []
   public var issues: [Issue] = []
   public var settings = AppSettings()
+  // A persisted high-water mark prevents reuse after reports are deleted.
+  public internal(set) var nextReportNumber: Int?
   public init() {}
+  mutating func assignReportNumbers(startingAt minimum: Int = 1) {
+    var next = max(
+      minimum, nextReportNumber ?? 1, (issues.compactMap(\.reportNumber).max() ?? 0) + 1)
+    // Migrate old reports in creation order without changing the visible queue order.
+    let unnumbered = issues.indices.filter { issues[$0].reportNumber == nil }.sorted {
+      if issues[$0].createdAt != issues[$1].createdAt {
+        return issues[$0].createdAt < issues[$1].createdAt
+      }
+      return issues[$0].id.uuidString < issues[$1].id.uuidString
+    }
+    for index in unnumbered {
+      issues[index].reportNumber = next
+      next += 1
+    }
+    nextReportNumber = next
+  }
   public var activeCount: Int { issues.filter { !$0.archived && $0.status.isActive }.count }
   public var attentionCount: Int {
     issues.filter { !$0.archived && $0.status.needsAttention }.count

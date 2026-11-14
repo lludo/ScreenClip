@@ -61,7 +61,11 @@ final class IntegrationTests: XCTestCase {
     let project = Project(name: "Test", path: source.path)
     let id = UUID()
     let first = try await GitWorkspace.prepare(project: project, issueID: id, root: root)
-    let second = try await GitWorkspace.prepare(project: project, issueID: id, root: root)
+    let alias = source.appendingPathExtension("alias")
+    try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: source)
+    addTeardownBlock { try? FileManager.default.removeItem(at: alias) }
+    let aliasedProject = Project(name: "Test", path: alias.path)
+    let second = try await GitWorkspace.prepare(project: aliasedProject, issueID: id, root: root)
     XCTAssertEqual(first.path, second.path)
     XCTAssertEqual(
       try String(contentsOf: source.appendingPathComponent("source.txt"), encoding: .utf8),
@@ -90,6 +94,27 @@ final class IntegrationTests: XCTestCase {
       XCTFail("Changing source during checks must invalidate validation")
     } catch { XCTAssertTrue(error.localizedDescription.contains("changed during validation")) }
   }
+  func testFingerprintCoversLeadingSpaceNamesExecutableModesAndDanglingSymlinks() async throws {
+    let url = try await repo()
+    let spaced = url.appendingPathComponent(" leading-space.txt")
+    try Data("first".utf8).write(to: spaced)
+    let first = try await GitWorkspace.fingerprint(path: url.path)
+    try Data("changed".utf8).write(to: spaced)
+    let changed = try await GitWorkspace.fingerprint(path: url.path)
+    XCTAssertNotEqual(first, changed)
+    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: spaced.path)
+    let executable = try await GitWorkspace.fingerprint(path: url.path)
+    XCTAssertNotEqual(changed, executable)
+    let link = url.appendingPathComponent("broken-link")
+    try FileManager.default.createSymbolicLink(
+      atPath: link.path, withDestinationPath: "missing-one")
+    let broken = try await GitWorkspace.fingerprint(path: url.path)
+    try FileManager.default.removeItem(at: link)
+    try FileManager.default.createSymbolicLink(
+      atPath: link.path, withDestinationPath: "missing-two")
+    let redirected = try await GitWorkspace.fingerprint(path: url.path)
+    XCTAssertNotEqual(broken, redirected)
+  }
   func testJSONRPCConcurrentRequestsAndTimeout() async throws {
     let url = FileManager.default.temporaryDirectory.appendingPathComponent(
       "screenclip-fake-" + UUID().uuidString)
@@ -115,6 +140,56 @@ final class IntegrationTests: XCTestCase {
       _ = try await client.request("timeout", timeout: 1)
       XCTFail("Unacknowledged requests must time out")
     } catch { XCTAssertTrue(error.localizedDescription.contains("did not acknowledge")) }
+    await client.stop()
+  }
+  func testCodexProjectLookupUsesCanonicalRepositoryRootsAndPagination() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "screenclip-project-" + UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let repo = root.appendingPathComponent("repo")
+    try FileManager.default.createDirectory(at: repo, withIntermediateDirectories: true)
+    let alias = root.appendingPathComponent("alias")
+    try FileManager.default.createSymbolicLink(at: alias, withDestinationURL: repo)
+    let script = root.appendingPathComponent("fake-codex")
+    try """
+    #!/usr/bin/python3
+    import sys,json,os
+    root=os.path.dirname(__file__)
+    scenario='paged'
+    def project(id,path): return {'id':id,'name':'Test','roots':[{'path':path}]}
+    for line in sys.stdin:
+        m=json.loads(line); method=m.get('method'); p=m.get('params',{})
+        if 'id' not in m: continue
+        result={}
+        if method=='scenario': scenario=p['value']
+        if method=='project/list':
+            if scenario=='unsupported':
+                print(json.dumps({'id':m['id'],'error':{'code':-32601,'message':'Method not found'}}),flush=True)
+                continue
+            result={'data':[project('wrong',os.path.join(root,'repo-other'))],'nextCursor':'page-2'}
+            if p.get('cursor'): result={'data':[project('right',os.path.join(root,'alias'))],'nextCursor':None}
+            if scenario=='ambiguous': result={'data':[project('one',os.path.join(root,'repo')),project('two',os.path.join(root,'repo'))],'nextCursor':None}
+            if scenario=='loop': result={'data':[],'nextCursor':'same-page'}
+        print(json.dumps({'id':m['id'],'result':result}),flush=True)
+    """.write(to: script, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
+    let client = CodexClient()
+    _ = try await client.connect(path: script.path)
+    let match = try await client.projectID(forRepositoryPath: repo.path)
+    XCTAssertEqual(match, "right")
+    let missing = try await client.projectID(
+      forRepositoryPath: root.appendingPathComponent("other").path)
+    XCTAssertNil(missing)
+    for scenario in ["ambiguous", "loop", "unsupported"] {
+      _ = try await client.request("scenario", params: .object(["value": .string(scenario)]))
+      do {
+        _ = try await client.projectID(forRepositoryPath: repo.path)
+        XCTFail("Project lookup must reject \(scenario)")
+      } catch {
+        XCTAssertFalse(error.localizedDescription.isEmpty)
+      }
+    }
     await client.stop()
   }
   func testArchivedThreadCanResumeWithoutRepeatedlyAcquiringWriter() async throws {
