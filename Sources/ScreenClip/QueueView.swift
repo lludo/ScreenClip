@@ -295,32 +295,56 @@ struct QueueView: View {
                 "\(model.snapshot.issues.filter { item.includes($0, projectID: projectFilter, agent: agentFilter) }.count)"
               ).foregroundStyle(.secondary).monospacedDigit()
             }
-            .padding(.vertical, 4)
-            .foregroundStyle(selection == .status(item) ? Color.orange : Color.primary)
+            .padding(.vertical, 4).contentShape(Rectangle())
+            .fontWeight(selection == .status(item) ? .semibold : .regular)
           }.buttonStyle(.plain)
+            .listRowBackground(sidebarHighlight(selection == .status(item)))
+            .accessibilityAddTraits(selection == .status(item) ? .isSelected : [])
         }
       } header: {
-        Text("WORKSPACE")
+        sidebarHeader("WORKSPACE")
       }
-      Section("PROJECTS") {
+      Section {
         ForEach(model.snapshot.projects) { project in
           Button {
             selection = .project(project.id)
           } label: {
             Label(project.name, systemImage: project.displaySymbol)
-              .foregroundStyle(selection == .project(project.id) ? .orange : .primary)
+              .fontWeight(selection == .project(project.id) ? .semibold : .regular)
+              .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
           }.buttonStyle(.plain).help("Project settings")
+            .listRowBackground(sidebarHighlight(selection == .project(project.id)))
+            .accessibilityAddTraits(selection == .project(project.id) ? .isSelected : [])
         }
         Button {
           selection = .newProject
         } label: {
           Label("Add project…", systemImage: "plus")
-            .foregroundStyle(selection == .newProject ? .orange : .secondary)
+            .fontWeight(selection == .newProject ? .semibold : .regular)
+            .foregroundStyle(selection == .newProject ? Color.primary : Color.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
         }.buttonStyle(.plain)
+          .listRowBackground(sidebarHighlight(selection == .newProject))
+          .accessibilityAddTraits(selection == .newProject ? .isSelected : [])
+      } header: {
+        sidebarHeader("PROJECTS")
       }
     }.listStyle(.sidebar).scrollContentBackground(.hidden).labelStyle(SidebarLabelStyle())
       // Sidebar rows tint icons with the system accent unless told otherwise.
       .listItemTint(.fixed(.orange)).tint(.orange)
+  }
+  /// Section titles in Finder's gray (secondary label), not the extra-dimmed default.
+  private func sidebarHeader(_ title: String) -> some View {
+    Text(title).font(.subheadline.weight(.semibold)).foregroundStyle(Color(nsColor: .secondaryLabelColor))
+  }
+  /// Finder-style selection: a rounded neutral pill behind the row, with bolder text.
+  @ViewBuilder private func sidebarHighlight(_ selected: Bool) -> some View {
+    if selected {
+      RoundedRectangle(cornerRadius: 8, style: .continuous)
+        .fill(Color.primary.opacity(0.1)).padding(.horizontal, 6)
+    } else {
+      Color.clear
+    }
   }
   private var sidebarFooter: some View {
     VStack(alignment: .leading, spacing: 8) {
