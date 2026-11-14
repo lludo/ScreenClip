@@ -26,6 +26,39 @@ import XCTest
     model.togglePaused()
   }
 
+  func testSavingSettingsKeepsDonationChoicesMadeWhileTheFormWasOpen() throws {
+    let (model, _) = try makeModel()
+    let launched = try XCTUnwrap(model.snapshot.settings.firstLaunchedAt)
+    var form = model.snapshot.settings
+    model.optOutOfDonationPrompt()
+    form.sessionName = "Beta"
+    model.saveSettings(form)
+    XCTAssertEqual(model.snapshot.settings.donationOptOut, true)
+    XCTAssertEqual(model.snapshot.settings.firstLaunchedAt, launched)
+    XCTAssertEqual(model.snapshot.settings.sessionName, "Beta")
+    XCTAssertFalse(model.shouldShowDonationPrompt())
+  }
+
+  func testThreeMergedFixesShowTheDonationPromptBeforeTheFirstWeek() throws {
+    let (model, _) = try makeModel()
+    let launched = try XCTUnwrap(model.snapshot.settings.firstLaunchedAt)
+    XCTAssertFalse(model.shouldShowDonationPrompt(at: launched))
+    for index in 0..<3 {
+      try model.submit(
+        imageData: Data([UInt8(index)]), originalData: nil, annotations: [], note: "Clipped",
+        context: CaptureContext(), projectID: UUID(), existingID: nil, draft: false)
+      let id = try XCTUnwrap(model.snapshot.issues.last?.id)
+      try model.updateIssue(id) { $0.record("Merged", status: .merged) }
+    }
+    XCTAssertEqual(model.mergedFixCount(), 3)
+    XCTAssertTrue(model.shouldShowDonationPrompt(at: launched))
+    model.snoozeDonationPrompt(from: launched)
+    XCTAssertFalse(model.shouldShowDonationPrompt(at: launched.addingTimeInterval(24 * 60 * 60)))
+    XCTAssertTrue(
+      model.shouldShowDonationPrompt(
+        at: launched.addingTimeInterval(DonationPromptPolicy.snoozeInterval)))
+  }
+
   func testFollowUpReopensAMergedReportWithTheFeedback() throws {
     let (model, _) = try makeModel()
     try model.submit(
@@ -110,6 +143,14 @@ import XCTest
     // Active work must be canceled first.
     try model.updateIssue(movedID) { $0.record("Working", status: .working) }
     XCTAssertThrowsError(try model.moveToProject(movedID, projectID: wrong.id))
+    // A report whose pull request is still in the old repository cannot move.
+    try model.updateIssue(movedID) {
+      $0.prURL = "https://github.com/owner/repo/pull/9"
+      $0.record("CI still fails", status: .needsYou)
+    }
+    XCTAssertFalse(model.canMove(try XCTUnwrap(model.issue(movedID))))
+    XCTAssertThrowsError(try model.moveToProject(movedID, projectID: wrong.id))
+    XCTAssertEqual(model.issue(movedID)?.projectID, right.id)
   }
 
   func testADraftCannotBeAddedToASubmittedIssue() throws {

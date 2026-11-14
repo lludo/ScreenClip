@@ -19,6 +19,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   var queueWindow: NSWindow?
   var settingsWindow: NSWindow?
   var composerWindow: NSWindow?
+  var donationWindow: NSWindow?
+  private var donationOptOutOnClose = false
   var observation: Any?
   var timer: Timer?
   var integrationTimer: Timer?
@@ -53,6 +55,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       model.queueAction = { [weak self] in self?.showQueue() }
       model.settingsAction = { [weak self] in self?.showSettings() }
       model.relaunchAction = { [weak self] in self?.relaunch() }
+      model.supportAction = { [weak self] in self?.showDonationPrompt() }
       model.composerAction = { [weak self] image, context, existing in
         self?.showComposer(image: image, context: context, existing: existing)
       }
@@ -100,6 +103,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       }
       if model.snapshot.projects.isEmpty || previewMode || arguments.contains("--show-queue") {
         showQueue()
+      }
+      if !previewMode {
+        Task { @MainActor in
+          try? await Task.sleep(nanoseconds: 1_000_000_000)
+          self.presentDonationPromptIfNeeded()
+        }
       }
     } catch {
       let alert = NSAlert()
@@ -239,6 +248,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       popover.performClose(nil)
       queueWindow?.orderOut(nil)
       settingsWindow?.orderOut(nil)
+      donationWindow?.orderOut(nil)
     }
     capture.begin(sourceOverride: sourceOverride)
   }
@@ -267,10 +277,41 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         view: SettingsView(model: model) { [weak self] in
           self?.settingsWindow?.close()
         },
-        size: NSSize(width: 700, height: 590))
+        size: NSSize(width: 700, height: 640))
     }
     settingsWindow?.makeKeyAndOrderFront(nil)
     NSApp.activate(ignoringOtherApps: true)
+  }
+  func presentDonationPromptIfNeeded() {
+    #if !SCREENCLIP_APP_STORE
+    guard !previewMode, model.shouldShowDonationPrompt() else { return }
+    showDonationPrompt()
+    #endif
+  }
+  func showDonationPrompt() {
+    #if !SCREENCLIP_APP_STORE
+    if donationWindow == nil {
+      let view = DonationPromptView(
+        notNow: { [weak self] in self?.donationWindow?.close() },
+        dontAskAgain: { [weak self] in
+          self?.donationOptOutOnClose = true
+          self?.model.optOutOfDonationPrompt()
+          self?.donationWindow?.close()
+        })
+      let window = NSWindow(
+        contentRect: NSRect(origin: .zero, size: NSSize(width: 440, height: 280)),
+        styleMask: [.titled, .closable], backing: .buffered, defer: false)
+      window.title = "Support ScreenClip"
+      window.isReleasedWhenClosed = false
+      window.delegate = self
+      window.contentViewController = NSHostingController(rootView: view)
+      window.center()
+      donationWindow = window
+    }
+    donationOptOutOnClose = false
+    donationWindow?.makeKeyAndOrderFront(nil)
+    NSApp.activate(ignoringOtherApps: true)
+    #endif
   }
   func showComposer(image: NSImage, context: CaptureContext, existing: Issue?) {
     if let composerWindow {
@@ -293,6 +334,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     composerWindow?.delegate = self
     composerWindow?.makeKeyAndOrderFront(nil)
     NSApp.activate(ignoringOtherApps: true)
+  }
+  func windowWillClose(_ notification: Notification) {
+    guard let window = notification.object as? NSWindow, window === donationWindow else { return }
+    donationWindow = nil
+    if donationOptOutOnClose {
+      donationOptOutOnClose = false
+      return
+    }
+    model.snoozeDonationPrompt()
   }
   func windowShouldClose(_ sender: NSWindow) -> Bool {
     guard sender === composerWindow else { return true }

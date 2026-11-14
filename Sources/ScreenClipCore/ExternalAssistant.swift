@@ -139,11 +139,14 @@ public struct ExternalAssistantConfiguration: Equatable, Sendable {
   }
   public var authorizationIsHeaderSafe: Bool { Self.isSafeHeaderValue(normalizedAuthorization) }
   /// The assistant's panel supplies the full header value. Empty is not configured.
+  /// HTTPS only, so the Authorization header and report never travel in clear text. Plain
+  /// HTTP is accepted for a loopback test server.
   public var endpoint: URL? {
     guard let url = URL(string: normalizedURL), let scheme = url.scheme?.lowercased(),
-      scheme == "https" || scheme == "http", url.host?.isEmpty == false
+      let host = url.host?.lowercased(), !host.isEmpty
     else { return nil }
-    return url
+    let loopback = ["localhost", "127.0.0.1", "::1", "[::1]"].contains(host)
+    return scheme == "https" || (scheme == "http" && loopback) ? url : nil
   }
   public var isConfigured: Bool { endpoint != nil && authorizationIsHeaderSafe }
 }

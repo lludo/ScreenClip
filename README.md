@@ -91,9 +91,11 @@ If capture fails even though access is enabled, use **Check screen access** in G
 If an older ad-hoc build left an unusable permission entry, quit ScreenClip, reset its screen-capture approval, then reopen the Applications copy and capture again:
 
 ```sh
-tccutil reset ScreenCapture com.screenclip.app
+tccutil reset ScreenCapture com.mirageteam.screenclip
 open /Applications/ScreenClip.app
 ```
+
+The bundle ID changed from `com.screenclip.app` to `com.mirageteam.screenclip` in November 2026. macOS treats that as a new app, so the first run of a newer build asks again for Screen Recording, browser Automation, and notifications, and **Open ScreenClip at login** must be turned on again. The queue in Application Support is unaffected. To remove the old entries, run `tccutil reset All com.screenclip.app`.
 
 Diagnostics are saved to `~/Library/Application Support/ScreenClip/capture-diagnostics.log`. They contain build and API error metadata, without screenshots, notes, browser URLs, or window titles.
 
@@ -109,9 +111,9 @@ python3 scripts/test_external_assistant.py
 python3 website/build.py
 ```
 
-`bash scripts/test.sh` accepts `swift test` arguments, such as `--filter SafetyTests`. `bash scripts/package.sh` creates the Release bundle and `build/ScreenClip-macOS.zip`. Public distribution requires a Developer ID identity through `SCREENCLIP_SIGNING_IDENTITY`, a configured Keychain `SCREENCLIP_NOTARY_PROFILE`, and the hardened runtime, which the project does not enable yet (see the [roadmap](docs/roadmap.md#open-gates)). No third-party agent runtime is redistributed.
+`bash scripts/test.sh` accepts `swift test` arguments, such as `--filter SafetyTests`. `bash scripts/package.sh` creates the Release bundle and `build/ScreenClip-macOS.zip`. Release builds enable the hardened runtime. A local notarization still uses `SCREENCLIP_SIGNING_IDENTITY` and a Keychain profile in `SCREENCLIP_NOTARY_PROFILE`. No third-party agent runtime is redistributed.
 
-ScreenClip is a working local app; public downloads and notarized distribution are still being prepared. See [validation](docs/validation.md) for what has been tested and the [roadmap](docs/roadmap.md) for what is left.
+Public downloads are a notarized DMG on GitHub Releases, with an optional tip. The Mac App Store build is not the plan. See [direct distribution](docs/release/direct-distribution.md) and [validation](docs/validation.md).
 
 ## Documentation
 
@@ -121,4 +123,7 @@ ScreenClip is a working local app; public downloads and notarized distribution a
 - [Validation](docs/validation.md) — what is verified, how, and how to reproduce it.
 - [Coding agents](docs/agents/README.md) — how agents plug in, choosing one, and adding a new agent.
   - [Codex](docs/agents/codex.md) · [Claude Code](docs/agents/claude-code.md) · [Grok Bot](docs/agents/external-assistant.md) · proposals: [Codex plugin](docs/agents/proposals/codex-plugin.md)
+- [Direct distribution](docs/release/direct-distribution.md) — GitHub Releases, notarization, and the tip prompt.
+- [Mac App Store sandbox](docs/release/app-store-sandbox.md) — why the sandbox does not fit ScreenClip.
+- [Open-source audit](docs/release/open-source-audit.md) — secret scan of the git history.
 - [Promotional website](website/README.md) — local preview, SEO, and release links.

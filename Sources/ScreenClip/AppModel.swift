@@ -26,6 +26,7 @@ import UserNotifications
   var settingsAction: (() -> Void)?
   var relaunchAction: (() -> Void)?
   var composerAction: ((NSImage, CaptureContext, Issue?) -> Void)?
+  var supportAction: (() -> Void)?
 
   init(root: URL) throws {
     store = try IssueStore(root: root)
@@ -73,6 +74,9 @@ import UserNotifications
     if snapshot.settings.codexPath.isEmpty {
       snapshot.settings.codexPath = Self.defaultCodexPath()
     }
+    if snapshot.settings.firstLaunchedAt == nil {
+      snapshot.settings.firstLaunchedAt = Date()
+    }
     snapshot = try store.save(snapshot)
   }
   static func defaultCodexPath() -> String { AgentDetector.defaultCodexPath() }
@@ -101,10 +105,32 @@ import UserNotifications
       try commit { state in
         var merged = settings
         merged.paused = state.settings.paused
+        // The Settings form is a copy. Tip-prompt state changes outside that form.
+        merged.firstLaunchedAt = state.settings.firstLaunchedAt
+        merged.donationOptOut = state.settings.donationOptOut
+        merged.donationSnoozeUntil = state.settings.donationSnoozeUntil
         state.settings = merged
       }
     }
     NotificationCenter.default.post(name: .screenClipSettingsChanged, object: nil)
+  }
+  func mergedFixCount() -> Int { DonationPromptPolicy.mergedFixCount(snapshot.issues) }
+  func shouldShowDonationPrompt(at now: Date = Date()) -> Bool {
+    guard DistributionChannel.offersDonations else { return false }
+    return DonationPromptPolicy.shouldShow(
+      at: now, firstLaunchedAt: snapshot.settings.firstLaunchedAt, mergedCount: mergedFixCount(),
+      optedOut: snapshot.settings.donationOptOut == true,
+      snoozeUntil: snapshot.settings.donationSnoozeUntil)
+  }
+  func snoozeDonationPrompt(from now: Date = Date()) {
+    perform {
+      try commit {
+        $0.settings.donationSnoozeUntil = now.addingTimeInterval(DonationPromptPolicy.snoozeInterval)
+      }
+    }
+  }
+  func optOutOfDonationPrompt() {
+    perform { try commit { $0.settings.donationOptOut = true } }
   }
   func togglePaused() {
     perform { try commit { $0.settings.paused.toggle() } }
@@ -152,7 +178,8 @@ import UserNotifications
         context: context)
       try commit { state in
         // Remember the app for the project the tester chose, so its next capture routes itself.
-        if let projectID,
+        // Drafts are not a confirmed choice yet.
+        if !draft, let projectID,
           let identifier = ProjectRouter.identifierToLearn(
             from: context, for: projectID, projects: state.projects),
           let index = state.projects.firstIndex(where: { $0.id == projectID })
@@ -212,7 +239,8 @@ import UserNotifications
   }
   /// Whether a report can move to another project from its detail view.
   func canMove(_ issue: Issue) -> Bool {
-    !worker.isActive(issue.id) && !issue.dispatchUncertain && !issue.archived
+    // A pull request belongs to the old repository and would no longer be tracked.
+    !worker.isActive(issue.id) && !issue.dispatchUncertain && !issue.archived && issue.prURL == nil
       && [.needsProject, .queued, .needsYou, .failed, .canceled].contains(issue.status)
   }
   /// Moves a report filed under the wrong project. Before agent work starts the report is simply
@@ -224,12 +252,19 @@ import UserNotifications
       throw ScreenClipError.message("Report or project no longer exists.")
     }
     guard issue.projectID != projectID else { return issueID }
+    guard issue.prURL == nil else {
+      throw ScreenClipError.message(
+        "This report has a pull request in its current repository. Close or merge it before moving the report."
+      )
+    }
     guard canMove(issue) else {
       throw ScreenClipError.message("Cancel active work before moving this report to another project.")
     }
     if issue.threadID == nil && issue.worktreePath == nil {
       try updateIssue(issueID) {
         $0.projectID = projectID
+        $0.lastError = nil
+        $0.repairAttempts = 0
         $0.record("Moved to \(target.name)", status: $0.status == .canceled ? .canceled : .queued)
       }
       worker.pump()

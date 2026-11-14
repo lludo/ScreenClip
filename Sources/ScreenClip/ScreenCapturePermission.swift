@@ -78,7 +78,8 @@ import ScreenClipCore
 
 @MainActor final class CaptureDiagnostics {
   private let file: URL
-  private let logger = Logger(subsystem: "com.screenclip.app", category: "capture")
+  private let logger = Logger(
+    subsystem: Bundle.main.bundleIdentifier ?? "com.mirageteam.screenclip", category: "capture")
   init(root: URL) { file = root.appendingPathComponent("capture-diagnostics.log") }
   func record(_ event: String, _ fields: [String: String] = [:]) {
     logger.notice("\(event,privacy:.public)")

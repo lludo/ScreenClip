@@ -179,6 +179,16 @@ final class ExternalAssistantTests: XCTestCase {
     XCTAssertNil(
       ExternalAssistantConfiguration(webhookURL: "", authorization: "Bearer secret", testSucceeded: false)
         .endpoint)
+    // The secret must not travel in clear text, except to a local test server.
+    func endpoint(_ url: String) -> URL? {
+      ExternalAssistantConfiguration(webhookURL: url, authorization: "Bearer s", testSucceeded: false)
+        .endpoint
+    }
+    XCTAssertNil(endpoint("http://assistant.example/hook"))
+    XCTAssertNil(endpoint("ftp://assistant.example/hook"))
+    XCTAssertNotNil(endpoint("http://127.0.0.1:8080/hook"))
+    XCTAssertNotNil(endpoint("http://localhost/hook"))
+    XCTAssertNotNil(endpoint("https://assistant.example/hook"))
     XCTAssertFalse(
       ExternalAssistantConfiguration(
         webhookURL: "https://assistant.example/hook", authorization: "Bearer one\nBearer two",

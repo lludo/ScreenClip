@@ -74,6 +74,9 @@ struct MenuPopover: View {
           model.togglePaused()
         }
         Menu {
+          #if !SCREENCLIP_APP_STORE
+          Button("Support ScreenClip…") { model.supportAction?() }
+          #endif
           Button("Quit ScreenClip") { NSApp.terminate(nil) }
         } label: {
           Image(systemName: "ellipsis").frame(width: 28, height: 24).contentShape(Rectangle())

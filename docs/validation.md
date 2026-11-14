@@ -6,7 +6,7 @@ This page records what is verified and how. What is still open is in the [roadma
 
 ## Current status
 
-Latest run: **111 Swift tests** (61 core, 50 app), **10 Python plugin tests**, **5 Python queue-review tests**, and the external assistant webhook script tests passed, along with the website build and an Xcode Debug build. CI runs the same suites, a shell syntax check, the website build, and Xcode Debug and Release builds.
+Latest run: **116 Swift tests** (62 core, 54 app), **10 Python plugin tests**, **5 Python queue-review tests**, and the external assistant webhook script tests passed, along with the website build and Xcode Debug builds both with local signing and without it (as CI builds). CI runs the same suites, a shell syntax check, the website build, and Xcode Debug and Release builds.
 
 | Area | Automated | Hands-on or live | Not yet verified |
 | --- | --- | --- | --- |
@@ -62,6 +62,14 @@ Inspect `integration-result.json`, the runtime's `thread/read`, and the desktop 
 
 Key live results, newest first. Commit history and PRs have the details.
 
+- **November 14, 2026, final review.** Two reviews covered Grok Bot (PR #6) and PRs #8–#12 plus the bundle ID change. Fixes:
+  - **Merges:** parallel reports in one project could both pass the merge check; the merge slot is now re-checked right before it is taken.
+  - **Concurrent fetches:** worktrees fetching the same base could fail on git's ref lock and use up a repair attempt; that error is retried.
+  - **Grok Bot:** a cancel followed by Retry could run two deliveries at once; runs now carry an ownership token. Webhooks must use HTTPS (HTTP only for localhost). Clearing the connection deletes its Keychain item.
+  - **Branches:** merged `screenclip/` branches are deleted from GitHub. The docs and the opt-in toggle now say pushed screenshots stay in GitHub history.
+  - **Routing:** shared tools (Xcode, Simulator, terminals, editors, ScreenClip) and more browsers are never learned as a project's app, and drafts do not teach routing.
+  - **Move to project:** a report with a pull request cannot be moved.
+  - **Build:** `DEVELOPMENT_TEAM` and Automatic signing at target level broke CI's unsigned build; signing is back in the ignored `LocalSigning.xcconfig`. `install.sh`, the README's `tccutil` steps, and the log subsystem use the new bundle ID `com.mirageteam.screenclip`.
 - **November 14, 2026, report #11.** **Add context** saves text-only notes after filing, including on queued reports, and agents receive them in an `additional_context` prompt section. Regressions cover persistence, legacy reports, search, pending questions, reopening completed reports, and context arriving during an agent turn. A synthetic native preview confirmed the control, the focused editor, empty-save prevention, Cancel discarding the draft, and saved timestamped context.
 - **November 14, 2026, full review.** Four parallel reviews (agent worker, core store and Git, app UI, scripts and docs) led to these fixes:
   - **Worker:** a crash when an issue was deleted mid-dispatch, a Codex disconnect interrupting a validated publish, approval requests reviving canceled issues, new evidence during publication leaving issues stuck, and stale turn IDs.
