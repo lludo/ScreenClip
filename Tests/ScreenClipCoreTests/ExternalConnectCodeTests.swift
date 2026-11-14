@@ -116,8 +116,8 @@ final class ExternalConnectCodeTests: XCTestCase {
     let rejected = ExternalConnectCode.parse(http)
     XCTAssertEqual(connectError(rejected), .invalidURL)
     assertNoSecret(connectError(rejected)?.message ?? "")
+    // `\n` inside `\none` is a JSON newline, so the secret is rejected.
     let broken = "{\"url\":\"https://assistant.example/hook\",\"authorization\":\"Bearer \(secret)\\none\"}"
-    // The JSON text above contains a backslash and the word "one", not a newline. Build a real newline.
     let newline = #"{"url":"https://assistant.example/hook","authorization":"Bearer \#(secret)\nmore"}"#
     XCTAssertEqual(connectError(ExternalConnectCode.parse(newline)), .unsafeAuthorization)
     assertNoSecret(connectError(ExternalConnectCode.parse(newline))?.message ?? "")
@@ -131,7 +131,7 @@ final class ExternalConnectCodeTests: XCTestCase {
     assertNoSecret(ExternalConnectCode.Failure.invalidURL.message)
     assertNoSecret(ExternalConnectCode.Failure.unsafeAuthorization.message)
     assertNoSecret(ExternalConnectCode.Failure.unrecognized.message)
-    XCTAssertEqual(connectError(ExternalConnectCode.parse(broken)), .unrecognized)
+    XCTAssertEqual(connectError(ExternalConnectCode.parse(broken)), .unsafeAuthorization)
     assertNoSecret(String(describing: connectError(ExternalConnectCode.parse(broken))))
   }
 

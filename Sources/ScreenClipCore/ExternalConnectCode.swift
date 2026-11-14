@@ -248,7 +248,11 @@ public enum ExternalConnectCode {
           index = rest.index(after: index)
         }
       } else {
-        while index < rest.endIndex, rest[index] != "\n", rest[index] != "\r" {
+        // Stop at a quote so `curl -H "Authorization: Bearer secret" https://…`
+        // does not swallow the address that follows the header on the same line.
+        while index < rest.endIndex, rest[index] != "\n", rest[index] != "\r", rest[index] != "\"",
+          rest[index] != "'"
+        {
           value.append(rest[index])
           index = rest.index(after: index)
         }
