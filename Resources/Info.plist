@@ -20,7 +20,7 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>ScreenClip issue</string>
+			<string>ScreenClip</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>screenclip</string>

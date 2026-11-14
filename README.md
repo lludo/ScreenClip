@@ -28,7 +28,7 @@ Each issue keeps its own agent conversation and isolated Git worktree. ScreenCli
 
 ## Get started
 
-Requires **macOS 14+**, **Xcode 16+ with Swift 6**, and a local Git repository. Install and sign in to at least one supported agent: **Codex CLI** with `app-server`, **Claude Code**, or **Grok Bot** (a webhook URL and Authorization header). **GitHub CLI** is required for PR automation, and for sending screenshots to Grok Bot. There are no external Swift package dependencies.
+Requires **macOS 14+**, **Xcode 16+ with Swift 6**, and a local Git repository. Install and sign in to at least one supported agent: **Codex CLI** with `app-server`, **Claude Code**, or **Grok Bot** (connect it with a setup code). **GitHub CLI** is required for PR automation, and for sending screenshots to Grok Bot. There are no external Swift package dependencies.
 
 ### Build and run
 
@@ -50,7 +50,7 @@ Local installation requires a signing certificate to keep macOS permissions stab
 ### First capture
 
 1. **Add a project** in **Settings → Projects**: its Git repository, base branch, website URLs or native app bundle IDs, and validation command.
-2. **Connect an agent** in **Settings → Connections**. Use **Detect agents**, choose **Default agent** under **AI agent**, and check sign-in. Codex reuses an existing session when available; **Sign in to Claude** opens Terminal for Claude Code’s login flow. You can also set **Claude Code executable** and **Model (empty uses Claude Code's default)**. For Grok Bot, open **External assistant**, paste **Webhook URL** and **Authorization header** from the Grok Bot routine panel, then click **Send test**. In **Settings → Projects**, edit the project and turn on **Allow sending screenshots to the external assistant**. That toggle stays off until you enable it, including for private repositories.
+2. **Connect an agent** in **Settings → Connections**. Use **Detect agents**, choose **Default agent** under **AI agent**, and check sign-in. Codex reuses an existing session when available; **Sign in to Claude** opens Terminal for Claude Code’s login flow. You can also set **Claude Code executable** and **Model (empty uses Claude Code's default)**. For Grok Bot, click **Connect Grok Bot** on its row (or in the capture window). Ask your ScreenClip assistant **Connect ScreenClip**, paste the setup code it replies with, and turn on **Turn on for this project**. That shares approved annotated screenshots by pushing them to a branch in the project's GitHub repo. A private repo is recommended. The same switch in **Settings → Projects** stays off until you enable it.
 3. **Press ⌘⇧2**, grant macOS Screen Recording permission, select a region, and submit. Change the shortcut in Settings if needed.
 
 A native app with no bundle ID listed still routes when exactly one project’s name or repository folder matches the app’s name. When you pick a project for an app capture yourself, ScreenClip remembers that app’s bundle ID for the project, unless another project already lists it.
@@ -65,7 +65,7 @@ Captures save locally before dispatch, under `~/Library/Application Support/Scre
 
 Redaction is only the black rectangles you draw with the redact tool. Those pixels are flattened to opaque black in the saved screenshot. Arrows, pen strokes, shapes, and text do not hide what is underneath. When a capture has a redaction, ScreenClip does not keep the unredacted crop.
 
-Codex and Claude Code see the approved screenshots only on this Mac. Grok Bot is different: the approved PNGs, notes, and report fields are pushed to a `screenclip/` branch in the project repository, and a small JSON webhook is sent. The browser URL and window title are included only when **Read the active browser URL for project matching** is on. The webhook URL and Authorization header stay in the Keychain, not in the queue database. A public repository makes those screenshot files readable by anyone who can see the repo, which is why the project opt-in stays off until you turn it on.
+Codex and Claude Code see the approved screenshots only on this Mac. Grok Bot is different: the approved PNGs, notes, and report fields are pushed to a `screenclip/` branch in the project repository, and a small JSON message is sent. The browser URL and window title are included only when **Read the active browser URL for project matching** is on. The connection from the setup code stays in the Keychain, not in the queue database. A public repository makes those screenshot files readable by anyone who can see the repo, which is why the project opt-in stays off until you turn it on.
 
 Filed under the wrong project? Choose **Move to project** in the report’s **…** menu. Before an agent starts, the report simply moves. After that, the old report is canceled and a copy with the same screenshots and notes is queued under the right project, because the old chat and worktree belong to the other repository. Cancel active work first.
 

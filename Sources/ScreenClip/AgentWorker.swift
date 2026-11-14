@@ -83,8 +83,8 @@ import ScreenClipCore
     {
       guard let project = model.project(issue.projectID), running[project.id, default: 0] < limit
       else { continue }
-      // Hold work for an agent that detection found missing, signed out, or not configured.
-      // Grok Bot stays queued until detection has seen a saved webhook, including before the first check.
+      // Hold work for an agent that detection found missing, signed out, or not connected.
+      // Grok Bot stays queued until detection has seen a saved connection, including before the first check.
       if issue.resolvedAgent == .external {
         if model.detection(.external)?.usable != true { continue }
       } else if model.detection(issue.resolvedAgent)?.usable == false {

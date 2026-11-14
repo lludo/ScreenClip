@@ -25,6 +25,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   var timer: Timer?
   var integrationTimer: Timer?
   var previewMode = false
+  private var deferredOpenURLs: [URL] = []
   func applicationDidFinishLaunching(_ notification: Notification) {
     NSApp.setActivationPolicy(.accessory)
     do {
@@ -110,6 +111,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
           self.presentDonationPromptIfNeeded()
         }
       }
+      if !deferredOpenURLs.isEmpty {
+        let pending = deferredOpenURLs
+        deferredOpenURLs.removeAll()
+        openLinkedURLs(pending)
+      }
     } catch {
       let alert = NSAlert()
       alert.messageText = "ScreenClip could not open its queue"
@@ -152,10 +158,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     } catch { model.banner = error.localizedDescription }
   }
   func application(_ application: NSApplication, open urls: [URL]) {
-    for url in urls where url.scheme == "screenclip" && url.host == "issues" {
-      if let id = UUID(uuidString: url.lastPathComponent), model?.issue(id) != nil {
+    guard model != nil else {
+      deferredOpenURLs.append(contentsOf: urls)
+      return
+    }
+    openLinkedURLs(urls)
+  }
+  func openLinkedURLs(_ urls: [URL]) {
+    for url in urls {
+      switch ScreenClipURL.route(url) {
+      case .issue(let id):
+        guard model.issue(id) != nil else { continue }
         model.selectedIssueID = id
         showQueue()
+      case .connect(let code):
+        model.grokConnectRequest = GrokConnectRequest(code: code)
+        showSettings()
+      case nil:
+        continue
       }
     }
   }
