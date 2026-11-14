@@ -10,7 +10,7 @@ app="$work/SandboxDiag.app"
 rm -rf "$work"
 mkdir -p "$app/Contents/MacOS"
 echo "host=$(sw_vers -productVersion) $(uname -m)"
-swiftc -O -o "$app/Contents/MacOS/SandboxDiag" "$root/scripts/sandbox-diagnostic.swift"
+swiftc -parse-as-library -O -o "$app/Contents/MacOS/SandboxDiag" "$root/scripts/sandbox-diagnostic.swift"
 cat > "$app/Contents/Info.plist" << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
