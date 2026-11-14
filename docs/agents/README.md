@@ -12,6 +12,8 @@ ScreenClip captures an observation and hands it to a coding agent. Codex and Cla
 
 Separately from automatic dispatch, Codex and Claude Code can **read** the queue through the optional MCP plugin. See [the plugin README](../../plugins/screenclip/README.md).
 
+For agent-specific investigation and handoff prompts, see [Claude Code and Grok Bot handoffs](proposals/claude-grok-handoffs.md).
+
 ## Choosing an agent
 
 - **Default agent.** Settings → Connections → **AI agent** → **Default agent** sets `AppSettings.defaultAgent`. Missing in older queues means Codex.

@@ -47,19 +47,17 @@ struct SettingsView: View {
     }.frame(minWidth: 720, idealWidth: 780, minHeight: 680)
       .toolbar {
         ToolbarItem(placement: .principal) {
-          HStack(spacing: 0) {
+          Picker(selection: $tab) {
             ForEach(Array(["General", "Projects", "Connections"].enumerated()), id: \.offset) {
               index, title in
-              Button { tab = index } label: {
-                Text(verbatim: Chrome.stored(title, locale: locale))
-                  .fixedSize(horizontal: false, vertical: true)
-              }
-              .buttonStyle(SettingsTabButtonStyle(isSelected: tab == index))
-              .accessibilityAddTraits(tab == index ? .isSelected : [])
+              Text(verbatim: Chrome.stored(title, locale: locale)).tag(index)
             }
+          } label: {
+            Text(verbatim: Chrome.stored("Settings", locale: locale))
           }
-          .padding(2)
-          .background(.quaternary.opacity(0.45), in: Capsule())
+          .labelsHidden()
+          .pickerStyle(.segmented)
+          .buttonBorderShape(.capsule)
         }
       }
       .onAppear {
@@ -472,19 +470,3 @@ struct SettingsView: View {
   }
 }
 
-private struct SettingsTabButtonStyle: ButtonStyle {
-  let isSelected: Bool
-
-  func makeBody(configuration: Configuration) -> some View {
-    configuration.label
-      .frame(minWidth: 90)
-      .padding(.horizontal, 8)
-      .padding(.vertical, 4)
-      .background {
-        if isSelected || configuration.isPressed {
-          Capsule().fill(Color.primary.opacity(configuration.isPressed ? 0.22 : 0.15))
-        }
-      }
-      .contentShape(Capsule())
-  }
-}
