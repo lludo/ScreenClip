@@ -1,10 +1,17 @@
 # Open-source audit
 
+**History rewrite, November 14, 2026:** The later screenshot fixture, original website
+popup images, personal home path, and personal commit email were removed or replaced
+in branch history. Synthetic screenshots and a GitHub noreply address are used instead.
+GitHub pull-request refs, cached views, old deployments, and other clones may still
+retain the old data and require separate cleanup. Commit IDs below identify the
+historical audit and may no longer resolve on rewritten branches.
+
 Scanned on November 14, 2026, against every commit reachable from `origin/main` at `a1c72c6e4b5d2f86ae663923a45804b09f4b4f50`, plus one unreachable duplicate commit left in the local object store. The repository was private at the time of the audit; neither history nor visibility was changed.
 
 This record stops at `a1c72c6`. Commits after that, including app and website localization, are not covered. Rescan before making the repository public. The checklist, including the missing `LICENSE`, is in [Open source](../open-source.md).
 
-**The scanned history did not require a rewrite.** No real secret was found in the scanned commits. This is a point-in-time audit, not a guarantee about later commits; scan subsequent changes before publication. The personal data below is an author address and one old home-directory path. Both are already in the commit metadata or in a file that later commits deleted. Publishing the repo publishes them. Switch future commits to a GitHub noreply address if you want to stop adding the mailbox. Rewriting the existing commits is optional and not required for safety.
+No real secret was found in the scanned commits. This was a point-in-time audit, not a guarantee about later commits; scan subsequent changes before publication.
 
 ## Tools
 
@@ -39,9 +46,9 @@ None were found in the scanned tree or history: API tokens, private keys, certif
 
 | What | Where | Class | Rewrite? |
 | --- | --- | --- | --- |
-| Author email, Gmail, local part starts with `land` | Author field of Ludovic Landry's commits (most of the history). Not printed in full here | Personal data, not a credential | No. Optional if that mailbox should not be public. Use a GitHub noreply address on future commits |
+| Former personal author email | Author and committer metadata in the original history | Personal data, not a credential | Replaced with a GitHub noreply address in branch history |
 | `cursoragent@cursor.com` | Author of the Cursor Agent commits (`bdca085`, `ea15634`, `3165306`, `8ea83f8`, `00fe495`, `4bc8ca9`, `c3deb2a`) | Service mailbox | No |
-| A `python3` example whose path starts with `/Users/example/` | `4294f368244109c6ea87702403f6c8cc8ec1d99f`, `docs/agent-integrations.md` line 43. The file was removed in `802d6776193e3e71666e60c5ac65911e7924e3d2` and is not on `main` | Personal data (a home path). Low sensitivity | No. It remains reachable in history |
+| A `python3` example containing a personal home path | Historical `docs/agent-integrations.md` | Personal data (a home path). Low sensitivity | Replaced with an example path in branch history |
 | `/Users/me` as a fake `HOME` in a unit test | `Tests/ScreenClipCoreTests/SafetyTests.swift` on `a1c72c6` | Harmless fixture | No |
 | Apple Team ID `D6826XDERA` | Introduced in `4e93de5239416382b5c8174d87f40568af91d49c` (`DEVELOPMENT_TEAM` in `project.pbxproj`) and removed in `a1c72c6`. Not on the current tree | Identifier, not a secret. It will also appear in any Developer ID signature | No |
 

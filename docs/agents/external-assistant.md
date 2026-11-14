@@ -15,7 +15,7 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 | After a 2xx | Activity `Sent to external assistant`. The issue stays **Working** until a pull request is found. |
 | Pull request | The assistant opens a PR from that same branch. The body contains `ScreenClip: #<reportNumber>`. It may also contain `ScreenClip-Report:`, `ScreenClip-Revision:`, and `ScreenClip-Agent:`. ScreenClip polls GitHub and **Refresh PR status** picks it up immediately. A fork PR is ignored. A draft is attached and is not merged. |
 | Merge | ScreenClip decides. The existing auto-merge checks apply (validated head, passing checks, current revision, reviews). A PR that still contains `.screenclip/` files, or that is still a draft, is not auto-merged. |
-| Conversation | When Grok Bot posts a commit status whose link is `https://cursor.com/agents/bc-<uuid>`, the report shows **Open Grok Bot agent**. A pull request in the same repository is the other allowed link. Before either exists, the report says the conversation is in Grok Bot's chat. |
+| Conversation | When Grok Bot posts a commit status whose link is `https://cursor.com/agents/bc-<uuid>`, the report shows **Open Grok Bot agent**. A pull request in the same repository is the other allowed link. Before either exists, the report says the conversation is in Grok Bot's chat. There is still no report-specific Grok Bot deep link. |
 | Cancel | Local always. If the setup code includes `"capabilities":["cancel"]`, ScreenClip also POSTs a best-effort cancel. The remote run may still finish. |
 
 ## Hand-off
@@ -177,8 +177,7 @@ Grok Bot is listed even when it is not connected.
 - `Idempotency-Key` is sent and must not be relied on. The delivery key in the JSON is the value the routine can see.
 - Questions are not copied into ScreenClip. Answer them in Grok Bot's chat.
 - Cancel is best-effort, and only when the setup code lists `cancel`. There is no API that hard-stops the cloud agent. Without that capability, cancel is local only.
-- `grokbot://app/v1/prompt` only pre-fills an unsent message. It is not a report link, and ScreenClip does not offer it as one.
-- `screenclip://connect?code=` only opens the connect sheet.
+- ScreenClip has no report-specific Grok Bot chat link. Grok Bot documents a `grokbot://app/v1/prompt` link that opens a Bot with an unsent draft message. That link does not identify a particular ScreenClip report or send the message, and ScreenClip does not offer it as one. See [Grok Bot deep links](https://docs.x.ai/grok-bot/deep-links). `screenclip://connect?code=` only opens the connect sheet.
 - Automatic merge waits until `.screenclip/` is gone and the pull request is not a draft, even when checks are green.
 - The destination is refused while the project opt-in is off, including for private repositories.
 

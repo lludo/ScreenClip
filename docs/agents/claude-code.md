@@ -13,7 +13,7 @@ ScreenClip can send any report to Claude Code instead of Codex or Grok Bot. Each
 | Sign-in | **Sign in to Claude** opens Terminal running `claude auth login`, then use **Detect agents**. Detection reads `claude auth status`. ScreenClip never handles Claude credentials. The Claude desktop app's sign-in is separate from the CLI's. |
 | Turn | One process per turn, with the prompt and approved PNGs sent as one stream-json user message. |
 | Questions | Returned as a structured `question` or `blocked` result, answered under **Needs you**. A reply starts the next turn with `--resume`. |
-| Open the conversation | **Copy Claude resume command** copies `cd '<worktree>' && claude --resume '<session>'`. Cancel active ScreenClip work before continuing there. |
+| Open the conversation | **Open in Claude Desktop** runs `claude --desktop --resume '<session>'` from the worktree when the configured CLI is 2.1.285 or newer; older CLIs get an explanatory message. **Copy Claude resume command** copies `cd '<worktree>' && claude --resume '<session>'` and works on every version. Both refuse while a process is running the session. |
 | Usage | Each turn logs tokens and cost as a `usage` activity. |
 
 ## How a turn runs
@@ -43,6 +43,21 @@ Add `--model '<model>'` when a model override is configured.
 ## Sessions
 
 ScreenClip generates the session UUID and stores it in `Issue.threadID` before the first turn. Later turns use `--resume`. If Claude Code reports that the session no longer exists (its history was cleared), either in a result or only on stderr, ScreenClip starts a fresh session with the saved captures and replies. Every prompt is self-contained.
+
+### Claude Desktop
+
+[Claude's desktop documentation](https://code.claude.com/docs/en/desktop#coming-from-the-cli) says a CLI session can be brought into Desktop with `claude --desktop --resume <session-id>` (Claude Code 2.1.285 or newer, macOS, signed in with a Claude subscription) or with `/resume` in a Desktop local session. Desktop keeps its own session list, so a CLI session does not appear there until it is imported.
+
+**Open in Claude Desktop** ([ClaudeDesktop.swift](../../Sources/ScreenClipCore/ClaudeDesktop.swift)) detects support with `claude --version`, refuses while any process is running the session (the same `ps` check used before every turn), and then runs the command in the worktree under a pseudo-terminal (`/usr/bin/script`), because the CLI rejects redirected output. The CLI never moves a session that is running elsewhere, and ScreenClip never starts a turn while one is. After Desktop adopts a session, finish or close it there before ScreenClip continues the report.
+
+Verified on this host (2026-11-14), with a disposable repository, a separate worktree, and a one-word headless turn that used `--session-id` and `--name` exactly as ScreenClip does:
+
+- The transcript landed under the worktree's own `~/.claude/projects/` folder, so the session belongs to the worktree directory.
+- The installed CLIs (`/opt/homebrew/bin/claude` 2.1.128 and `~/.local/bin/claude` 2.1.141) have no `--desktop`. The CLI bundled inside Claude Desktop (2.1.325, read-only use) does.
+- `claude --desktop --resume <id>` printed `Opening session <id> in Claude Desktop`. Desktop then wrote a session record with `cliSessionId` equal to the headless UUID, `cwd` equal to the worktree, the `--name` title, and `fromCliTranscript`/`adoptedFromOtherSurface` flags.
+- The command fails without a terminal (`--desktop opens the Claude Desktop app and can't run non-interactively`).
+
+Not verified: the visual sidebar group. The record had no git anchors immediately after import, and this environment cannot capture the screen. Whether Desktop groups a worktree session under its main repository (or lists it under the worktree folder) must be checked by eye. ScreenClip does not edit Desktop's session files.
 
 ## Permissions and sandbox
 
@@ -78,6 +93,7 @@ Then ask, for example, "fix ScreenClip #234". The skill reads the note, context,
 
 - **Automated:** fake-CLI tests cover arguments, stdin evidence, progress, structured and fenced results, usage, missing results and non-zero exits, cancellation, detection, and the worker flow (capture → question → reply → `--resume` in the same worktree session), plus holding work for a signed-out agent.
 - **Manual:** the installed CLI (2.1.128) provides every flag and sandbox setting used, and the plugin manifests pass `claude plugin validate`.
+- **Desktop hand-off:** fake-CLI tests cover version classification, the pseudo-terminal invocation, an old CLI (never executed), an unreadable version, an invalid session ID, CLI failure output, and a running session.
 - **Not yet verified:** a live Claude fix through validation, PR publication, and merge; permanent plugin installation; and an interactive plugin fix.
 
 Track results in [validation.md](../validation.md).

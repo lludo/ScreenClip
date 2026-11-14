@@ -8,3 +8,4 @@ xcuserdata/
 Config/LocalSigning.xcconfig
 .DS_Store
 __pycache__/
+Fixtures/ScreenshotData/

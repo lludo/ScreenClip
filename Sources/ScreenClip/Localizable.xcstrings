@@ -37141,6 +37141,138 @@
         }
       }
     },
+    "Open in Claude Desktop": {
+      "comment": "Opens this report's Claude Code session in the Claude desktop app.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open in Claude Desktop"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Claude 桌面版中打开"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Claude 桌面版中開啟"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir en Claude Desktop"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude デスクトップで開く"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir no Claude Desktop"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Claude Desktop öffnen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir dans Claude Desktop"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude 데스크톱에서 열기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыть в Claude Desktop"
+          }
+        }
+      }
+    },
+    "Needs Claude Code 2.1.285 or newer. Otherwise copy the Terminal command.": {
+      "comment": "Help for the Open in Claude Desktop button.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs Claude Code 2.1.285 or newer. Otherwise copy the Terminal command."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要 Claude Code 2.1.285 或更高版本。否则请复制终端命令。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要 Claude Code 2.1.285 或更新版本。否則請拷貝終端機指令。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requiere Claude Code 2.1.285 o posterior. Si no, copia el comando de Terminal."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code 2.1.285 以降が必要です。それ以外はターミナルのコマンドをコピーしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requer o Claude Code 2.1.285 ou mais recente. Caso contrário, copie o comando do Terminal."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erfordert Claude Code 2.1.285 oder neuer. Andernfalls den Terminal-Befehl kopieren."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nécessite Claude Code 2.1.285 ou plus récent. Sinon, copiez la commande Terminal."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code 2.1.285 이상이 필요합니다. 그렇지 않으면 터미널 명령을 복사하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Требуется Claude Code 2.1.285 или новее. Иначе скопируйте команду для Терминала."
+          }
+        }
+      }
+    },
     "Open Grok Bot agent": {
       "comment": "Opens the Grok Bot cloud agent for this report. It is not a pull request.",
       "extractionState": "manual",

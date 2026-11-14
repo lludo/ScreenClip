@@ -61,6 +61,17 @@ struct IssueDetailView: View {
           }
           if issue.claudeResumeCommand != nil {
             Button {
+              model.openClaudeInDesktop(issue)
+            } label: {
+              Label {
+                Text(chrome: "Open in Claude Desktop", comment: "Opens this report's Claude Code session in the Claude desktop app.")
+              } icon: {
+                Image(systemName: "arrow.up.right.square")
+              }
+            }.help(Text(
+              chrome: "Needs Claude Code 2.1.285 or newer. Otherwise copy the Terminal command.",
+              comment: "Help for the Open in Claude Desktop button."))
+            Button {
               model.copyClaudeResumeCommand(issue)
             } label: {
               Label {
