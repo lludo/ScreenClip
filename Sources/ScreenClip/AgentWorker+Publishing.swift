@@ -130,7 +130,13 @@ extension AgentWorker {
       }
     }
   }
-  func refreshPRs() async {
+  func refreshPRs() async { await refreshPullRequests(discoverInterval: 0) }
+  /// Grok Bot opens its own PRs, so discovery for those issues runs at most once per interval.
+  func refreshPullRequests(discoverInterval: TimeInterval) async {
+    if Date().timeIntervalSince(lastExternalDiscovery) >= discoverInterval {
+      lastExternalDiscovery = Date()
+      await discoverExternalPullRequests()
+    }
     for issue in model.snapshot.issues where issue.status == .prOpen { await refreshPR(issue.id) }
   }
   func refreshPR(_ id: UUID) async {
@@ -148,7 +154,25 @@ extension AgentWorker {
         model.notify(issue, text: "Fix merged. Ready to rebuild and retest.")
         return
       }
+      var screenclipEvidenceCleared = true
+      if issue.resolvedAgent == .external {
+        switch try await inspectExternal(id, issue: issue, project: project, path: path, pullHead: pr.head)
+        {
+        case .blocked: return
+        case .ready(let cleared): screenclipEvidenceCleared = cleared
+        }
+      }
       if pr.checksFailed, model.issue(id)?.status == .prOpen {
+        if model.issue(id)?.resolvedAgent == .external {
+          if model.issue(id)?.checkSummary != pr.details {
+            try model.updateIssue(id) {
+              $0.checkSummary = pr.details
+              $0.unread = true
+              $0.record("GitHub checks failed. Grok Bot can push another commit to " + url + ".")
+            }
+          }
+          return
+        }
         if scheduleRepair(
           id,
           message:
@@ -171,17 +195,19 @@ extension AgentWorker {
           ValidationReceipt.self,
           from: Data(
             contentsOf: model.store.root.appendingPathComponent("runs/\(issue.workspaceID).json"))))
+      let currentIssue = model.issue(id) ?? issue
       let evidence = MergeEvidence(
-        expectedHead: issue.prHead ?? "", currentHead: pr.head, inputRevision: issue.revision,
-        coveredRevision: issue.coveredRevision,
+        expectedHead: currentIssue.prHead ?? "", currentHead: pr.head,
+        inputRevision: currentIssue.revision, coveredRevision: currentIssue.coveredRevision,
         validationPassed: receipt?.passed == true && receipt?.head == pr.head,
         hasValidation: receipt?.command == project.validationCommand
           && !project.validationCommand.isEmpty, checksPassed: pr.checksPassed,
         mergeable: pr.mergeable && pr.base == project.baseBranch,
         reviewSatisfied: pr.reviewSatisfied,
-        unresolvedQuestions: issue.questions.contains { $0.reply == nil })
+        unresolvedQuestions: currentIssue.questions.contains { $0.reply == nil },
+        screenclipEvidenceCleared: screenclipEvidenceCleared)
       let checkSummary: String
-      if issue.prHead != pr.head {
+      if currentIssue.prHead != pr.head {
         checkSummary = "The PR changed; run validation again before merging."
       } else if !pr.checksPassed {
         checkSummary = pr.details
@@ -189,6 +215,8 @@ extension AgentWorker {
         checkSummary = "Waiting for required review."
       } else if !pr.mergeable {
         checkSummary = "Waiting for the PR to become mergeable."
+      } else if !screenclipEvidenceCleared {
+        checkSummary = ExternalAssistant.evidenceStillPresentSummary
       } else if !project.autoMerge {
         checkSummary = "Checks passed. Automatic merge is disabled for this project."
       } else if model.snapshot.settings.paused {
@@ -208,6 +236,16 @@ extension AgentWorker {
       do {
         baseAdvanced = try await GitWorkspace.updateBaseIfNeeded(project: project, path: path)
       } catch {
+        if issue.resolvedAgent == .external {
+          try model.updateIssue(id) {
+            $0.lastError = error.localizedDescription
+            $0.record(
+              "Could not update the pull request against its base branch. "
+                + error.localizedDescription,
+              status: .needsYou)
+          }
+          return
+        }
         if scheduleRepair(
           id,
           message:
@@ -224,6 +262,11 @@ extension AgentWorker {
         return
       }
       if baseAdvanced {
+        if issue.resolvedAgent == .external {
+          try await publishExternalBaseUpdate(
+            id, project: project, path: path, branch: issue.branch ?? "", previousHead: pr.head)
+          return
+        }
         guard model.issue(id)?.revision == issue.coveredRevision, model.issue(id)?.status == .prOpen
         else { return }
         try model.updateIssue(id) {
@@ -273,6 +316,8 @@ extension AgentWorker {
         issue.branch = nil
         issue.prURL = nil
         issue.prHead = nil
+        issue.handoffCommit = nil
+        issue.handoffRevision = nil
       }
     }
   }
@@ -287,6 +332,7 @@ extension AgentWorker {
     }
   }
   func scheduleRepair(_ id: UUID, message: String) -> Bool {
+    guard model.issue(id)?.resolvedAgent != .external else { return false }
     guard let issue = model.issue(id), issue.status != .canceled,
       issue.revision == issue.coveredRevision, (issue.repairAttempts ?? 0) < 2
     else { return false }

@@ -10,6 +10,10 @@ struct SettingsView: View {
   @State private var editProject: Project?
   @State private var tab = 0
   @State private var error: String?
+  @State private var webhookURL = ""
+  @State private var authorization = ""
+  @State private var externalTestResult: String?
+  @State private var sendingTest = false
   var body: some View {
     VStack(spacing: 0) {
       TabView(selection: $tab) {
@@ -134,7 +138,28 @@ struct SettingsView: View {
               Spacer()
             }
             Text(
-              "New captures use the default agent. You can pick a different agent for any single report in the capture window. Each issue keeps the agent it started with."
+              "New captures use the default agent. You can pick a different agent for any single report in the capture window. Each issue keeps the agent it started with. Grok Bot is ready when its webhook is saved below."
+            ).font(.caption).foregroundStyle(.secondary)
+          }
+          Section("External assistant") {
+            TextField("Webhook URL", text: $webhookURL, prompt: Text("https://"))
+            SecureField("Authorization header", text: $authorization)
+            Text(
+              "Paste the Webhook URL and the Authorization header from the Grok Bot routine panel. ScreenClip sends that header value as the HTTP Authorization header and does not add a prefix. Both are stored in the Keychain, not in the queue database."
+            ).font(.caption).foregroundStyle(.secondary)
+            HStack {
+              Button(sendingTest ? "Sending…" : "Send test") { sendExternalTest() }
+                .disabled(
+                  sendingTest || webhookURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                    || authorization.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+              if sendingTest { ProgressView().controlSize(.small) }
+            }
+            if let externalTestResult {
+              Text(externalTestResult).font(.caption).foregroundStyle(.secondary).textSelection(
+                .enabled)
+            }
+            Text(
+              "Send test posts {\"schema\":\"screenclip.external.v1.test\"} and shows the HTTP result. Grok Bot is listed as Detected once both values are saved; a successful test is optional."
             ).font(.caption).foregroundStyle(.secondary)
           }
           Section("Claude Code") {
@@ -200,13 +225,20 @@ struct SettingsView: View {
         }
         Spacer()
         Button("Save settings") {
-          model.saveSettings(settings)
-          close()
+          do {
+            try model.saveExternalAssistant(webhookURL: webhookURL, authorization: authorization)
+            model.saveSettings(settings)
+            Task { await model.refreshAgents() }
+            close()
+          } catch { self.error = error.localizedDescription }
         }.buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
       }.padding(16)
-    }.frame(width: 700, height: 590)
+    }.frame(width: 700, height: 680)
       .onAppear {
         settings = model.snapshot.settings
+        let connection = model.loadExternalAssistant()
+        webhookURL = connection.webhookURL
+        authorization = connection.authorization
         if model.snapshot.projects.isEmpty { tab = 1 }
       }
       .sheet(item: $editProject) { project in ProjectEditor(model: model, project: project) }
@@ -216,8 +248,25 @@ struct SettingsView: View {
     return AgentKind.allCases.filter { available.contains($0) || $0 == settings.preferredAgent }
   }
   private func detectAgents() {
+    do {
+      try model.saveExternalAssistant(webhookURL: webhookURL, authorization: authorization)
+    } catch {
+      self.error = error.localizedDescription
+      return
+    }
     model.saveSettings(settings)
     Task { await model.refreshAgents() }
+  }
+  private func sendExternalTest() {
+    sendingTest = true
+    externalTestResult = nil
+    let url = webhookURL
+    let header = authorization
+    Task {
+      let result = await model.sendExternalAssistantTest(webhookURL: url, authorization: header)
+      externalTestResult = result
+      sendingTest = false
+    }
   }
   private func chooseExecutable(_ assign: (String) -> Void) {
     let panel = NSOpenPanel()

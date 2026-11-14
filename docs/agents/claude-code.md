@@ -2,7 +2,7 @@
 
 Updated: November 14, 2026. Part of [Coding agents](README.md), which describes the shared agent contract.
 
-ScreenClip can send any report to Claude Code instead of Codex. Each turn runs `claude -p` headless in the issue's worktree ([ClaudeCodeClient.swift](../../Sources/ScreenClipCore/ClaudeCodeClient.swift)). One Claude Code session per issue carries the conversation across questions, replies, and new evidence.
+ScreenClip can send any report to Claude Code instead of Codex or Grok Bot. Each turn runs `claude -p` headless in the issue's worktree ([ClaudeCodeClient.swift](../../Sources/ScreenClipCore/ClaudeCodeClient.swift)). One Claude Code session per issue carries the conversation across questions, replies, and new evidence.
 
 ## At a glance
 
