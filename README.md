@@ -23,7 +23,7 @@ A native macOS menu bar app for the small things you notice: a clipped button, c
   </tr>
 </table>
 
-*The menu and capture editor use sample data.*
+*The menu-bar surroundings have been simplified; the capture editor uses sample data.*
 
 ## Download
 
