@@ -75,9 +75,9 @@
   },
   "download": {
     "eyebrow": "Скачать",
-    "title": "Бесплатно на Mac. Исходный код на GitHub.",
+    "title": "Бесплатно на Mac. Исходный код доступен на GitHub.",
     "price": "ScreenClip бесплатный. Подписки нет.",
-    "source": "ScreenClip — открытый проект. {link:githubRead}, заведите issue или соберите его в Xcode 16 или новее.",
+    "source": "Исходный код ScreenClip доступен (source-available) по лицензии PolyForm Noncommercial 1.0.0, бесплатно для некоммерческого использования. Коммерческая лицензия — по запросу. {link:githubRead}, заведите issue или соберите его в Xcode 16 или новее.",
     "sourceMissing": "Ссылка на исходный код ещё не настроена.",
     "button": "Download for Mac (бесплатно)",
     "headerButton": "Download for Mac",

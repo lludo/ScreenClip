@@ -42,8 +42,8 @@ The [root README](../README.md) is the short introduction. This page is the map.
 
 - [Website](website.md) — build, preview, ten locales, browser language detection, SEO, screenshots, and the Vercel deploy.
 
-## Open-source readiness
+## Publishing
 
-- [Open source](open-source.md) — the single list of open TODOs, plus what has to happen before the repository is public.
+- [Publishing checklist](open-source.md) — open items before the repository is public. The license is [PolyForm Noncommercial 1.0.0](../LICENSE.md).
 - [Secret-scan record](release/open-source-audit.md) — the November 14, 2026 scan. It stops at commit `a1c72c6`.
 - [Archived proposals](archive/README.md) — product questions that have since been decided.
