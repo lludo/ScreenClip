@@ -34,12 +34,15 @@ struct ProjectEditor: View {
           }
         }
         TextField("Base branch", text: $project.baseBranch)
-        TextField("Websites", text: $origins, axis: .vertical).lineLimit(2...4)
+        TextField(
+          "Websites", text: $origins, prompt: Text("One per line"), axis: .vertical
+        ).lineLimit(2...4)
         Text(
-          "One per line. Include the scheme and port, for example http://localhost:3000 or https://example.com/app."
+          "Include the scheme and port, for example http://localhost:3000 or https://example.com/app."
         ).font(.caption).foregroundStyle(.secondary)
-        TextField("Mac app bundle IDs", text: $bundles, axis: .vertical).lineLimit(1...3)
-        Text("One per line.").font(.caption).foregroundStyle(.secondary)
+        TextField(
+          "Mac app bundle IDs", text: $bundles, prompt: Text("One per line"), axis: .vertical
+        ).lineLimit(1...3)
         LabeledContent("Validation command") {
           TextField("Validation command", text: $project.validationCommand, axis: .vertical)
             .labelsHidden().lineLimit(2...4).font(.system(.body, design: .monospaced))
