@@ -161,6 +161,8 @@ struct GrokConnectionCheck: Equatable {
         merged.firstLaunchedAt = state.settings.firstLaunchedAt
         merged.donationOptOut = state.settings.donationOptOut
         merged.donationSnoozeUntil = state.settings.donationSnoozeUntil
+        // Set while polling GitHub, outside this form.
+        merged.externalStatusSeen = state.settings.externalStatusSeen
         state.settings = merged
       }
     }
@@ -433,7 +435,9 @@ struct GrokConnectionCheck: Equatable {
   static func signedOutDetail(_ kind: AgentKind) -> String {
     "\(kind.title) reported that it is signed out. Sign in to \(kind.title); held reports start automatically, or click Detect agents."
   }
-  func saveExternalAssistant(webhookURL: String, authorization: String) throws {
+  func saveExternalAssistant(
+    webhookURL: String, authorization: String, capabilities: [String]? = nil
+  ) throws {
     let previous = loadExternalAssistant()
     let next = ExternalAssistantConfiguration(
       webhookURL: webhookURL, authorization: authorization, testSucceeded: false)
@@ -446,7 +450,9 @@ struct GrokConnectionCheck: Equatable {
     try ExternalAssistantKeychain.save(
       ExternalAssistantConfiguration(
         webhookURL: next.normalizedURL, authorization: next.normalizedAuthorization,
-        testSucceeded: unchanged && previous.testSucceeded))
+        testSucceeded: unchanged && previous.testSucceeded,
+        capabilities: ExternalAssistantConfiguration.resolvedCapabilities(
+          explicit: capabilities, url: next.normalizedURL, previous: previous)))
   }
   func disconnectExternalAssistant() throws {
     try ExternalAssistantKeychain.save(.empty)
@@ -461,9 +467,15 @@ struct GrokConnectionCheck: Equatable {
   }
   /// Checks the connection and stores it when the address and secret are usable.
   /// The result message never includes the secret or the response body, which can echo it.
-  func checkGrokConnection(webhookURL: String, authorization: String) async -> GrokConnectionCheck {
+  func checkGrokConnection(
+    webhookURL: String, authorization: String, capabilities: [String]? = nil
+  ) async -> GrokConnectionCheck {
+    let previous = loadExternalAssistant()
+    let kept = ExternalAssistantConfiguration.resolvedCapabilities(
+      explicit: capabilities, url: webhookURL, previous: previous)
     let configuration = ExternalAssistantConfiguration(
-      webhookURL: webhookURL, authorization: authorization, testSucceeded: false)
+      webhookURL: webhookURL, authorization: authorization, testSucceeded: false,
+      capabilities: kept)
     guard let endpoint = configuration.endpoint else {
       return GrokConnectionCheck(
         connected: false, message: ExternalConnectCode.Failure.invalidURL.message, host: nil,
@@ -483,7 +495,8 @@ struct GrokConnectionCheck: Equatable {
     do {
       try ExternalAssistantKeychain.save(
         ExternalAssistantConfiguration(
-          webhookURL: configuration.normalizedURL, authorization: secret, testSucceeded: false))
+          webhookURL: configuration.normalizedURL, authorization: secret, testSucceeded: false,
+          capabilities: kept))
     } catch {
       return GrokConnectionCheck(
         connected: false, message: error.localizedDescription, host: host, stored: false)
@@ -494,7 +507,8 @@ struct GrokConnectionCheck: Equatable {
       if response.succeeded {
         try? ExternalAssistantKeychain.save(
           ExternalAssistantConfiguration(
-            webhookURL: configuration.normalizedURL, authorization: secret, testSucceeded: true))
+            webhookURL: configuration.normalizedURL, authorization: secret, testSucceeded: true,
+            capabilities: kept))
         await refreshAgents()
         return GrokConnectionCheck(connected: true, message: "Connected", host: host, stored: true)
       }

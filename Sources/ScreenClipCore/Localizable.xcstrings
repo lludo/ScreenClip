@@ -4027,6 +4027,204 @@
         }
       }
     },
+    "Cancel requested. This is best-effort: Grok Bot may still finish work it already started.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel requested. This is best-effort: Grok Bot may still finish work it already started."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已请求取消。这只是尽力而为：Grok Bot 仍可能完成已经开始的工作。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelación solicitada. Es un intento: Grok Bot aún puede terminar el trabajo que ya empezó."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセルを依頼しました。ベストエフォートです。Grok Bot はすでに始めた作業を終えることがあります。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelamento solicitado. É o melhor esforço: o Grok Bot ainda pode concluir o trabalho já iniciado."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbruch angefordert. Das ist ein Best-Effort: Grok Bot kann bereits begonnene Arbeit trotzdem abschließen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulation demandée. C’est un effort au mieux : Grok Bot peut encore terminer un travail déjà commencé."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "취소를 요청했습니다. 최선의 시도입니다. Grok Bot은 이미 시작한 작업을 끝낼 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запрошена отмена. Это лучшее усилие: Grok Bot может всё же закончить уже начатую работу."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已要求取消。這只是盡力而為：Grok Bot 仍可能完成已經開始的工作。"
+          }
+        }
+      }
+    },
+    "Could not reach Grok Bot to ask it to stop.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not reach Grok Bot to ask it to stop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法连上 Grok Bot 以请求停止。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo contactar con Grok Bot para pedirle que se detenga."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止を頼むために Grok Bot へ到達できませんでした。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível alcançar o Grok Bot para pedir que pare."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot war nicht erreichbar, um einen Stopp zu bitten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible de joindre Grok Bot pour lui demander d’arrêter."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "중지를 요청하려고 Grok Bot에 연결하지 못했습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не удалось связаться с Grok Bot, чтобы попросить остановиться."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無法連上 Grok Bot 以要求停止。"
+          }
+        }
+      }
+    },
+    "Draft PR. Automatic merge waits until the pull request is marked ready.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft PR. Automatic merge waits until the pull request is marked ready."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿 PR。自动合并会等到拉取请求被标为可合并。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR en borrador. La fusión automática espera a que la pull request se marque como lista."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ドラフト PR。pull request が準備完了になるまで自動マージは待ちます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR em rascunho. A mesclagem automática espera o pull request ser marcado como pronto."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR-Entwurf. Die automatische Zusammenführung wartet, bis der Pull Request als bereit markiert ist."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR en brouillon. La fusion automatique attend que la pull request soit marquée prête."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "초안 PR. pull request가 준비됨으로 표시될 때까지 자동 병합은 기다립니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Черновик PR. Автоматическое слияние ждёт, пока pull request не будет отмечен готовым."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿 PR。自動合併會等到拉取請求被標為可合併。"
+          }
+        }
+      }
+    },
     "codex.noResponse": {
       "comment": "Codex detection detail. %@ is the executable path. Keep Codex.",
       "extractionState": "manual",

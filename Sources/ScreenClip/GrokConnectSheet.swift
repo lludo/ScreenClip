@@ -358,7 +358,9 @@ struct GrokConnectSheet: View {
     switch ExternalConnectCode.parse(trimmed) {
     case .success(let credentials):
       lastAttempt = trimmed
-      run(url: credentials.url, authorization: credentials.authorization)
+      run(
+        url: credentials.url, authorization: credentials.authorization,
+        capabilities: credentials.capabilities)
     case .failure(let error):
       let show = aggressive || trimmed.count >= ExternalConnectCode.prefix.count
       guard show else { return }
@@ -369,13 +371,14 @@ struct GrokConnectSheet: View {
         connected: false, message: error.message, host: nil, stored: false)
     }
   }
-  private func run(url: String, authorization: String) {
+  private func run(url: String, authorization: String, capabilities: [String]? = nil) {
     checkID += 1
     let id = checkID
     checking = true
     outcome = nil
     Task {
-      let result = await model.checkGrokConnection(webhookURL: url, authorization: authorization)
+      let result = await model.checkGrokConnection(
+        webhookURL: url, authorization: authorization, capabilities: capabilities)
       guard id == checkID else { return }
       checking = false
       outcome = result
