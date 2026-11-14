@@ -2,7 +2,7 @@
 
 This local MCP plugin lets a Codex or Claude Code session read the queue, notes, approved screenshots, and status. The native ScreenClip app owns automatic dispatch, replies, publication, and merge verification. This bridge is read-only to avoid competing agents and queue writers.
 
-Requires Python 3 and local execution. Add this folder to a local plugin marketplace using the supported Codex plugin setup, or configure the MCP server directly in Codex with `python3 /absolute/path/to/plugins/screenclip/server.py`. No cloud service or lifecycle hook is required.
+Requires Python 3.9+ and local execution. Add this folder to a local plugin marketplace using the supported Codex plugin setup, or configure the MCP server directly in Codex with `python3 /absolute/path/to/plugins/screenclip/server.py`. No cloud service or lifecycle hook is required.
 
 Claude Code: the repository root is a local plugin marketplace (`.claude-plugin/marketplace.json`). Install the plugin, which bundles the same MCP server and a `fix-report` skill for interactive fixes:
 
@@ -11,7 +11,7 @@ claude plugin marketplace add /absolute/path/to/ScreenClip
 claude plugin install screenclip@screenclip
 ```
 
-For one session only, run `claude --plugin-dir /absolute/path/to/plugins/screenclip`. See [Claude Code](../../docs/agents/claude-code.md#reading-the-queue-interactively-plugin) for the workflow and verification status, and [Coding agents](../../docs/agents/README.md) for how the plugin relates to automatic dispatch.
+For one session only, run `claude --plugin-dir /absolute/path/to/plugins/screenclip`. To add only the MCP server, without the skill, run `claude mcp add screenclip -- python3 /absolute/path/to/plugins/screenclip/server.py`. See [Claude Code](../../docs/agents/claude-code.md#reading-the-queue-interactively-plugin) for the workflow and verification status, and [Coding agents](../../docs/agents/README.md) for how the plugin relates to automatic dispatch.
 
 The default data folder is `~/Library/Application Support/ScreenClip`. For a development instance, set `SCREENCLIP_DATA_DIR` on the server process. Tools:
 

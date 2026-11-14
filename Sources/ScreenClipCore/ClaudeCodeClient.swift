@@ -12,6 +12,8 @@ public struct ClaudeTurnRequest: Sendable {
   public var prompt: String
   public var images: [Data]
   public var schema: JSONValue
+  /// A turn running longer than this is terminated.
+  public var timeout: TimeInterval = 45 * 60
   public init(
     executable: String, cwd: String, sessionID: String, resume: Bool, name: String? = nil,
     model: String? = nil, prompt: String, images: [Data], schema: JSONValue
@@ -68,6 +70,7 @@ public struct ClaudeTurnResult: Sendable, Equatable {
 public actor ClaudeCodeClient {
   private var processes: [String: Process] = [:]
   private var canceled = Set<String>()
+  private var timedOut = Set<String>()
   public init() {}
 
   /// Bash runs inside Claude Code's sandbox: writes stay in the worktree and the
@@ -128,15 +131,7 @@ public actor ClaudeCodeClient {
     process.executableURL = URL(fileURLWithPath: request.executable)
     process.arguments = Self.arguments(for: request)
     process.currentDirectoryURL = URL(fileURLWithPath: request.cwd)
-    var environment = ProcessInfo.processInfo.environment
-    environment["PATH"] =
-      "/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:" + (environment["PATH"] ?? "")
-    // Never inherit a parent Claude Code session's identity when ScreenClip is launched from one.
-    for key in environment.keys where key == "CLAUDECODE" || key.hasPrefix("CLAUDE_CODE_SESSION") {
-      environment.removeValue(forKey: key)
-    }
-    environment["GIT_TERMINAL_PROMPT"] = "0"
-    process.environment = environment
+    process.environment = ProcessEnvironment.agent()
     let stdin = Pipe()
     let stdout = Pipe()
     let stderr = Pipe()
@@ -160,8 +155,18 @@ public actor ClaudeCodeClient {
     }
     var line = Self.userMessage(for: request).data
     line.append(10)
-    try? stdin.fileHandleForWriting.write(contentsOf: line)
-    try? stdin.fileHandleForWriting.close()
+    // Screenshots can make this several megabytes; write off the actor so cancel() stays responsive.
+    let input = stdin.fileHandleForWriting
+    Task.detached {
+      try? input.write(contentsOf: line)
+      try? input.close()
+    }
+    let session = request.sessionID
+    let watchdog = Task { [weak self] in
+      try await Task.sleep(nanoseconds: UInt64(max(1, request.timeout) * 1_000_000_000))
+      await self?.expire(sessionID: session)
+    }
+    defer { watchdog.cancel() }
 
     var result: ClaudeTurnResult?
     var sessionID: String?
@@ -201,6 +206,10 @@ public actor ClaudeCodeClient {
     }
     await exit.wait()
     await errorReader.value
+    if timedOut.remove(request.sessionID) != nil {
+      throw ScreenClipError.message(
+        "Claude Code did not finish within \(Int(request.timeout / 60)) minutes and was stopped.")
+    }
     if canceled.remove(request.sessionID) != nil { throw CancellationError() }
     if let result, process.terminationStatus == 0 || result.isError { return result }
     let detail = errors.text.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -231,6 +240,12 @@ public actor ClaudeCodeClient {
       isError: message["is_error"].bool == true || message["subtype"].string?.hasPrefix("error") == true,
       costUSD: cost, inputTokens: input, outputTokens: usage["output_tokens"].int ?? 0,
       permissionDenials: denials)
+  }
+
+  private func expire(sessionID: String) {
+    guard let process = processes[sessionID] else { return }
+    timedOut.insert(sessionID)
+    process.terminate()
   }
 
   public func cancel(sessionID: String) {
