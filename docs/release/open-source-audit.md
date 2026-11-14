@@ -9,7 +9,7 @@ historical audit and may no longer resolve on rewritten branches.
 
 Scanned on November 14, 2026, against every commit reachable from `origin/main` at `a1c72c6e4b5d2f86ae663923a45804b09f4b4f50`, plus one unreachable duplicate commit left in the local object store. The repository was private at the time of the audit; neither history nor visibility was changed.
 
-This record stops at `a1c72c6`. Commits after that, including app and website localization, are not covered. Rescan before making the repository public. The checklist, including the missing `LICENSE`, is in [Open source](../open-source.md).
+This record stops at `a1c72c6`. Commits after that, including app and website localization, are not covered. Rescan before making the repository public. The checklist is in [Publishing checklist](../open-source.md). `LICENSE.md` is the PolyForm Noncommercial License 1.0.0.
 
 No real secret was found in the scanned commits. This was a point-in-time audit, not a guarantee about later commits; scan subsequent changes before publication.
 
@@ -64,9 +64,8 @@ No phone numbers. No other home directories.
 
 ## Files to add before the repo is public
 
-These are not in the tree:
+`LICENSE.md` is the PolyForm Noncommercial License 1.0.0. It was not in the tree when this scan was written. These are still absent:
 
-- `LICENSE`. Pick one before flipping visibility. This audit does not choose it.
 - `CONTRIBUTING.md`.
 - `SECURITY.md`. A short one should say that queue screenshots stay on the Mac, that the Grok Bot webhook and header live in the Keychain, and where to report a vulnerability.
 

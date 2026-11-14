@@ -19,8 +19,8 @@ People who clone the repo can build it themselves. The DMG is for someone who wa
    | `APPLE_NOTARY_KEY_ID` | The Key ID |
    | `APPLE_NOTARY_ISSUER_ID` | The Issuer ID |
 
-4. Turn on [GitHub Sponsors](https://github.com/sponsors/lludo) for the `lludo` account and finish the payout and tax steps. `.github/FUNDING.yml` already names that account. The in-app buttons open `https://github.com/sponsors/lludo`. The profile is not ready, and the website `donateUrl` is empty. Status is in [Open source](../open-source.md#github-sponsors-and-the-donate-url).
-5. When the repo should be public, add a `LICENSE` first. Root `CONTRIBUTING.md` and `SECURITY.md` are still missing. The contributing workflow is in [Development](../development.md#contributing). Review the [open-source audit](open-source-audit.md) and scan changes since its recorded commit before publishing. The checklist is in [Open source](../open-source.md).
+4. Turn on [GitHub Sponsors](https://github.com/sponsors/lludo) for the `lludo` account and finish the payout and tax steps. `.github/FUNDING.yml` already names that account. The in-app buttons open `https://github.com/sponsors/lludo`. The profile is not ready, and the website `donateUrl` is empty. Status is in [Publishing checklist](../open-source.md#github-sponsors-and-the-donate-url).
+5. `LICENSE.md` is the PolyForm Noncommercial License 1.0.0. Root `CONTRIBUTING.md` and `SECURITY.md` are still missing. The contributing workflow is in [Development](../development.md#contributing). Review the [open-source audit](open-source-audit.md) and scan changes since its recorded commit before publishing. The checklist is in [Publishing checklist](../open-source.md).
 
 ## What the tag does
 

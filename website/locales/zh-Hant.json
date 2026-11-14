@@ -75,9 +75,9 @@
   },
   "download": {
     "eyebrow": "下載",
-    "title": "在 Mac 上免費。原始碼在 GitHub。",
+    "title": "在 Mac 上免費。原始碼可在 GitHub 取得。",
     "price": "ScreenClip 免費。沒有訂閱。",
-    "source": "ScreenClip 是開源的。{link:githubRead}，提出 issue，或用 Xcode 16 或更新版本建置。",
+    "source": "ScreenClip 以原始碼可用（source-available）方式發布，採用 PolyForm Noncommercial 1.0.0，非商業使用免費。商業授權可另行申請。{link:githubRead}，提出 issue，或用 Xcode 16 或更新版本建置。",
     "sourceMissing": "原始碼連結尚未設定。",
     "button": "Download for Mac（免費）",
     "headerButton": "Download for Mac",

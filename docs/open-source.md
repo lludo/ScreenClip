@@ -1,4 +1,10 @@
-# Open source
+# Publishing checklist
+
+ScreenClip is source-available under the [PolyForm Noncommercial License 1.0.0](../LICENSE.md). It is free for noncommercial use. Commercial licensing is available on request. The required copyright notice is in that file.
+
+The agent icons under `Sources/ScreenClip/Assets.xcassets` are from Lobe Icons and already carry an MIT notice in `Sources/ScreenClip/AgentIcons-LICENSE.txt`. That notice covers those icons. It is not a license for the app.
+
+The [secret-scan record](release/open-source-audit.md) covers history through `a1c72c6` (November 14, 2026). Every commit after that, including localization and the website locales, is outside that scan. Run the scan again before changing visibility.
 
 The repository is private. These are the items that are still open. Other pages describe how a feature works today and link here instead of keeping a second checklist.
 
@@ -10,18 +16,12 @@ Engineering work that is not a release blocker (live Claude and Grok Bot runs, m
 
 `website/src/pages/support.html` shows the literal placeholder **TODO**. The built site, including [screenclipai.com/support](https://screenclipai.com/support), says no support inbox is set up. Replace that placeholder with a monitored address before publishing one. `website/site.config.json` has no email field; the text is in the page source.
 
-### LICENSE
+### CONTRIBUTING and SECURITY
 
-There is no `LICENSE` file. Choose one before making the repository public. This page does not pick it.
-
-Two related files are also absent:
+Two related files are still absent:
 
 - A root `CONTRIBUTING.md`. The workflow people should follow is [Development → Contributing](development.md#contributing).
 - A root `SECURITY.md`. It should say that queue screenshots stay on the Mac, that the Grok Bot webhook address and header live in the Keychain (`com.screenclip.app.external-assistant`), and where to report a vulnerability.
-
-The agent icons under `Sources/ScreenClip/Assets.xcassets` are from Lobe Icons and already carry an MIT notice in `Sources/ScreenClip/AgentIcons-LICENSE.txt`. That notice covers those icons. It is not a license for the app.
-
-The [secret-scan record](release/open-source-audit.md) covers history through `a1c72c6` (November 14, 2026). Every commit after that, including localization and the website locales, is outside that scan. Run the scan again before changing visibility.
 
 ### GitHub Sponsors and the donate URL
 
@@ -46,10 +46,9 @@ A tag push still starts the Release workflow. When none of the secrets are set, 
 
 ## Before the repository is public
 
-1. Add `LICENSE`.
-2. Rescan history from `a1c72c6` forward. The earlier scan did not require a history rewrite.
-3. Add root `CONTRIBUTING.md` and `SECURITY.md`, or accept that those files are still missing and that [Development](development.md#contributing) is the only contributing page.
-4. Replace the support-email placeholder if the public site should list an address.
-5. Decide whether the Sponsors link and `donateUrl` should go live with the first public download.
+1. Rescan history from `a1c72c6` forward. The earlier scan did not require a history rewrite.
+2. Add root `CONTRIBUTING.md` and `SECURITY.md`, or accept that those files are still missing and that [Development](development.md#contributing) is the only contributing page.
+3. Replace the support-email placeholder if the public site should list an address.
+4. Decide whether the Sponsors link and `donateUrl` should go live with the first public download.
 
 Publishing does not require the Apple secrets. Without them there is still no notarized DMG, so the site's download URL has no file. See [Direct distribution](release/direct-distribution.md).

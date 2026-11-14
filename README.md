@@ -2,6 +2,8 @@
 
 **File bugs as you go, without breaking your flow.**
 
+[![Source-available under PolyForm Noncommercial 1.0.0, free for noncommercial use. Commercial licensing on request.](https://img.shields.io/badge/source--available-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE.md)
+
 A native macOS menu bar app for the small things you notice: a clipped button, confusing copy, a missing detail, or an idea. Grab a screenshot, add a note if you want one, and keep going. ScreenClip keeps the image and the context together. Codex, Claude Code, or Grok Bot does the follow-up.
 
 <p align="center">
@@ -38,4 +40,8 @@ The full map is the [documentation index](docs/README.md).
 - [Development](docs/development.md) — tests, CI, contributing
 - [Website](docs/website.md) — [screenclipai.com](https://screenclipai.com)
 
-Items still open before a public release (support email, license, Sponsors, release secrets) are listed in one place: [Open source](docs/open-source.md).
+Items still open before a public release (support email, Sponsors, release secrets) are listed in one place: [Publishing checklist](docs/open-source.md).
+
+## License
+
+ScreenClip is source-available under the [PolyForm Noncommercial License 1.0.0](LICENSE.md). It is free for noncommercial use. Commercial licensing is available on request.

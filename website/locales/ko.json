@@ -75,9 +75,9 @@
   },
   "download": {
     "eyebrow": "다운로드",
-    "title": "Mac에서는 무료. 소스는 GitHub에 공개.",
+    "title": "Mac에서는 무료. 소스는 GitHub에 공개(source-available).",
     "price": "ScreenClip은 무료입니다. 구독은 없습니다.",
-    "source": "ScreenClip은 오픈 소스입니다. {link:githubRead}. 이슈를 열거나 Xcode 16 이상으로 빌드할 수 있습니다.",
+    "source": "ScreenClip은 소스 공개(source-available)이며 PolyForm Noncommercial 1.0.0을 따릅니다. 비상업적 사용은 무료입니다. 상업용 라이선스는 요청 시 제공합니다. {link:githubRead}. 이슈를 열거나 Xcode 16 이상으로 빌드할 수 있습니다.",
     "sourceMissing": "소스 링크가 아직 설정되지 않았습니다.",
     "button": "Download for Mac (무료)",
     "headerButton": "Download for Mac",

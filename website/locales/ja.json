@@ -75,9 +75,9 @@
   },
   "download": {
     "eyebrow": "ダウンロード",
-    "title": "Macでは無料。ソースはGitHubで公開。",
+    "title": "Macでは無料。ソースアベイラブルでGitHubに公開。",
     "price": "ScreenClipは無料です。サブスクリプションはありません。",
-    "source": "ScreenClipはオープンソースです。{link:githubRead}、issueを立てるか、Xcode 16以降でビルドできます。",
+    "source": "ScreenClipはソースアベイラブルです（PolyForm Noncommercial 1.0.0）。非商用の利用は無料です。商用ライセンスは依頼に応じて提供します。{link:githubRead}、issueを立てるか、Xcode 16以降でビルドできます。",
     "sourceMissing": "ソースのリンクはまだ設定されていません。",
     "button": "Download for Mac（無料）",
     "headerButton": "Download for Mac",

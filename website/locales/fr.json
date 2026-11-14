@@ -75,9 +75,9 @@
   },
   "download": {
     "eyebrow": "Télécharger",
-    "title": "Gratuit sur votre Mac. Open source sur GitHub.",
+    "title": "Gratuit sur votre Mac. Source disponible sur GitHub.",
     "price": "ScreenClip est gratuit. Il n’y a pas d’abonnement.",
-    "source": "ScreenClip est open source. {link:githubRead}, ouvrez un issue ou compilez-le avec Xcode 16 ou plus récent.",
+    "source": "Le code source de ScreenClip est disponible (source-available) sous PolyForm Noncommercial 1.0.0, gratuit pour un usage non commercial. Une licence commerciale est disponible sur demande. {link:githubRead}, ouvrez un issue ou compilez-le avec Xcode 16 ou plus récent.",
     "sourceMissing": "Le lien vers le code source n’est pas encore configuré.",
     "button": "Download for Mac (gratuit)",
     "headerButton": "Download for Mac",
