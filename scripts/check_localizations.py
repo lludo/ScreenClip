@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Check ScreenClip string catalogs for missing translations, placeholder drift, and the screenshot fixture."""
+"""Check ScreenClip string catalogs for missing translations and placeholder drift."""
 import json
 import pathlib
 import re
-import sqlite3
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
