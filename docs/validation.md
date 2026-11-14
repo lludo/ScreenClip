@@ -24,6 +24,8 @@ Latest run: **116 Swift tests** (62 core, 54 app), **10 Python plugin tests**, *
 
 November 14, 2026. Grok Bot is implemented as `AgentKind.external` and documented in [external-assistant.md](agents/external-assistant.md). Approved screenshots are pushed to `screenclip/<reportNumber>-<slug>-<workspace>`; the webhook schema `screenclip.external.v1` does not carry image bytes. `report.json` uses the same fields, with `evidence.commit` null because that file cannot contain its own commit id.
 
+Connecting Grok Bot is a guided sheet opened from the Grok Bot row or the capture window. The assistant returns a `screenclip-connect:v1:` setup code, or a `screenclip://connect?code=` link. The format, and the older address-and-secret fields under **Advanced**, are documented in [external-assistant.md](agents/external-assistant.md). Unit tests cover encoding, lenient parsing, and the URL route.
+
 The change was written on Linux, which has no Swift toolchain. GitHub Actions then ran the suite on macos-15 (arm64). After a slug-length fix, the macOS workflow passed `bash scripts/test.sh`, the Python tests (`test_plugin.py`, `test_review_queue.py`, `test_external_assistant.py`), and the Xcode Debug and Release builds.
 
 `bash scripts/test.sh` covers `ExternalAssistantTests` (payload encoding, slug and branch names, opt-in, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, and the Authorization header on a test POST) and `ExternalAssistantAppTests` (Grok Bot stays in the agent list, submit refuses it until the webhook is configured and the project opts in, and a restart during the POST stays retryable). One slug-length failure on the first green-compile run was fixed before the passing run.

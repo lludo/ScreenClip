@@ -123,7 +123,7 @@ Keep captures in per-user Application Support, outside source repositories. Use 
 
 | Path | Contents |
 | --- | --- |
-| `Sources/ScreenClip/` | The app: `AppModel`, capture (`CaptureCoordinator`, `Annotations`, `ComposerView`), queue (`QueueView`, `IssueDetailView`, `IssueRowViews`, `QuestionCard`, `WelcomeView`, `MenuPopover`), settings (`SettingsView`, `ConnectionControls`, `ProjectEditor`, `ShortcutRecorder`), Grok Bot credentials (`ExternalAssistantKeychain`) |
+| `Sources/ScreenClip/` | The app: `AppModel`, capture (`CaptureCoordinator`, `Annotations`, `ComposerView`), queue (`QueueView`, `IssueDetailView`, `IssueRowViews`, `QuestionCard`, `WelcomeView`, `MenuPopover`), settings (`SettingsView`, `ConnectionControls`, `GrokConnectSheet`, `ProjectEditor`, `ShortcutRecorder`), Grok Bot credentials (`ExternalAssistantKeychain`) |
 | `Sources/ScreenClip/AgentWorker*.swift` | Scheduling and dispatch (`AgentWorker`), Codex (`+Codex`), Claude Code (`+Claude`), Grok Bot hand-off and PR inspection (`+External`), and validation, publication, PR monitoring, and merge (`+Publishing`) |
 | `Sources/ScreenClip/AgentPrompt.swift` | The prompt and result schema every agent receives |
 | `Sources/ScreenClipCore/` | Model (`Models`, `JSONValue`, `Errors`), store (`IssueStore`), routing (`Routing`), agent transports (`CodexClient`, `ClaudeCodeClient`, `ExternalAssistant`, `AgentDetector`), processes (`CommandRunner`, `ProcessEnvironment`), Git (`GitWorkspace`), GitHub (`GitHubService`), and merge evidence (`MergeGuard`) |

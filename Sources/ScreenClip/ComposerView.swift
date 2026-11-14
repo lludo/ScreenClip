@@ -13,6 +13,7 @@ struct ComposerView: View {
   @State private var issueID: UUID?
   @State private var agent: AgentKind = .codex
   @State private var error: String?
+  @State private var showGrokConnect = false
   @FocusState private var noteFocused: Bool
   var body: some View {
     VStack(spacing: 0) {
@@ -170,7 +171,12 @@ struct ComposerView: View {
             .font(.caption).foregroundStyle(.orange)
         }
         if let hint = externalAvailability.hint, lockedAgent == nil || lockedAgent == .external {
-          Text(hint).font(.caption).foregroundStyle(.orange)
+          VStack(alignment: .leading, spacing: 6) {
+            Text(hint).font(.caption).foregroundStyle(.orange)
+            if showsGrokConnect {
+              Button("Connect Grok Bot") { showGrokConnect = true }.controlSize(.small)
+            }
+          }
         }
         if let error { Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
         HStack {
@@ -202,6 +208,9 @@ struct ComposerView: View {
     .onChange(of: issueID) { _, _ in
       agent = lockedAgent ?? existing?.agent ?? model.snapshot.settings.preferredAgent
     }
+    .sheet(isPresented: $showGrokConnect) {
+      GrokConnectSheet(model: model, initialCode: nil, projectID: projectID, onSaved: {})
+    }
   }
   /// Drafts are new reports or the draft being edited, never evidence on a submitted issue.
   private var canSaveDraft: Bool {
@@ -220,9 +229,12 @@ struct ComposerView: View {
     var enabled: Bool
     var id: AgentKind { kind }
   }
+  private var showsGrokConnect: Bool {
+    !model.loadExternalAssistant().isConfigured && (lockedAgent == nil || lockedAgent == .external)
+  }
   private var externalAvailability: ExternalAgentAvailability {
     AgentPicker.externalAvailability(
-      configured: model.detection(.external)?.usable == true, hasProject: projectID != nil,
+      configured: model.loadExternalAssistant().isConfigured, hasProject: projectID != nil,
       projectOptIn: model.project(projectID)?.sendsExternalScreenshots == true)
   }
   private var agentOptions: [AgentOption] {

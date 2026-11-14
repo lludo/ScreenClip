@@ -1,7 +1,7 @@
 import Foundation
 
 /// What ScreenClip found for one coding agent.
-/// Grok Bot is "installed" when its webhook URL and Authorization header are saved.
+/// Grok Bot is "installed" when its connection has been saved.
 public struct AgentDetection: Identifiable, Equatable, Sendable {
   public var kind: AgentKind
   public var path: String
@@ -22,7 +22,7 @@ public struct AgentDetection: Identifiable, Equatable, Sendable {
     self.detail = detail
   }
   public var label: String {
-    if kind == .external { return usable ? kind.title : "\(kind.title) — not configured" }
+    if kind == .external { return usable ? kind.title : "\(kind.title) — not connected" }
     guard installed else { return "\(kind.title) — not found" }
     if signedIn == false { return "\(kind.title) — signed out" }
     return kind.title
@@ -78,8 +78,7 @@ public enum AgentDetector {
     return await [codex, claude, remote]
   }
 
-  /// Configured means both the webhook URL and the Authorization header are saved.
-  /// A successful Send test is recorded in the detail and is not required.
+  /// Connected means a usable address and secret are saved. The secret is never included here.
   public static func detectExternal(_ configuration: ExternalAssistantConfiguration) -> AgentDetection {
     guard configuration.isConfigured else {
       let started =
@@ -87,12 +86,12 @@ public enum AgentDetector {
       return AgentDetection(
         kind: .external, path: "", version: nil, signedIn: false,
         detail: started
-          ? "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → Connections → External assistant."
-          : "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant."
+          ? "Not connected — Connect Grok Bot. The address has to start with https, and the secret can't contain a line break."
+          : "Not connected — Connect Grok Bot"
       )
     }
-    var detail = "Detected. Webhook and Authorization header are saved in the Keychain."
-    if configuration.testSucceeded { detail += " Send test succeeded." }
+    let host = configuration.endpoint?.host ?? ""
+    let detail = host.isEmpty ? "Connected" : "Connected · \(host)"
     return AgentDetection(
       kind: .external, path: "", version: "configured", signedIn: true, detail: detail)
   }

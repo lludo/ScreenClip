@@ -53,7 +53,7 @@ extension AgentWorker {
     guard configuration.isConfigured, let endpoint = configuration.endpoint else {
       throw ScreenClipError.message(
         AgentPicker.externalAvailability(configured: false, hasProject: true, projectOptIn: true).hint
-          ?? "Grok Bot is not configured.")
+          ?? "Grok Bot is not connected.")
     }
     if !project.sendsExternalScreenshots {
       let remote = try await CommandRunner.checked(
