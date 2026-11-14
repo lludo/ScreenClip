@@ -1,6 +1,7 @@
 import Foundation
 
-/// What ScreenClip found for one local coding agent.
+/// What ScreenClip found for one coding agent.
+/// Grok Bot is "installed" when its webhook URL and Authorization header are saved.
 public struct AgentDetection: Identifiable, Equatable, Sendable {
   public var kind: AgentKind
   public var path: String
@@ -21,6 +22,7 @@ public struct AgentDetection: Identifiable, Equatable, Sendable {
     self.detail = detail
   }
   public var label: String {
+    if kind == .external { return usable ? kind.title : "\(kind.title) — not configured" }
     guard installed else { return "\(kind.title) — not found" }
     if signedIn == false { return "\(kind.title) — signed out" }
     return kind.title
@@ -67,10 +69,32 @@ public enum AgentDetector {
     settings.codexPath.isEmpty ? defaultCodexPath() : settings.codexPath
   }
 
-  public static func detectAll(_ settings: AppSettings) async -> [AgentDetection] {
+  public static func detectAll(
+    _ settings: AppSettings, external: ExternalAssistantConfiguration = .empty
+  ) async -> [AgentDetection] {
     async let codex = detectCodex(path: codexPath(settings))
     async let claude = detectClaude(path: claudePath(settings))
-    return await [codex, claude]
+    let remote = detectExternal(external)
+    return await [codex, claude, remote]
+  }
+
+  /// Configured means both the webhook URL and the Authorization header are saved.
+  /// A successful Send test is recorded in the detail and is not required.
+  public static func detectExternal(_ configuration: ExternalAssistantConfiguration) -> AgentDetection {
+    guard configuration.isConfigured else {
+      let started =
+        !configuration.normalizedURL.isEmpty || !configuration.normalizedAuthorization.isEmpty
+      return AgentDetection(
+        kind: .external, path: "", version: nil, signedIn: false,
+        detail: started
+          ? "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → Connections → External assistant."
+          : "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant."
+      )
+    }
+    var detail = "Detected. Webhook and Authorization header are saved in the Keychain."
+    if configuration.testSucceeded { detail += " Send test succeeded." }
+    return AgentDetection(
+      kind: .external, path: "", version: "configured", signedIn: true, detail: detail)
   }
 
   public static func detectCodex(path: String) async -> AgentDetection {

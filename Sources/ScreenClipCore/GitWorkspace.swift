@@ -66,10 +66,12 @@ public enum GitWorkspace {
     return remote?.status == 0 ? "origin/" + project.baseBranch : project.baseBranch
   }
 
-  public static func prepare(project: Project, issueID: UUID, root: URL) async throws -> (
-    path: String, branch: String
-  ) {
-    let branch = branchName(issueID: issueID)
+  /// Pass `branch` to use a specific branch name (Grok Bot handoffs). An existing local
+  /// branch is checked out instead of being created from the base.
+  public static func prepare(
+    project: Project, issueID: UUID, root: URL, branch requestedBranch: String? = nil
+  ) async throws -> (path: String, branch: String) {
+    let branch = requestedBranch ?? branchName(issueID: issueID)
     let legacy = legacyBranchPrefix + issueID.uuidString.lowercased().prefix(8)
     let path = root.appendingPathComponent("worktrees").appendingPathComponent(issueID.uuidString)
       .path
@@ -82,7 +84,7 @@ public enum GitWorkspace {
       git, ["check-ref-format", "--branch", project.baseBranch], cwd: project.path)
     if FileManager.default.fileExists(atPath: path) {
       let actual = try await CommandRunner.checked(git, ["branch", "--show-current"], cwd: path)
-      guard actual == branch || actual == legacy else {
+      guard actual == branch || (requestedBranch == nil && actual == legacy) else {
         throw ScreenClipError.message(
           "The issue worktree has an unexpected branch. Inspect it before retrying.")
       }
@@ -95,6 +97,13 @@ public enum GitWorkspace {
     if hasOrigin {
       _ = try? await CommandRunner.run(
         git, ["fetch", "origin", project.baseBranch], cwd: project.path, timeout: 120)
+    }
+    let existing = try await CommandRunner.run(
+      git, ["show-ref", "--verify", "--quiet", "refs/heads/\(branch)"], cwd: project.path)
+    if existing.status == 0 {
+      _ = try await CommandRunner.checked(
+        git, ["worktree", "add", path, branch], cwd: project.path)
+      return (path, branch)
     }
     let start = await baseRef(project: project, path: project.path)
     _ = try await CommandRunner.checked(

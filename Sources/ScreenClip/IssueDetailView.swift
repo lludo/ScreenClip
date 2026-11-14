@@ -29,6 +29,9 @@ struct IssueDetailView: View {
         HStack(spacing: 12) {
           Label(issue.resolvedAgent.title, systemImage: "cpu").font(.caption)
             .foregroundStyle(.secondary).help("Agent working on this issue")
+          if let note = issue.externalConversationNote {
+            Text(note).font(.caption).foregroundStyle(.secondary)
+          }
           if issue.codexURL != nil {
             Button {
               model.openCodex(issue)
@@ -46,7 +49,9 @@ struct IssueDetailView: View {
           if let url = issue.prURL.flatMap(URL.init(string:)) {
             Link("View pull request", destination: url)
           }
-          if issue.status == .prOpen {
+          if issue.status == .prOpen
+            || (issue.resolvedAgent == .external && issue.status == .working && !issue.dispatchUncertain)
+          {
             Button("Refresh PR status") { Task { await model.worker.refreshPRs() } }
           }
           Spacer()
@@ -58,15 +63,19 @@ struct IssueDetailView: View {
             .help(
               issue.archived || issue.canArchive
                 ? "Keep this report's evidence" : "Cancel active work before archiving")
-          Menu {
-            Button("Link existing chat…") { showLinkChat = true }.disabled(
-              issue.status == .working || issue.worktreePath == nil)
-            if issue.canDelete && !model.worker.isActive(issue.id) {
-              Button("Delete local evidence…", role: .destructive) { confirmDelete = true }
-            }
-          } label: {
-            Image(systemName: "ellipsis")
-          }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+          if issue.resolvedAgent != .external || issue.status != .working {
+            Menu {
+              if issue.resolvedAgent != .external {
+                Button("Link existing chat…") { showLinkChat = true }.disabled(
+                  issue.status == .working || issue.worktreePath == nil)
+              }
+              if issue.canDelete && !model.worker.isActive(issue.id) {
+                Button("Delete local evidence…", role: .destructive) { confirmDelete = true }
+              }
+            } label: {
+              Image(systemName: "ellipsis")
+            }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+          }
         }.controlSize(.small)
         if issue.projectID == nil {
           VStack(alignment: .leading, spacing: 10) {
@@ -88,7 +97,10 @@ struct IssueDetailView: View {
           ).textSelection(.enabled)
         }
         if issue.status == .prOpen, let summary = issue.checkSummary {
-          Label(summary, systemImage: "clock").font(.callout).foregroundStyle(.secondary)
+          Label(summary, systemImage: summary == ExternalAssistant.evidenceStillPresentSummary
+            ? "exclamationmark.circle" : "clock"
+          ).font(.callout).foregroundStyle(
+            summary == ExternalAssistant.evidenceStillPresentSummary ? .orange : .secondary)
         }
         if let commit = issue.mergeCommit {
           Text("Merge commit: " + String(commit.prefix(12))).font(.caption).monospaced()
@@ -115,9 +127,12 @@ struct IssueDetailView: View {
           if [.needsYou, .failed, .canceled, .draft].contains(issue.status)
             && !issue.dispatchUncertain && issue.questions.allSatisfy({ $0.reply != nil })
           {
-            Button("Continue") { model.retry(issue.id) }
+            Button(issue.resolvedAgent == .external && issue.status == .failed ? "Retry" : "Continue")
+            { model.retry(issue.id) }
           }
-          if issue.threadID != nil && [.needsYou, .failed].contains(issue.status) {
+          if issue.resolvedAgent != .external && issue.threadID != nil
+            && [.needsYou, .failed].contains(issue.status)
+          {
             Button("Reconcile chat") { Task { await model.worker.reconcile(issue.id) } }
           }
           if [.working, .queued, .needsYou, .prOpen].contains(issue.status) {

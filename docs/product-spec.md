@@ -1,6 +1,6 @@
 # ScreenClip product specification
 
-Updated: November 13, 2026. Status: implemented local app; confirmed decisions and remaining product choices. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks.
+Updated: November 14, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot; confirmed decisions and remaining product choices. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md).
 
 ## Problem and intended outcome
 
@@ -17,7 +17,7 @@ Example: while moving through a checkout flow, the tester notices a clipped butt
 - Lead with fast capture at the moment of noticing and immediately continuing the current task.
 - Include feedback, polish, and improvement ideas as well as bugs. Not every observation is a broken feature or needs an immediate code change.
 - Show the repeated-capture workflow, not just one screenshot leading to one fix. Do not invent timing guarantees or claim measured support for a particular number of reports.
-- Keep context and related captures together, with one agent conversation per issue, without imposing a title, severity, or report template on each observation.
+- Keep context and related captures together, with one agent conversation per issue, without imposing a title, severity, or report template on each observation. Codex and Claude Code keep that conversation locally. Grok Bot keeps it in the assistant's chat.
 - Explain agent work and fix tracking after the capture value is clear. Marketing should not make an automatic fix the reason to capture feedback.
 
 ## Confirmed requirements
@@ -32,13 +32,13 @@ Example: while moving through a checkout flow, the tester notices a clipped butt
 | Composer | Screenshot overlay with a short description and image annotations |
 | Capturing ScreenClip itself | Hidden by default; turn off **Hide ScreenClip during capture** to capture its windows and menu bar popover |
 | Submission | Save to the queue and begin AI work immediately |
-| Organization | One chat per issue; related captures share that issue |
+| Organization | One conversation per issue; related captures share that issue. Codex uses a thread, Claude Code a session, and Grok Bot a GitHub branch plus webhook |
 | Project routing | Infer from app/browser context; user can correct it |
-| Visibility | Counts, statuses, and links to the correct agent conversation |
-| Agent outcome | Implement, test, open a PR, and merge when checks pass |
-| Communication | Follow-up questions and completion feedback |
+| Visibility | Counts, statuses, and the conversation link the agent supports (Codex deep link, Claude resume command, or the Grok Bot pull request once known) |
+| Agent outcome | Implement, test, open a PR, and merge when checks pass. ScreenClip decides merges for every agent, including Grok Bot |
+| Communication | Follow-up questions and completion feedback. Codex and Claude questions are answered in ScreenClip; Grok Bot questions stay in Grok Bot's chat |
 | Audience | Eventual public distribution |
-| Agents | Codex or Claude Code, chosen per report with a default in Settings; see [Coding agents](agents/README.md) |
+| Agents | Codex, Claude Code, or Grok Bot, chosen per report with a default in Settings; see [Coding agents](agents/README.md) |
 
 Sections below describe the implemented behavior; open questions are listed under [Remaining decisions](#remaining-decisions).
 
@@ -48,7 +48,7 @@ Sections below describe the implemented behavior; open questions are listed unde
 2. Preserve the source app and available context before ScreenClip takes focus.
 3. Show a crosshair and region selection. Escape cancels. The selection should work across multiple monitors, Retina scales, and full-screen apps.
 4. Show a compact overlay with the image, a focused note field, an inferred project chip, and an issue destination: **New issue** or **Add to issue…**.
-5. Immediately offer freehand marks, arrows, rectangles, circles/ellipses, text, color and stroke-thickness choices, undo/redo, and an opaque redaction tool. Notes and annotations are optional; allow an image-only observation.
+5. Immediately offer freehand marks, arrows, rectangles, circles/ellipses, text, color and stroke-thickness choices, undo/redo, and an opaque redaction tool. A redaction is a rectangle the user draws; it is flattened to opaque black and is the only mark that hides pixels. Notes and annotations are optional; allow an image-only observation.
 6. Submit using the primary button or Command–Return. Persist the report before acknowledging success, dismiss the overlay, and return focus to the tested app.
 7. Dispatch immediately when routing and connectivity permit. A paused, offline, or ambiguous report remains saved with a clear reason.
 
@@ -88,7 +88,7 @@ Menu bar label: icon plus the count of submitted, unresolved issues. A separate 
 | --- | --- |
 | Menu bar popover | Current project/session, New capture, Pause processing, status totals, recent issues, Open queue, Settings |
 | Issue row | Permanent report number (for example, #234), thumbnail, short title, project, status, latest update, unread indicator |
-| Issue detail | Click-to-copy report number, ordered images and notes, captured context, concise activity, questions and replies, agent conversation link, PR link, validation result |
+| Issue detail | Click-to-copy report number, ordered images and notes, captured context, concise activity, questions and replies, the agent's conversation link when it has one, PR link, validation result |
 | Queue window | All issues, project/status filters, search, drafts, archive |
 
 The queue has resizable panes with a status filter and feedback search above the report list. Search includes capture notes, questions, replies, results, and activity. Archive and Restore are available directly in report details and the report row's context menu; archiving retains screenshots, status, and PR/merge evidence. Active work and outstanding agent permission requests must be canceled or resolved before archiving. The composer uses the regular macOS close control with its existing discard confirmation.
@@ -136,7 +136,7 @@ Related captures received during work are appended to the same issue. Track thei
 
 Include region capture, a quick composer, core annotations, project mapping/inference, local persistence, issue grouping, immediate agent dispatch, status updates, inline questions, exact chat links, PR/merge tracking, retry/cancel/pause, and restart recovery.
 
-Defer video, voice notes, scrolling screenshots, browser DOM/console/network capture, automatic duplicate merging, other operating systems, remote agents (see the [external assistant proposal](agents/proposals/external-assistant.md)), and team assignment/shared queues. Public packaging and updates follow the working personal prototype; public distribution remains an architectural requirement.
+Defer video, voice notes, scrolling screenshots, browser DOM/console/network capture, automatic duplicate merging, other operating systems, other AI providers, and team assignment/shared queues. Public packaging and updates follow the working personal prototype; public distribution remains an architectural requirement.
 
 ## Remaining decisions
 

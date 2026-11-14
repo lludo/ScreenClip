@@ -28,7 +28,7 @@ enum QueueFilter: String, CaseIterable, Identifiable {
     if issue.archived { return false }
     switch self {
     case .active: return issue.status.isActive
-    case .attention: return issue.status.needsAttention
+    case .attention: return issue.wantsAttention
     case .retest: return issue.status == .merged
     case .drafts: return issue.status == .draft
     case .history: return [.merged, .verified, .canceled].contains(issue.status)

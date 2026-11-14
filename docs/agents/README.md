@@ -2,35 +2,34 @@
 
 Updated: November 14, 2026.
 
-ScreenClip captures an observation and hands it to a **local coding agent** that investigates and fixes it in an isolated Git worktree. The agent is pluggable. Today there are two:
+ScreenClip captures an observation and hands it to a coding agent. Codex and Claude Code investigate and fix it in an isolated Git worktree. Grok Bot is a remote assistant: ScreenClip pushes the approved screenshots to GitHub and wakes the assistant with a webhook, then tracks the pull request. The agent is pluggable.
 
 | Agent | Transport | Conversation identity | Open the conversation | Sign-in | Page |
 | --- | --- | --- | --- | --- | --- |
 | Codex | `codex app-server` (long-lived JSON-RPC over stdio) | Codex thread ID | `codex://threads/<id>` | ChatGPT or API key through app-server | [codex.md](codex.md) |
 | Claude Code | `claude -p` (one stream-json process per turn) | Session UUID chosen by ScreenClip | Copy `cd <worktree> && claude --resume <id>` | `claude auth login` in Terminal | [claude-code.md](claude-code.md) |
+| Grok Bot | Webhook `screenclip.external.v1` after a Git push of approved screenshots | Report number and `screenclip/<number>-<slug>-<workspace>` branch | Pull request link, or a note that the chat is in Grok Bot | Webhook URL and Authorization header in the Keychain | [external-assistant.md](external-assistant.md) |
 
-There is also a design proposal for handing reports to a remote assistant instead of a local agent: [proposals/external-assistant.md](proposals/external-assistant.md).
-
-Separately from automatic dispatch, both agents can **read** the queue through the optional MCP plugin. See [the plugin README](../../plugins/screenclip/README.md).
+Separately from automatic dispatch, Codex and Claude Code can **read** the queue through the optional MCP plugin. See [the plugin README](../../plugins/screenclip/README.md).
 
 ## Choosing an agent
 
-- **Default agent.** Settings → Connections → AI agent sets `AppSettings.defaultAgent`. Missing in older queues means Codex.
+- **Default agent.** Settings → Connections → **AI agent** → **Default agent** sets `AppSettings.defaultAgent`. Missing in older queues means Codex.
 - **Per report.** The capture window's **Agent** picker starts at the default and can be changed for a new report or a draft. The choice is stamped on the issue (`Issue.agent`).
 - **Follow-ups keep their agent.** Adding a capture to a submitted issue locks the picker to that issue's agent, because conversation IDs are not interchangeable between agents. Switching a submitted issue to another agent is not supported; cancel it and submit a new report.
 - **Older issues** have no `agent` field and resolve to Codex (`Issue.resolvedAgent`).
 
 ## Detection and readiness
 
-`AgentDetector` (in `ScreenClipCore`) finds each agent's executable, reads its version, and, where the agent supports it, its sign-in state. Detection runs at launch and from **Detect agents** in Settings.
+`AgentDetector` (in `ScreenClipCore`) finds each local agent's executable, reads its version, and, where the agent supports it, its sign-in state. For Grok Bot, detected means the webhook URL and Authorization header are in the Keychain. Detection runs at launch and from **Detect agents** in Settings.
 
-- Pickers list installed agents plus the current default, so the default never disappears.
-- The queue holds a queued issue whose agent detection reports missing or signed out (`AgentDetection.usable == false`). Detecting again resumes it. The capture window warns when the selected agent is not ready.
+- Pickers list installed agents plus the current default, so the default never disappears. Grok Bot is always listed. In the capture window its row is disabled, with a hint, until it is configured and the project has opted in to sending screenshots.
+- The queue holds a queued issue whose agent detection reports missing, signed out, or not configured (`AgentDetection.usable == false`). Detecting again resumes it. The capture window warns when the selected local agent is not ready.
 - The queue sidebar shows the default agent's status (`AppModel.agentStatus`).
 
 ## The agent contract
 
-Every agent integration follows the same contract, so the rest of ScreenClip stays agent-neutral.
+Codex and Claude Code follow the same contract, so the rest of ScreenClip stays agent-neutral. Grok Bot is the remote exception described after the usage table.
 
 **ScreenClip provides**
 - An isolated worktree and `screenclip/<id>` branch (`GitWorkspace.prepare`), started from `origin/<base>`, as the agent's working directory. The tester's checkout is never the working directory.
@@ -57,8 +56,11 @@ Every agent integration follows the same contract, so the rest of ScreenClip sta
 | --- | --- |
 | Claude Code | Each turn appends a `usage` activity such as `Claude Code turn finished · 12,340 in / 890 out tokens · $0.42`, from the stream-json `result` event. |
 | Codex | Not recorded yet. |
+| Grok Bot | Not recorded. Each revision sends one webhook. |
 
 A planned follow-up aggregates usage per agent and project to help decide which agent to use.
+
+Grok Bot (`AgentKind.external`) is the remote exception: [Grok Bot](external-assistant.md) is its contract. The checklist below is for another local agent.
 
 ## Adding another agent
 
