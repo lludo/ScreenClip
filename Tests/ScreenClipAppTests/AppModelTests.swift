@@ -62,6 +62,56 @@ import XCTest
       model.snapshot.issues.filter { QueueFilter.retest.includes($0, projectID: mine) }.count, 0)
   }
 
+  func testMovingAReportToAnotherProject() throws {
+    let (model, root) = try makeModel()
+    let wrong = Project(name: "ScreenClip", path: "/repos/ScreenClip")
+    let right = Project(name: "Genealogy", path: "/repos/Genealogy")
+    try model.commit { $0.projects = [wrong, right] }
+    let image = root.appendingPathComponent("shot.png")
+    try Data([1, 2, 3]).write(to: image)
+    // Before agent work: the report is reassigned in place.
+    try model.submit(
+      imageData: Data([1]), originalData: nil, annotations: [], note: "Fresh",
+      context: CaptureContext(), projectID: wrong.id, existingID: nil, draft: false)
+    let fresh = try XCTUnwrap(model.snapshot.issues.last?.id)
+    XCTAssertEqual(try model.moveToProject(fresh, projectID: right.id), fresh)
+    XCTAssertEqual(model.issue(fresh)?.projectID, right.id)
+    // After agent work started: canceled, and a copy carries the work under the new project.
+    try model.submit(
+      imageData: Data([4]), originalData: Data([5]), annotations: [], note: "Started",
+      context: CaptureContext(appName: "Genealogy"), projectID: wrong.id, existingID: nil,
+      draft: false)
+    let started = try XCTUnwrap(model.snapshot.issues.last?.id)
+    try model.addContext(started, text: "Extra detail")
+    try model.updateIssue(started) {
+      $0.threadID = "thread"
+      $0.worktreePath = "/tmp/wt"
+      $0.record("Question", status: .needsYou)
+    }
+    let movedID = try model.moveToProject(started, projectID: right.id)
+    XCTAssertNotEqual(movedID, started)
+    let old = try XCTUnwrap(model.issue(started))
+    let moved = try XCTUnwrap(model.issue(movedID))
+    XCTAssertEqual(old.status, .canceled)
+    XCTAssertEqual(old.projectID, wrong.id)
+    XCTAssertEqual(moved.projectID, right.id)
+    XCTAssertEqual(moved.status, .queued)
+    XCTAssertNil(moved.threadID)
+    XCTAssertNil(moved.worktreePath)
+    XCTAssertEqual(moved.title, old.title)
+    XCTAssertEqual(moved.contextNotes?.map(\.text), ["Extra detail"])
+    XCTAssertEqual(moved.captures.count, 1)
+    XCTAssertNotEqual(moved.captures[0].imagePath, old.captures[0].imagePath)
+    XCTAssertEqual(
+      try Data(contentsOf: URL(fileURLWithPath: moved.captures[0].imagePath)), Data([4]))
+    XCTAssertNotNil(moved.reportNumber)
+    XCTAssertTrue(old.activities.contains { $0.text.hasPrefix("Moved to Genealogy as #") })
+    XCTAssertEqual(model.selectedIssueID, movedID)
+    // Active work must be canceled first.
+    try model.updateIssue(movedID) { $0.record("Working", status: .working) }
+    XCTAssertThrowsError(try model.moveToProject(movedID, projectID: wrong.id))
+  }
+
   func testADraftCannotBeAddedToASubmittedIssue() throws {
     let (model, _) = try makeModel()
     let project = UUID()
