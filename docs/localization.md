@@ -28,7 +28,7 @@ That runs:
 SCREENCLIP_RENDER_LOCALIZATIONS=1 bash scripts/test.sh --filter LocalizationSnapshotTests
 ```
 
-PNGs land in `build/localization-screenshots/`, which is gitignored, with one contact sheet. Each locale is rendered in light and dark for the main window, the selected report, the menu bar popover, Settings, and the Connect Grok Bot form.
+PNGs land in `build/localization-screenshots/`, which is gitignored, with one contact sheet. Each locale is rendered in light and dark for the main window, the selected report, the menu bar popover, Settings, and the Connect Grok Bot sheet.
 
 You can also launch the app against the same temporary copy:
 

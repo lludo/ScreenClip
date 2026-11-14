@@ -20,11 +20,15 @@ struct IssueRow: View {
           if issue.unread { Circle().fill(.orange).frame(width: 6, height: 6) }
         }
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-          Text(project?.name ?? Chrome.text(
-            "Choose project", locale: locale, comment: "Shown on a report row that has no project yet."))
-            .font(.caption).foregroundStyle(.secondary)
-            .lineLimit(2).fixedSize(horizontal: false, vertical: true)
-          Spacer(minLength: 8)
+          Label {
+            Text(verbatim: project?.name ?? Chrome.text(
+              "Choose project", locale: locale, comment: "Shown on a report row that has no project yet."))
+              .lineLimit(1)
+          } icon: {
+            Image(systemName: project?.displaySymbol ?? "questionmark.folder")
+          }
+          .font(.caption).foregroundStyle(.secondary)
+          Spacer(minLength: 0)
           StatusBadge(status: issue.status).fixedSize()
         }
       }

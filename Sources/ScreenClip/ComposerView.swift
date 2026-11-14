@@ -132,84 +132,78 @@ struct ComposerView: View {
       }.padding(20)
       Divider()
       VStack(alignment: .leading, spacing: 12) {
-        HStack(alignment: .top, spacing: 20) {
-          VStack(alignment: .leading, spacing: 6) {
-            Text(chrome: "Project", comment: "Caption above the project picker.").font(.caption)
-              .foregroundStyle(.secondary)
-            Picker(selection: $projectID) {
-              Text(chrome: "Choose project…", comment: "Project picker placeholder.").tag(nil as UUID?)
-              ForEach(model.snapshot.projects) { Text(verbatim: $0.name).tag(Optional($0.id)) }
-            } label: {
-              Text(chrome: "Project", comment: "Accessibility label for the project picker.")
-            }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityLabel(Text(chrome: "Project", comment: "Accessibility label for the project picker."))
-              .disabled(existing != nil && existing?.status != .draft)
-          }.frame(maxWidth: .infinity, alignment: .leading)
-          VStack(alignment: .leading, spacing: 6) {
-            Text(chrome: "Issue", comment: "Caption above the issue picker.").font(.caption)
-              .foregroundStyle(.secondary)
-            Picker(selection: $issueID) {
-              Text(chrome: "New issue", comment: "Files the capture as a new report.").tag(nil as UUID?)
-              ForEach(
-                model.snapshot.issues.filter {
-                  !$0.archived && $0.projectID == projectID && $0.status != .draft
+        GeometryReader { geometry in
+          let column = max(0, (geometry.size.width - 40) / 3)
+          HStack(alignment: .top, spacing: 20) {
+            VStack(alignment: .leading, spacing: 6) {
+              Text(chrome: "Project", comment: "Caption above the project picker.").font(.caption)
+                .foregroundStyle(.secondary)
+              Picker(selection: $projectID) {
+                Text(chrome: "Choose project…", comment: "Project picker placeholder.").tag(nil as UUID?)
+                ForEach(model.snapshot.projects) { project in
+                  Label(project.name, systemImage: project.displaySymbol).tag(Optional(project.id))
                 }
-              ) { Text(verbatim: $0.referencedTitle).tag(Optional($0.id)) }
-              if let existing, existing.status == .draft {
-                if let reference = existing.reportReference {
-                  Text(verbatim: Chrome.format(
-                    "composer.currentDraft", "Current draft \(reference)", locale: locale,
-                    comment: "Issue picker row for the draft being edited. %@ is the report number."))
-                    .tag(Optional(existing.id))
-                } else {
-                  Text(chrome: "Current draft", comment: "Issue picker row for an unnumbered draft.")
-                    .tag(Optional(existing.id))
-                }
-              }
-            } label: {
-              Text(chrome: "Issue", comment: "Accessibility label for the issue picker.")
-            }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityLabel(Text(chrome: "Issue", comment: "Accessibility label for the issue picker."))
-          }.frame(maxWidth: .infinity, alignment: .leading)
-          VStack(alignment: .leading, spacing: 6) {
-            Text(chrome: "Agent", comment: "Caption above the agent picker.").font(.caption)
-              .foregroundStyle(.secondary)
-            Menu {
-              ForEach(agentOptions) { option in
-                Button {
-                  agent = option.kind
-                } label: {
-                  if option.kind == agent {
-                    Label { Text(verbatim: option.title) } icon: { Image(systemName: "checkmark") }
+              } label: {
+                Text(chrome: "Project", comment: "Accessibility label for the project picker.")
+              }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityLabel(Text(chrome: "Project", comment: "Accessibility label for the project picker."))
+                .disabled(existing != nil && existing?.status != .draft)
+            }.frame(width: column, alignment: .leading)
+            VStack(alignment: .leading, spacing: 6) {
+              Text(chrome: "Issue", comment: "Caption above the issue picker.").font(.caption)
+                .foregroundStyle(.secondary)
+              Picker(selection: $issueID) {
+                Text(chrome: "New issue", comment: "Files the capture as a new report.").tag(nil as UUID?)
+                ForEach(
+                  model.snapshot.issues.filter {
+                    !$0.archived && $0.projectID == projectID && $0.status != .draft
+                  }
+                ) { Text(verbatim: $0.referencedTitle).tag(Optional($0.id)) }
+                if let existing, existing.status == .draft {
+                  if let reference = existing.reportReference {
+                    Text(verbatim: Chrome.format(
+                      "composer.currentDraft", "Current draft \(reference)", locale: locale,
+                      comment: "Issue picker row for the draft being edited. %@ is the report number."))
+                      .tag(Optional(existing.id))
                   } else {
-                    Text(verbatim: option.title)
+                    Text(chrome: "Current draft", comment: "Issue picker row for an unnumbered draft.")
+                      .tag(Optional(existing.id))
                   }
                 }
-                .disabled(!option.enabled)
+              } label: {
+                Text(chrome: "Issue", comment: "Accessibility label for the issue picker.")
+              }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityLabel(Text(chrome: "Issue", comment: "Accessibility label for the issue picker."))
+            }.frame(width: column, alignment: .leading)
+            VStack(alignment: .leading, spacing: 6) {
+              Text(chrome: "Agent", comment: "Caption above the agent picker.").font(.caption)
+                .foregroundStyle(.secondary)
+              Picker(selection: $agent) {
+                if agentChoices.isEmpty && lockedAgent == nil {
+                  Text(verbatim: model.detectingAgents
+                    ? Chrome.text("Checking agents…", locale: locale, comment: "Agent list is still loading.")
+                    : Chrome.text("No agents available", locale: locale, comment: "No coding agent can take this report.")
+                  ).tag(agent)
+                } else {
+                  ForEach(agentChoices, id: \.self) { kind in
+                    AgentLabel(kind: kind).tag(kind)
+                  }
+                }
+              } label: {
+                Text(chrome: "Agent", comment: "Accessibility label for the agent picker.")
               }
-            } label: {
-              Text(verbatim: model.detection(agent)?.localizedLabel(locale: locale) ?? agent.title)
-                .lineLimit(2).fixedSize(horizontal: false, vertical: true)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .menuStyle(.borderlessButton)
-            .disabled(lockedAgent != nil)
-            .accessibilityLabel(Text(chrome: "Agent", comment: "Accessibility label for the agent picker."))
-            .help(
-              lockedAgent != nil
-                ? Text(chrome: "Follow-up captures continue with the issue's existing agent.", comment: "Help when the agent cannot be changed.")
-                : Text(chrome: "Which agent works on this report.", comment: "Help for the agent picker."))
-          }.frame(maxWidth: .infinity, alignment: .leading)
+              .labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+              .disabled(lockedAgent != nil || agentChoices.isEmpty)
+              .accessibilityLabel(Text(chrome: "Agent", comment: "Accessibility label for the agent picker."))
+              .help(
+                lockedAgent != nil
+                  ? Text(chrome: "Follow-up captures continue with the issue's existing agent.", comment: "Help when the agent cannot be changed.")
+                  : Text(chrome: "Which agent works on this report.", comment: "Help for the agent picker."))
+            }.frame(width: column, alignment: .leading)
+          }
         }
-        if lockedAgent == nil, agent != .external, let found = model.detection(agent), !found.usable {
-          Text(verbatim: found.localizedDetail(locale: locale) + " " + Chrome.text(
-            "The report will wait in the queue until it is ready.", locale: locale,
-            comment: "Appended when the chosen local agent is not ready yet."))
-            .font(.caption).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
-        }
-        if let hint = externalAvailability.localizedHint(locale: locale),
-          lockedAgent == nil || lockedAgent == .external
-        {
+        .frame(height: 52)
+        if lockedAgent == .external, let hint = externalAvailability.localizedHint(locale: locale) {
           Text(verbatim: hint).font(.caption).foregroundStyle(.orange)
             .fixedSize(horizontal: false, vertical: true)
         }
@@ -231,6 +225,7 @@ struct ComposerView: View {
             Text(chrome: "Submit", comment: "Submits the capture.")
           }.buttonStyle(.borderedProminent).tint(.orange)
             .keyboardShortcut(.return, modifiers: .command)
+            .disabled(lockedAgent == nil && agentChoices.isEmpty)
         }
       }.padding(20)
     }
@@ -242,15 +237,21 @@ struct ComposerView: View {
         ?? ProjectRouter.infer(context, projects: model.snapshot.projects).projectID
       issueID = existing?.id
       agent = lockedAgent ?? existing?.agent ?? model.snapshot.settings.preferredAgent
+      reconcileAgent()
       if let existing, existing.status == .draft, let capture = existing.captures.first {
         note = capture.note
         if capture.originalPath != nil { document.marks = capture.annotations }
       }
     }
-    .onChange(of: projectID) { _, _ in if existing == nil { issueID = nil } }
+    .onChange(of: projectID) { _, _ in
+      if existing == nil { issueID = nil }
+      reconcileAgent()
+    }
     .onChange(of: issueID) { _, _ in
       agent = lockedAgent ?? existing?.agent ?? model.snapshot.settings.preferredAgent
+      reconcileAgent()
     }
+    .onChange(of: model.agents) { _, _ in reconcileAgent() }
   }
   /// Drafts are new reports or the draft being edited, never evidence on a submitted issue.
   private var canSaveDraft: Bool {
@@ -263,27 +264,19 @@ struct ComposerView: View {
     }
     return target.resolvedAgent
   }
-  private struct AgentOption: Identifiable {
-    var kind: AgentKind
-    var title: String
-    var enabled: Bool
-    var id: AgentKind { kind }
-  }
   private var externalAvailability: ExternalAgentAvailability {
     AgentPicker.externalAvailability(
-      configured: model.detection(.external)?.usable == true, hasProject: projectID != nil,
+      configured: model.loadExternalAssistant().isConfigured, hasProject: projectID != nil,
       projectOptIn: model.project(projectID)?.sendsExternalScreenshots == true)
   }
-  private var agentOptions: [AgentOption] {
-    agentChoices.map { kind in
-      let title = model.detection(kind)?.localizedLabel(locale: locale) ?? kind.title
-      let enabled = kind == .external ? externalAvailability.enabled : true
-      return AgentOption(kind: kind, title: title, enabled: enabled)
-    }
-  }
   private var agentChoices: [AgentKind] {
-    let available = model.availableAgents
-    return AgentKind.allCases.filter { available.contains($0) || $0 == agent }
+    if let lockedAgent { return [lockedAgent] }
+    return AgentPicker.filingChoices(
+      detections: model.agents, externalAvailable: externalAvailability.enabled)
+  }
+  private func reconcileAgent() {
+    if let lockedAgent { agent = lockedAgent }
+    else if !agentChoices.contains(agent), let first = agentChoices.first { agent = first }
   }
   private func symbol(_ tool: MarkKind) -> String {
     switch tool {

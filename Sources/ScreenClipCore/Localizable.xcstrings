@@ -1453,72 +1453,6 @@
         }
       }
     },
-    "Grok Bot — not configured": {
-      "comment": "ScreenClip interface text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grok Bot — not configured"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grok Bot — 未配置"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grok Bot — no configurado"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grok Bot — 未設定"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grok Bot — não configurado"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grok Bot — nicht konfiguriert"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grok Bot — non configuré"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grok Bot — 구성 안 됨"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grok Bot — не настроен"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Grok Bot — 未設定"
-          }
-        }
-      }
-    },
     "Invalid GitHub PR URL.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
@@ -3433,6 +3367,666 @@
         }
       }
     },
+    "Not connected — Connect Grok Bot": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not connected — Connect Grok Bot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未连接 — 连接 Grok Bot"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No conectado — Conectar Grok Bot"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未接続 — Grok Bot に接続"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não conectado — Conectar o Grok Bot"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht verbunden — Grok Bot verbinden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non connecté — Connecter Grok Bot"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결 안 됨 — Grok Bot 연결"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не подключено — Подключить Grok Bot"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未連線 — 連接 Grok Bot"
+          }
+        }
+      }
+    },
+    "Grok Bot — not connected": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot — not connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot — 未连接"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot — no conectado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot — 未接続"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot — não conectado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot — nicht verbunden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot — non connecté"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot — 연결 안 됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot — не подключен"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot — 未連線"
+          }
+        }
+      }
+    },
+    "Not connected — Connect Grok Bot. The address has to start with https, and the secret can't contain a line break.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not connected — Connect Grok Bot. The address has to start with https, and the secret can't contain a line break."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未连接 — 连接 Grok Bot。地址必须以 https 开头，密钥不能包含换行。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No conectado — Conectar Grok Bot. La dirección tiene que empezar por https y el secreto no puede contener un salto de línea."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未接続 — Grok Bot に接続。アドレスは https で始まり、シークレットに改行を含められません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não conectado — Conectar o Grok Bot. O endereço precisa começar com https, e o segredo não pode ter uma quebra de linha."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht verbunden — Grok Bot verbinden. Die Adresse muss mit https beginnen, und das Geheimnis darf keinen Zeilenumbruch enthalten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non connecté — Connecter Grok Bot. L’adresse doit commencer par https, et le secret ne peut pas contenir de saut de ligne."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결 안 됨 — Grok Bot 연결. 주소는 https로 시작해야 하고 비밀에는 줄바꿈이 들어갈 수 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не подключено — Подключить Grok Bot. Адрес должен начинаться с https, а секрет не может содержать перевод строки."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未連線 — 連接 Grok Bot。位址必須以 https 開頭，密鑰不能包含換行。"
+          }
+        }
+      }
+    },
+    "Connected": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已连接"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続済み"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecté"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подключено"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已連線"
+          }
+        }
+      }
+    },
+    "Choose a project that can share screenshots with Grok Bot.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose a project that can share screenshots with Grok Bot."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择一个可以向 Grok Bot 共享截图的项目。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elige un proyecto que pueda compartir capturas con Grok Bot."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot とスクリーンショットを共有できるプロジェクトを選んでください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Escolha um projeto que possa compartilhar capturas com o Grok Bot."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wähle ein Projekt, das Screenshots mit Grok Bot teilen kann."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choisissez un projet qui peut partager des captures avec Grok Bot."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot과 스크린샷을 공유할 수 있는 프로젝트를 선택하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выберите проект, который может делиться снимками с Grok Bot."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請選擇一個可以向 Grok Bot 共享截圖的專案。"
+          }
+        }
+      }
+    },
+    "Turn on sharing screenshots with Grok Bot for this project. Approved annotated screenshots are pushed to a branch in the project's GitHub repo.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Turn on sharing screenshots with Grok Bot for this project. Approved annotated screenshots are pushed to a branch in the project's GitHub repo."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请为此项目打开与 Grok Bot 共享截图。已批准的带标注截图会推送到该项目 GitHub 仓库的一个分支。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activa el envío de capturas a Grok Bot para este proyecto. Las capturas anotadas aprobadas se envían a una rama del repositorio de GitHub del proyecto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このプロジェクトで Grok Bot とのスクリーンショット共有をオンにしてください。承認された注釈付きスクリーンショットは、プロジェクトの GitHub リポジトリのブランチにプッシュされます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ative o compartilhamento de capturas com o Grok Bot neste projeto. Capturas anotadas aprovadas vão para um branch do repositório GitHub do projeto."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Schalte für dieses Projekt das Teilen von Screenshots mit Grok Bot ein. Freigegebene, kommentierte Screenshots werden in einen Branch des GitHub-Repos des Projekts gepusht."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activez le partage de captures avec Grok Bot pour ce projet. Les captures annotées approuvées sont poussées vers une branche du dépôt GitHub du projet."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 프로젝트에서 Grok Bot과 스크린샷 공유를 켜세요. 승인된 주석 스크린샷은 프로젝트 GitHub 저장소의 브랜치로 푸시됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Включите для этого проекта отправку снимков в Grok Bot. Одобренные снимки с пометками отправляются в ветку репозитория GitHub проекта."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請為此專案開啟與 Grok Bot 共享截圖。已核准的帶標註截圖會推送到該專案 GitHub 倉庫的一個分支。"
+          }
+        }
+      }
+    },
+    "Paste the setup code Grok Bot gave you.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste the setup code Grok Bot gave you."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请粘贴 Grok Bot 给你的设置代码。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pega el código de configuración que te dio Grok Bot."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot からもらったセットアップコードを貼り付けてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cole o código de configuração que o Grok Bot deu a você."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge den Einrichtungscode ein, den Grok Bot dir gegeben hat."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collez le code de configuration que Grok Bot vous a donné."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot이 준 설정 코드를 붙여 넣으세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставьте код настройки, который дал Grok Bot."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請貼上 Grok Bot 給你的設定代碼。"
+          }
+        }
+      }
+    },
+    "The address has to start with https. Ask Grok Bot for a new setup code.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The address has to start with https. Ask Grok Bot for a new setup code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地址必须以 https 开头。请向 Grok Bot 再要一个设置代码。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La dirección tiene que empezar por https. Pide a Grok Bot un código nuevo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アドレスは https で始まる必要があります。Grok Bot に新しいセットアップコードを頼んでください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O endereço precisa começar com https. Peça um novo código ao Grok Bot."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die Adresse muss mit https beginnen. Bitte Grok Bot um einen neuen Einrichtungscode."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’adresse doit commencer par https. Demandez un nouveau code à Grok Bot."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "주소는 https로 시작해야 합니다. Grok Bot에게 새 설정 코드를 요청하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Адрес должен начинаться с https. Попросите у Grok Bot новый код настройки."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位址必須以 https 開頭。請向 Grok Bot 再要一組設定代碼。"
+          }
+        }
+      }
+    },
+    "The secret can't contain a line break. Ask Grok Bot for a new setup code.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The secret can't contain a line break. Ask Grok Bot for a new setup code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密钥不能包含换行。请向 Grok Bot 再要一个设置代码。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El secreto no puede contener un salto de línea. Pide a Grok Bot un código nuevo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "シークレットに改行は含められません。Grok Bot に新しいセットアップコードを頼んでください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O segredo não pode ter uma quebra de linha. Peça um novo código ao Grok Bot."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Geheimnis darf keinen Zeilenumbruch enthalten. Bitte Grok Bot um einen neuen Einrichtungscode."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le secret ne peut pas contenir de saut de ligne. Demandez un nouveau code à Grok Bot."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "비밀에는 줄바꿈이 들어갈 수 없습니다. Grok Bot에게 새 설정 코드를 요청하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Секрет не может содержать перевод строки. Попросите у Grok Bot новый код настройки."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密鑰不能包含換行。請向 Grok Bot 再要一組設定代碼。"
+          }
+        }
+      }
+    },
+    "That doesn't look like a setup code. In Grok Bot, ask \"Connect ScreenClip\" and paste the reply.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That doesn't look like a setup code. In Grok Bot, ask \"Connect ScreenClip\" and paste the reply."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这看起来不是设置代码。请在 Grok Bot 中询问「Connect ScreenClip」，然后粘贴回复。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eso no parece un código de configuración. En Grok Bot, pregunta \"Connect ScreenClip\" y pega la respuesta."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "セットアップコードではないようです。Grok Bot で \"Connect ScreenClip\" と頼み、返信を貼り付けてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isso não parece um código de configuração. No Grok Bot, peça \"Connect ScreenClip\" e cole a resposta."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das sieht nicht nach einem Einrichtungscode aus. Frage in Grok Bot nach \"Connect ScreenClip\" und füge die Antwort ein."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cela ne ressemble pas à un code de configuration. Dans Grok Bot, demandez \"Connect ScreenClip\" et collez la réponse."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정 코드로 보이지 않습니다. Grok Bot에서 \"Connect ScreenClip\"이라고 요청하고 답변을 붙여 넣으세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Это не похоже на код настройки. В Grok Bot спросите \"Connect ScreenClip\" и вставьте ответ."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這看起來不是設定代碼。請在 Grok Bot 中詢問「Connect ScreenClip」，然後貼上回覆。"
+          }
+        }
+      }
+    },
     "codex.noResponse": {
       "comment": "Codex detection detail. %@ is the executable path. Keep Codex.",
       "extractionState": "manual",
@@ -3891,6 +4485,72 @@
           "stringUnit": {
             "state": "translated",
             "value": "Claude Code %@；無法得知登入狀態。"
+          }
+        }
+      }
+    },
+    "grok.connectedHost": {
+      "comment": "Grok Bot is connected. %@ is the webhook host.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已连接 · %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado · %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続済み · %@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado · %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden · %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecté · %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결됨 · %@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подключено · %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已連線 · %@"
           }
         }
       }

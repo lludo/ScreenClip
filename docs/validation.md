@@ -6,7 +6,7 @@ This page records what is verified and how. What is still open is in the [roadma
 
 ## Current status
 
-Latest run: **116 Swift tests** (62 core, 54 app), **10 Python plugin tests**, **5 Python queue-review tests**, and the external assistant webhook script tests passed, along with the website build and Xcode Debug builds both with local signing and without it (as CI builds). CI runs the same suites, a shell syntax check, the website build, and Xcode Debug and Release builds.
+The checks below describe the coverage and the live verification completed on the development host as of the date above. Run the commands under [Reproduce](#reproduce) for current results. CI also checks shell syntax and builds the website and Xcode Debug and Release configurations.
 
 | Area | Automated | Hands-on or live | Not yet verified |
 | --- | --- | --- | --- |
@@ -15,36 +15,20 @@ Latest run: **116 Swift tests** (62 core, 54 app), **10 Python plugin tests**, *
 | Routing | Ambiguity, URL boundaries, most-specific website rule, case-insensitive schemes | — | Browser URL permission prompts |
 | Codex | JSON-RPC correlation and timeouts, questions and replies in one thread, cancellation during project lookup and before turn acknowledgement, authentication (nine regressions) | A synthetic fix through validation, GitHub CI, PR, and confirmed merge in a private fixture; restart and resume in the same chat | Desktop sidebar grouping fails; see below |
 | Claude Code | Fake-CLI client and worker tests: arguments, evidence input, progress, structured and fenced results, usage, failures, cancellation, missing sessions, timeouts are wired, detection, holding work while signed out | The installed CLI (2.1.128) has every flag and sandbox setting used; plugin manifests pass `claude plugin validate` | A live fix through PR and merge; permanent plugin installation; an interactive plugin fix |
-| Grok Bot | `ExternalAssistantTests`: payload encoding, slug and branch names, opt-in, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, the Authorization header on a test POST (line breaks rejected, removed on a cross-host redirect), Keychain update in place. `ExternalAssistantAppTests`: stays in the agent list, submit refused until configured and the project opts in, a restart during the POST stays retryable | — | A live webhook, an evidence push to a real repository, pull-request discovery, and auto-merge while `.screenclip/` is still present; see [Grok Bot](#grok-bot-external-assistant) |
-| Git and GitHub safety | Changed-source rejection, stale head and revision merge rejection, worktree from `origin/<base>` excludes unpushed commits, worktree cleanup, GitHub remote parsing, PR body redaction | Four ScreenClip reports fixed and merged through PRs #1–#4 | — |
+| Grok Bot | `ExternalAssistantTests`: payload encoding, slug and branch names, opt-in, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, the Authorization header on a test POST (line breaks rejected, removed on a cross-host redirect), Keychain update in place. `ExternalAssistantAppTests`: stays in the agent list, submit refused until configured and the project opts in, a restart during the POST stays retryable | — | A live webhook, an evidence push to a real repository, pull-request discovery, and auto-merge while `.screenclip/` is still present; see [Grok Bot](agents/external-assistant.md#verification-status) |
+| Git and GitHub safety | Changed-source rejection, stale head and revision merge rejection, worktree from `origin/<base>` excludes unpushed commits, worktree cleanup, GitHub remote parsing, PR body redaction | Fixes published and merged through GitHub PRs | — |
 | Process handling | A background grandchild holding the pipe cannot hang a command; a timeout terminates the whole process tree; agents get no GitHub tokens | — | — |
 | Plugin and scripts | MCP server: approved images only, private fields excluded, invalid arguments and malformed requests answered with errors; queue review: read-only access, searches, archive eligibility | — | Public directory submission |
 
-## Grok Bot (external assistant)
-
-November 14, 2026. Grok Bot is implemented as `AgentKind.external` and documented in [external-assistant.md](agents/external-assistant.md). Approved screenshots are pushed to `screenclip/<reportNumber>-<slug>-<workspace>`; the webhook schema `screenclip.external.v1` does not carry image bytes. `report.json` uses the same fields, with `evidence.commit` null because that file cannot contain its own commit id.
-
-The change was written on Linux, which has no Swift toolchain. GitHub Actions then ran the suite on macos-15 (arm64). After a slug-length fix, the macOS workflow passed `bash scripts/test.sh`, the Python tests (`test_plugin.py`, `test_review_queue.py`, `test_external_assistant.py`), and the Xcode Debug and Release builds.
-
-`bash scripts/test.sh` covers `ExternalAssistantTests` (payload encoding, slug and branch names, opt-in, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, and the Authorization header on a test POST) and `ExternalAssistantAppTests` (Grok Bot stays in the agent list, submit refuses it until the webhook is configured and the project opts in, and a restart during the POST stays retryable). One slug-length failure on the first green-compile run was fixed before the passing run.
-
-A later review fixed three hand-off bugs and added tests for them: a retry commits leftover `.screenclip/` files before fast-forwarding, the Keychain item is updated in place, and the Authorization header is rejected when it contains a line break and is removed on a cross-host redirect. Those tests ride with the next macOS workflow run.
-
-A second review before merge fixed four more: each workspace gets its own `screenclip/` branch, so a follow-up after a merge no longer collides with the merged branch or rediscovers the merged pull request; a restart while evidence was still being prepared or pushed now offers Retry instead of waiting for a pull request that was never requested; a rejected push after a base update rolls back the local merge; and the Authorization header survives a redirect only when scheme, host and port all match.
-
-After merging the November 14 worker and view reorganization from `main`, the Grok Bot worker code moved to `AgentWorker+External.swift` and the `.screenclip/` gate to `MergeGuard.swift`. `bash scripts/test.sh` passed locally on the development host, including both Grok Bot suites.
-
-**Still not exercised**
-
-A live webhook, an evidence push to a real repository, pull-request discovery, and auto-merge while `.screenclip/` is still present. Those need a configured assistant and a GitHub repository.
-
 ## Repository association review
 
-This is the open Codex desktop gap. ScreenClip **0.1.6 (7)** ran `--integration-project-link` from `/Applications` with a separate test queue, the registered ScreenClip repository, and a synthetic image. It created chat `01a1d833-aeda-7623-92c8-38e4c5f37953`, returned a structured question, and left the isolated worktree clean.
+A synthetic run confirmed repository context, worktree isolation, and runtime project association, but the chat appeared ungrouped in the desktop sidebar on the tested Codex version. Runtime association and desktop sidebar placement are separate checks; a successful app-server response does not establish the latter. **Open in Codex** provides an exact chat link.
 
-The runtime's `thread/read` reported canonical project `01a1d709-ddcf-7822-baf5-32d587d4ea5e`, rooted at the ScreenClip repository. The desktop's saved ScreenClip project was `74741be5-2042-4af7-829a-68e0a3f2f2af`. The sidebar listed the chat with `projectId: null`, in the ungrouped Tasks section, and the desktop move tool refused because the source project could not be determined.
+A follow-up probe started a read-only chat with the repository as its initial directory, then used app-server's per-turn `cwd` override to work in a separate directory. The desktop listed the chat without a project and recorded the turn directory as its `cwd`. Continuing the same chat from the repository did not assign it to the desktop project, and the desktop move operation reported that the test chat was not available in the sidebar. The test chat was archived. This does not establish a reliable project association or justify changing worktree isolation.
 
-Result: **repository context, worktree isolation, and runtime association pass; automatic desktop sidebar grouping fails on this Codex version.** A successful app-server response alone is not evidence of sidebar placement. The exact chat link is the working navigation route.
+An additional read-only inspection of the installed Codex desktop found an incomplete project-assignment migration: at the time, 85 pending entries comprised 79 archived and 6 active chats, all with the `vscode` source. Of those, 64 referenced missing rollout files. Codex doctor reported healthy databases and warned about missing or unusable rollout files. The desktop's migration code scans non-archived chats; these observations suggest possible reasons for the backlog but do not prove why the migration is incomplete. Sample ScreenClip chats had runtime project IDs but no desktop assignment, and were not in that pending set. No supported repair was identified, and neither migration state nor Codex databases were edited.
+
+A subsequent read-only app-server probe found all six then-pending active chats in the default interactive thread list, and `thread/read` returned each of them. Their legacy project registrations and legacy-to-runtime mappings were present. Thus the earlier missing-rollout warning alone does not explain why the active entries remain pending. The pending count changed while observing it, so a snapshot-based checkpoint rewrite could discard concurrent updates. This probe did not run the desktop migration against a copied state or establish a repair.
 
 To repeat it (creates a synthetic Codex chat and uses normal account usage):
 
@@ -57,34 +41,6 @@ To repeat it (creates a synthetic Codex chat and uses normal account usage):
 ```
 
 Inspect `integration-result.json`, the runtime's `thread/read`, and the desktop sidebar listing separately. The test stops at a question; publishing is disabled by its empty validation command and automatic merge is off.
-
-## Evidence log
-
-Key live results, newest first. Commit history and PRs have the details.
-
-- **November 14, 2026, final review.** Two reviews covered Grok Bot (PR #6) and PRs #8–#12 plus the bundle ID change. Fixes:
-  - **Merges:** parallel reports in one project could both pass the merge check; the merge slot is now re-checked right before it is taken.
-  - **Concurrent fetches:** worktrees fetching the same base could fail on git's ref lock and use up a repair attempt; that error is retried.
-  - **Grok Bot:** a cancel followed by Retry could run two deliveries at once; runs now carry an ownership token. Webhooks must use HTTPS (HTTP only for localhost). Clearing the connection deletes its Keychain item.
-  - **Branches:** merged `screenclip/` branches are deleted from GitHub. The docs and the opt-in toggle now say pushed screenshots stay in GitHub history.
-  - **Routing:** shared tools (Xcode, Simulator, terminals, editors, ScreenClip) and more browsers are never learned as a project's app, and drafts do not teach routing.
-  - **Move to project:** a report with a pull request cannot be moved.
-  - **Build:** `DEVELOPMENT_TEAM` and Automatic signing at target level broke CI's unsigned build; signing is back in the ignored `LocalSigning.xcconfig`. `install.sh`, the README's `tccutil` steps, and the log subsystem use the new bundle ID `com.mirageteam.screenclip`.
-- **November 14, 2026, report #11.** **Add context** saves text-only notes after filing, including on queued reports, and agents receive them in an `additional_context` prompt section. Regressions cover persistence, legacy reports, search, pending questions, reopening completed reports, and context arriving during an agent turn. A synthetic native preview confirmed the control, the focused editor, empty-save prevention, Cancel discarding the draft, and saved timestamped context.
-- **November 14, 2026, full review.** Four parallel reviews (agent worker, core store and Git, app UI, scripts and docs) led to these fixes:
-  - **Worker:** a crash when an issue was deleted mid-dispatch, a Codex disconnect interrupting a validated publish, approval requests reviving canceled issues, new evidence during publication leaving issues stuck, and stale turn IDs.
-  - **Claude client:** stdin written off the actor, a 45-minute turn limit.
-  - **Processes:** command hangs on inherited pipes, process-tree termination on timeout.
-  - **Git and GitHub:** submodule fingerprints, worktrees from the remote base, worktree cleanup after merge, an aborted conflicting base merge, GitHub remote parsing, PR body redaction, most-specific routing.
-  - **App UI:** drafts attached to submitted issues, Settings reverting the pause state, losing the shortcut on a conflict, delete rules, dialogs acting on the wrong report after a selection change, double-sent replies.
-  - **Plugin:** robustness of the MCP server.
-
-  The agent worker and the large views were split into focused files.
-- **November 13, 2026, Claude Code.** Claude Code was added as a selectable agent, with a Claude Code plugin and the `fix-report` skill. A client defect, a stderr reader spinning a CPU core after exit, was fixed.
-- **November 13, 2026, feedback reports.** Recovery ([PR #1](https://github.com/lludo/ScreenClip/pull/1)), composer layout ([#2](https://github.com/lludo/ScreenClip/pull/2)), the capture default ([#3](https://github.com/lludo/ScreenClip/pull/3)), and the authentication timeout ([#4](https://github.com/lludo/ScreenClip/pull/4)) passed CI and merged through ScreenClip. Archive controls, feedback search, and the queue header shipped in [#5](https://github.com/lludo/ScreenClip/pull/5).
-- **Codex live fix.** The native worker fixed a synthetic CSS bug through isolated editing, local validation, PR creation, passing GitHub CI, a guarded merge, and confirmed merged state ([private fixture PR](https://github.com/lludo/screenclip-integration-20261113/pull/1), chat `01a1d7b6-c810-7213-879d-51dd0dc111b6`). Earlier, a synthetic screenshot produced a question, then a reply after process restart and resume in the same chat (`01a1d7aa-7bbc-7620-987b-f497c14f91e1`).
-- **Permissions.** An ad-hoc development copy received ScreenCaptureKit denial `-3801`. After installing to Applications and resetting only `ScreenCapture` for the app's bundle ID with `tccutil`, the user regranted access. Later installed updates kept the permission, and self-capture selections succeeded with hiding off.
-- **Codex runtime.** `initialize`, account, and model discovery passed with runtime `0.169.0-alpha.11.1` and the existing ChatGPT sign-in. The npm launcher at `/opt/homebrew/bin/codex` lacked its native binary, so development used the ChatGPT app's bundled runtime.
 
 ## Reproduce
 

@@ -298,26 +298,31 @@ public struct ExternalAgentAvailability: Equatable {
 }
 
 public enum AgentPicker {
+  /// Only offer agents that can be used for this project when filing a report.
+  public static func filingChoices(
+    detections: [AgentDetection], externalAvailable: Bool
+  ) -> [AgentKind] {
+    AgentKind.allCases.filter { kind in
+      detections.contains { $0.kind == kind && $0.usable }
+        && (kind != .external || externalAvailable)
+    }
+  }
+
   public static func externalAvailability(
     configured: Bool, hasProject: Bool, projectOptIn: Bool
   ) -> ExternalAgentAvailability {
     if !configured {
-      return ExternalAgentAvailability(
-        enabled: false,
-        hint:
-          "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant."
-      )
+      return ExternalAgentAvailability(enabled: false, hint: "Not connected — Connect Grok Bot")
     }
     if !hasProject {
       return ExternalAgentAvailability(
-        enabled: false,
-        hint: "Choose a project that allows sending screenshots to Grok Bot.")
+        enabled: false, hint: "Choose a project that can share screenshots with Grok Bot.")
     }
     if !projectOptIn {
       return ExternalAgentAvailability(
         enabled: false,
         hint:
-          "Turn on Allow sending screenshots to the external assistant for this project before choosing Grok Bot. Approved screenshots are pushed to a screenclip/ branch in the project's repository."
+          "Turn on sharing screenshots with Grok Bot for this project. Approved annotated screenshots are pushed to a branch in the project's GitHub repo."
       )
     }
     return ExternalAgentAvailability(enabled: true, hint: nil)
@@ -476,7 +481,7 @@ public enum ExternalAssistantClient {
   ) async throws -> ExternalHTTPResponse {
     guard ExternalAssistantConfiguration.isSafeHeaderValue(authorization) else {
       throw ScreenClipError.message(
-        "The Authorization header cannot contain a line break. Paste the single-line value from the Grok Bot routine panel."
+        "The secret can't contain a line break. Connect Grok Bot again from Settings."
       )
     }
     var request = URLRequest(url: url, timeoutInterval: timeout)

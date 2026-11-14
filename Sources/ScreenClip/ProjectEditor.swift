@@ -6,6 +6,11 @@ import UserNotifications
 struct ProjectEditor: View {
   @ObservedObject var model: AppModel
   @State var project: Project
+  /// Set when the editor is embedded in the main window instead of shown as a sheet.
+  var onSaved: ((UUID) -> Void)? = nil
+  var onRemoved: (() -> Void)? = nil
+  var embedded: Bool { onSaved != nil }
+  @State private var savedAt: Date?
   @State private var origins = ""
   @State private var bundles = ""
   @State private var error: String?
@@ -13,11 +18,18 @@ struct ProjectEditor: View {
   @Environment(\.locale) private var locale
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Text(chrome: "Project settings", comment: "Project editor title.").font(.title2.weight(.semibold))
+      Group {
+        if isExisting {
+          Text(chrome: "Project settings", comment: "Project editor title.")
+        } else {
+          Text(chrome: "New project", comment: "Title when creating a project.")
+        }
+      }.font(.title2.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
       Form {
         TextField(text: $project.name) {
           Text(chrome: "Name", comment: "Project name field.")
         }
+        ProjectSymbolPicker(symbol: $project.symbol)
         HStack {
           TextField(text: $project.path) {
             Text(chrome: "Repository root", comment: "Git repository path field.")
@@ -38,21 +50,31 @@ struct ProjectEditor: View {
           Text(chrome: "Base branch", comment: "Git base branch field. The branch name itself is not translated.")
         }
         TextField(
-          text: $origins, axis: .vertical
+          text: $origins,
+          prompt: Text(chrome: "One per line", comment: "Placeholder for a multiline list."),
+          axis: .vertical
         ) {
-          Text(chrome: "Websites (one per line)", comment: "Website origins used for project routing.")
+          Text(chrome: "Websites", comment: "Website origins used for project routing.")
         }.lineLimit(2...4)
         Text(
           chrome:
             "Include the scheme and port, for example http://localhost:3000 or https://example.com/app.",
           comment: "Example website origins. Keep the example URLs."
         ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-        TextField(text: $bundles, axis: .vertical) {
-          Text(chrome: "Mac app bundle IDs (one per line)", comment: "Native app bundle identifiers.")
+        TextField(
+          text: $bundles,
+          prompt: Text(chrome: "One per line", comment: "Placeholder for a multiline list."),
+          axis: .vertical
+        ) {
+          Text(chrome: "Mac app bundle IDs", comment: "Native app bundle identifiers.")
         }.lineLimit(1...3)
-        TextField(text: $project.validationCommand, axis: .vertical) {
+        LabeledContent {
+          TextField(text: $project.validationCommand, axis: .vertical)
+            .lineLimit(2...4).font(.system(.body, design: .monospaced))
+        } label: {
           Text(chrome: "Validation command", comment: "Command that must pass before publishing.")
-        }.lineLimit(2...4).font(.system(.body, design: .monospaced))
+            .fixedSize(horizontal: false, vertical: true)
+        }
         Text(
           chrome:
             "This command runs in the issue's worktree before publishing. Automatic merge also requires passing GitHub checks and required reviews.",
@@ -84,25 +106,65 @@ struct ProjectEditor: View {
           .fixedSize(horizontal: false, vertical: true)
       }
       HStack {
-        if model.snapshot.projects.contains(where: { $0.id == project.id }) {
+        if isExisting {
           Button(role: .destructive) {
             model.perform { try model.commit { $0.projects.removeAll { $0.id == project.id } } }
-            dismiss()
+            close(removed: true)
           } label: {
             Text(chrome: "Remove project", comment: "Removes a project that has no reports.")
           }.disabled(model.snapshot.issues.contains { $0.projectID == project.id })
+            .help(
+              Text(
+                verbatim: model.snapshot.issues.contains { $0.projectID == project.id }
+                  ? Chrome.text(
+                    "Projects with reports can't be removed.", locale: locale,
+                    comment: "Why the remove button is disabled.")
+                  : "")
+            )
         }
         Spacer()
-        Button(role: .cancel) { dismiss() } label: {
-          Text(chrome: "Cancel", comment: "Closes project settings without saving.")
+        if embedded {
+          if savedAt != nil, error == nil {
+            Label {
+              Text(chrome: "Saved", comment: "Confirms an embedded project editor saved.")
+            } icon: {
+              Image(systemName: "checkmark")
+            }.font(.caption).foregroundStyle(.secondary)
+          }
+          if isExisting {
+            Button { load(model.project(project.id) ?? project) } label: {
+              Text(chrome: "Revert", comment: "Restores the saved project fields.")
+            }
+          }
+        } else {
+          Button(role: .cancel) { dismiss() } label: {
+            Text(chrome: "Cancel", comment: "Closes project settings without saving.")
+          }
         }
         Button { save() } label: {
-          Text(chrome: "Save project", comment: "Saves the project.")
-        }.buttonStyle(.borderedProminent).tint(.orange)
+          if isExisting || !embedded {
+            Text(chrome: "Save project", comment: "Saves the project.")
+          } else {
+            Text(chrome: "Add project", comment: "Adds a project.")
+          }
+        }.buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
       }
-    }.padding(24).frame(minWidth: 620, idealWidth: 720).onAppear {
-      origins = project.origins.joined(separator: "\n")
-      bundles = project.bundleIDs.joined(separator: "\n")
+    }.padding(24).frame(minWidth: embedded ? 0 : 620, idealWidth: embedded ? nil : 720)
+      .frame(maxWidth: embedded ? .infinity : nil, alignment: .leading)
+      .onAppear { load(project) }
+  }
+  private var isExisting: Bool { model.snapshot.projects.contains(where: { $0.id == project.id }) }
+  private func load(_ value: Project) {
+    project = value
+    origins = value.origins.joined(separator: "\n")
+    bundles = value.bundleIDs.joined(separator: "\n")
+    error = nil
+  }
+  private func close(removed: Bool) {
+    if embedded {
+      if removed { onRemoved?() }
+    } else {
+      dismiss()
     }
   }
   private func save() {
@@ -120,7 +182,9 @@ struct ProjectEditor: View {
           "This project has recorded issues. Add a new project to use a different repository.")
       }
       try model.saveProject(project)
-      dismiss()
+      error = nil
+      savedAt = Date()
+      if let onSaved { onSaved(project.id) } else { dismiss() }
     } catch { self.error = error.localizedDescription }
   }
 }

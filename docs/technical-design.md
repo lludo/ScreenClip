@@ -77,7 +77,6 @@ The capture pipeline is agent-neutral for Codex and Claude Code. The dispatcher 
 - [Codex](agents/codex.md): app-server transport, thread identity, desktop deep links, and project association.
 - [Claude Code](agents/claude-code.md): headless stream-json turns, session identity, sandbox, sign-in, and the Claude Code plugin.
 - [Grok Bot](agents/external-assistant.md): remote hand-off. Approved screenshots go to a `screenclip/` branch; the webhook carries no image data. ScreenClip still validates and merges.
-- Proposal: [Codex plugin research](agents/proposals/codex-plugin.md).
 
 Serialize work on an individual issue. Append new evidence as a later turn. When the user continues work in the agent's own client, reconcile that activity; do not let two clients independently start competing turns. Separate transport progress from product outcomes, and verify PR, check, and merge claims with the source-control host before promoting the state. A normal successful agent response alone is insufficient.
 
@@ -123,7 +122,7 @@ Keep captures in per-user Application Support, outside source repositories. Use 
 
 | Path | Contents |
 | --- | --- |
-| `Sources/ScreenClip/` | The app: `AppModel`, capture (`CaptureCoordinator`, `Annotations`, `ComposerView`), queue (`QueueView`, `IssueDetailView`, `IssueRowViews`, `QuestionCard`, `WelcomeView`, `MenuPopover`), settings (`SettingsView`, `ConnectionControls`, `ProjectEditor`, `ShortcutRecorder`), Grok Bot credentials (`ExternalAssistantKeychain`) |
+| `Sources/ScreenClip/` | The app: `AppModel`, capture (`CaptureCoordinator`, `Annotations`, `ComposerView`), queue (`QueueView`, `IssueDetailView`, `IssueRowViews`, `QuestionCard`, `WelcomeView`, `MenuPopover`), settings (`SettingsView`, `ConnectionControls`, `GrokConnectSheet`, `ProjectEditor`, `ShortcutRecorder`), Grok Bot credentials (`ExternalAssistantKeychain`) |
 | `Sources/ScreenClip/AgentWorker*.swift` | Scheduling and dispatch (`AgentWorker`), Codex (`+Codex`), Claude Code (`+Claude`), Grok Bot hand-off and PR inspection (`+External`), and validation, publication, PR monitoring, and merge (`+Publishing`) |
 | `Sources/ScreenClip/AgentPrompt.swift` | The prompt and result schema every agent receives |
 | `Sources/ScreenClipCore/` | Model (`Models`, `JSONValue`, `Errors`), store (`IssueStore`), routing (`Routing`), agent transports (`CodexClient`, `ClaudeCodeClient`, `ExternalAssistant`, `AgentDetector`), processes (`CommandRunner`, `ProcessEnvironment`), Git (`GitWorkspace`), GitHub (`GitHubService`), and merge evidence (`MergeGuard`) |

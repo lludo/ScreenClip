@@ -3,6 +3,19 @@ import Combine
 import ScreenClipCore
 import UserNotifications
 
+struct GrokConnectRequest: Equatable {
+  var id = UUID()
+  var code: String
+}
+
+struct GrokConnectionCheck: Equatable {
+  var connected: Bool
+  var message: String
+  var host: String?
+  /// True when the Keychain was updated. Settings reloads so Save cannot write stale fields.
+  var stored: Bool
+}
+
 @MainActor final class AppModel: ObservableObject {
   @Published private(set) var snapshot: StoreSnapshot
   @Published var selectedIssueID: UUID?
@@ -17,10 +30,12 @@ import UserNotifications
   let captureDiagnostics: CaptureDiagnostics
   let capturePermission: ScreenCapturePermission
   lazy var worker = AgentWorker(model: self)
-  /// Reads the Grok Bot webhook from the Keychain. Tests replace this so they do not touch credentials.
+  /// Reads the Grok Bot connection from the Keychain. Tests replace this so they do not touch credentials.
   var loadExternalAssistant: () -> ExternalAssistantConfiguration = {
     ExternalAssistantKeychain.load()
   }
+  /// Set when a screenclip://connect link should open the connect sheet.
+  @Published var grokConnectRequest: GrokConnectRequest?
   var captureAction: (() -> Void)?
   var queueAction: (() -> Void)?
   var settingsAction: (() -> Void)?
@@ -349,6 +364,9 @@ import UserNotifications
     let previous = loadExternalAssistant()
     let next = ExternalAssistantConfiguration(
       webhookURL: webhookURL, authorization: authorization, testSucceeded: false)
+    // Blank fields mean "no edit". Disconnect is explicit, so Save settings cannot drop a
+    // connection made from the capture window while this form still had empty fields.
+    if next.normalizedURL.isEmpty && next.normalizedAuthorization.isEmpty { return }
     let unchanged =
       previous.normalizedURL == next.normalizedURL
       && previous.normalizedAuthorization == next.normalizedAuthorization
@@ -357,41 +375,68 @@ import UserNotifications
         webhookURL: next.normalizedURL, authorization: next.normalizedAuthorization,
         testSucceeded: unchanged && previous.testSucceeded))
   }
-  func sendExternalAssistantTest(webhookURL: String, authorization: String) async -> String {
+  func disconnectExternalAssistant() throws {
+    try ExternalAssistantKeychain.save(.empty)
+  }
+  func setProjectSendsScreenshots(_ id: UUID, allowed: Bool) throws {
+    guard var project = project(id) else {
+      throw ScreenClipError.message("That project is no longer available.")
+    }
+    guard project.sendsExternalScreenshots != allowed else { return }
+    project.allowExternalScreenshots = allowed
+    try saveProject(project)
+  }
+  /// Checks the connection and stores it when the address and secret are usable.
+  /// The result message never includes the secret or the response body, which can echo it.
+  func checkGrokConnection(webhookURL: String, authorization: String) async -> GrokConnectionCheck {
     let configuration = ExternalAssistantConfiguration(
       webhookURL: webhookURL, authorization: authorization, testSucceeded: false)
     guard let endpoint = configuration.endpoint else {
-      return "The webhook URL must be an http or https address."
+      return GrokConnectionCheck(
+        connected: false, message: ExternalConnectCode.Failure.invalidURL.message, host: nil,
+        stored: false)
     }
-    guard !configuration.normalizedAuthorization.isEmpty else {
-      return "Paste the Authorization header value from the Grok Bot routine panel."
+    let secret = configuration.normalizedAuthorization
+    guard !secret.isEmpty else {
+      return GrokConnectionCheck(
+        connected: false, message: ExternalConnectCode.Failure.empty.message, host: nil, stored: false)
     }
-    guard configuration.authorizationIsHeaderSafe else {
-      return
-        "The Authorization header cannot contain a line break. Paste the single-line value from the Grok Bot routine panel."
+    guard ExternalAssistantConfiguration.isSafeHeaderValue(secret) else {
+      return GrokConnectionCheck(
+        connected: false, message: ExternalConnectCode.Failure.unsafeAuthorization.message, host: nil,
+        stored: false)
+    }
+    let host = endpoint.host
+    do {
+      try ExternalAssistantKeychain.save(
+        ExternalAssistantConfiguration(
+          webhookURL: configuration.normalizedURL, authorization: secret, testSucceeded: false))
+    } catch {
+      return GrokConnectionCheck(
+        connected: false, message: error.localizedDescription, host: host, stored: false)
     }
     do {
-      let stored = ExternalAssistantConfiguration(
-        webhookURL: configuration.normalizedURL,
-        authorization: configuration.normalizedAuthorization, testSucceeded: false)
-      try ExternalAssistantKeychain.save(stored)
       let response = try await ExternalAssistantClient.post(
-        url: endpoint, authorization: stored.authorization, body: try ExternalAssistant.testJSON())
+        url: endpoint, authorization: secret, body: try ExternalAssistant.testJSON())
       if response.succeeded {
-        try ExternalAssistantKeychain.save(
+        try? ExternalAssistantKeychain.save(
           ExternalAssistantConfiguration(
-            webhookURL: stored.webhookURL, authorization: stored.authorization,
-            testSucceeded: true))
+            webhookURL: configuration.normalizedURL, authorization: secret, testSucceeded: true))
         await refreshAgents()
-        return "HTTP \(response.status). Grok Bot accepted the test request."
+        return GrokConnectionCheck(connected: true, message: "Connected", host: host, stored: true)
       }
       await refreshAgents()
-      let snippet = response.body.trimmingCharacters(in: .whitespacesAndNewlines)
-      return snippet.isEmpty
-        ? "HTTP \(response.status)."
-        : "HTTP \(response.status). \(snippet)"
+      return GrokConnectionCheck(
+        connected: false,
+        message:
+          "Grok Bot didn't accept the connection (HTTP \(response.status)). Ask it \"\(ExternalConnectCode.askPhrase)\" again, then paste the new setup code.",
+        host: host, stored: true)
     } catch {
-      return error.localizedDescription
+      await refreshAgents()
+      return GrokConnectionCheck(
+        connected: false,
+        message: "Couldn't reach Grok Bot. Check your connection, then try again.",
+        host: host, stored: true)
     }
   }
   func detection(_ kind: AgentKind) -> AgentDetection? { agents.first { $0.kind == kind } }
@@ -440,7 +485,7 @@ import UserNotifications
       return ("Claude Code ready", true)
     case .external:
       guard let found = detection(.external) else { return ("Checking Grok Bot…", false) }
-      if !found.usable { return ("Grok Bot is not configured", false) }
+      if !found.usable { return ("Grok Bot is not connected", false) }
       return ("Grok Bot ready", true)
     }
   }

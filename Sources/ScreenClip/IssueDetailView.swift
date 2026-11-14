@@ -32,12 +32,9 @@ struct IssueDetailView: View {
         }
         Text(verbatim: issue.title).font(.system(size: 25, weight: .semibold)).textSelection(.enabled)
           .fixedSize(horizontal: false, vertical: true)
-        FlowLayout(spacing: 12) {
-          Label {
-            Text(verbatim: issue.resolvedAgent.title)
-          } icon: {
-            Image(systemName: "cpu")
-          }.font(.caption).foregroundStyle(.secondary)
+        HStack(alignment: .firstTextBaseline, spacing: 12) {
+          AgentLabel(kind: issue.resolvedAgent).font(.caption)
+            .foregroundStyle(.secondary)
             .help(Text(chrome: "Agent working on this issue", comment: "Help for the agent name on a report."))
           if issue.resolvedAgent == .external, issue.prURL == nil {
             Text(verbatim: ExternalAssistant.localizedConversationNote(locale: locale))
@@ -107,7 +104,7 @@ struct IssueDetailView: View {
               if model.canMove(issue) && model.snapshot.projects.count > 1 {
                 Menu {
                   ForEach(model.snapshot.projects.filter { $0.id != issue.projectID }) { project in
-                    Button(project.name) {
+                    Button(project.name, systemImage: project.displaySymbol) {
                       model.perform { _ = try model.moveToProject(issue.id, projectID: project.id) }
                     }
                   }
@@ -135,7 +132,7 @@ struct IssueDetailView: View {
             ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
             Menu {
               ForEach(model.snapshot.projects) { project in
-                Button(project.name) { model.assignProject(issue.id, projectID: project.id) }
+                Button(project.name, systemImage: project.displaySymbol) { model.assignProject(issue.id, projectID: project.id) }
               }
               Button { model.settingsAction?() } label: {
                 Text(chrome: "Add project…", comment: "Opens Settings to add a project.")

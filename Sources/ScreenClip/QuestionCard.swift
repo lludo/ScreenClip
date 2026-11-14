@@ -8,6 +8,13 @@ struct QuestionCard: View {
   @Environment(\.locale) private var locale
   @State private var answers: [String: String] = [:]
   @State private var sending = false
+  @State private var confirmingRule = false
+  private var approvalOptions: CodexApprovalOptions {
+    CodexApprovalOptions(method: question.requestMethod ?? "", params: question.questions ?? .null)
+  }
+  private var ruleText: String {
+    (approvalOptions.commandRule ?? []).map { $0.debugDescription }.joined(separator: " ")
+  }
   var queries: [JSONValue] {
     question.requestMethod?.contains("requestUserInput") == true
       ? (question.questions?.array ?? []) : []
@@ -75,8 +82,17 @@ struct QuestionCard: View {
       } else if ["item/commandExecution/requestApproval", "item/fileChange/requestApproval"]
         .contains(question.requestMethod ?? "")
       {
-        if let command = question.questions?["command"].string, !command.isEmpty {
+        if let host = question.questions?["networkApprovalContext"]["host"].string {
+          Text(verbatim: Chrome.format(
+            "question.network", "Network access: \(host)", locale: locale,
+            comment: "Codex approval. %@ is a hostname and is not translated."))
+            .font(.caption.monospaced()).textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)
+        } else if let command = question.questions?["command"].string, !command.isEmpty {
           Text(verbatim: command).font(.caption.monospaced()).textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)
+        } else if let grant = question.questions?["grantRoot"].string, !grant.isEmpty {
+          Text(verbatim: grant).font(.caption.monospaced()).textSelection(.enabled)
             .fixedSize(horizontal: false, vertical: true)
         } else {
           Text(
@@ -85,12 +101,47 @@ struct QuestionCard: View {
           ).font(.caption).fixedSize(horizontal: false, vertical: true)
         }
         FlowLayout {
-          Button { decide(true) } label: {
-            Text(chrome: "Allow once", comment: "Approves one Codex command.")
-          }.disabled(sending)
-          Button { decide(false) } label: {
-            Text(chrome: "Decline", comment: "Declines a Codex command.")
-          }.disabled(sending)
+          if approvalOptions.permits("accept") {
+            Button { decide(true) } label: {
+              Text(chrome: "Allow once", comment: "Approves one Codex command.")
+            }.disabled(sending)
+          }
+          if approvalOptions.permits("acceptForSession") {
+            Button { decide(true, decision: .string("acceptForSession")) } label: {
+              Text(chrome: "Allow for this chat", comment: "Approves this command for the rest of the chat.")
+            }.disabled(sending)
+          }
+          if approvalOptions.commandRule != nil {
+            Button { confirmingRule = true } label: {
+              Text(chrome: "Always allow command…", comment: "Saves a Codex command rule.")
+            }.disabled(sending)
+          }
+          if approvalOptions.permits("decline") {
+            Button { decide(false) } label: {
+              Text(chrome: "Decline", comment: "Declines a Codex command.")
+            }.disabled(sending)
+          } else if approvalOptions.permits("cancel") {
+            Button { decide(false, decision: .string("cancel")) } label: {
+              Text(chrome: "Cancel request", comment: "Cancels a Codex approval request.")
+            }.disabled(sending)
+          }
+        }
+        .alert(
+          Chrome.text("Save Codex command rule?", locale: locale, comment: "Confirms saving a Codex command prefix."),
+          isPresented: $confirmingRule
+        ) {
+          Button { decide(true, decision: approvalOptions.ruleDecision) } label: {
+            Text(chrome: "Save and allow", comment: "Saves the Codex command rule and allows it.")
+          }
+          Button(role: .cancel) {} label: {
+            Text(chrome: "Cancel", comment: "Dismisses saving a Codex command rule.")
+          }
+        } message: {
+          Text(verbatim: Chrome.format(
+            "question.commandRule",
+            "Codex will allow commands matching this prefix in future chats, potentially across projects:\n\n\(ruleText)",
+            locale: locale,
+            comment: "Explains a saved Codex command rule. %@ is the command prefix and is not translated."))
         }
       } else {
         Button { model.openCodex(issue) } label: {
@@ -100,11 +151,12 @@ struct QuestionCard: View {
     }.padding(16).frame(maxWidth: .infinity, alignment: .leading).background(
       .orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
   }
-  private func decide(_ allow: Bool) {
+  private func decide(_ allow: Bool, decision: JSONValue? = nil) {
     sending = true
     Task {
       await model.worker.reply(
-        issueID: issue.id, questionID: question.id, answers: [:], allow: allow)
+        issueID: issue.id, questionID: question.id, answers: [:], allow: allow,
+        approvalDecision: decision)
       sending = false
     }
   }

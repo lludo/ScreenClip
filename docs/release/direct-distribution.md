@@ -20,7 +20,7 @@ People who clone the repo can build it themselves. The DMG is for someone who wa
    | `APPLE_NOTARY_ISSUER_ID` | The Issuer ID |
 
 4. Turn on [GitHub Sponsors](https://github.com/sponsors/lludo) for the `lludo` account and finish the payout and tax steps. `.github/FUNDING.yml` already names that account. The in-app buttons open `https://github.com/sponsors/lludo`.
-5. When the repo should be public, add a `LICENSE` first. `CONTRIBUTING.md` and `SECURITY.md` are still missing. The [open-source audit](open-source-audit.md) says history does not need a rewrite.
+5. When the repo should be public, add a `LICENSE` first. `CONTRIBUTING.md` and `SECURITY.md` are still missing. Review the [open-source audit](open-source-audit.md) and scan changes since its recorded commit before publishing.
 
 ## What the tag does
 
@@ -40,7 +40,7 @@ The website uses that URL (`website/site.config.json`). Until the first tag exis
 
 Check a download with `shasum -a 256 -c SHA256SUMS`.
 
-A local notarization can still use `SCREENCLIP_SIGNING_IDENTITY` and a Keychain profile in `SCREENCLIP_NOTARY_PROFILE` via `scripts/package.sh`. CI uses the API key instead of a Keychain profile, because the runner has no long-lived login keychain. `notarytool` is required. `altool` notarization ended in 2023. Apple's current flow: [Notarizing macOS software before distribution](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution).
+A local notarization can still use `SCREENCLIP_SIGNING_IDENTITY` and a Keychain profile in `SCREENCLIP_NOTARY_PROFILE` via `scripts/package.sh`. CI uses the API key instead of a Keychain profile, because the runner has no long-lived login keychain. `notarytool` is required. Apple's current flow: [Notarizing macOS software before distribution](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution).
 
 Release builds already set `ENABLE_HARDENED_RUNTIME = YES`. Debug builds do not. The Apple Events entitlement ScreenClip needs for the optional Safari and Chrome URL lookup is already in `Resources/ScreenClip.entitlements`.
 
@@ -77,20 +77,6 @@ The direct-download build shows a small window, not a system sheet, because the 
 
 `DistributionChannel.offersDonations` is false when the app is built with the Swift flag `SCREENCLIP_APP_STORE`. The window, the menu item, and the Settings section are compiled out in that case. Do not set the flag for the GitHub build. Guideline 3.1.1 is why the flag exists: payments for the app, including a tip jar, are an In-App Purchase question on the store, and external payment links are restricted by storefront. The [App Store Review Guidelines](https://developer.apple.com/app-store/review/guidelines/#in-app-purchase) are the reference. This project does not submit to the store, so the flag stays unset.
 
-### Which tip service
+### Tip service
 
-Use **GitHub Sponsors** and nothing else in the app until that page is live.
-
-Figures below are from the vendors' pages as checked on November 14, 2026, for a small one-time tip. Card rates move. A $5 tip is the comparison point.
-
-| Service | Fee on a personal $5 tip | Setup | Why it lost or won |
-| --- | --- | --- | --- |
-| [GitHub Sponsors](https://docs.github.com/en/sponsors/sponsoring-open-source-contributors/about-sponsorships-fees-and-taxes) | $0 from personal sponsors. Organization sponsors pay up to 6% (3% card processing and 3% GitHub; invoiced orgs can drop the card 3%) | Sponsors profile, payout, tax form. Approval can take days | Wins. Same account as the repo, `FUNDING.yml`, no platform fee for a person, one-time and monthly |
-| [Ko-fi Free](https://help.ko-fi.com/hc/en-us/articles/360002506494-Does-Ko-fi-take-a-fee) | 0% platform fee on one-time tips, plus the processor (about 3% + $0.30), so about $4.55 back. Monthly tips are 5% even on Free | Minutes, once PayPal or Stripe is connected | Best backup if Sponsors approval lags a release. Add the link only after the page exists |
-| [Stripe Payment Links](https://stripe.com/pricing) | No extra Payment Links fee. US domestic cards are 2.9% + $0.30 on standard pricing, about $4.55 before tax you remit | Stripe account review. You handle sales tax | Right tool for a priced product. Extra account for a tip |
-| [Buy Me a Coffee](https://help.buymeacoffee.com/en/articles/8105744-how-to-calculate-charges-on-your-payment) | 5% platform, plus Stripe's 2.9% + $0.30, plus a 0.5% payout fee. About $4.28 before international card surcharges | Minutes | More expensive than Sponsors or Ko-fi for the same tip |
-| [Lemon Squeezy](https://www.lemonsqueezy.com/pricing) | 5% + $0.50, about $4.25 on $5, before the international surcharge. They are the merchant of record and remit VAT | Account review | The $0.50 floor hurts a $3 tip. Worth it when selling a license internationally, not for a tip jar |
-
-Gumroad, Paddle, and Setapp are distribution deals, not a tip button. Gumroad's direct fee is higher and they are a merchant of record. Paddle is the same shape. Setapp takes a revenue share and has to accept the app. None of them belong in the first release. The repo will be open source, so a $0.99 store price was already easy to route around by building from source. A tip matches that.
-
-If Sponsors is not approved the week of the first tag, create a Ko-fi page on the Free plan and add that URL next to `DonationLinks.sponsors`. Do not add Lemon Squeezy or Stripe until there is a paid license to sell.
+The app links to GitHub Sponsors. Complete the Sponsors profile and payout setup before relying on the link; if a different service is chosen, update the app and website links together.

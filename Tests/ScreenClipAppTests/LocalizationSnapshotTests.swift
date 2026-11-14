@@ -44,8 +44,8 @@ import XCTest
           size: NSSize(width: 780, height: 720), locale: identifier, appearance: appearance,
           output: output))
         written.append(try render(
-          ConnectGrokBotSheet(webhookURL: .constant(""), authorization: .constant("")),
-          name: "connect-grok-\(suffix)", size: NSSize(width: 680, height: 560),
+          GrokConnectSheet(model: model, initialCode: nil, projectID: nil, onSaved: {}),
+          name: "connect-grok-\(suffix)", size: NSSize(width: 720, height: 860),
           locale: identifier, appearance: appearance, output: output))
       }
     }

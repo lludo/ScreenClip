@@ -16,8 +16,8 @@ extension AgentDetection {
       return usable
         ? kind.title
         : String(
-          localized: "Grok Bot — not configured", bundle: .module, locale: locale,
-          comment: "Agent menu label when the Grok Bot webhook is missing.")
+          localized: "Grok Bot — not connected", bundle: .module, locale: locale,
+          comment: "Agent menu label when Grok Bot has not been connected.")
     case .codex:
       guard installed else {
         return String(
@@ -44,31 +44,26 @@ extension AgentDetection {
     switch kind {
     case .external:
       guard usable else {
-        if detail.contains("must be an http") {
+        if detail.contains("https") {
           return String(
             localized:
-              "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → Connections → External assistant.",
+              "Not connected — Connect Grok Bot. The address has to start with https, and the secret can't contain a line break.",
             bundle: .module, locale: locale,
-            comment: "Grok Bot detection detail when one of the two saved values is unusable.")
+            comment: "Grok Bot detail when a saved address or secret is unusable.")
         }
         return String(
-          localized:
-            "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant.",
-          bundle: .module, locale: locale,
-          comment: "Grok Bot detection detail when the connection has not been saved.")
+          localized: "Not connected — Connect Grok Bot", bundle: .module, locale: locale,
+          comment: "Grok Bot detail when it has not been connected.")
       }
-      var text = String(
-        localized: "Detected. Webhook and Authorization header are saved in the Keychain.",
-        bundle: .module, locale: locale,
-        comment: "Grok Bot detection detail when both connection values are saved.")
-      if detail.contains("Send test succeeded") {
-        text +=
-          " "
-          + String(
-            localized: "Send test succeeded.", bundle: .module, locale: locale,
-            comment: "Appended to the Grok Bot detection detail after a successful test POST.")
+      if detail.hasPrefix("Connected · ") {
+        let host = String(detail.dropFirst("Connected · ".count))
+        return String(
+          localized: "grok.connectedHost", defaultValue: "Connected · \(host)", bundle: .module,
+          locale: locale, comment: "Grok Bot is connected. %@ is the webhook host.")
       }
-      return text
+      return String(
+        localized: "Connected", bundle: .module, locale: locale,
+        comment: "Grok Bot is connected, without a host to show.")
     case .codex:
       guard let version else {
         return path.isEmpty
@@ -162,7 +157,16 @@ public enum CoreChrome {
     "Send test succeeded.",
     "Codex CLI not found.",
     "Claude Code CLI not found. Install it from claude.com/claude-code.",
-    "Grok Bot — not configured",
+    "Grok Bot — not connected",
+    "Not connected — Connect Grok Bot",
+    "Not connected — Connect Grok Bot. The address has to start with https, and the secret can't contain a line break.",
+    "Connected",
+    "Choose a project that can share screenshots with Grok Bot.",
+    "Turn on sharing screenshots with Grok Bot for this project. Approved annotated screenshots are pushed to a branch in the project's GitHub repo.",
+    "Paste the setup code Grok Bot gave you.",
+    "The address has to start with https. Ask Grok Bot for a new setup code.",
+    "The secret can't contain a line break. Ask Grok Bot for a new setup code.",
+    "That doesn't look like a setup code. In Grok Bot, ask \"Connect ScreenClip\" and paste the reply.",
     "Codex — not found",
     "Claude Code — not found",
     "Claude Code — signed out",

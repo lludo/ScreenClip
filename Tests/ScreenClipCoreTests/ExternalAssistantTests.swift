@@ -3,6 +3,16 @@ import XCTest
 @testable import ScreenClipCore
 
 final class ExternalAssistantTests: XCTestCase {
+  func testFilingChoicesIncludeOnlyUsableAgentsForTheProject() {
+    let detections = [
+      AgentDetection(kind: .codex, path: "/codex", version: "1", signedIn: nil, detail: ""),
+      AgentDetection(kind: .claude, path: "/claude", version: "1", signedIn: false, detail: ""),
+      AgentDetection(kind: .external, path: "", version: "configured", signedIn: true, detail: ""),
+    ]
+    XCTAssertEqual(AgentPicker.filingChoices(detections: [], externalAvailable: true), [])
+    XCTAssertEqual(AgentPicker.filingChoices(detections: detections, externalAvailable: false), [.codex])
+    XCTAssertEqual(AgentPicker.filingChoices(detections: detections, externalAvailable: true), [.codex, .external])
+  }
   func testPayloadOmitsPageContextAndImageBytesUntilContextIsAllowed() throws {
     let issue = sampleIssue()
     let project = Project(
@@ -154,11 +164,12 @@ final class ExternalAssistantTests: XCTestCase {
   func testGrokDetectionAndPickerAvailability() {
     let missing = AgentDetector.detectExternal(.empty)
     XCTAssertEqual(missing.kind, .external)
-    XCTAssertEqual(missing.label, "Grok Bot — not configured")
+    XCTAssertEqual(missing.label, "Grok Bot — not connected")
     XCTAssertFalse(missing.usable)
     XCTAssertFalse(missing.installed)
-    XCTAssertTrue(missing.detail.contains("Not configured"))
-    XCTAssertTrue(missing.detail.contains("Connections"))
+    XCTAssertTrue(missing.detail.contains("Not connected"))
+    XCTAssertTrue(missing.detail.contains("Connect Grok Bot"))
+    XCTAssertFalse(missing.detail.contains("Bearer"))
     let partial = AgentDetector.detectExternal(
       ExternalAssistantConfiguration(webhookURL: "not a url", authorization: "Bearer x", testSucceeded: false))
     XCTAssertFalse(partial.usable)
@@ -169,13 +180,15 @@ final class ExternalAssistantTests: XCTestCase {
         testSucceeded: false))
     XCTAssertTrue(ready.usable)
     XCTAssertEqual(ready.label, "Grok Bot")
-    XCTAssertTrue(ready.detail.contains("Detected"))
-    XCTAssertFalse(ready.detail.contains("Send test"))
+    XCTAssertEqual(ready.detail, "Connected · assistant.example")
+    XCTAssertFalse(ready.detail.contains("secret"))
+    XCTAssertFalse(ready.detail.contains("Bearer"))
     let tested = AgentDetector.detectExternal(
       ExternalAssistantConfiguration(
         webhookURL: "https://assistant.example/hook", authorization: "Bearer secret",
         testSucceeded: true))
-    XCTAssertTrue(tested.detail.contains("Send test succeeded"))
+    XCTAssertEqual(tested.detail, "Connected · assistant.example")
+    XCTAssertFalse(tested.detail.contains("secret"))
     XCTAssertNil(
       ExternalAssistantConfiguration(webhookURL: "", authorization: "Bearer secret", testSucceeded: false)
         .endpoint)
@@ -199,7 +212,7 @@ final class ExternalAssistantTests: XCTestCase {
     let unconfigured = AgentPicker.externalAvailability(
       configured: false, hasProject: true, projectOptIn: true)
     XCTAssertFalse(unconfigured.enabled)
-    XCTAssertTrue(unconfigured.hint?.contains("Connections") == true)
+    XCTAssertEqual(unconfigured.hint, "Not connected — Connect Grok Bot")
     let noProject = AgentPicker.externalAvailability(
       configured: true, hasProject: false, projectOptIn: false)
     XCTAssertFalse(noProject.enabled)
@@ -207,7 +220,8 @@ final class ExternalAssistantTests: XCTestCase {
     let optedOut = AgentPicker.externalAvailability(
       configured: true, hasProject: true, projectOptIn: false)
     XCTAssertFalse(optedOut.enabled)
-    XCTAssertTrue(optedOut.hint?.contains("Allow sending screenshots") == true)
+    XCTAssertTrue(optedOut.hint?.contains("screenshots") == true)
+    XCTAssertTrue(optedOut.hint?.contains("this project") == true)
     let available = AgentPicker.externalAvailability(
       configured: true, hasProject: true, projectOptIn: true)
     XCTAssertTrue(available.enabled)

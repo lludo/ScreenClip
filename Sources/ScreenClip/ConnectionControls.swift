@@ -212,7 +212,7 @@ struct AgentDetectionRow: View {
     return HStack(alignment: .firstTextBaseline) {
       Image(systemName: symbol).foregroundStyle(color)
       VStack(alignment: .leading, spacing: 2) {
-        Text(verbatim: kind.title)
+        AgentLabel(kind: kind)
         Text(
           verbatim: detection?.localizedDetail(locale: locale)
             ?? Chrome.text("Not checked yet", locale: locale, comment: "Agent has not been detected yet.")

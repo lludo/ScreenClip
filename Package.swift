@@ -16,7 +16,10 @@ let package = Package(
       resources: [.process("Localizable.xcstrings")]),
     .executableTarget(
       name: "ScreenClip", dependencies: ["ScreenClipCore"],
-      resources: [.process("Localizable.xcstrings")]),
+      resources: [
+        .process("Localizable.xcstrings"), .process("Assets.xcassets"),
+        .copy("AgentIcons-LICENSE.txt"),
+      ]),
     .executableTarget(name: "ScreenClipProbe", dependencies: ["ScreenClipCore"]),
     .testTarget(name: "ScreenClipCoreTests", dependencies: ["ScreenClipCore"]),
     .testTarget(name: "ScreenClipAppTests", dependencies: ["ScreenClip"]),

@@ -14,11 +14,13 @@ struct SettingsView: View {
   @State private var error: String?
   @State private var webhookURL = ""
   @State private var authorization = ""
-  @State private var externalTestResult: String?
-  @State private var sendingTest = false
+  @State private var showingGrokConnect = false
+  @State private var grokConnectCode: String?
+  @State private var grokConnectPresentation = 0
   var body: some View {
     VStack(spacing: 0) {
-      TabView(selection: $tab) {
+      Group {
+        if tab == 0 {
         Form {
           Section {
             ScreenCapturePermissionControls(model: model, permission: model.capturePermission)
@@ -137,13 +139,8 @@ struct SettingsView: View {
           } header: {
             Text(chrome: "Local data", comment: "Settings section for the local queue.")
           }
-        }.formStyle(.grouped).tabItem {
-          Label {
-            Text(chrome: "General", comment: "Settings tab for general preferences.")
-          } icon: {
-            Image(systemName: "slider.horizontal.3")
-          }
-        }.tag(0)
+        }.formStyle(.grouped)
+        } else if tab == 1 {
         VStack(alignment: .leading, spacing: 16) {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -175,31 +172,31 @@ struct SettingsView: View {
               Text(
                 chrome: "Map a website or Mac app and set the checks a fix must pass.",
                 comment: "Empty projects explanation.")
-            }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
           } else {
             List(model.snapshot.projects) { project in
               HStack {
-                VStack(alignment: .leading, spacing: 5) {
-                  Text(project.name).fontWeight(.medium)
-                  Text(project.path).font(.caption).foregroundStyle(.secondary)
-                  Text((project.origins + project.bundleIDs).joined(separator: " · ")).font(
-                    .caption
-                  ).foregroundStyle(.tertiary)
+                HStack(alignment: .top) {
+                  Image(systemName: project.displaySymbol).foregroundStyle(.orange)
+                    .frame(width: 20)
+                  VStack(alignment: .leading, spacing: 5) {
+                    Text(project.name).fontWeight(.medium)
+                    Text(project.path).font(.caption).foregroundStyle(.secondary)
+                    Text((project.origins + project.bundleIDs).joined(separator: " · ")).font(
+                      .caption
+                    ).foregroundStyle(.tertiary)
+                  }
                 }
                 Spacer()
                 Button { editProject = project } label: {
                   Text(chrome: "Edit", comment: "Edits a project.")
                 }.fixedSize()
               }.padding(.vertical, 8)
+                .listRowInsets(EdgeInsets())
             }
           }
-        }.padding(24).tabItem {
-          Label {
-            Text(chrome: "Projects", comment: "Settings tab for projects.")
-          } icon: {
-            Image(systemName: "folder")
-          }
-        }.tag(1)
+        }.padding(24)
+        } else {
         Form {
           Section {
             Picker(
@@ -207,15 +204,22 @@ struct SettingsView: View {
                 get: { settings.preferredAgent }, set: { settings.defaultAgent = $0 })
             ) {
               ForEach(agentChoices) { kind in
-                Text(verbatim: model.detection(kind)?.localizedLabel(locale: locale) ?? kind.title)
-                  .tag(kind)
+                AgentLabel(
+                  kind: kind, title: model.detection(kind)?.localizedLabel(locale: locale) ?? kind.title
+                ).tag(kind)
               }
             } label: {
               Text(chrome: "Default agent", comment: "Picker for the default coding agent.")
                 .fixedSize(horizontal: false, vertical: true)
             }
             ForEach(AgentKind.allCases) { kind in
-              AgentDetectionRow(kind: kind, detection: model.detection(kind))
+              if kind == .external {
+                GrokBotConnectionRow(
+                  model: model, webhookURL: $webhookURL, authorization: $authorization,
+                  onConnect: { openGrokConnect(code: nil) })
+              } else {
+                AgentDetectionRow(kind: kind, detection: model.detection(kind))
+              }
             }
             HStack {
               Button { detectAgents() } label: {
@@ -241,18 +245,11 @@ struct SettingsView: View {
             }
             Text(
               chrome:
-                "New captures use the default agent. You can pick a different agent for any single report in the capture window. Each issue keeps the agent it started with. Grok Bot is ready when its webhook is saved below.",
+                "New captures use the default agent. You can pick a different agent for any single report in the capture window. Each issue keeps the agent it started with. Connect Grok Bot from its row.",
               comment: "Explains agent selection. Product names stay untranslated."
             ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
           } header: {
             Text(chrome: "AI agent", comment: "Settings section for the default agent.")
-          }
-          Section {
-            GrokBotConnectionFields(
-              webhookURL: $webhookURL, authorization: $authorization, sendingTest: sendingTest,
-              testResult: externalTestResult, sendTest: sendExternalTest)
-          } header: {
-            Text(chrome: "External assistant", comment: "Settings section for the Grok Bot connection.")
           }
           Section {
             TextField(
@@ -345,14 +342,10 @@ struct SettingsView: View {
           } header: {
             Text(chrome: "GitHub", comment: "Settings section. Do not translate GitHub.")
           }
-        }.formStyle(.grouped).tabItem {
-          Label {
-            Text(chrome: "Connections", comment: "Settings tab for agent connections.")
-          } icon: {
-            Image(systemName: "point.3.connected.trianglepath.dotted")
-          }
-        }.tag(2)
+        }.formStyle(.grouped)
+        }
       }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
       Divider()
       HStack {
         if let error {
@@ -373,15 +366,60 @@ struct SettingsView: View {
         }.buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
       }.padding(16)
     }.frame(minWidth: 720, idealWidth: 780, minHeight: 680)
+      .toolbar {
+        ToolbarItem(placement: .principal) {
+          HStack(spacing: 0) {
+            ForEach(Array(["General", "Projects", "Connections"].enumerated()), id: \.offset) {
+              index, title in
+              Button { tab = index } label: {
+                Text(verbatim: Chrome.stored(title, locale: locale))
+                  .fixedSize(horizontal: false, vertical: true)
+              }
+              .buttonStyle(SettingsTabButtonStyle(isSelected: tab == index))
+              .accessibilityAddTraits(tab == index ? .isSelected : [])
+            }
+          }
+          .padding(2)
+          .background(.quaternary.opacity(0.45), in: Capsule())
+        }
+      }
       .onAppear {
         settings = model.snapshot.settings
-        let connection = model.loadExternalAssistant()
-        webhookURL = connection.webhookURL
-        authorization = connection.authorization
+        reloadGrokConnection()
         if model.snapshot.projects.isEmpty { tab = 1 }
         if initialTab != 0 { tab = initialTab }
+        presentGrokConnectIfNeeded()
+      }
+      .onChange(of: model.grokConnectRequest?.id) { _, id in
+        guard id != nil else { return }
+        presentGrokConnectIfNeeded()
       }
       .sheet(item: $editProject) { project in ProjectEditor(model: model, project: project) }
+      .background {
+        Color.clear.sheet(isPresented: $showingGrokConnect, onDismiss: {
+          model.grokConnectRequest = nil
+        }) {
+          GrokConnectSheet(
+            model: model, initialCode: grokConnectCode, projectID: nil, onSaved: reloadGrokConnection
+          ).id(grokConnectPresentation)
+        }
+      }
+  }
+  private func reloadGrokConnection() {
+    let connection = model.loadExternalAssistant()
+    webhookURL = connection.webhookURL
+    authorization = connection.authorization
+  }
+  private func openGrokConnect(code: String?) {
+    grokConnectCode = code
+    grokConnectPresentation += 1
+    tab = 2
+    showingGrokConnect = true
+  }
+  private func presentGrokConnectIfNeeded() {
+    guard let request = model.grokConnectRequest else { return }
+    if showingGrokConnect && grokConnectCode == request.code { return }
+    openGrokConnect(code: request.code)
   }
   private var agentChoices: [AgentKind] {
     let available = model.availableAgents
@@ -396,17 +434,6 @@ struct SettingsView: View {
     }
     model.saveSettings(settings)
     Task { await model.refreshAgents() }
-  }
-  private func sendExternalTest() {
-    sendingTest = true
-    externalTestResult = nil
-    let url = webhookURL
-    let header = authorization
-    Task {
-      let result = await model.sendExternalAssistantTest(webhookURL: url, authorization: header)
-      externalTestResult = result
-      sendingTest = false
-    }
   }
   private func chooseExecutable(_ assign: (String) -> Void) {
     let panel = NSOpenPanel()
@@ -437,5 +464,22 @@ struct SettingsView: View {
         NSWorkspace.shared.open(folder)
       } catch { self.error = error.localizedDescription }
     }
+  }
+}
+
+private struct SettingsTabButtonStyle: ButtonStyle {
+  let isSelected: Bool
+
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .frame(minWidth: 90)
+      .padding(.horizontal, 8)
+      .padding(.vertical, 4)
+      .background {
+        if isSelected || configuration.isPressed {
+          Capsule().fill(Color.primary.opacity(configuration.isPressed ? 0.22 : 0.15))
+        }
+      }
+      .contentShape(Capsule())
   }
 }
