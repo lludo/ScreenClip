@@ -145,7 +145,10 @@ import XCTest
     let runtime = Runtime()
     let auth = runtime.controller(timeout: 10_000_000)
     await auth.signIn()
-    try await Task.sleep(nanoseconds: 60_000_000)
+    let deadline = Date().addingTimeInterval(2)
+    while auth.state.isPending && Date() < deadline {
+      try await Task.sleep(nanoseconds: 10_000_000)
+    }
     guard case .failed(let message) = auth.state else {
       return XCTFail("A missing browser callback must time out")
     }
