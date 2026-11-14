@@ -20,7 +20,7 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 
 ## Hand-off
 
-1. ScreenClip creates or reuses a worktree on `screenclip/<reportNumber>-<slug>-<workspace>`, branched from the project's base branch. The slug is a short lowercase form of the title.
+1. ScreenClip creates or reuses a worktree on `screenclip/<reportNumber>-<slug>-<workspace>`, branched from the project's base branch. The slug is a short lowercase form of the title. `<workspace>` is the first eight characters of the issue's workspace id, so a follow-up after a merge does not reuse the merged branch.
 2. It commits `.screenclip/<reportNumber>/report.json` and `.screenclip/<reportNumber>/capture-<n>.png`. The PNGs are the approved derivatives (annotations applied, redactions flattened). Unredacted originals are never committed.
 3. It pushes that branch with the `gh` and `git` credentials already used for pull requests.
 4. It POSTs JSON with schema `screenclip.external.v1`.
@@ -46,7 +46,7 @@ A follow-up capture adds files and a new commit on the same branch, then sends t
     "validationCommand": "bash scripts/test.sh"
   },
   "evidence": {
-    "branch": "screenclip/234-clipped-button",
+    "branch": "screenclip/234-clipped-button-a1b2c3d4",
     "commit": "…",
     "paths": [".screenclip/234/report.json", ".screenclip/234/capture-1.png"]
   }
@@ -117,5 +117,5 @@ Grok Bot is listed even when it is not configured.
 
 ## Verification status
 
-- **Automated:** payload encoding, branch slugs, GitHub remote parsing, opt-in gating, idempotent retry of the same revision, pull-request matching, the `.screenclip/` merge guard, detection and picker availability, header-safety, same-origin redirect handling (scheme, host and port), and `scripts/send_test_webhook.py`. GitHub Actions on macos-15 passed the earlier Grok Bot suite, the Python tests, and the Xcode Debug and Release builds. The review fixes are in the tests and wait on the next macOS run.
+- **Automated:** payload encoding, branch slugs, GitHub remote parsing, opt-in gating, idempotent retry of the same revision, pull-request matching, the `.screenclip/` merge guard, detection and picker availability, header-safety, same-origin redirect handling (scheme, host and port), and `scripts/send_test_webhook.py`. GitHub Actions on macos-15 passed the earlier Grok Bot suite. After the worker reorganization, `bash scripts/test.sh` passed on the development host, including both Grok Bot suites. This pull request's macOS workflow is the public run of that tree.
 - **Not yet exercised:** a live webhook, a real evidence push, pull-request discovery, and auto-merge. See [validation.md](../validation.md).
