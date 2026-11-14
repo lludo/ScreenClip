@@ -57,6 +57,30 @@ class PluginTests(unittest.TestCase):
         self.save()
         listed = json.loads(plugin.call("list_issues", {})["content"][0]["text"])
         self.assertEqual(listed[0]["reportNumber"], 234)
+    def test_listing_hides_finished_reports_and_is_limited(self):
+        self.issue["status"] = "merged"
+        self.save()
+        self.assertEqual(json.loads(plugin.call("list_issues", {})["content"][0]["text"]), [])
+        self.assertEqual(len(json.loads(plugin.call("list_issues", {"include_closed": True})["content"][0]["text"])), 1)
+        self.assertEqual(len(json.loads(plugin.call("list_issues", {"status": "merged"})["content"][0]["text"])), 1)
+        base = dict(self.issue)
+        issues = [base | {"id": str(uuid.uuid4()), "status": "needsYou", "updatedAt": n} for n in range(5)]
+        with sqlite3.connect(plugin.ROOT / "screenclip.sqlite") as db:
+            db.execute("INSERT OR REPLACE INTO state VALUES(1,?)", (json.dumps({"issues": issues, "projects": []}).encode(),))
+        result = plugin.call("list_issues", {"limit": 2})
+        listed = json.loads(result["content"][0]["text"])
+        self.assertEqual([i["id"] for i in listed], [issues[4]["id"], issues[3]["id"]])
+        self.assertIn("Showing 2 of 5", result["content"][1]["text"])
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("list_issues", {"limit": 0})
+    def test_issue_returns_recent_activity_only(self):
+        self.issue["activities"] = [{"text": f"step {n}"} for n in range(30)]
+        self.save()
+        found = json.loads(plugin.call("get_issue", {"issue_id": self.id})["content"][0]["text"])
+        self.assertEqual(found["activityCount"], 30)
+        self.assertEqual([a["text"] for a in found["activities"]], [f"step {n}" for n in range(10, 30)])
+        found = json.loads(plugin.call("get_issue", {"issue_id": self.id, "activity_limit": 0})["content"][0]["text"])
+        self.assertEqual(found["activities"], [])
     def test_agent_defaults_to_codex_for_older_issues(self):
         listed = json.loads(plugin.call("list_issues", {})["content"][0]["text"])
         self.assertEqual(listed[0]["agent"], "codex")

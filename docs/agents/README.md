@@ -21,10 +21,11 @@ Separately from automatic dispatch, Codex and Claude Code can **read** the queue
 
 ## Detection and readiness
 
-`AgentDetector` (in `ScreenClipCore`) finds each local agent's executable, reads its version, and, where the agent supports it, its sign-in state. For Grok Bot, detected means the connection from **Connect Grok Bot** is in the Keychain. Detection runs at launch and from **Detect agents** in Settings.
+`AgentDetector` (in `ScreenClipCore`) finds each local agent's executable, reads its version, and, where supported, its sign-in state. For Grok Bot, detection checks the connection saved in the Keychain. Detection runs at launch, from **Detect agents** in Settings, and every minute while a queued report is held for an agent that is not ready. It searches Homebrew and system folders, common per-user install folders, and the login shell's PATH.
 
-- Pickers list installed agents plus the current default, so the default never disappears. Grok Bot is always listed. In the capture window its row is disabled, with **Connect Grok Bot**, until it is connected and the project has opted in to sending screenshots.
-- The queue holds a queued issue whose agent detection reports missing, signed out, or not connected (`AgentDetection.usable == false`). Detecting again resumes it. The capture window warns when the selected local agent is not ready.
+- Settings lists installed agents and the current default. The capture window offers usable agents, including Grok Bot only when connected and the project has opted in to sending screenshots. A follow-up retains its original agent.
+- The queue holds a queued issue whose agent detection reports missing, signed out, or not configured (`AgentDetection.usable == false`), and Codex reports while Codex sign-in is known to be signed out. The once-a-minute check resumes them after you sign in or install the agent; **Detect agents** resumes them at once.
+- A run that fails because its agent is signed out goes back to the queue, held, instead of failing. It and the reports queued after it wait for sign-in. Because `claude auth status` can still say signed in (an expired token, for example), the automatic check keeps that agent held for 10 minutes after such a failure; **Detect agents** clears it immediately.
 - The queue sidebar shows the default agent's status (`AppModel.agentStatus`).
 
 ## The agent contract
@@ -33,7 +34,7 @@ Codex and Claude Code follow the same contract, so the rest of ScreenClip stays 
 
 **ScreenClip provides**
 - An isolated worktree and `screenclip/<id>` branch (`GitWorkspace.prepare`), started from `origin/<base>`, as the agent's working directory. The tester's checkout is never the working directory.
-- One prompt per turn (`AgentPrompt.text`) with the issue, project, worktree, branch, validation command, capture context, user replies, and previous validation feedback. Notes, screenshot contents, titles, and URLs are labeled as untrusted evidence.
+- One prompt per turn (`AgentPrompt.turn`). The first turn of a conversation gets the full prompt (`AgentPrompt.text`): the issue, project, worktree, branch, validation command, capture context, user replies, and the latest validation or CI failure (`Issue.validationFeedback`, never unrelated errors). A resumed conversation that completed a turn gets a short follow-up with only the captures, notes, replies, and validation feedback it has not seen, and only the new screenshots; `Issue.deliveredContext` records what it has seen. A new or relinked conversation gets everything again. Notes, screenshot contents, titles, and URLs are labeled as untrusted evidence.
 - The approved screenshots only (annotated, with redactions flattened), never unredacted originals.
 - A JSON Schema for the result (`AgentPrompt.resultSchema`).
 - An environment without GitHub tokens or git redirect variables (`ProcessEnvironment.agent`). Agents cannot push or open PRs with ScreenClip's credentials.
@@ -49,6 +50,8 @@ Codex and Claude Code follow the same contract, so the rest of ScreenClip stays 
 **Conversation identity.** `Issue.threadID` holds the agent's conversation ID (a Codex thread or a Claude session UUID). Replies and new evidence continue the same conversation. `Issue.turnID` is non-nil while a turn runs.
 
 **Lifecycle hooks every agent implements:** dispatch (start or resume a turn), progress messages into the activity log, cancel, and reconcile after a restart or interruption.
+
+**Every turn ends.** A Claude Code or Codex turn running longer than 45 minutes (`AgentWorker.turnTimeLimit`) is stopped and the report fails with a note; Continue resumes the same conversation. Time a Codex turn spends waiting for your answer does not count. Cancel and the time limit stop the agent and every process it started, and kill whatever ignores SIGTERM after 3 seconds. Only reports ScreenClip is actually dispatching, running or publishing count toward the per-project parallel limit.
 
 ## Usage and cost
 

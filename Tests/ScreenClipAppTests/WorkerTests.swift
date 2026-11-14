@@ -335,9 +335,17 @@ import XCTest
     XCTAssertEqual(
       URL(fileURLWithPath: runs[0]["cwd"].string ?? "").resolvingSymlinksInPath().path,
       URL(fileURLWithPath: first.worktreePath ?? "").resolvingSymlinksInPath().path)
+    // The resumed session already has the first screenshot: only the new one is attached.
     let secondContent = runs[1]["content"].array
-    XCTAssertEqual(secondContent.filter { $0["type"].string == "image" }.count, 2)
+    XCTAssertEqual(secondContent.filter { $0["type"].string == "image" }.count, 1)
     XCTAssertTrue(secondContent.first?["text"].string?.contains("User reply: Yes, wrap it") == true)
+    XCTAssertTrue(secondContent.first?["text"].string?.contains("Only what is new") == true)
+    if missingSession {
+      // A replacement session has seen nothing, so it gets every screenshot and the full prompt.
+      let freshContent = runs[2]["content"].array
+      XCTAssertEqual(freshContent.filter { $0["type"].string == "image" }.count, 2)
+      XCTAssertTrue(freshContent.first?["text"].string?.contains("Resolve this ScreenClip issue") == true)
+    }
     XCTAssertEqual(
       try String(contentsOf: repo.appendingPathComponent("source.txt"), encoding: .utf8), "original")
     await model.worker.resetConnection()

@@ -9,7 +9,8 @@ public actor CodexClient {
   private var continuation: AsyncStream<JSONValue>.Continuation?
   private var generation = UUID()
   private var ownedThreads = Set<String>()
-  public init() {}
+  // A write racing an app-server exit must fail with EPIPE, not terminate ScreenClip.
+  public init() { ProcessEnvironment.ignoreBrokenPipes() }
   deinit { process?.terminate() }
   public func connect(path: String) async throws -> AsyncStream<JSONValue> {
     stop()

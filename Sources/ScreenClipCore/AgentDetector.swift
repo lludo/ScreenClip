@@ -48,7 +48,7 @@ public enum AgentDetector {
         return false
       }
       return true
-    }) ?? ""
+    }) ?? ProcessEnvironment.executable(named: "codex") ?? ""
   }
 
   public static func defaultClaudePath(fileManager: FileManager = .default) -> String {
@@ -57,7 +57,8 @@ public enum AgentDetector {
       "/opt/homebrew/bin/claude", "/usr/local/bin/claude", home + "/.local/bin/claude",
       home + "/.claude/local/claude", home + "/.npm-global/bin/claude", home + "/.bun/bin/claude",
     ]
-    return candidates.first { fileManager.isExecutableFile(atPath: $0) } ?? ""
+    return candidates.first { fileManager.isExecutableFile(atPath: $0) }
+      ?? ProcessEnvironment.executable(named: "claude") ?? ""
   }
 
   public static func claudePath(_ settings: AppSettings) -> String {
@@ -72,6 +73,8 @@ public enum AgentDetector {
   public static func detectAll(
     _ settings: AppSettings, external: ExternalAssistantConfiguration = .empty
   ) async -> [AgentDetection] {
+    // npm, nvm, Volta and bun installs live on the login shell's PATH, not Finder's.
+    await ProcessEnvironment.loadLoginShellPath()
     async let codex = detectCodex(path: codexPath(settings))
     async let claude = detectClaude(path: claudePath(settings))
     let remote = detectExternal(external)
@@ -126,6 +129,15 @@ public enum AgentDetector {
     }
     return AgentDetection(
       kind: .claude, path: path, version: version, signedIn: signedIn, detail: detail)
+  }
+
+  /// Whether an agent's error means it is signed out rather than that the work failed.
+  public static func isSignInError(_ text: String) -> Bool {
+    let lower = text.lowercased()
+    return [
+      "not logged in", "please run /login", "invalid api key", "oauth token has expired",
+      "authentication_error", "sign in to codex", "not signed in", "401 unauthorized",
+    ].contains { lower.contains($0) }
   }
 
   private static func version(_ path: String) async -> String? {
