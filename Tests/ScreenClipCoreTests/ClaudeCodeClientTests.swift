@@ -93,6 +93,110 @@ final class ClaudeCodeClientTests: XCTestCase {
       "/bin/sh", ["-c", "claude() { printf '%s' \"$2\"; }; " + command])
     XCTAssertEqual(output, issue.threadID)
   }
+
+  // MARK: Claude Desktop hand-off
+
+  private func fakeCLI(version: String, body: String = "") throws -> String {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "screenclip-desktop-" + UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    addTeardownBlock { try? FileManager.default.removeItem(at: root) }
+    let executable = root.appendingPathComponent("fake-claude")
+    try """
+      #!/bin/sh
+      if [ "$1" = "--version" ]; then echo "\(version) (Claude Code)"; exit 0; fi
+      \(body)
+      """.write(to: executable, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: executable.path)
+    return executable.path
+  }
+
+  func testDesktopSupportClassifiesVersions() {
+    XCTAssertEqual(ClaudeDesktopSupport.classify(versionOutput: "2.1.128 (Claude Code)"), .unsupported(version: "2.1.128"))
+    XCTAssertEqual(ClaudeDesktopSupport.classify(versionOutput: "2.1.284"), .unsupported(version: "2.1.284"))
+    XCTAssertEqual(ClaudeDesktopSupport.classify(versionOutput: "2.1.285"), .supported(version: "2.1.285"))
+    XCTAssertEqual(ClaudeDesktopSupport.classify(versionOutput: "2.2.0 (Claude Code)"), .supported(version: "2.2.0"))
+    XCTAssertEqual(ClaudeDesktopSupport.classify(versionOutput: "10.0.1"), .supported(version: "10.0.1"))
+    XCTAssertEqual(ClaudeDesktopSupport.classify(versionOutput: "garbage"), .unknown)
+  }
+
+  func testOpenInDesktopRunsResumeUnderATerminal() async throws {
+    let session = UUID().uuidString.lowercased()
+    let marker = FileManager.default.temporaryDirectory.appendingPathComponent("marker-" + session)
+    addTeardownBlock { try? FileManager.default.removeItem(at: marker) }
+    // Like the real CLI, refuse when stdout is not a terminal.
+    let cli = try fakeCLI(
+      version: "2.1.325",
+      body: """
+        [ -t 1 ] || { echo "--desktop can't run non-interactively" >&2; exit 1; }
+        echo "$@" > '\(marker.path)'; pwd >> '\(marker.path)'
+        echo "Opening session $3 in Claude Desktop"
+        """)
+    let cwd = FileManager.default.temporaryDirectory.path
+    try await ClaudeCodeClient().openInDesktop(executable: cli, cwd: cwd, sessionID: session)
+    let recorded = try String(contentsOf: marker, encoding: .utf8)
+    XCTAssertTrue(recorded.hasPrefix("--desktop --resume \(session)\n"))
+    XCTAssertTrue(recorded.contains(URL(fileURLWithPath: cwd).resolvingSymlinksInPath().lastPathComponent))
+  }
+
+  func testOpenInDesktopRefusesOldCLIWithoutRunningIt() async throws {
+    let cli = try fakeCLI(version: "2.1.128", body: "echo ran >&2; exit 9")
+    do {
+      try await ClaudeCodeClient().openInDesktop(
+        executable: cli, cwd: "/tmp", sessionID: UUID().uuidString)
+      XCTFail("expected an unsupported-version error")
+    } catch {
+      XCTAssertTrue(error.localizedDescription.contains("2.1.285"))
+      XCTAssertTrue(error.localizedDescription.contains("Terminal command"))
+    }
+  }
+
+  func testOpenInDesktopRefusesUnreadableVersionAndBadSession() async throws {
+    let cli = try fakeCLI(version: "unknown")
+    await XCTAssertThrowsAsync(
+      try await ClaudeCodeClient().openInDesktop(executable: cli, cwd: "/tmp", sessionID: UUID().uuidString))
+    await XCTAssertThrowsAsync(
+      try await ClaudeCodeClient().openInDesktop(executable: cli, cwd: "/tmp", sessionID: "not-a-uuid"))
+    await XCTAssertThrowsAsync(
+      try await ClaudeCodeClient().openInDesktop(executable: "/nonexistent", cwd: "/tmp", sessionID: UUID().uuidString))
+  }
+
+  func testOpenInDesktopSurfacesCLIFailure() async throws {
+    let cli = try fakeCLI(version: "2.1.325", body: "echo 'Claude Desktop is not installed' ; exit 1")
+    do {
+      try await ClaudeCodeClient().openInDesktop(
+        executable: cli, cwd: "/tmp", sessionID: UUID().uuidString)
+      XCTFail("expected failure")
+    } catch {
+      XCTAssertTrue(error.localizedDescription.contains("not installed"))
+    }
+  }
+
+  func testOpenInDesktopRefusesRunningSession() async throws {
+    let session = UUID().uuidString.lowercased()
+    // A process whose command line carries the session, as a terminal `claude --resume` would.
+    let busy = Process()
+    busy.executableURL = URL(fileURLWithPath: "/bin/sh")
+    busy.arguments = ["-c", "sleep 30; true", "claude", "--resume", session]
+    try busy.run()
+    addTeardownBlock { busy.terminate() }
+    let cli = try fakeCLI(version: "2.1.325", body: "echo 'Opening session x'; exit 0")
+    do {
+      try await ClaudeCodeClient().openInDesktop(executable: cli, cwd: "/tmp", sessionID: session)
+      XCTFail("expected refusal")
+    } catch {
+      XCTAssertTrue(error.localizedDescription.contains("still running"))
+    }
+  }
+}
+
+private func XCTAssertThrowsAsync<T>(
+  _ expression: @autoclosure () async throws -> T, file: StaticString = #filePath, line: UInt = #line
+) async {
+  do {
+    _ = try await expression()
+    XCTFail("expected an error", file: file, line: line)
+  } catch {}
 }
 
 private actor ProgressLog {
