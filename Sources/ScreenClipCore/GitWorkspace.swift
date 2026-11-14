@@ -95,8 +95,7 @@ public enum GitWorkspace {
       (try? await CommandRunner.run(git, ["remote", "get-url", "origin"], cwd: project.path))?
       .status == 0
     if hasOrigin {
-      _ = try? await CommandRunner.run(
-        git, ["fetch", "origin", project.baseBranch], cwd: project.path, timeout: 120)
+      try? await fetch(project.baseBranch, cwd: project.path)
     }
     let existing = try await CommandRunner.run(
       git, ["show-ref", "--verify", "--quiet", "refs/heads/\(branch)"], cwd: project.path)
@@ -124,6 +123,19 @@ public enum GitWorkspace {
     return true
   }
 
+  /// Deletes a merged issue branch from origin. Only ScreenClip's own branch prefixes are
+  /// touched. For Grok Bot reports this also removes the pushed screenshots from the branch,
+  /// though GitHub keeps pull request commits reachable.
+  @discardableResult
+  public static func deleteRemoteBranch(_ branch: String, repository: String) async -> Bool {
+    guard branch.hasPrefix(branchPrefix) || branch.hasPrefix(legacyBranchPrefix) else {
+      return false
+    }
+    let result = try? await CommandRunner.run(
+      git, ["push", "origin", "--delete", branch], cwd: repository)
+    return result?.status == 0
+  }
+
   public static func validate(project: Project, path: String) async throws -> ValidationReceipt {
     guard !project.validationCommand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
       throw ScreenClipError.message(
@@ -145,8 +157,23 @@ public enum GitWorkspace {
 
   /// Merges the latest remote base into the issue branch. Returns true when the base had
   /// advanced. A conflicted merge is aborted so the worktree is never left mid-merge.
+  /// Fetches a branch from origin. Worktrees of one repository share remote refs, so parallel
+  /// reports can collide on git's ref lock; that transient error is retried.
+  public static func fetch(_ branch: String, cwd: String, attempts: Int = 4) async throws {
+    for attempt in 1...max(1, attempts) {
+      let result = try await CommandRunner.run(git, ["fetch", "origin", branch], cwd: cwd)
+      if result.status == 0 { return }
+      let message = result.error.isEmpty ? result.output : result.error
+      let locked = message.contains("cannot lock ref") || message.contains(".lock")
+      guard locked, attempt < attempts else {
+        throw ScreenClipError.message(String(message.suffix(4000)))
+      }
+      try await Task.sleep(nanoseconds: UInt64(attempt) * 400_000_000)
+    }
+  }
+
   public static func updateBaseIfNeeded(project: Project, path: String) async throws -> Bool {
-    _ = try await CommandRunner.checked(git, ["fetch", "origin", project.baseBranch], cwd: path)
+    try await fetch(project.baseBranch, cwd: path)
     let ancestor = try await CommandRunner.run(
       git, ["merge-base", "--is-ancestor", "FETCH_HEAD", "HEAD"], cwd: path)
     if ancestor.status == 0 { return false }

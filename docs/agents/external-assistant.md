@@ -78,11 +78,11 @@ The URL and header live in the Keychain (`com.screenclip.app.external-assistant`
 What leaves the Mac for a Grok Bot report:
 
 - The webhook JSON in the hand-off section: report number, issue id, revision, title, capture notes, **Add context** notes, source app name, bundle ID, project name, `owner/name`, base branch, validation command, evidence branch, commit, and file paths. Browser URL and window title are included only when **Read the active browser URL for project matching** is on.
-- The git push: `.screenclip/<reportNumber>/report.json` and the approved `capture-<n>.png` files. Anyone who can read that GitHub repository can read those files until Grok Bot deletes `.screenclip/`. On a public repository that means anyone.
+- The git push: `.screenclip/<reportNumber>/report.json` and the approved `capture-<n>.png` files. Anyone who can read that GitHub repository can read those files. On a public repository that means anyone. **Treat a push as permanent:** removing `.screenclip/` in a later commit does not remove the files from history, and GitHub keeps every pull request's commits reachable (`refs/pull/<n>/head`) even after the branch is deleted. ScreenClip deletes the remote evidence branch after it confirms the merge; canceling leaves the branch and any open pull request in place.
 
 Redaction is only a rectangle you draw with the redact tool. ScreenClip flattens those rectangles to opaque black in the PNG it stores and sends. Arrows, pen, shapes, and text do not cover pixels. The unredacted crop is not kept when a capture has a redaction, and it is never pushed or posted.
 
-A redirect to a different host does not include the Authorization header.
+The webhook URL must use HTTPS (plain HTTP is accepted only for `localhost` test servers). A redirect to a different host does not include the Authorization header. A retry after an uncertain delivery can send the same `issueID` and `revision` again, so the assistant should treat that pair as idempotent.
 
 ## Status
 

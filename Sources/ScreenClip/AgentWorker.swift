@@ -18,6 +18,9 @@ import ScreenClipCore
   var finishing = Set<UUID>()
   var refreshing = Set<UUID>()
   var lastExternalDiscovery = Date.distantPast
+  /// The run that currently owns each Grok Bot report. Cancel clears it, so a run still in
+  /// flight stops at its next check and cannot remove a later run's job after a retry.
+  var externalRuns: [UUID: UUID] = [:]
   var mergingProjects = Set<UUID>()
   var pendingRequests = Set<String>()
   var timer: Timer?
@@ -209,6 +212,7 @@ import ScreenClipCore
           $0.record(ExternalAssistant.canceledActivity, status: .canceled)
         }
       }
+      externalRuns.removeValue(forKey: id)
       jobs.remove(id)
       return
     }

@@ -11,9 +11,17 @@ extension AgentWorker {
     case blocked
   }
   func runExternal(_ id: UUID, project: Project) async {
-    defer { jobs.remove(id) }
+    let token = UUID()
+    externalRuns[id] = token
+    defer {
+      // Only the owning run releases the job; a canceled run must not drop a retry's entry.
+      if externalRuns[id] == token {
+        externalRuns.removeValue(forKey: id)
+        jobs.remove(id)
+      }
+    }
     do {
-      try await deliverExternal(id, project: project)
+      try await deliverExternal(id, project: project, token: token)
     } catch is CancellationError {
       return
     } catch {
@@ -28,13 +36,15 @@ extension AgentWorker {
       }
     }
   }
-  private func ensureExternalActive(_ id: UUID) throws {
-    guard let issue = model.issue(id), issue.status != .canceled, jobs.contains(id) else {
+  private func ensureExternalActive(_ id: UUID, _ token: UUID) throws {
+    guard let issue = model.issue(id), issue.status != .canceled, jobs.contains(id),
+      externalRuns[id] == token
+    else {
       throw CancellationError()
     }
   }
-  private func deliverExternal(_ id: UUID, project: Project) async throws {
-    try ensureExternalActive(id)
+  private func deliverExternal(_ id: UUID, project: Project, token: UUID) async throws {
+    try ensureExternalActive(id, token)
     guard var issue = model.issue(id) else { return }
     guard let number = issue.reportNumber, number > 0 else {
       throw ScreenClipError.message("This report does not have a number yet.")
@@ -71,7 +81,7 @@ extension AgentWorker {
       try await GitWorkspace.prepare(
         project: project, issueID: workspaceID, root: model.store.root, branch: branch)
     }
-    try ensureExternalActive(id)
+    try ensureExternalActive(id, token)
     issue = model.issue(id) ?? issue
     let preparedRevision = issue.revision
     try model.updateIssue(id) {
@@ -96,7 +106,7 @@ extension AgentWorker {
           cwd: workspace.path)
       }
       try await GitHubService.integrateRemoteBranch(workspace.branch, cwd: workspace.path)
-      try ensureExternalActive(id)
+      try ensureExternalActive(id, token)
       issue = model.issue(id) ?? issue
       guard issue.revision == preparedRevision else {
         try model.updateIssue(id) {
@@ -133,7 +143,7 @@ extension AgentWorker {
     case .postExisting(let existing):
       commit = existing
     }
-    try ensureExternalActive(id)
+    try ensureExternalActive(id, token)
     guard model.issue(id)?.revision == preparedRevision else {
       try model.updateIssue(id) {
         $0.dispatchUncertain = false
@@ -149,7 +159,7 @@ extension AgentWorker {
         model.snapshot.settings.ghPath, ["auth", "status"], cwd: workspace.path)
       try await GitHubService.pushBranch(workspace.branch, cwd: workspace.path)
     }
-    try ensureExternalActive(id)
+    try ensureExternalActive(id, token)
     guard let current = model.issue(id), current.revision == preparedRevision else {
       try model.updateIssue(id) {
         $0.dispatchUncertain = false

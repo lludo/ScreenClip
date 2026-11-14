@@ -232,6 +232,15 @@ final class CoreTests: XCTestCase {
     XCTAssertNil(
       ProjectRouter.identifierToLearn(
         from: CaptureContext(bundleID: "com.google.Chrome"), for: genealogy.id, projects: projects))
+    // Shared tools and less common browsers are never pinned to one project.
+    for shared in [
+      "com.apple.iphonesimulator", "com.apple.dt.Xcode", "com.apple.Terminal",
+      "com.mirageteam.screenclip", "com.brave.Browser", "com.google.Chrome.canary",
+    ] {
+      XCTAssertNil(
+        ProjectRouter.identifierToLearn(
+          from: CaptureContext(bundleID: shared), for: genealogy.id, projects: projects), shared)
+    }
   }
   func testMergeRejectsStaleRevisionsHeadsAndMissingValidation() {
     var e = MergeEvidence(

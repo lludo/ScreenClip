@@ -230,6 +230,9 @@ extension AgentWorker {
       guard project.autoMerge && evidence.canMerge && !model.snapshot.settings.paused else {
         return
       }
+      // Re-check after the awaits above: parallel reports in one project must merge one at a
+      // time, so each later merge revalidates against the base that already includes the earlier.
+      guard !mergingProjects.contains(project.id) else { return }
       mergingProjects.insert(project.id)
       defer { mergingProjects.remove(project.id) }
       let baseAdvanced: Bool
@@ -322,6 +325,8 @@ extension AgentWorker {
     }
   }
   func removeWorkspace(_ id: UUID, path: String, branch: String?, project: Project) async {
+    // The merge is confirmed with GitHub before this runs, so the PR branch is no longer needed.
+    if let branch { await GitWorkspace.deleteRemoteBranch(branch, repository: project.path) }
     let removed =
       (try? await serializedWorkspaceChange(project.id) {
         await GitWorkspace.remove(path: path, branch: branch, repository: project.path)

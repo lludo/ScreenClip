@@ -46,7 +46,7 @@ struct ProjectEditor: View {
             get: { project.sendsExternalScreenshots },
             set: { project.allowExternalScreenshots = $0 }))
         Text(
-          "Grok Bot receives approved screenshots as files on a screenclip/ branch in this repository. Leave this off unless that is acceptable. Public repositories need this too, because those files would be readable by anyone who can see the repository. The toggle is off until you turn it on."
+          "Grok Bot receives approved screenshots as files on a screenclip/ branch in this repository. Leave this off unless that is acceptable. Public repositories need this too, because those files would be readable by anyone who can see the repository, and pushed files stay in GitHub history even after the branch is deleted. The toggle is off until you turn it on."
         ).font(.caption).foregroundStyle(.secondary)
       }.textFieldStyle(.roundedBorder)
       if let error { Text(error).font(.caption).foregroundStyle(.red) }
