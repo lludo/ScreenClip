@@ -35,8 +35,6 @@ struct ComposerView: View {
           Image(systemName: "xmark")
         }.buttonStyle(.plain).accessibilityLabel("Close capture")
       }.padding(20)
-      AnnotationCanvas(image: image, document: document).frame(
-        minHeight: 220, idealHeight: 330, maxHeight: .infinity)
       HStack(spacing: 6) {
         ForEach(MarkKind.allCases, id: \.self) { kind in
           Button {
@@ -102,33 +100,46 @@ struct ComposerView: View {
           .textFieldStyle(.roundedBorder).padding(.horizontal, 20).padding(.bottom, 10)
       }
       Divider()
-      VStack(alignment: .leading, spacing: 12) {
-        ZStack(alignment: .topLeading) {
-          if note.isEmpty {
-            Text("A quick description, or just the screenshot…").foregroundStyle(.tertiary).padding(
-              .top, 8
-            ).padding(.leading, 5).allowsHitTesting(false)
-          }
-          TextEditor(text: $note).font(.body).scrollContentBackground(.hidden).frame(height: 75)
-            .focused($noteFocused).accessibilityLabel("Observation description")
+      AnnotationCanvas(image: image, document: document).frame(
+        minHeight: 160, idealHeight: 330, maxHeight: .infinity)
+      Divider()
+      ZStack(alignment: .topLeading) {
+        if note.isEmpty {
+          Text("A quick description, or just the screenshot…").foregroundStyle(.tertiary).padding(
+            .top, 8
+          ).padding(.leading, 5).allowsHitTesting(false)
         }
-        HStack {
-          Picker("Project", selection: $projectID) {
-            Text("Choose project…").tag(nil as UUID?)
-            ForEach(model.snapshot.projects) { Text($0.name).tag(Optional($0.id)) }
-          }.frame(maxWidth: 300).disabled(existing != nil && existing?.status != .draft)
-          Picker("Issue", selection: $issueID) {
-            Text("New issue").tag(nil as UUID?)
-            ForEach(
-              model.snapshot.issues.filter {
-                !$0.archived && $0.projectID == projectID && $0.status != .draft
+        TextEditor(text: $note).font(.body).scrollContentBackground(.hidden).frame(height: 75)
+          .focused($noteFocused).accessibilityLabel("Observation description")
+      }.padding(20)
+      Divider()
+      VStack(alignment: .leading, spacing: 12) {
+        HStack(alignment: .top, spacing: 20) {
+          VStack(alignment: .leading, spacing: 6) {
+            Text("Project").font(.caption).foregroundStyle(.secondary)
+            Picker("Project", selection: $projectID) {
+              Text("Choose project…").tag(nil as UUID?)
+              ForEach(model.snapshot.projects) { Text($0.name).tag(Optional($0.id)) }
+            }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+              .accessibilityLabel("Project")
+              .disabled(existing != nil && existing?.status != .draft)
+          }.frame(maxWidth: .infinity, alignment: .leading)
+          VStack(alignment: .leading, spacing: 6) {
+            Text("Issue").font(.caption).foregroundStyle(.secondary)
+            Picker("Issue", selection: $issueID) {
+              Text("New issue").tag(nil as UUID?)
+              ForEach(
+                model.snapshot.issues.filter {
+                  !$0.archived && $0.projectID == projectID && $0.status != .draft
+                }
+              ) { Text($0.referencedTitle).tag(Optional($0.id)) }
+              if let existing, existing.status == .draft {
+                Text(existing.reportReference.map { "Current draft \($0)" } ?? "Current draft")
+                  .tag(Optional(existing.id))
               }
-            ) { Text($0.referencedTitle).tag(Optional($0.id)) }
-            if let existing, existing.status == .draft {
-              Text(existing.reportReference.map { "Current draft \($0)" } ?? "Current draft")
-                .tag(Optional(existing.id))
-            }
-          }.frame(maxWidth: 300)
+            }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+              .accessibilityLabel("Issue")
+          }.frame(maxWidth: .infinity, alignment: .leading)
         }
         if let error { Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
         HStack {
