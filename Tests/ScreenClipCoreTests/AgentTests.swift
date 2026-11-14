@@ -1,5 +1,30 @@
 import XCTest
 
+final class CodexApprovalOptionsTests: XCTestCase {
+  func testOnlyOffersServerProposedCommandRule() {
+    let rule: JSONValue = .object(["acceptWithExecpolicyAmendment": .object([
+      "execpolicy_amendment": .array([.string("bash"), .string("scripts/build.sh")])
+    ])])
+    let params: JSONValue = .object([
+      "proposedExecpolicyAmendment": .array([.string("bash"), .string("scripts/build.sh")]),
+      "availableDecisions": .array([.string("accept"), rule, .string("decline")]),
+    ])
+    let options = CodexApprovalOptions(method: "item/commandExecution/requestApproval", params: params)
+    XCTAssertEqual(options.ruleDecision, rule)
+    XCTAssertFalse(options.permits("acceptForSession"))
+    XCTAssertTrue(options.permits("accept"))
+    XCTAssertNil(CodexApprovalOptions(method: "item/fileChange/requestApproval", params: params).ruleDecision)
+    XCTAssertNil(CodexApprovalOptions(method: "item/commandExecution/requestApproval", params: .object([
+      "proposedExecpolicyAmendment": .array([.string("bash")]),
+      "availableDecisions": .array([.string("accept")]),
+    ])).ruleDecision)
+    XCTAssertNil(CodexApprovalOptions(method: "item/commandExecution/requestApproval", params: .object([
+      "proposedExecpolicyAmendment": .array([.string("bash")]),
+      "networkApprovalContext": .object(["host": .string("example.com")]),
+    ])).ruleDecision)
+  }
+}
+
 @testable import ScreenClipCore
 
 final class AgentTests: XCTestCase {
