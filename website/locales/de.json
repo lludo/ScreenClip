@@ -37,7 +37,7 @@
   },
   "hero": {
     "eyebrow": "Screenshot-Feedback für Coding-Agenten",
-    "title": "Halte fest, was dir auffällt. Verfolge den Fix hier.",
+    "title": "Melde Fehler im Vorbeigehen, ohne deinen Flow zu unterbrechen.",
     "lead": "Markiere einen Bereich auf dem Mac, hebe hervor, was zählt, und übergib es an Codex, Claude Code oder Grok Bot. ScreenClip verfolgt den GitHub-Pull-Request, mergt nur wenn du es erlaubst, und behält das Ergebnis für den erneuten Test."
   },
   "demo": {

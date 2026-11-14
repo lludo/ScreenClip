@@ -37,7 +37,7 @@
   },
   "hero": {
     "eyebrow": "Screenshot feedback for AI coding agents",
-    "title": "Capture what you notice. Follow the fix here.",
+    "title": "File bugs as you go, without breaking your flow.",
     "lead": "Capture a region on your Mac, mark what matters, and hand it to Codex, Claude Code, or Grok Bot. ScreenClip tracks the GitHub pull request, merges when you allow it, and keeps the result for retest."
   },
   "demo": {

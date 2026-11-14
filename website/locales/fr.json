@@ -37,7 +37,7 @@
   },
   "hero": {
     "eyebrow": "Retours par capture pour les agents de code",
-    "title": "Capturez ce que vous remarquez. Suivez le correctif ici.",
+    "title": "Signalez les bugs au fil de l’eau, sans casser votre rythme.",
     "lead": "Sélectionnez une zone sur le Mac, marquez ce qui compte et confiez-la à Codex, Claude Code ou Grok Bot. ScreenClip suit la pull request GitHub, ne la fusionne que si vous l’autorisez, et garde le résultat pour un nouveau test."
   },
   "demo": {
