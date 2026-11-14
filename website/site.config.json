@@ -1,5 +1,6 @@
 {
-  "siteUrl": "",
-  "appStoreUrl": "",
-  "downloadUrl": "https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg"
+  "siteUrl": "https://screenclipai.com",
+  "githubUrl": "https://github.com/lludo/ScreenClip",
+  "downloadUrl": "https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg",
+  "donateUrl": ""
 }
