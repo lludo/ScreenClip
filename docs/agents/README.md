@@ -34,7 +34,7 @@ Codex and Claude Code follow the same contract, so the rest of ScreenClip stays 
 
 **ScreenClip provides**
 - An isolated worktree and `screenclip/<id>` branch (`GitWorkspace.prepare`), started from `origin/<base>`, as the agent's working directory. The tester's checkout is never the working directory.
-- One prompt per turn (`AgentPrompt.text`) with the issue, project, worktree, branch, validation command, capture context, user replies, and previous validation feedback. Notes, screenshot contents, titles, and URLs are labeled as untrusted evidence.
+- One prompt per turn (`AgentPrompt.turn`). The first turn of a conversation gets the full prompt (`AgentPrompt.text`): the issue, project, worktree, branch, validation command, capture context, user replies, and the latest validation or CI failure (`Issue.validationFeedback`, never unrelated errors). A resumed conversation that completed a turn gets a short follow-up with only the captures, notes, replies, and validation feedback it has not seen, and only the new screenshots; `Issue.deliveredContext` records what it has seen. A new or relinked conversation gets everything again. Notes, screenshot contents, titles, and URLs are labeled as untrusted evidence.
 - The approved screenshots only (annotated, with redactions flattened), never unredacted originals.
 - A JSON Schema for the result (`AgentPrompt.resultSchema`).
 - An environment without GitHub tokens or git redirect variables (`ProcessEnvironment.agent`). Agents cannot push or open PRs with ScreenClip's credentials.

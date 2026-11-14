@@ -95,6 +95,30 @@ import UserNotifications
     var next = snapshot
     try change(&next)
     snapshot = try store.save(next)
+    // Any deferred progress was part of `next` and is now saved.
+    pendingSave?.cancel()
+    pendingSave = nil
+  }
+  private var pendingSave: Task<Void, Never>?
+  /// For agent progress lines: they arrive often and losing the last second of them in a crash
+  /// is harmless, so update the queue in memory now and save within a second. Every state
+  /// change still goes through `commit`, which saves at once (and saves these with it).
+  func updateIssueSoon(_ id: UUID, _ change: (inout Issue) -> Void) {
+    guard let index = snapshot.issues.firstIndex(where: { $0.id == id }) else { return }
+    change(&snapshot.issues[index])
+    guard pendingSave == nil else { return }
+    pendingSave = Task { [weak self] in
+      try? await Task.sleep(nanoseconds: 1_000_000_000)
+      guard !Task.isCancelled else { return }
+      self?.flushPendingSave()
+    }
+  }
+  /// Saves progress kept in memory by `updateIssueSoon`. Called before quitting.
+  func flushPendingSave() {
+    guard pendingSave != nil else { return }
+    pendingSave?.cancel()
+    pendingSave = nil
+    perform { snapshot = try store.save(snapshot) }
   }
   func updateIssue(_ id: UUID, _ change: (inout Issue) -> Void) throws {
     try commit { state in

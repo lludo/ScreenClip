@@ -114,10 +114,10 @@ extension AgentWorker {
       return
     }
     issue = current
-    var input: [JSONValue] = [
-      .object(["type": .string("text"), "text": .string(AgentPrompt.text(for: issue, project: project))])
-    ]
-    for capture in issue.captures {
+    // A resumed chat already holds earlier evidence; send only what is new.
+    let turn = AgentPrompt.turn(for: issue, project: project, threadID: issue.threadID)
+    var input: [JSONValue] = [.object(["type": .string("text"), "text": .string(turn.text)])]
+    for capture in turn.captures {
       let image = try Data(contentsOf: URL(fileURLWithPath: capture.imagePath))
       input.append(
         .object([
@@ -132,6 +132,7 @@ extension AgentWorker {
       $0.record("Investigating capture revision \(issue.revision)", status: .working)
     }
     texts[id] = nil
+    sentContext[id] = AgentPrompt.delivered(issue, threadID: issue.threadID!)
     let result = try await client.request(
       "turn/start",
       params: .object([
@@ -286,14 +287,18 @@ extension AgentWorker {
       if item["type"].string == "agentMessage", let text = item["text"].string {
         texts[id] = text
         if item["phase"].string != "final_answer" {
-          model.perform { try model.updateIssue(id) { $0.record(String(text.prefix(3000))) } }
+          model.updateIssueSoon(id) { $0.record(String(text.prefix(3000))) }
         }
       }
     case "turn/completed":
       guard jobs.contains(id) else { return }
       guard issue.turnID == nil || issue.turnID == p["turn"]["id"].string else { return }
       codexTurnWatchdogs.removeValue(forKey: id)?.cancel()
+      let delivered = sentContext.removeValue(forKey: id)
       if p["turn"]["status"].string == "completed" {
+        if let delivered, delivered.threadID == threadID {
+          model.perform { try model.updateIssue(id) { $0.deliveredContext = delivered } }
+        }
         if !finishing.contains(id) {
           finishing.insert(id)
           Task {

@@ -21,10 +21,11 @@ extension AgentWorker {
       return
     }
     issue = current
-    var images: [Data] = []
-    for capture in issue.captures {
-      images.append(try Data(contentsOf: URL(fileURLWithPath: capture.imagePath)))
-    }
+    // Read every screenshot up front, so a missing file fails before the session is touched.
+    let allImages = try Dictionary(
+      uniqueKeysWithValues: issue.captures.map {
+        ($0.id, try Data(contentsOf: URL(fileURLWithPath: $0.imagePath)))
+      })
     try model.updateIssue(id) {
       $0.threadID = sessionID
       $0.turnID = "claude:" + sessionID
@@ -38,11 +39,13 @@ extension AgentWorker {
     }
     issue = current
     texts[id] = nil
+    // A resumed session already holds earlier evidence; send only what is new.
+    let turn = AgentPrompt.turn(for: issue, project: project, threadID: resume ? sessionID : nil)
     var request = ClaudeTurnRequest(
       executable: executable, cwd: path, sessionID: sessionID, resume: resume,
       name: "ScreenClip: " + issue.referencedTitle,
-      model: model.snapshot.settings.claudeModel, prompt: AgentPrompt.text(for: issue, project: project),
-      images: images, schema: AgentPrompt.resultSchema)
+      model: model.snapshot.settings.claudeModel, prompt: turn.text,
+      images: turn.captures.compactMap { allImages[$0.id] }, schema: AgentPrompt.resultSchema)
     request.timeout = turnTimeLimit
     let progress: @Sendable (String) async -> Void = { [weak self] text in
       await self?.recordProgress(id, text: text)
@@ -72,6 +75,10 @@ extension AgentWorker {
         }
         request.sessionID = fresh
         request.resume = false
+        // The new session has seen nothing yet.
+        let full = AgentPrompt.turn(for: issue, project: project, threadID: nil)
+        request.prompt = full.text
+        request.images = full.captures.compactMap { allImages[$0.id] }
         result = try await claude.run(request, progress: progress)
       }
     } catch is CancellationError {
@@ -82,9 +89,11 @@ extension AgentWorker {
       model.perform { try model.updateIssue(id) { $0.turnID = nil } }
       throw error
     }
+    let delivered = AgentPrompt.delivered(issue, threadID: request.sessionID)
     model.perform {
       try model.updateIssue(id) {
         $0.turnID = nil
+        if !result.isError { $0.deliveredContext = delivered }
         $0.record("Claude Code turn finished · " + result.usageSummary, kind: "usage")
       }
     }
@@ -149,7 +158,7 @@ extension AgentWorker {
   }
   func recordProgress(_ id: UUID, text: String) {
     guard model.issue(id)?.status == .working else { return }
-    model.perform { try model.updateIssue(id) { $0.record(String(text.prefix(3000))) } }
+    model.updateIssueSoon(id) { $0.record(String(text.prefix(3000))) }
   }
   /// Reconciliation checks for surviving children and Terminal sessions before
   /// allowing another turn. Claude history is resumed on Continue.

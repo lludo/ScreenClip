@@ -395,11 +395,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       let alert = NSAlert()
       alert.messageText = "Quit while work is running?"
       alert.informativeText =
-        "The local worker will stop. Your captures are saved; reconcile the existing chats when you reopen ScreenClip."
+        "The local worker will stop. Your captures are saved. Claude Code work continues when you reopen ScreenClip; reconcile Codex chats then."
       alert.addButton(withTitle: "Keep running")
       alert.addButton(withTitle: "Quit")
       if alert.runModal() != .alertSecondButtonReturn { return .terminateCancel }
     }
     return .terminateNow
+  }
+  func applicationWillTerminate(_ notification: Notification) {
+    // Agent progress is saved within a second; save the last of it before quitting.
+    model?.flushPendingSave()
   }
 }
