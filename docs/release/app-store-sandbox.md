@@ -1,6 +1,6 @@
 # Mac App Store sandbox
 
-**Verdict: do not ship ScreenClip on the Mac App Store.** The sandbox would block the product. Codex, Claude Code, `git`, `gh`, and the project's validation command all run as child processes in the user's repositories, and a sandboxed child inherits the sandbox. There is no App Store-legal way to give those tools the user's Homebrew binaries, `~/.codex`, `~/.claude`, `~/.gitconfig`, SSH keys, and `gh` credentials. A companion helper would be the same conclusion: the app would not work without software App Review does not want a Mac App Store app to require.
+**Verdict: do not ship ScreenClip on the Mac App Store.** The sandbox would block the product. A macOS 15 CI run confirmed the two local tools the app shells out to: `/usr/bin/git` exits with `xcrun: error: cannot be used within an App Sandbox`, and `/opt/homebrew/bin/git` and `gh` are unreadable. Codex, Claude Code, `git`, `gh`, and the project's validation command all run as child processes in the user's repositories, and a sandboxed child inherits the sandbox. There is no App Store-legal way to give those tools the user's Homebrew binaries, `~/.codex`, `~/.claude`, `~/.gitconfig`, SSH keys, and `gh` credentials. A companion helper would be the same conclusion: the app would not work without software App Review does not want a Mac App Store app to require.
 
 Ship the unsandboxed, notarized app from GitHub Releases instead. That path is [direct distribution](direct-distribution.md). This note records why the sandbox fails, what would have worked, and the runtime check. No App Store build configuration or scheme was added.
 
@@ -102,11 +102,22 @@ A "lite" store app that only posted the webhook and uploaded files with the GitH
 
 The user-selected entitlement does not, by itself, open any folder. The diagnostic never shows an open panel, so this is the static sandbox a launched app has before the user picks a directory.
 
-Results from the macOS 15 runner are in the section below once CI has recorded them. If this paragraph is still a placeholder, the job log for "App Sandbox diagnostic" on the pull request is the source.
+### Result on the macOS 15 runner
 
-<!-- sandbox-diagnostic-results -->
-Pending the macOS CI run on this branch.
-<!-- /sandbox-diagnostic-results -->
+GitHub Actions run [43632203883](https://github.com/lludo/ScreenClip/actions/runs/43632203883), job "macos", step "App Sandbox diagnostic", on November 14, 2026. Host `15.8.2` arm64. The process was ad-hoc signed with the four entitlements above and exited 0. The sandbox was real: `APP_SANDBOX_CONTAINER_ID` was `com.mirageteam.screenclip.sandboxdiag`.
+
+| Check | Result |
+| --- | --- |
+| `home` and Application Support | Redirected into `~/Library/Containers/com.mirageteam.screenclip.sandboxdiag/Data`. `read_home` and `write_home` succeeded only because that path is the container, not the runner's real home |
+| `~/.gitconfig` | Not visible. The lookup used the container path and failed with Cocoa error 260 (file does not exist) |
+| `/bin/echo ok` | `status 0` |
+| `/usr/bin/git --version` | `status 1`, `xcrun: error: cannot be used within an App Sandbox.` |
+| `git init` in the container temp directory | Same `xcrun` error |
+| `/opt/homebrew/bin/git` | Present on the runner and unreadable from the sandbox. Launch failed with Cocoa error 4, "The file git doesn't exist." |
+| `/opt/homebrew/bin/gh` | Same: present, unreadable, launch failed as if the file did not exist |
+| `/usr/local/bin/git` | Missing on this arm64 image |
+
+So the two commands ScreenClip hard-codes or defaults to both fail inside the sandbox, before any repository or SSH key is involved. `/usr/bin/git` is the shim and refuses to run. The Homebrew `git` and `gh` binaries are hidden from the sandboxed process. A containerized `HOME` means `~/.codex`, `~/.claude`, `~/.gitconfig`, and `~/.config/gh` in the real home are not the directories those tools would see.
 
 ## What was not added
 
