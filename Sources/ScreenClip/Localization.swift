@@ -10,6 +10,13 @@ enum AppLocalization {
     return .main
     #endif
   }
+  static func bundle(for locale: Locale) -> Bundle {
+    let preferred = Bundle.preferredLocalizations(
+      from: bundle.localizations, forPreferences: [locale.identifier]).first
+    guard let preferred, let path = bundle.path(forResource: preferred, ofType: "lproj"),
+      let localized = Bundle(path: path) else { return bundle }
+    return localized
+  }
 }
 
 extension Text {
@@ -23,7 +30,7 @@ enum Chrome {
   static func text(
     _ key: String.LocalizationValue, locale: Locale = .current, comment: StaticString
   ) -> String {
-    String(localized: key, bundle: AppLocalization.bundle, locale: locale, comment: comment)
+    String(localized: key, bundle: AppLocalization.bundle(for: locale), locale: locale, comment: comment)
   }
 
   static func format(
@@ -31,7 +38,7 @@ enum Chrome {
     comment: StaticString
   ) -> String {
     String(
-      localized: key, defaultValue: defaultValue, bundle: AppLocalization.bundle, locale: locale,
+      localized: key, defaultValue: defaultValue, bundle: AppLocalization.bundle(for: locale), locale: locale,
       comment: comment)
   }
 
@@ -40,7 +47,7 @@ enum Chrome {
     if let patterned = ActivityPatterns.translate(english, locale: locale) { return patterned }
     if AppChrome.exact.contains(english) {
       return String(
-        localized: String.LocalizationValue(stringLiteral: english), bundle: AppLocalization.bundle,
+        localized: String.LocalizationValue(stringLiteral: english), bundle: AppLocalization.bundle(for: locale),
         locale: locale)
     }
     if let core = CoreChrome.display(english, locale: locale) { return core }

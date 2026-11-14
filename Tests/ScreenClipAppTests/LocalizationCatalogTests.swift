@@ -1,6 +1,14 @@
 import XCTest
+@testable import ScreenClip
+@testable import ScreenClipCore
 
 final class LocalizationCatalogTests: XCTestCase {
+  func testDynamicLabelsUseRequestedLocale() {
+    let german = Locale(identifier: "de")
+    XCTAssertEqual(Chrome.stored("Screen capture is ready.", locale: german), "Die Bildschirmaufnahme ist bereit.")
+    XCTAssertNotEqual(IssueStatus.working.localizedTitle(locale: german), IssueStatus.working.title)
+  }
+
   func testStringCatalogsCoverEveryInterfaceString() throws {
     let root = URL(fileURLWithPath: #filePath)
       .deletingLastPathComponent().deletingLastPathComponent().deletingLastPathComponent()

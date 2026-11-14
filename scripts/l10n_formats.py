@@ -40,11 +40,8 @@ def P(bundle, comment, forms):
 
 
 FORMATS = {
-    "metric.open.caption": P("app", "Menu bar caption under the open-report count. The number is shown separately.", {
-        "en": "Open", "zh-Hans": "未完成", "es": ("Abierto", "Abiertos"), "ja": "未完了",
-        "pt-BR": ("Aberto", "Abertos"), "de": "Offen", "fr": ("Ouvert", "Ouverts"), "ko": "진행 중",
-        "ru": ("открытый", "открытых", "открытых", "открытых"), "zh-Hant": "未完成",
-    }),
+    "metric.open.caption": S("app", "Caption under the open-report count.",
+        "Open", "未完成", "En curso", "未完了", "Em aberto", "Offen", "En cours", "진행 중", "Открыто", "未完成"),
     "metric.open.phrase": P("app", "Accessibility phrase for open reports. %lld is the count.", {
         "en": "%lld Open", "zh-Hans": "%lld 个未完成", "es": ("%lld abierto", "%lld abiertos"),
         "ja": "未完了 %lld 件", "pt-BR": ("%lld aberto", "%lld abertos"), "de": "%lld offen",
@@ -52,11 +49,8 @@ FORMATS = {
         "ru": ("%lld открытый", "%lld открытых", "%lld открытых", "%lld открытых"),
         "zh-Hant": "%lld 個未完成",
     }),
-    "metric.needsYou.caption": P("app", "Menu bar caption under reports that need the user. The number is shown separately.", {
-        "en": "Needs you", "zh-Hans": "需要你", "es": "Te necesita", "ja": "要対応",
-        "pt-BR": "Precisa de você", "de": "Für dich", "fr": "À traiter", "ko": "확인 필요",
-        "ru": "Нужны вы", "zh-Hant": "需要你",
-    }),
+    "metric.needsYou.caption": S("app", "Caption under the count needing attention.",
+        "Needs you", "需要你", "Requiere atención", "要対応", "Precisa de atenção", "Für dich", "À traiter", "확인 필요", "Нужно внимание", "需要你"),
     "metric.needsYou.phrase": P("app", "Accessibility phrase for reports that need the user. %lld is the count.", {
         "en": ("%lld needs you", "%lld need you"), "zh-Hans": "%lld 个需要你",
         "es": ("%lld te necesita", "%lld te necesitan"), "ja": "要対応 %lld 件",
@@ -65,11 +59,8 @@ FORMATS = {
         "ru": ("%lld ждёт вас", "%lld ждут вас", "%lld ждут вас", "%lld ждут вас"),
         "zh-Hant": "%lld 個需要你",
     }),
-    "metric.retest.caption": P("app", "Menu bar caption under reports waiting to be retested. The number is shown separately.", {
-        "en": "To retest", "zh-Hans": "待复测", "es": "Por retestar", "ja": "再テスト",
-        "pt-BR": "A retestar", "de": "Erneut testen", "fr": "À retester", "ko": "재테스트",
-        "ru": "На перепроверку", "zh-Hant": "待重測",
-    }),
+    "metric.retest.caption": S("app", "Caption under the retest count.",
+        "To retest", "待复测", "Por retestar", "再テスト", "A retestar", "Erneut testen", "À retester", "재테스트", "На перепроверку", "待重測"),
     "metric.retest.phrase": P("app", "Accessibility phrase for reports to retest. %lld is the count.", {
         "en": "%lld To retest", "zh-Hans": "%lld 个待复测", "es": "%lld por retestar",
         "ja": "再テスト %lld 件", "pt-BR": "%lld a retestar", "de": "%lld erneut testen",

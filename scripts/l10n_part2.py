@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import pickle
 from l10n_part1 import T, A
 
 A("Could not encode the screenshot.", "无法编码截图。", "No se pudo codificar la captura.", "スクリーンショットをエンコードできませんでした。", "Não foi possível codificar a captura.", "Der Screenshot konnte nicht kodiert werden.", "Impossible d’encoder la capture.", "스크린샷을 인코딩할 수 없습니다.", "Не удалось закодировать снимок.", "無法編碼截圖。")
@@ -135,5 +134,4 @@ A("Orange", "橙色", "Naranja", "オレンジ", "Laranja", "Orange", "Orange", 
 A("Other sign-in options", "其他登录方式", "Otras formas de iniciar sesión", "その他のサインイン", "Outras opções de login", "Andere Anmeldeoptionen", "Autres options de connexion", "다른 로그인 방법", "Другие способы входа", "其他登入方式")
 A("PR open", "PR 已打开", "PR abierto", "PR オープン", "PR aberto", "PR offen", "PR ouverte", "PR 열림", "PR открыт", "PR 已開啟")
 A("PROJECTS", "项目", "PROYECTOS", "プロジェクト", "PROJETOS", "PROJEKTE", "PROJETS", "프로젝트", "ПРОЕКТЫ", "專案")
-pickle.dump(T, open("/tmp/l10n/part2.pkl", "wb"))
 print(len(T))

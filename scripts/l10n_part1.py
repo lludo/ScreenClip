@@ -110,6 +110,4 @@ A("Copies a Terminal command that reopens this issue's Claude Code session", "�
 A("Copy Claude resume command", "复制 Claude 恢复命令", "Copiar comando de reanudación de Claude", "Claude の再開コマンドをコピー", "Copiar comando de retomada do Claude", "Claude-Fortsetzungsbefehl kopieren", "Copier la commande de reprise Claude", "Claude 재개 명령 복사", "Копировать команду возобновления Claude", "複製 Claude 恢復命令")
 A("Copy code", "复制代码", "Copiar código", "コードをコピー", "Copiar código", "Code kopieren", "Copier le code", "코드 복사", "Копировать код", "複製代碼")
 A("Copy report number", "复制报告编号", "Copiar número de informe", "レポート番号をコピー", "Copiar número do relatório", "Berichtsnummer kopieren", "Copier le numéro de rapport", "리포트 번호 복사", "Копировать номер отчёта", "複製報告編號")
-import pickle
-pickle.dump(T, open("/tmp/l10n/part1.pkl", "wb"))
 print(len(T))

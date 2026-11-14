@@ -30,7 +30,7 @@ struct MenuPopover: View {
       HStack(alignment: .top, spacing: 12) {
         metric(
           Chrome.format(
-            "metric.open.caption", "\(model.snapshot.activeCount) Open", locale: locale,
+            "metric.open.caption", "Open", locale: locale,
             comment: "Caption under the open-report count. The number is shown separately."),
           model.snapshot.activeCount,
           phrase: Chrome.format(
@@ -38,7 +38,7 @@ struct MenuPopover: View {
             comment: "Accessibility label for the open-report count. %lld is the count."))
         metric(
           Chrome.format(
-            "metric.needsYou.caption", "\(model.snapshot.attentionCount) Needs you", locale: locale,
+            "metric.needsYou.caption", "Needs you", locale: locale,
             comment: "Caption under the needs-you count. The number is shown separately."),
           model.snapshot.attentionCount,
           phrase: Chrome.format(
@@ -47,7 +47,7 @@ struct MenuPopover: View {
         metric(
           Chrome.format(
             "metric.retest.caption",
-            "\(retestCount) To retest", locale: locale,
+            "To retest", locale: locale,
             comment: "Caption under the retest count. The number is shown separately."),
           retestCount,
           phrase: Chrome.format(
