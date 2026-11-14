@@ -2,14 +2,14 @@
   "languageName": "한국어",
   "meta": {
     "homeTitle": "ScreenClip — 코딩 에이전트를 위한 스크린샷 피드백",
-    "homeDescription": "무료 Mac 메뉴 막대 앱. 영역을 찍어 Codex, Claude Code 또는 Grok Bot에 넘기고, 검사와 병합, 재테스트까지 pull request를 따라갑니다.",
+    "homeDescription": "ScreenClip이 Mac용으로 곧 출시됩니다. 발견한 내용을 캡처해 코딩 에이전트에 보내고 흐름을 유지하며 수정을 추적하세요.",
     "privacyTitle": "개인정보 처리방침 — ScreenClip",
     "privacyDescription": "ScreenClip이 Mac에 저장하는 것, Codex, Claude Code, Grok Bot 또는 GitHub로 나갈 수 있는 것, 그리고 가리기가 동작하는 방식.",
     "supportTitle": "지원 — ScreenClip",
     "supportDescription": "GitHub issues로 받는 ScreenClip 도움과 Mac 앱을 실행하거나 빌드하는 데 필요한 것.",
     "notFoundTitle": "페이지를 찾을 수 없음 — ScreenClip",
     "notFoundDescription": "ScreenClip 사이트에 그 페이지는 없습니다.",
-    "ogAlt": "ScreenClip. 스크린샷에서 pull request까지. Codex, Claude Code, Grok Bot용."
+    "ogAlt": "ScreenClip. 흐름을 끊지 않고 버그를 바로 기록하세요."
   },
   "nav": {
     "skip": "본문으로 건너뛰기",
@@ -18,7 +18,7 @@
     "how": "사용 방법",
     "agents": "코딩 에이전트",
     "questions": "질문",
-    "download": "다운로드",
+    "download": "출시 안내",
     "privacy": "개인정보 처리방침",
     "support": "지원",
     "source": "GitHub의 소스",
@@ -38,7 +38,7 @@
   "hero": {
     "eyebrow": "코딩 에이전트를 위한 스크린샷 피드백",
     "title": "흐름을 끊지 않고 버그를 바로 기록하세요.",
-    "lead": "Mac에서 영역을 잡고, 중요한 곳을 표시한 뒤 Codex, Claude Code 또는 Grok Bot에 넘깁니다. ScreenClip은 GitHub pull request를 추적하고, 허용할 때만 병합하며, 다시 확인할 수 있도록 결과를 남겨 둡니다."
+    "lead": "테스트 중 발견한 부분을 캡처하고, 필요하면 메모를 더해 Codex, Claude Code 또는 Grok Bot에 보내세요. ScreenClip이 보고서와 수정을 함께 관리하므로 다시 테스트에 집중할 수 있습니다."
   },
   "demo": {
     "title": "메뉴 막대",
@@ -48,7 +48,7 @@
   "loop": {
     "eyebrow": "사용 방법",
     "title": "찍고, 수정을 보내고, 다시 확인하세요.",
-    "intro": "잘린 버튼이나 헷갈리는 문구면 충분합니다. 하던 일은 그대로 이어가면 됩니다. 보고서와 pull request는 ScreenClip이 보관합니다.",
+    "intro": "발견부터 재테스트까지 세 단계.",
     "captureTitle": "캡처",
     "captureBody": "{kbd}를 누르고 웹사이트나 Mac 앱의 영역을 드래그하세요. 단축키는 Settings에서 바꿀 수 있습니다.",
     "annotateTitle": "표시",
@@ -75,16 +75,16 @@
   },
   "download": {
     "eyebrow": "다운로드",
-    "title": "Mac에서는 무료. 소스는 GitHub에 공개(source-available).",
-    "price": "ScreenClip은 무료입니다. 구독은 없습니다.",
+    "title": "Mac에서 사용할 수 있습니다.",
+    "price": "비상업적 용도로 무료입니다.",
     "source": "ScreenClip은 소스 공개(source-available)이며 PolyForm Noncommercial 1.0.0을 따릅니다. 비상업적 사용은 무료입니다. 상업용 라이선스는 요청 시 제공합니다. {link:githubRead}. 이슈를 열거나 Xcode 16 이상으로 빌드할 수 있습니다.",
-    "sourceMissing": "소스 링크가 아직 설정되지 않았습니다.",
+    "sourceMissing": "소스 코드는 아직 공개되지 않았습니다.",
     "button": "Download for Mac (무료)",
     "headerButton": "Download for Mac",
     "github": "GitHub에서 보기",
     "donate": "프로젝트 지원",
     "noteReady": "GitHub Releases의 공증된 디스크 이미지입니다. 버전 태그를 게시하면 파일이 붙습니다.",
-    "noteSoon": "Mac 직접 다운로드는 곧 제공됩니다.",
+    "noteSoon": "Mac 다운로드가 곧 제공됩니다.",
     "sourceSoon": "소스는 곧 제공됩니다.",
     "macSoon": "Mac 다운로드는 곧 제공됩니다.",
     "needsTitle": "필요한 것",
@@ -93,11 +93,12 @@
     "needAgent": "Codex CLI, Claude Code, 또는 Grok Bot webhook",
     "needGh": "GitHub CLI. pull request와 Grok Bot 모두에 사용합니다",
     "awake": "Codex나 Claude Code가 일하는 동안 ScreenClip을 실행해 두고 Mac을 깨워 두세요. Mac이 잠들어도 Grok Bot은 계속합니다. 다음에 ScreenClip을 열면 그 pull request를 갱신합니다.",
-    "privacy": "Mac에 남는 것과 밖으로 나갈 수 있는 것은 {link:privacyLead}."
+    "privacy": "Mac에 남는 것과 밖으로 나갈 수 있는 것은 {link:privacyLead}.",
+    "titleSoon": "Mac용으로 곧 출시됩니다."
   },
   "faq": {
     "title": "질문",
-    "cost": "ScreenClip은 무료입니다. 구독은 없습니다.",
+    "cost": "비상업적 용도로 무료이며, 상업용 라이선스는 요청 시 제공됩니다.",
     "costSource": " 소스는 GitHub에 있습니다.",
     "downloadYes": "네. 이 페이지의 Download for Mac은 GitHub Releases의 최신 공증 디스크 이미지를 가리킵니다. 버전 태그를 게시하면 파일이 붙습니다.",
     "downloadSource": " GitHub 소스로 빌드할 수도 있습니다.",
@@ -134,7 +135,7 @@
       },
       {
         "q": "에이전트 질문은 어디에 나오나요?",
-        "a": "Codex와 Claude Code의 질문은 보고서에 나오고, 거기서 답합니다. Grok Bot의 질문은 Grok Bot 채팅에 남습니다. Cancel은 로컬 기록만 멈춥니다. 이미 보낸 Grok Bot 실행은 멈추지 않습니다."
+        "a": "Codex와 Claude Code의 질문은 보고서에 표시되며 그곳에서 답할 수 있습니다. Grok Bot의 질문은 해당 채팅에 남습니다. Cancel은 로컬 기록을 중지하고 지원되는 연결에 취소를 요청할 수 있지만 원격 실행은 완료될 수 있습니다."
       },
       {
         "id": "cost",
@@ -184,14 +185,14 @@
     "github2": "pull request 본문에는 에이전트 요약, 비밀처럼 보이는 값을 가린 프로젝트 검증 명령, 보고서 참조가 들어갑니다. 본문에는 스크린샷과 출처 맥락이 ScreenClip에 남는다고 적혀 있습니다. 스크린샷은 기본적으로 pull request에 붙지 않습니다.",
     "grokTitle": "Grok Bot",
     "grok1": "webhook URL과 Authorization header를 저장하고 그 프로젝트에서 {ui:allowSend}를 켜기 전에는 Grok Bot에 아무것도 보내지 않습니다. 비공개 저장소를 포함해, 직접 켜기 전에는 옵트인이 꺼져 있습니다.",
-    "grok2": "그다음 ScreenClip은 승인된 PNG와 {code:reportJson}을 프로젝트 저장소의 {code:branch} 브랜치에 푸시하고, 작은 JSON webhook을 보냅니다. webhook에는 이미지 바이트가 없습니다. 보고서 번호, issue id, 리비전, 제목, 메모, 이후 맥락 메모, 원본 앱 이름, bundle ID, 프로젝트 이름, 저장소, 기준 브랜치, 검증 명령, 증거 브랜치, 커밋, 파일 경로가 들어갑니다. 브라우저 URL과 창 제목은 {ui:browserUrl}이 켜져 있을 때만 포함됩니다.",
-    "grok3": "그 GitHub 저장소를 읽을 수 있는 사람은 파일이 지워질 때까지 읽을 수 있습니다. 공개 저장소라면 인터넷의 누구나 해당됩니다. Grok Bot은 그 브랜치에서 pull request를 엽니다. ScreenClip의 Cancel은 로컬 기록만 멈추고 Grok Bot은 멈추지 않습니다. Grok Bot의 질문은 ScreenClip이 아니라 Grok Bot 채팅에 남습니다.",
+    "grok2": "그다음 ScreenClip은 승인된 PNG와 {code:reportJson}을 프로젝트 저장소의 {code:branch} 브랜치에 푸시하고, 작은 JSON webhook을 보냅니다. webhook에는 이미지 바이트가 없습니다. 보고서 번호, issue id, 리비전, 제목, 메모, 이후 맥락 메모, 원본 앱 이름, bundle ID, 프로젝트 이름, 저장소, 기준 브랜치, 검증 명령, 증거 브랜치, 커밋, 파일 경로가 들어갑니다. 브라우저 URL과 창 제목은 {ui:browserUrl}이 켜져 있을 때만 포함됩니다. 웹훅에는 작업 공간 ID, 이전 풀 리퀘스트 URL, 전송 식별자도 포함됩니다. 지원되는 취소 요청은 이슈 ID, 보고서 번호, 리비전, 저장소, 브랜치를 보냅니다.",
+    "grok3": "저장소를 읽을 수 있는 사람은 증거에 접근할 수 있으며, 공개 저장소라면 인터넷의 누구나 접근할 수 있습니다. 이후 커밋에서 파일을 삭제해도 Git 기록에서는 사라지지 않습니다. Grok Bot은 해당 브랜치에서 풀 리퀘스트를 엽니다. Cancel은 로컬 기록을 중지하고 연결이 지원하면 취소를 요청하지만, 원격 실행은 완료될 수 있습니다. 질문은 Grok Bot 채팅에 남습니다.",
     "grok4": "webhook이 다른 호스트로 리다이렉트되어도 Authorization header는 붙지 않습니다.",
     "deleteTitle": "데이터 삭제",
     "delete1": "ScreenClip에서 보고서를 삭제하면 로컬 스크린샷과 메모가 지워집니다. 에이전트 자신의 대화 기록이나 이미 GitHub에 열린 pull request는 지워지지 않습니다. 앱을 지워도 그것만으로 {code:appSupport}나 키체인 항목이 지워지지는 않습니다.",
     "delete2": "GitHub와 로그인한 에이전트의 제공자는 받은 내용을 각자의 조건에 따라 보관합니다.",
     "tipsTitle": "후원",
-    "tips": "ScreenClip은 무료입니다. 앱은 선택적 후원 창을 보여줄 수 있고, 같은 창은 메뉴와 Settings에서도 열 수 있습니다. 후원을 고르면 브라우저에서 GitHub Sponsors가 열립니다. ScreenClip은 결제를 처리하지 않으며 카드나 지급 정보를 받지 않습니다. 창을 닫거나 안내를 끌 수 있습니다. 이 웹사이트는 결제 페이지로 연결하지 않습니다.",
+    "tips": "앱은 선택적 후원 창을 보여줄 수 있고, 같은 창은 메뉴와 Settings에서도 열 수 있습니다. 후원을 고르면 브라우저에서 GitHub Sponsors가 열립니다. ScreenClip은 결제를 처리하지 않으며 카드나 지급 정보를 받지 않습니다. 창을 닫거나 안내를 끌 수 있습니다. 이 웹사이트는 결제 페이지로 연결하지 않습니다.",
     "siteTitle": "이 웹사이트",
     "site1": "{link:site}는 정적 웹사이트입니다. 이 사이트의 페이지는 제3자 스크립트, 글꼴, 분석을 불러오지 않습니다. 언어를 고르면 그 선택이 screenclip_lang이라는 cookie와 기기의 로컬 저장소에 저장됩니다. cookie는 다음에 홈 페이지를 열 언어를 고르는 데만 쓰입니다. 광고나 분석에는 쓰이지 않습니다. 사이트를 제공하는 호스트는 페이지를 전달하기 위해 IP 주소와 user agent 같은 일반적인 연결 데이터를 받습니다.",
     "site2": "다운로드 버튼은 Mac 앱의 GitHub Release로 이동합니다. 저장소나, 나중에 설정될 수 있는 후원 링크 같은 다른 링크는 이 사이트를 떠나 그 목적지로 갑니다.",
@@ -205,10 +206,10 @@
     "title": "지원",
     "intro": "ScreenClip은 스크린샷, 메모, 표시를 Codex, Claude Code 또는 Grok Bot에 보낸 뒤 GitHub pull request를 추적하는 macOS 메뉴 막대 앱입니다.",
     "statusReady": "Mac 앱은 무료입니다. {link:download}는 GitHub Releases의 최신 공증 디스크 이미지를 가리킵니다. 버전 태그를 게시하면 파일이 붙습니다.",
-    "statusSoon": "Mac 직접 다운로드는 아직 연결되어 있지 않습니다. 릴리스 파일이 게시되면 이 페이지에서 안내합니다.",
+    "statusSoon": "ScreenClip이 곧 출시됩니다. 아직 다운로드할 수 없습니다.",
     "contactTitle": "연락",
     "issues": "버그, 설정 질문, 기능 요청은 {link:issues}를 사용하세요. macOS 버전, 고른 에이전트, 보고서에 ScreenClip이 보여 준 내용을 적어 주세요. 가리려던 것의 가리기 전 스크린샷은 첨부하지 마세요.",
-    "issuesMissing": "site.config.json의 githubUrl이 비어 있어 GitHub issues가 아직 연결되어 있지 않습니다.",
+    "issuesMissing": "공개 지원은 아직 제공되지 않습니다.",
     "needTitle": "실행에 필요한 것",
     "needOs": "macOS 14 이상.",
     "needGit": "테스트하는 프로젝트의 로컬 Git 저장소. Settings에 추가하고, 그쪽으로 라우팅할 웹사이트 주소나 Mac 앱 bundle ID, 그리고 검증 명령을 넣으세요.",
@@ -219,7 +220,7 @@
     "buildTitle": "소스로 빌드",
     "build": "저장소 README가 빌드 안내입니다. 로컬 서명 예시를 복사하고 Xcode 프로젝트를 연 뒤 ScreenClip scheme을 실행하세요. macOS 14 이상과 Swift 6이 포함된 Xcode 16 이상이 필요합니다.",
     "buildSource": "소스는 {link:github}.",
-    "buildMissing": "이 페이지에는 소스 저장소가 아직 연결되어 있지 않습니다.",
+    "buildMissing": "소스 코드는 아직 공개되지 않았습니다.",
     "captureTitle": "캡처가 실패할 때",
     "capture": "Settings의 {ui:checkAccess}를 사용하세요. 시스템 설정에서 접근을 바꾼 뒤에는 권한 배너의 {ui:checkAgain} 또는 {ui:reopen}을 사용하세요. 진단은 {code:diagnostics}에 쓰이며 스크린샷, 메모, 브라우저 URL, 창 제목은 포함하지 않습니다. 화면 기록 재설정 단계는 저장소 README에 있습니다.",
     "privacyTitle": "개인정보",
@@ -239,5 +240,21 @@
     "flowBody": "앱을 오가거나 AI 도구에서 새 스레드를 직접 만들지 않고도 발견한 내용을 빠르게 기록하세요.",
     "noticeTitle": "작은 부분도 놓치지 않게",
     "noticeBody": "작은 버그, 어색한 부분, 아이디어를 발견한 즉시 캡처해 테스트하는 동안 잊지 마세요."
+  },
+  "simple": {
+    "captureTitle": "캡처",
+    "captureBody": "Mac 앱이나 웹사이트의 영역을 선택하세요. 필요하면 메모나 표시를 추가할 수 있습니다.",
+    "sendTitle": "전송",
+    "sendBody": "Codex, Claude Code 또는 Grok Bot을 선택하고 보고서를 제출하세요.",
+    "followTitle": "수정 추적",
+    "followBody": "ScreenClip에서 풀 리퀘스트를 추적하고 다시 테스트하세요. 자동 병합은 선택 사항입니다."
+  },
+  "queue": {
+    "eyebrow": "진행 상황 확인",
+    "title": "제출한 모든 보고서를 한곳에서.",
+    "intro": "코딩 에이전트가 작업하는 동안 테스트를 계속하세요. ScreenClip에서 보고서와 상태, 풀 리퀘스트를 확인하고 대응이 필요한 항목과 재테스트할 항목을 볼 수 있습니다.",
+    "open": "보고서 대기열 스크린샷을 원본 크기로 열기",
+    "alt": "프로젝트와 병합된 보고서 목록, 선택한 보고서의 세부 정보를 보여 주는 ScreenClip 대기열.",
+    "caption": "실제 보고서 대기열입니다. 앱 화면은 영어로 표시됩니다."
   }
 }

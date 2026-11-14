@@ -38,38 +38,23 @@
           <p>{{loop.intro}}</p>
         </div>
         <ol class="loop">
-          <li>
-            <span class="step-num">01</span>
-            <h3>{{loop.captureTitle}}</h3>
-            <p>{{loop.captureBody}}</p>
-          </li>
-          <li>
-            <span class="step-num">02</span>
-            <h3>{{loop.annotateTitle}}</h3>
-            <p>{{loop.annotateBody}}</p>
-          </li>
-          <li>
-            <span class="step-num">03</span>
-            <h3>{{loop.agentTitle}}</h3>
-            <p>{{loop.agentBody}}</p>
-          </li>
-          <li>
-            <span class="step-num">04</span>
-            <h3>{{loop.prTitle}}</h3>
-            <p>{{loop.prBody}}</p>
-          </li>
-          <li>
-            <span class="step-num">05</span>
-            <h3>{{loop.mergedTitle}}</h3>
-            <p>{{loop.mergedBody}}</p>
-          </li>
-          <li>
-            <span class="step-num">06</span>
-            <h3>{{loop.retestTitle}}</h3>
-            <p>{{loop.retestBody}}</p>
-          </li>
+          <li><span class="step-num">01</span><h3>{{simple.captureTitle}}</h3><p>{{simple.captureBody}}</p></li>
+          <li><span class="step-num">02</span><h3>{{simple.sendTitle}}</h3><p>{{simple.sendBody}}</p></li>
+          <li><span class="step-num">03</span><h3>{{simple.followTitle}}</h3><p>{{simple.followBody}}</p></li>
         </ol>
       </div>
+    </section>
+
+    <section class="section wrap" id="queue" aria-labelledby="queue-title">
+      <div class="section-intro">
+        <p class="eyebrow">{{queue.eyebrow}}</p>
+        <h2 id="queue-title">{{queue.title}}</h2>
+        <p>{{queue.intro}}</p>
+      </div>
+      <figure class="queue-figure">
+        <a href="@@QUEUE_PNG@@" aria-label="{{queue.open}}"><img src="@@QUEUE_PNG@@" width="2292" height="1412" alt="{{queue.alt}}" loading="lazy" decoding="async"></a>
+        <figcaption>{{queue.caption}}</figcaption>
+      </figure>
     </section>
 
     <section class="section wrap" id="agents" aria-labelledby="agents-title">
@@ -98,10 +83,10 @@
       <div class="band">
         <div>
           <p class="eyebrow">{{download.eyebrow}}</p>
-          <h2 id="download-title">{{download.title}}</h2>
+          <h2 id="download-title">@@DOWNLOAD_TITLE@@</h2>
           <p class="band-lead">{{download.price}}</p>
           <p>@@SOURCE_LINE@@</p>
-          @@ACTIONS@@
+          @@DOWNLOAD_ACTIONS@@
         </div>
         <div>
           <h3 class="band-sub">{{download.needsTitle}}</h3>

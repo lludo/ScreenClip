@@ -46,10 +46,10 @@ try png(name: "og.png", width: 1200, height: 630) {
   NSRect(x: 0, y: 0, width: 1200, height: 630).fill()
   icon(NSRect(x: 72, y: 492, width: 76, height: 76))
   text("ScreenClip", at: NSPoint(x: 168, y: 514), size: 34, weight: .semibold, color: ink)
-  text("From a screenshot", at: NSPoint(x: 72, y: 330), size: 76, weight: .bold, color: ink)
-  text("to a pull request.", at: NSPoint(x: 72, y: 240), size: 76, weight: .bold, color: accent)
+  text("File bugs as you go,", at: NSPoint(x: 72, y: 330), size: 68, weight: .bold, color: ink)
+  text("without breaking your flow.", at: NSPoint(x: 72, y: 240), size: 68, weight: .bold, color: accent)
   text("Codex  ·  Claude Code  ·  Grok Bot", at: NSPoint(x: 72, y: 150), size: 30, weight: .medium, color: ink.withAlphaComponent(0.72))
-  text("Free menu bar app for macOS", at: NSPoint(x: 72, y: 78), size: 26, weight: .medium, color: ink.withAlphaComponent(0.72))
+  text("Menu bar app for macOS · Coming soon", at: NSPoint(x: 72, y: 78), size: 26, weight: .medium, color: ink.withAlphaComponent(0.72))
   orange.setFill()
   NSRect(x: 1124, y: 0, width: 76, height: 630).fill()
 }
