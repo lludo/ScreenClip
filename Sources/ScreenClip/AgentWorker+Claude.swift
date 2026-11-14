@@ -21,10 +21,11 @@ extension AgentWorker {
       return
     }
     issue = current
-    var images: [Data] = []
-    for capture in issue.captures {
-      images.append(try Data(contentsOf: URL(fileURLWithPath: capture.imagePath)))
-    }
+    // Read every screenshot up front, so a missing file fails before the session is touched.
+    let allImages = try Dictionary(
+      uniqueKeysWithValues: issue.captures.map {
+        ($0.id, try Data(contentsOf: URL(fileURLWithPath: $0.imagePath)))
+      })
     try model.updateIssue(id) {
       $0.threadID = sessionID
       $0.turnID = "claude:" + sessionID
@@ -38,11 +39,14 @@ extension AgentWorker {
     }
     issue = current
     texts[id] = nil
+    // A resumed session already holds earlier evidence; send only what is new.
+    let turn = AgentPrompt.turn(for: issue, project: project, threadID: resume ? sessionID : nil)
     var request = ClaudeTurnRequest(
       executable: executable, cwd: path, sessionID: sessionID, resume: resume,
       name: "ScreenClip: " + issue.referencedTitle,
-      model: model.snapshot.settings.claudeModel, prompt: AgentPrompt.text(for: issue, project: project),
-      images: images, schema: AgentPrompt.resultSchema)
+      model: model.snapshot.settings.claudeModel, prompt: turn.text,
+      images: turn.captures.compactMap { allImages[$0.id] }, schema: AgentPrompt.resultSchema)
+    request.timeout = turnTimeLimit
     let progress: @Sendable (String) async -> Void = { [weak self] text in
       await self?.recordProgress(id, text: text)
     }
@@ -71,6 +75,10 @@ extension AgentWorker {
         }
         request.sessionID = fresh
         request.resume = false
+        // The new session has seen nothing yet.
+        let full = AgentPrompt.turn(for: issue, project: project, threadID: nil)
+        request.prompt = full.text
+        request.images = full.captures.compactMap { allImages[$0.id] }
         result = try await claude.run(request, progress: progress)
       }
     } catch is CancellationError {
@@ -81,9 +89,11 @@ extension AgentWorker {
       model.perform { try model.updateIssue(id) { $0.turnID = nil } }
       throw error
     }
+    let delivered = AgentPrompt.delivered(issue, threadID: request.sessionID)
     model.perform {
       try model.updateIssue(id) {
         $0.turnID = nil
+        if !result.isError { $0.deliveredContext = delivered }
         $0.record("Claude Code turn finished · " + result.usageSummary, kind: "usage")
       }
     }
@@ -92,11 +102,12 @@ extension AgentWorker {
       return
     }
     if result.isError {
+      if AgentDetector.isSignInError(result.text) {
+        holdForSignIn(id, agent: .claude)
+        return
+      }
       let text = result.text.isEmpty ? "Claude Code reported an error." : result.text
-      throw ScreenClipError.message(
-        text.localizedCaseInsensitiveContains("not logged in")
-          ? "Claude Code is signed out. Open Settings → Connections and use Sign in to Claude."
-          : String(text.prefix(3000)))
+      throw ScreenClipError.message(String(text.prefix(3000)))
     }
     if var json = result.outputJSON {
       // Surface blocked tools so a "blocked" outcome says what needs approval.
@@ -118,9 +129,36 @@ extension AgentWorker {
       finishing.remove(id)
     }
   }
+  /// A Claude turn cannot survive a ScreenClip restart: the process belonged to the old app.
+  /// When no process for the session is still running, continue the same session instead of
+  /// waiting for a manual reconcile. A session still running elsewhere keeps waiting.
+  func recoverClaudeAfterRestart() async {
+    for id in model.takeRestartedClaudeIssues() {
+      guard let issue = model.issue(id), issue.status == .needsYou, !issue.archived,
+        issue.resolvedAgent == .claude, !isActive(id),
+        issue.activities.last?.text == AppModel.restartActivity
+      else { continue }
+      if let session = issue.threadID {
+        // Unknown (ps failed) is treated like running: the tester reconciles.
+        guard (try? await claude.sessionIsRunning(sessionID: session)) == false else { continue }
+      }
+      guard model.issue(id)?.activities.last?.text == AppModel.restartActivity, !isActive(id)
+      else { continue }
+      model.perform {
+        try model.updateIssue(id) {
+          $0.turnID = nil
+          $0.dispatchUncertain = false
+          $0.record(
+            "No Claude Code process survived the restart; continuing the same session",
+            status: .queued)
+        }
+      }
+    }
+    pump()
+  }
   func recordProgress(_ id: UUID, text: String) {
     guard model.issue(id)?.status == .working else { return }
-    model.perform { try model.updateIssue(id) { $0.record(String(text.prefix(3000))) } }
+    model.updateIssueSoon(id) { $0.record(String(text.prefix(3000))) }
   }
   /// Reconciliation checks for surviving children and Terminal sessions before
   /// allowing another turn. Claude history is resumed on Continue.

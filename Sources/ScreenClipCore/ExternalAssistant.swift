@@ -15,6 +15,15 @@ public enum ExternalAssistant {
     "ScreenClip restarted while sending to Grok Bot. Retry delivers the same report and revision again."
   public static let restartWatchActivity =
     "ScreenClip restarted. Watching for Grok Bot's pull request."
+  /// Shown once when Grok Bot has not opened a pull request `noPullRequestReminder` after the send.
+  /// ScreenClip keeps watching; Continue sends the same report again.
+  public static let noPullRequestActivity =
+    "Grok Bot has not opened a pull request yet. ScreenClip is still watching. Continue sends the report again, or cancel it."
+  public static let noPullRequestReminder: TimeInterval = 2 * 60 * 60
+  /// When the report was last sent, from its activity log.
+  public static func sentDate(_ issue: Issue) -> Date? {
+    issue.activities.last { $0.text == sentActivity }?.date
+  }
 
   public static func slug(_ title: String, limit: Int = 40) -> String {
     let folded = title.folding(options: .diacriticInsensitive, locale: Locale(identifier: "en_US_POSIX"))

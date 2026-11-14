@@ -15,8 +15,8 @@ For one session only, run `claude --plugin-dir /absolute/path/to/plugins/screenc
 
 The default data folder is `~/Library/Application Support/ScreenClip`. For a development instance, set `SCREENCLIP_DATA_DIR` on the server process. Tools:
 
-- `list_issues(status?)`: non-archived issues, report numbers, agents, and statuses. Older issues default to Codex.
-- `get_issue(issue_id, include_images=false)`: issue context and optional approved images. Accepts a UUID or report number such as `#234` or `234`, including archived reports. Original captures and private settings are excluded.
+- `list_issues(status?, include_closed=false, limit=50)`: open, non-archived reports with report numbers, agents, and statuses, most recently updated first. Merged, verified, and canceled reports are left out unless `include_closed` is true or `status` names them. Older issues default to Codex.
+- `get_issue(issue_id, include_images=false, activity_limit=20)`: issue context, the most recent activity entries (with `activityCount` for the total), and optional approved images. Accepts a UUID or report number such as `#234` or `234`, including archived reports. Original captures and private settings are excluded.
 
 Example: “Use ScreenClip to show the observations that need my input.” Do not manually start another fix for an issue already marked Working.
 

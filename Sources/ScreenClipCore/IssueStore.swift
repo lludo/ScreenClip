@@ -8,6 +8,9 @@ public final class IssueStore {
   private var ownerFD: Int32 = -1
   private let readOnly: Bool
   private let lock = NSRecursiveLock()
+  /// The last snapshot this writer loaded or saved. The writer lock makes this connection the
+  /// only writer, so save() reuses it instead of reading and decoding the whole queue again.
+  private var cached: StoreSnapshot?
   public init(root: URL, readOnly: Bool = false) throws {
     self.root = root
     self.readOnly = readOnly
@@ -69,6 +72,7 @@ public final class IssueStore {
         "This queue was created by a newer ScreenClip. Update the app before opening it.")
     }
     snapshot.assignReportNumbers()
+    if !readOnly { cached = snapshot }
     return snapshot
   }
   @discardableResult public func save(_ snapshot: StoreSnapshot) throws -> StoreSnapshot {
@@ -76,7 +80,7 @@ public final class IssueStore {
     lock.lock()
     defer { lock.unlock() }
     var numbered = snapshot
-    let previous = try load()
+    let previous = try cached ?? load()
     // Tolerate a damaged snapshot with repeated IDs instead of trapping on every save.
     let existingNumbers = Dictionary(
       previous.issues.compactMap { issue in
@@ -105,6 +109,7 @@ public final class IssueStore {
       throw ScreenClipError.message(
         "Could not save the report: \(String(cString: sqlite3_errmsg(db)))")
     }
+    cached = numbered
     return numbered
   }
   public func writeAsset(_ data: Data, original: Bool = false) throws -> String {
