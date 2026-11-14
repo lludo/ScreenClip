@@ -1,5 +1,6 @@
 Codex, Claude and Grok icons are from Lobe Icons:
 https://github.com/lobehub/lobe-icons (MIT License).
+The Codex mask is rasterized from the Lobe Icons SVG to avoid macOS SVG rendering errors.
 Brand names and logos remain the property of their respective owners.
 
 MIT License
