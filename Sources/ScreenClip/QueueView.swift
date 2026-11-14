@@ -280,6 +280,9 @@ struct IssueDetailView: View {
           if let url = issue.prURL.flatMap(URL.init(string:)) {
             Link("View pull request", destination: url)
           }
+          if issue.status == .prOpen {
+            Button("Refresh PR status") { Task { await model.worker.refreshPRs() } }
+          }
           Spacer()
           Menu {
             Button(issue.archived ? "Unarchive" : "Archive") {
@@ -292,7 +295,7 @@ struct IssueDetailView: View {
             }
           } label: {
             Image(systemName: "ellipsis")
-          }.menuStyle(.borderlessButton).fixedSize()
+          }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
         }.controlSize(.small)
         if issue.projectID == nil {
           VStack(alignment: .leading, spacing: 10) {
@@ -315,6 +318,10 @@ struct IssueDetailView: View {
         }
         if issue.status == .prOpen, let summary = issue.checkSummary {
           Label(summary, systemImage: "clock").font(.callout).foregroundStyle(.secondary)
+        }
+        if let commit = issue.mergeCommit {
+          Text("Merge commit: " + String(commit.prefix(12))).font(.caption).monospaced()
+            .foregroundStyle(.secondary).textSelection(.enabled)
         }
         ForEach(issue.questions.filter { $0.reply == nil }) { question in
           QuestionCard(model: model, issue: issue, question: question)

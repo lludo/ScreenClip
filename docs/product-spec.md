@@ -19,6 +19,7 @@ Example: while testing a checkout flow, the tester spots a clipped button, selec
 | Entry point | Menu bar utility plus a global keyboard shortcut |
 | Capture | Region selection resembling Command–Shift–4 |
 | Composer | Screenshot overlay with a short description and image annotations |
+| Capturing ScreenClip itself | Keep its windows and menu bar popover available; provide a setting to hide/exclude them |
 | Submission | Save to the queue and begin AI work immediately |
 | Organization | One chat per issue; related captures share that issue |
 | Project routing | Infer from app/browser context; user can correct it |

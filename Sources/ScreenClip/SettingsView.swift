@@ -5,6 +5,7 @@ import UserNotifications
 
 struct SettingsView: View {
   @ObservedObject var model: AppModel
+  let close: () -> Void
   @State private var settings = AppSettings()
   @State private var editProject: Project?
   @State private var tab = 0
@@ -18,7 +19,15 @@ struct SettingsView: View {
             LabeledContent("Global shortcut") {
               ShortcutRecorder(settings: $settings).frame(width: 180, height: 26)
             }
-            Toggle("Hide ScreenClip during capture", isOn: $settings.hideScreenClipDuringCapture)
+            Toggle(
+              "Hide ScreenClip during capture",
+              isOn: Binding(
+                get: { settings.shouldHideScreenClipDuringCapture },
+                set: { settings.hideScreenClipDuringCapture = $0 }))
+            Text(
+              "Leave this off to capture ScreenClip's windows and menu bar popover when reporting bugs in ScreenClip."
+            )
+            .font(.caption).foregroundStyle(.secondary)
             Toggle(
               "Read the active browser URL for project matching", isOn: $settings.browserContext)
             Text(
@@ -147,7 +156,7 @@ struct SettingsView: View {
         Spacer()
         Button("Save settings") {
           model.saveSettings(settings)
-          error = "Saved"
+          close()
         }.buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
       }.padding(16)
     }.frame(width: 700, height: 590)

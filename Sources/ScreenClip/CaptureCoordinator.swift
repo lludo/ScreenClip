@@ -41,13 +41,16 @@ import ScreenClipCore
         }
       })
   }
-  func begin() {
+  func begin(sourceOverride: NSRunningApplication? = nil) {
     guard !model.captureBusy else { return }
     model.captureBusy = true
     model.captureDiagnostics.record("capture.shortcut")
-    let source = NSWorkspace.shared.frontmostApplication.flatMap {
-      $0.bundleIdentifier == Bundle.main.bundleIdentifier ? lastExternalApp : $0
-    }
+    let hideScreenClip = model.snapshot.settings.shouldHideScreenClipDuringCapture
+    let source =
+      sourceOverride
+      ?? NSWorkspace.shared.frontmostApplication.flatMap {
+        $0.bundleIdentifier == Bundle.main.bundleIdentifier && hideScreenClip ? lastExternalApp : $0
+      }
     var context = CaptureContext(
       appName: source?.localizedName ?? "", bundleID: source?.bundleIdentifier ?? "",
       sessionName: model.snapshot.settings.sessionName,
@@ -65,10 +68,12 @@ import ScreenClipCore
             $0.owningApplication?.processID == source?.processIdentifier && $0.windowLayer == 0
           }?.title
         let ownWindows =
-          model.snapshot.settings.hideScreenClipDuringCapture
+          hideScreenClip
           ? content.windows.filter {
             $0.owningApplication?.processID == ProcessInfo.processInfo.processIdentifier
           } : []
+        model.captureDiagnostics.record(
+          "capture.visibility", ["hideScreenClip": String(hideScreenClip)])
         var backdrops: [(NSScreen, CGImage)] = []
         for screen in NSScreen.screens {
           guard

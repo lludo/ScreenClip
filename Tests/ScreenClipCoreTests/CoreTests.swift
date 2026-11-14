@@ -3,6 +3,19 @@ import XCTest
 @testable import ScreenClipCore
 
 final class CoreTests: XCTestCase {
+  func testSelfCapturePreferenceLoadsOlderSettingsAndPersistsBothChoices() throws {
+    let older = try JSONEncoder().encode(AppSettings())
+    var settings = try JSONDecoder().decode(AppSettings.self, from: older)
+    XCTAssertTrue(settings.shouldHideScreenClipDuringCapture)
+    for hide in [true, false] {
+      settings.hideScreenClipDuringCapture = hide
+      let store = try temporaryStore()
+      var snapshot = StoreSnapshot()
+      snapshot.settings = settings
+      try store.save(snapshot)
+      XCTAssertEqual(try store.load().settings.shouldHideScreenClipDuringCapture, hide)
+    }
+  }
   func temporaryStore() throws -> IssueStore {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       "screenclip-test-" + UUID().uuidString)
@@ -15,7 +28,7 @@ final class CoreTests: XCTestCase {
   }
   func testNewStoreHidesScreenClipDuringCaptureByDefault() throws {
     let store = try temporaryStore()
-    XCTAssertTrue(try store.load().settings.hideScreenClipDuringCapture)
+    XCTAssertTrue(try store.load().settings.shouldHideScreenClipDuringCapture)
   }
   func testLegacySettingsDefaultToHidingScreenClipWithoutChangingOtherPreferences() throws {
     var settings = AppSettings()
@@ -28,7 +41,7 @@ final class CoreTests: XCTestCase {
       .filter { $0.key != "hideScreenClipDuringCapture" }
     let decoded = try JSONDecoder().decode(
       AppSettings.self, from: JSONSerialization.data(withJSONObject: legacy))
-    XCTAssertTrue(decoded.hideScreenClipDuringCapture)
+    XCTAssertTrue(decoded.shouldHideScreenClipDuringCapture)
     XCTAssertEqual(decoded, settings)
   }
   func testCaptureVisibilityChoicePersistsAcrossStoreReloads() throws {

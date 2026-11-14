@@ -129,10 +129,7 @@ import ScreenClipCore
         threadParams["model"] = .string(model.snapshot.settings.model)
       }
       if let threadID = issue.threadID {
-        threadParams["threadId"] = .string(threadID)
-        threadParams["excludeTurns"] = .bool(true)
-        let resumed = try await client.request(
-          "thread/resume", params: .object(threadParams), timeout: 60)
+        let resumed = try await client.resumeThread(threadID, params: threadParams)
         if resumed["thread"]["status"]["type"].string == "active" {
           throw ScreenClipError.message(
             "This issue is active in another Codex client. Wait for that turn, then reconcile.")
@@ -556,7 +553,9 @@ import ScreenClipCore
         )
       }
       let history = try await client.request(
-        "thread/turns/list", params: .object(["threadId": .string(thread), "limit": .number(1)]))
+        "thread/turns/list", params: .object([
+          "threadId": .string(thread), "limit": .number(1), "itemsView": .string("full"),
+        ]))
       guard history["data"].array.first?["status"].string != "inProgress" else {
         throw ScreenClipError.message(
           "The latest saved turn is still running. Finish or interrupt it in Codex before continuing."
@@ -566,11 +565,28 @@ import ScreenClipCore
         issue.threadID = thread
         issue.dispatchUncertain = false
         issue.turnID = nil
+        issue.lastError = nil
         for i in issue.questions.indices
         where issue.questions[i].requestID != nil && issue.questions[i].reply == nil {
           issue.questions[i].reply = "Expired request; continue the issue to ask again"
         }
         issue.record("Chat reconciled. Continue when ready.", status: .needsYou)
+      }
+      // Recover completed work after a restart, including work finished in Codex.
+      // Publishing still independently validates source, revision, and PR head.
+      if linkingThread == nil, issue.revision == issue.coveredRevision,
+        let turn = history["data"].array.first, turn["status"].string == "completed",
+        let final = turn["items"].array.last(where: {
+          $0["type"].string == "agentMessage" && $0["phase"].string == "final_answer"
+        })?["text"].string,
+        let report = try? JSONDecoder().decode(JSONValue.self, from: Data(final.utf8)),
+        report["outcome"].string == "implemented",
+        model.issue(id)?.questions.allSatisfy({ $0.reply != nil }) == true
+      {
+        texts[id] = final
+        jobs.insert(id)
+        try model.updateIssue(id) { $0.record("Recovering completed fix", status: .working) }
+        await finish(id)
       }
     } catch { model.banner = error.localizedDescription }
   }
