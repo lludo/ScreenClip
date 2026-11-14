@@ -9,6 +9,7 @@ struct IssueDetailView: View {
   @State private var confirmDelete = false
   @State private var showContextEditor = false
   @State private var showFollowUpEditor = false
+  @Environment(\.locale) private var locale
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 22) {
@@ -19,68 +20,105 @@ struct IssueDetailView: View {
               NSPasteboard.general.setString(reference, forType: .string)
             } label: {
               Text(reference).font(.callout.weight(.semibold)).monospacedDigit()
-            }.buttonStyle(.plain).help("Copy report number")
-              .accessibilityLabel("Copy report number \(reference)")
+            }.buttonStyle(.plain).help(
+              Text(chrome: "Copy report number", comment: "Copies the permanent report number."))
+              .accessibilityLabel(Text(verbatim: Chrome.format(
+                "detail.copyReference", "Copy report number \(reference)", locale: locale,
+                comment: "Accessibility label. %@ is the report number, such as #26.")))
           }
           StatusBadge(status: issue.status)
           Spacer()
           Text(issue.createdAt, style: .date).font(.caption).foregroundStyle(.secondary)
         }
-        Text(issue.title).font(.system(size: 25, weight: .semibold)).textSelection(.enabled)
-        HStack(spacing: 12) {
-          Label(issue.resolvedAgent.title, systemImage: "cpu").font(.caption)
-            .foregroundStyle(.secondary).help("Agent working on this issue")
-          if let note = issue.externalConversationNote {
-            Text(note).font(.caption).foregroundStyle(.secondary)
+        Text(verbatim: issue.title).font(.system(size: 25, weight: .semibold)).textSelection(.enabled)
+          .fixedSize(horizontal: false, vertical: true)
+        FlowLayout(spacing: 12) {
+          Label {
+            Text(verbatim: issue.resolvedAgent.title)
+          } icon: {
+            Image(systemName: "cpu")
+          }.font(.caption).foregroundStyle(.secondary)
+            .help(Text(chrome: "Agent working on this issue", comment: "Help for the agent name on a report."))
+          if issue.resolvedAgent == .external, issue.prURL == nil {
+            Text(verbatim: ExternalAssistant.localizedConversationNote(locale: locale))
+              .font(.caption).foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
           }
           if issue.codexURL != nil {
             Button {
               model.openCodex(issue)
             } label: {
-              Label("Open in Codex", systemImage: "arrow.up.right.square")
+              Label {
+                Text(chrome: "Open in Codex", comment: "Opens this report's Codex chat.")
+              } icon: {
+                Image(systemName: "arrow.up.right.square")
+              }
             }
           }
           if issue.claudeResumeCommand != nil {
             Button {
               model.copyClaudeResumeCommand(issue)
             } label: {
-              Label("Copy Claude resume command", systemImage: "terminal")
-            }.help("Copies a Terminal command that reopens this issue's Claude Code session")
+              Label {
+                Text(chrome: "Copy Claude resume command", comment: "Copies the Claude Code resume command.")
+              } icon: {
+                Image(systemName: "terminal")
+              }
+            }.help(Text(
+              chrome: "Copies a Terminal command that reopens this issue's Claude Code session",
+              comment: "Help for the Claude resume command button."))
           }
           if let url = issue.prURL.flatMap(URL.init(string:)) {
-            Link("View pull request", destination: url)
+            Link(destination: url) {
+              Text(chrome: "View pull request", comment: "Opens the report's pull request.")
+            }
           }
           if issue.status == .prOpen
             || (issue.resolvedAgent == .external && issue.status == .working && !issue.dispatchUncertain)
           {
-            Button("Refresh PR status") { Task { await model.worker.refreshPRs() } }
+            Button { Task { await model.worker.refreshPRs() } } label: {
+              Text(chrome: "Refresh PR status", comment: "Refreshes pull request checks. Keep PR.")
+            }
           }
-          Spacer()
           Button {
             model.setArchived(issue.id, archived: !issue.archived)
           } label: {
-            Label(issue.archived ? "Restore" : "Archive", systemImage: "archivebox")
+            Label {
+              if issue.archived {
+                Text(chrome: "Restore", comment: "Restores an archived report.")
+              } else {
+                Text(chrome: "Archive", comment: "Archives a report.")
+              }
+            } icon: {
+              Image(systemName: "archivebox")
+            }
           }.disabled(!issue.archived && !issue.canArchive)
             .help(
               issue.archived || issue.canArchive
-                ? "Keep this report's evidence" : "Cancel active work before archiving")
+                ? Text(chrome: "Keep this report's evidence", comment: "Help for archive when it is allowed.")
+                : Text(chrome: "Cancel active work before archiving", comment: "Help when archive is blocked."))
           if issue.resolvedAgent != .external || issue.status != .working {
             Menu {
               if issue.resolvedAgent != .external {
-                Button("Link existing chat…") { showLinkChat = true }.disabled(
-                  issue.status == .working || issue.worktreePath == nil)
+                Button { showLinkChat = true } label: {
+                  Text(chrome: "Link existing chat…", comment: "Links a report to an existing agent chat.")
+                }.disabled(issue.status == .working || issue.worktreePath == nil)
               }
               if model.canMove(issue) && model.snapshot.projects.count > 1 {
-                Menu("Move to project") {
+                Menu {
                   ForEach(model.snapshot.projects.filter { $0.id != issue.projectID }) { project in
                     Button(project.name) {
                       model.perform { _ = try model.moveToProject(issue.id, projectID: project.id) }
                     }
                   }
+                } label: {
+                  Text(chrome: "Move to project", comment: "Moves a report to another project.")
                 }
               }
               if issue.canDelete && !model.worker.isActive(issue.id) {
-                Button("Delete local evidence…", role: .destructive) { confirmDelete = true }
+                Button(role: .destructive) { confirmDelete = true } label: {
+                  Text(chrome: "Delete local evidence…", comment: "Deletes local screenshots for this report.")
+                }
               }
             } label: {
               Image(systemName: "ellipsis")
@@ -89,94 +127,135 @@ struct IssueDetailView: View {
         }.controlSize(.small)
         if issue.projectID == nil {
           VStack(alignment: .leading, spacing: 10) {
-            Text("Choose where to work").fontWeight(.medium)
-            Text("This capture is saved. Choose a project to begin.").font(.caption)
-              .foregroundStyle(.secondary)
-            Menu("Choose project") {
+            Text(chrome: "Choose where to work", comment: "Prompt when a capture has no project.")
+              .fontWeight(.medium)
+            Text(
+              chrome: "This capture is saved. Choose a project to begin.",
+              comment: "Explains that a capture is saved before a project is chosen."
+            ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Menu {
               ForEach(model.snapshot.projects) { project in
                 Button(project.name) { model.assignProject(issue.id, projectID: project.id) }
               }
-              Button("Add project…") { model.settingsAction?() }
+              Button { model.settingsAction?() } label: {
+                Text(chrome: "Add project…", comment: "Opens Settings to add a project.")
+              }
+            } label: {
+              Text(chrome: "Choose project", comment: "Menu of projects for an unassigned capture.")
             }
           }.padding(16).frame(maxWidth: .infinity, alignment: .leading).background(
             .orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
         }
         if let error = issue.lastError {
-          Label(error, systemImage: "exclamationmark.circle").font(.callout).foregroundStyle(
-            .orange
-          ).textSelection(.enabled)
+          Label {
+            Text(verbatim: Chrome.stored(error, locale: locale)).textSelection(.enabled)
+              .fixedSize(horizontal: false, vertical: true)
+          } icon: {
+            Image(systemName: "exclamationmark.circle")
+          }.font(.callout).foregroundStyle(.orange)
         }
         if issue.status == .prOpen, let summary = issue.checkSummary {
-          Label(summary, systemImage: summary == ExternalAssistant.evidenceStillPresentSummary
-            ? "exclamationmark.circle" : "clock"
-          ).font(.callout).foregroundStyle(
+          Label {
+            Text(verbatim: Chrome.stored(summary, locale: locale))
+              .fixedSize(horizontal: false, vertical: true)
+          } icon: {
+            Image(systemName: summary == ExternalAssistant.evidenceStillPresentSummary
+              ? "exclamationmark.circle" : "clock")
+          }.font(.callout).foregroundStyle(
             summary == ExternalAssistant.evidenceStillPresentSummary ? .orange : .secondary)
         }
         if let commit = issue.mergeCommit {
-          Text("Merge commit: " + String(commit.prefix(12))).font(.caption).monospaced()
-            .foregroundStyle(.secondary).textSelection(.enabled)
+          Text(verbatim: Chrome.format(
+            "detail.mergeCommit", "Merge commit: \(String(commit.prefix(12)))", locale: locale,
+            comment: "Shows the short merge commit. %@ is the commit prefix."))
+            .font(.caption).monospaced().foregroundStyle(.secondary).textSelection(.enabled)
         }
         ForEach(issue.questions.filter { $0.reply == nil }) { question in
           QuestionCard(model: model, issue: issue, question: question)
         }
-        HStack {
+        FlowLayout {
           Button {
             showContextEditor = true
           } label: {
-            Label("Add context", systemImage: "text.bubble")
+            Label {
+              Text(chrome: "Add context", comment: "Adds a text note to the report.")
+            } icon: {
+              Image(systemName: "text.bubble")
+            }
           }
           if issue.status == .draft {
-            Button("Edit draft") {
+            Button {
               if let c = issue.captures.first,
                 let image = NSImage(contentsOfFile: c.originalPath ?? c.imagePath)
               {
                 model.composerAction?(image, c.context, issue)
               }
+            } label: {
+              Text(chrome: "Edit draft", comment: "Reopens a draft in the composer.")
             }
           }
           if [.needsYou, .failed, .canceled, .draft].contains(issue.status)
             && !issue.dispatchUncertain && issue.questions.allSatisfy({ $0.reply != nil })
           {
-            Button(issue.resolvedAgent == .external && issue.status == .failed ? "Retry" : "Continue")
-            { model.retry(issue.id) }
+            Button { model.retry(issue.id) } label: {
+              if issue.resolvedAgent == .external && issue.status == .failed {
+                Text(chrome: "Retry", comment: "Sends a failed Grok Bot report again.")
+              } else {
+                Text(chrome: "Continue", comment: "Continues agent work on this report.")
+              }
+            }
           }
           if issue.resolvedAgent != .external && issue.threadID != nil
             && [.needsYou, .failed].contains(issue.status)
           {
-            Button("Reconcile chat") { Task { await model.worker.reconcile(issue.id) } }
+            Button { Task { await model.worker.reconcile(issue.id) } } label: {
+              Text(chrome: "Reconcile chat", comment: "Recovers a saved agent chat.")
+            }
           }
           if [.working, .queued, .needsYou, .prOpen].contains(issue.status) {
-            Button("Cancel work", role: .destructive) {
+            Button(role: .destructive) {
               Task { await model.worker.cancel(issue.id) }
+            } label: {
+              Text(chrome: "Cancel work", comment: "Cancels local work on this report.")
             }
           }
           if issue.status == .merged {
-            Button("Mark verified") {
+            Button {
               model.perform {
                 try model.updateIssue(issue.id) {
                   $0.record("Tester verified the fix", status: .verified)
                 }
               }
+            } label: {
+              Text(chrome: "Mark verified", comment: "Marks a merged fix as verified.")
             }.buttonStyle(.borderedProminent).tint(.green)
           }
           if [.merged, .verified].contains(issue.status) {
             Button {
               showFollowUpEditor = true
             } label: {
-              Label("Needs follow-up", systemImage: "arrow.uturn.backward.circle")
-            }.help("Describe what was not addressed; the agent starts a new fix with your feedback.")
+              Label {
+                Text(chrome: "Needs follow-up", comment: "Asks the agent to continue after a merge.")
+              } icon: {
+                Image(systemName: "arrow.uturn.backward.circle")
+              }
+            }.help(Text(
+              chrome: "Describe what was not addressed; the agent starts a new fix with your feedback.",
+              comment: "Help for the follow-up button."))
           }
         }
         if let summary = issue.resultSummary {
-          Text(summary).textSelection(.enabled).padding(16).frame(
+          Text(verbatim: summary).textSelection(.enabled).padding(16).frame(
             maxWidth: .infinity, alignment: .leading
           ).background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
         }
         ForEach(Array(issue.captures.enumerated()), id: \.element.id) { index, capture in
           VStack(alignment: .leading, spacing: 10) {
             HStack {
-              Text("CAPTURE \(index+1)").font(.caption.weight(.semibold)).foregroundStyle(
-                .secondary)
+              Text(verbatim: Chrome.format(
+                "capture.heading", "CAPTURE \(index + 1)", locale: locale,
+                comment: "Heading above a screenshot. %lld is the capture number."))
+                .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
               Spacer()
               Text(capture.context.capturedAt, style: .time).font(.caption).foregroundStyle(
                 .tertiary)
@@ -186,48 +265,73 @@ struct IssueDetailView: View {
                 maxWidth: .infinity, maxHeight: 420
               ).background(Color.black.opacity(0.04)).clipShape(RoundedRectangle(cornerRadius: 10))
             }
-            if !capture.note.isEmpty { Text(capture.note).textSelection(.enabled) }
-            DisclosureGroup("Captured context") {
+            if !capture.note.isEmpty {
+              Text(verbatim: capture.note).textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            DisclosureGroup {
               VStack(alignment: .leading, spacing: 6) {
-                contextLine("App", capture.context.appName)
-                contextLine("Window", capture.context.windowTitle ?? "Unavailable")
-                contextLine("URL", capture.context.browserURL ?? "Unavailable")
-                contextLine("Session", capture.context.sessionName)
                 contextLine(
-                  "Tested version",
-                  capture.context.testedVersion.isEmpty ? "Unknown" : capture.context.testedVersion)
-                contextLine("Routing", capture.context.routingReason)
+                  Chrome.text("App", locale: locale, comment: "Capture context label."),
+                  capture.context.appName)
+                contextLine(
+                  Chrome.text("Window", locale: locale, comment: "Capture context label."),
+                  capture.context.windowTitle ?? Chrome.text(
+                    "Unavailable", locale: locale, comment: "Missing window title."))
+                contextLine(
+                  Chrome.text("URL", locale: locale, comment: "Capture context label. Keep URL."),
+                  capture.context.browserURL ?? Chrome.text(
+                    "Unavailable", locale: locale, comment: "Missing browser URL."))
+                contextLine(
+                  Chrome.text("Session", locale: locale, comment: "Capture context label."),
+                  capture.context.sessionName)
+                contextLine(
+                  Chrome.text("Tested version", locale: locale, comment: "Capture context label."),
+                  capture.context.testedVersion.isEmpty
+                    ? Chrome.text("Unknown", locale: locale, comment: "Missing tested version.")
+                    : capture.context.testedVersion)
+                contextLine(
+                  Chrome.text("Routing", locale: locale, comment: "Capture context label."),
+                  Chrome.stored(capture.context.routingReason, locale: locale))
               }.font(.caption).padding(.top, 8).textSelection(.enabled)
+            } label: {
+              Text(chrome: "Captured context", comment: "Disclosure heading for capture metadata.")
             }.font(.caption).foregroundStyle(.secondary)
           }
         }
         if let notes = issue.contextNotes, !notes.isEmpty {
           VStack(alignment: .leading, spacing: 14) {
-            Text("ADDED CONTEXT").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            Text(chrome: "ADDED CONTEXT", comment: "Heading above notes added after filing.")
+              .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
             ForEach(notes) { note in
               VStack(alignment: .leading, spacing: 6) {
                 Text(note.date, format: .dateTime.month().day().hour().minute())
                   .font(.caption).foregroundStyle(.secondary)
-                Text(note.text).textSelection(.enabled)
+                Text(verbatim: note.text).textSelection(.enabled)
+                  .fixedSize(horizontal: false, vertical: true)
               }
             }
           }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
             .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
         }
         Divider()
-        Text("ACTIVITY").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+        Text(chrome: "ACTIVITY", comment: "Heading above the report activity log.")
+          .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
         ForEach(issue.activities.suffix(50)) { activity in
           HStack(alignment: .top, spacing: 12) {
             Text(activity.date, style: .time).font(.caption.monospacedDigit()).foregroundStyle(
               .tertiary
-            ).frame(width: 64, alignment: .leading)
-            Text(activity.text).font(.callout).textSelection(.enabled)
+            ).fixedSize().frame(minWidth: 72, alignment: .leading)
+            Text(verbatim: Chrome.stored(activity.text, locale: locale)).font(.callout)
+              .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
           }
         }
         if [.merged, .verified].contains(issue.status) {
           Text(
-            "Merged code becomes visible after the relevant build or deployment. Your running app has not been restarted."
-          ).font(.caption).foregroundStyle(.secondary)
+            chrome:
+              "Merged code becomes visible after the relevant build or deployment. Your running app has not been restarted.",
+            comment: "Shown after a fix merges, before the user retests."
+          ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
       }.padding(28)
     }
@@ -239,13 +343,24 @@ struct IssueDetailView: View {
     }
     .alert(
       issue.resolvedAgent == .claude
-        ? "Link an existing Claude Code session" : "Link an existing Codex chat",
+        ? Chrome.text(
+          "Link an existing Claude Code session", locale: locale,
+          comment: "Alert title for linking a Claude Code session.")
+        : Chrome.text(
+          "Link an existing Codex chat", locale: locale,
+          comment: "Alert title for linking a Codex chat."),
       isPresented: $showLinkChat
     ) {
       TextField(
-        issue.resolvedAgent == .claude ? "Session ID" : "Thread ID or codex://threads/…",
-        text: $chatID)
-      Button("Link") {
+        "",
+        text: $chatID,
+        prompt: Text(
+          verbatim: issue.resolvedAgent == .claude
+            ? Chrome.text("Session ID", locale: locale, comment: "Placeholder for a Claude Code session ID.")
+            : Chrome.text(
+              "Thread ID or codex://threads/…", locale: locale,
+              comment: "Placeholder for a Codex thread. Keep the codex://threads/ scheme.")))
+      Button {
         let value = chatID.replacingOccurrences(of: "codex://threads/", with: "")
           .trimmingCharacters(in: .whitespacesAndNewlines)
         guard value.range(of: "^[A-Za-z0-9_-]+$", options: .regularExpression) != nil else {
@@ -255,27 +370,42 @@ struct IssueDetailView: View {
           return
         }
         Task { await model.worker.reconcile(issue.id, linkingThread: value) }
+      } label: {
+        Text(chrome: "Link", comment: "Confirms linking an existing chat.")
       }
-      Button("Cancel", role: .cancel) {}
-    } message: {
-      Text("Use the exact chat created for this issue. ScreenClip will check it before continuing.")
-    }
-    .confirmationDialog(
-      "Delete this issue and its local screenshots?", isPresented: $confirmDelete,
-      titleVisibility: .visible
-    ) {
-      Button("Delete local evidence", role: .destructive) { model.delete(issue.id) }
-      Button("Cancel", role: .cancel) {}
+      Button(role: .cancel) {} label: {
+        Text(chrome: "Cancel", comment: "Dismisses the link-chat alert.")
+      }
     } message: {
       Text(
-        "\(issue.resolvedAgent.title) history, Git worktrees, and pull requests are retained independently."
-      )
+        chrome: "Use the exact chat created for this issue. ScreenClip will check it before continuing.",
+        comment: "Explains that the linked chat must belong to this report.")
+    }
+    .confirmationDialog(
+      Chrome.text(
+        "Delete this issue and its local screenshots?", locale: locale,
+        comment: "Confirmation before deleting local evidence."),
+      isPresented: $confirmDelete,
+      titleVisibility: .visible
+    ) {
+      Button(role: .destructive) { model.delete(issue.id) } label: {
+        Text(chrome: "Delete local evidence", comment: "Confirms deletion of local screenshots.")
+      }
+      Button(role: .cancel) {} label: {
+        Text(chrome: "Cancel", comment: "Dismisses deletion.")
+      }
+    } message: {
+      Text(verbatim: Chrome.format(
+        "detail.deleteRetained",
+        "\(issue.resolvedAgent.title) history, Git worktrees, and pull requests are retained independently.",
+        locale: locale,
+        comment: "Deletion warning. %@ is the agent product name. Keep Git."))
     }
   }
   func contextLine(_ label: String, _ value: String) -> some View {
-    HStack(alignment: .top) {
-      Text(label).frame(width: 90, alignment: .leading)
-      Text(value.isEmpty ? "—" : value)
+    HStack(alignment: .firstTextBaseline, spacing: 12) {
+      Text(verbatim: label).frame(minWidth: 108, alignment: .leading).fixedSize()
+      Text(verbatim: value.isEmpty ? "—" : value).fixedSize(horizontal: false, vertical: true)
     }
   }
 }

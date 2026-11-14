@@ -14,13 +14,21 @@ struct ComposerView: View {
   @State private var agent: AgentKind = .codex
   @State private var error: String?
   @FocusState private var noteFocused: Bool
+  @Environment(\.locale) private var locale
   var body: some View {
     VStack(spacing: 0) {
       HStack(spacing: 12) {
         Image(systemName: "viewfinder").font(.title2).foregroundStyle(.orange)
         VStack(alignment: .leading, spacing: 3) {
-          Text(existing?.status == .draft ? "Finish your observation" : "What did you notice?")
+          Group {
+            if existing?.status == .draft {
+              Text(chrome: "Finish your observation", comment: "Composer title when editing a draft.")
+            } else {
+              Text(chrome: "What did you notice?", comment: "Composer title for a new capture.")
+            }
+          }
             .font(.title3.weight(.semibold))
+            .fixedSize(horizontal: false, vertical: true)
           Text(
             [
               context.appName,
@@ -45,10 +53,8 @@ struct ComposerView: View {
                 RoundedRectangle(cornerRadius: 6).stroke(
                   document.tool == kind ? Color.orange.opacity(0.4) : .clear, lineWidth: 1))
           }
-          .buttonStyle(.plain).help(
-            kind.rawValue.capitalized
-          )
-          .accessibilityLabel(kind.rawValue.capitalized)
+          .buttonStyle(.plain).help(Text(verbatim: kind.localizedTitle(locale: locale)))
+          .accessibilityLabel(Text(verbatim: kind.localizedTitle(locale: locale)))
         }
         Divider().frame(height: 22).padding(.horizontal, 4)
         Menu {
@@ -56,26 +62,35 @@ struct ComposerView: View {
             Button {
               document.color = color
             } label: {
-              Label(
-                color.rawValue.capitalized,
-                systemImage: document.color == color ? "checkmark.circle.fill" : "circle.fill"
-              )
+              Label {
+                Text(verbatim: color.localizedTitle(locale: locale))
+              } icon: {
+                Image(systemName: document.color == color ? "checkmark.circle.fill" : "circle.fill")
+              }
               .foregroundStyle(Color(nsColor: color.nsColor))
             }
           }
         } label: {
           Image(systemName: "circle.fill").foregroundStyle(Color(nsColor: document.color.nsColor))
             .overlay(Circle().stroke(.primary.opacity(0.3), lineWidth: 0.5))
-        }.frame(width: 46).help("Annotation color").accessibilityLabel(
-          "Annotation color: " + document.color.rawValue
+        }.frame(width: 46).help(
+          Text(chrome: "Annotation color", comment: "Opens the annotation color menu.")
+        ).accessibilityLabel(
+          Text(verbatim: Chrome.format(
+            "composer.color", "Annotation color: \(document.color.localizedTitle(locale: locale))",
+            locale: locale, comment: "Accessibility label. %@ is the selected color name."))
         )
         .disabled(document.tool == .redact)
-        Picker("Stroke", selection: $document.lineWidth) {
-          Text("Thin").tag(0.003)
-          Text("Medium").tag(0.006)
-          Text("Bold").tag(0.012)
-        }.labelsHidden().frame(width: 104).help("Stroke thickness").accessibilityLabel(
-          "Stroke thickness"
+        Picker(selection: $document.lineWidth) {
+          Text(chrome: "Thin", comment: "Thinnest annotation stroke.").tag(0.003)
+          Text(chrome: "Medium", comment: "Medium annotation stroke.").tag(0.006)
+          Text(chrome: "Bold", comment: "Thickest annotation stroke.").tag(0.012)
+        } label: {
+          Text(chrome: "Stroke", comment: "Annotation stroke thickness picker.")
+        }.labelsHidden().frame(minWidth: 104, idealWidth: 140).help(
+          Text(chrome: "Stroke thickness", comment: "Help for the stroke thickness picker.")
+        ).accessibilityLabel(
+          Text(chrome: "Stroke thickness", comment: "Accessibility label for stroke thickness.")
         )
         .disabled(document.tool == .redact || document.tool == .text)
         Spacer()
@@ -91,7 +106,11 @@ struct ComposerView: View {
         }.disabled(!document.canRedo).keyboardShortcut("z", modifiers: [.command, .shift])
       }.padding(.horizontal, 20).padding(.vertical, 10)
       if document.tool == .text {
-        TextField("Type a label, then click on the image to place it", text: $document.text)
+        TextField(
+          "", text: $document.text,
+          prompt: Text(
+            chrome: "Type a label, then click on the image to place it",
+            comment: "Placeholder for an annotation text label."))
           .textFieldStyle(.roundedBorder).padding(.horizontal, 20).padding(.bottom, 10)
       }
       Divider()
@@ -100,90 +119,122 @@ struct ComposerView: View {
       Divider()
       ZStack(alignment: .topLeading) {
         if note.isEmpty {
-          Text("A quick description, or just the screenshot…").foregroundStyle(.tertiary).padding(
+          Text(
+            chrome: "A quick description, or just the screenshot…",
+            comment: "Placeholder for the optional capture note."
+          ).foregroundStyle(.tertiary).padding(
             .top, 8
           ).padding(.leading, 5).allowsHitTesting(false)
         }
         TextEditor(text: $note).font(.body).scrollContentBackground(.hidden).frame(height: 75)
-          .focused($noteFocused).accessibilityLabel("Observation description")
+          .focused($noteFocused).accessibilityLabel(
+            Text(chrome: "Observation description", comment: "Accessibility label for the capture note."))
       }.padding(20)
       Divider()
       VStack(alignment: .leading, spacing: 12) {
         HStack(alignment: .top, spacing: 20) {
           VStack(alignment: .leading, spacing: 6) {
-            Text("Project").font(.caption).foregroundStyle(.secondary)
-            Picker("Project", selection: $projectID) {
-              Text("Choose project…").tag(nil as UUID?)
-              ForEach(model.snapshot.projects) { Text($0.name).tag(Optional($0.id)) }
+            Text(chrome: "Project", comment: "Caption above the project picker.").font(.caption)
+              .foregroundStyle(.secondary)
+            Picker(selection: $projectID) {
+              Text(chrome: "Choose project…", comment: "Project picker placeholder.").tag(nil as UUID?)
+              ForEach(model.snapshot.projects) { Text(verbatim: $0.name).tag(Optional($0.id)) }
+            } label: {
+              Text(chrome: "Project", comment: "Accessibility label for the project picker.")
             }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityLabel("Project")
+              .accessibilityLabel(Text(chrome: "Project", comment: "Accessibility label for the project picker."))
               .disabled(existing != nil && existing?.status != .draft)
           }.frame(maxWidth: .infinity, alignment: .leading)
           VStack(alignment: .leading, spacing: 6) {
-            Text("Issue").font(.caption).foregroundStyle(.secondary)
-            Picker("Issue", selection: $issueID) {
-              Text("New issue").tag(nil as UUID?)
+            Text(chrome: "Issue", comment: "Caption above the issue picker.").font(.caption)
+              .foregroundStyle(.secondary)
+            Picker(selection: $issueID) {
+              Text(chrome: "New issue", comment: "Files the capture as a new report.").tag(nil as UUID?)
               ForEach(
                 model.snapshot.issues.filter {
                   !$0.archived && $0.projectID == projectID && $0.status != .draft
                 }
-              ) { Text($0.referencedTitle).tag(Optional($0.id)) }
+              ) { Text(verbatim: $0.referencedTitle).tag(Optional($0.id)) }
               if let existing, existing.status == .draft {
-                Text(existing.reportReference.map { "Current draft \($0)" } ?? "Current draft")
-                  .tag(Optional(existing.id))
+                if let reference = existing.reportReference {
+                  Text(verbatim: Chrome.format(
+                    "composer.currentDraft", "Current draft \(reference)", locale: locale,
+                    comment: "Issue picker row for the draft being edited. %@ is the report number."))
+                    .tag(Optional(existing.id))
+                } else {
+                  Text(chrome: "Current draft", comment: "Issue picker row for an unnumbered draft.")
+                    .tag(Optional(existing.id))
+                }
               }
+            } label: {
+              Text(chrome: "Issue", comment: "Accessibility label for the issue picker.")
             }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
-              .accessibilityLabel("Issue")
+              .accessibilityLabel(Text(chrome: "Issue", comment: "Accessibility label for the issue picker."))
           }.frame(maxWidth: .infinity, alignment: .leading)
           VStack(alignment: .leading, spacing: 6) {
-            Text("Agent").font(.caption).foregroundStyle(.secondary)
+            Text(chrome: "Agent", comment: "Caption above the agent picker.").font(.caption)
+              .foregroundStyle(.secondary)
             Menu {
               ForEach(agentOptions) { option in
                 Button {
                   agent = option.kind
                 } label: {
                   if option.kind == agent {
-                    Label(option.title, systemImage: "checkmark")
+                    Label { Text(verbatim: option.title) } icon: { Image(systemName: "checkmark") }
                   } else {
-                    Text(option.title)
+                    Text(verbatim: option.title)
                   }
                 }
                 .disabled(!option.enabled)
               }
             } label: {
-              Text(model.detection(agent)?.label ?? agent.title)
+              Text(verbatim: model.detection(agent)?.localizedLabel(locale: locale) ?? agent.title)
+                .lineLimit(2).fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .menuStyle(.borderlessButton)
             .disabled(lockedAgent != nil)
-            .accessibilityLabel("Agent")
+            .accessibilityLabel(Text(chrome: "Agent", comment: "Accessibility label for the agent picker."))
             .help(
               lockedAgent != nil
-                ? "Follow-up captures continue with the issue's existing agent."
-                : "Which agent works on this report.")
-          }.frame(maxWidth: 230, alignment: .leading)
+                ? Text(chrome: "Follow-up captures continue with the issue's existing agent.", comment: "Help when the agent cannot be changed.")
+                : Text(chrome: "Which agent works on this report.", comment: "Help for the agent picker."))
+          }.frame(maxWidth: .infinity, alignment: .leading)
         }
         if lockedAgent == nil, agent != .external, let found = model.detection(agent), !found.usable {
-          Text(found.detail + " The report will wait in the queue until it is ready.")
-            .font(.caption).foregroundStyle(.orange)
+          Text(verbatim: found.localizedDetail(locale: locale) + " " + Chrome.text(
+            "The report will wait in the queue until it is ready.", locale: locale,
+            comment: "Appended when the chosen local agent is not ready yet."))
+            .font(.caption).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
         }
-        if let hint = externalAvailability.hint, lockedAgent == nil || lockedAgent == .external {
-          Text(hint).font(.caption).foregroundStyle(.orange)
+        if let hint = externalAvailability.localizedHint(locale: locale),
+          lockedAgent == nil || lockedAgent == .external
+        {
+          Text(verbatim: hint).font(.caption).foregroundStyle(.orange)
+            .fixedSize(horizontal: false, vertical: true)
         }
-        if let error { Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
-        HStack {
+        if let error {
+          Text(verbatim: Chrome.stored(error, locale: locale)).font(.caption).foregroundStyle(.red)
+            .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
+        }
+        HStack(alignment: .center) {
           if canSaveDraft {
-            Button("Save draft") { submit(draft: true) }.keyboardShortcut("s", modifiers: .command)
+            Button { submit(draft: true) } label: {
+              Text(chrome: "Save draft", comment: "Saves the capture without sending it.")
+            }.keyboardShortcut("s", modifiers: .command)
           }
-          Spacer()
-          Text("⌘ Return to submit").font(.caption).foregroundStyle(.tertiary)
-          Button("Submit", action: { submit(draft: false) }).buttonStyle(.borderedProminent).tint(
-            .orange
-          ).keyboardShortcut(.return, modifiers: .command)
+          Spacer(minLength: 8)
+          Text(chrome: "⌘ Return to submit", comment: "Hint that Command-Return submits. Keep the ⌘ symbol.")
+            .font(.caption).foregroundStyle(.tertiary)
+            .fixedSize(horizontal: false, vertical: true)
+          Button(action: { submit(draft: false) }) {
+            Text(chrome: "Submit", comment: "Submits the capture.")
+          }.buttonStyle(.borderedProminent).tint(.orange)
+            .keyboardShortcut(.return, modifiers: .command)
         }
       }.padding(20)
     }
-    .frame(minWidth: 640, idealWidth: 780, minHeight: 560, idealHeight: 690)
+    .frame(minWidth: 680, idealWidth: 860, minHeight: 560, idealHeight: 720)
     .onAppear {
       noteFocused = true
       projectID =
@@ -225,7 +276,7 @@ struct ComposerView: View {
   }
   private var agentOptions: [AgentOption] {
     agentChoices.map { kind in
-      let title = model.detection(kind)?.label ?? kind.title
+      let title = model.detection(kind)?.localizedLabel(locale: locale) ?? kind.title
       let enabled = kind == .external ? externalAvailability.enabled : true
       return AgentOption(kind: kind, title: title, enabled: enabled)
     }

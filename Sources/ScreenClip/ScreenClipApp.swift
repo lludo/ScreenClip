@@ -25,6 +25,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   var timer: Timer?
   var integrationTimer: Timer?
   var previewMode = false
+  var screenshotMode = false
+  var screenshotLocale = Locale.current
   func applicationDidFinishLaunching(_ notification: Notification) {
     NSApp.setActivationPolicy(.accessory)
     do {
@@ -33,6 +35,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         arguments.contains("--preview") || arguments.contains("--render-preview")
         || arguments.contains("--integration-run")
         || arguments.contains("--integration-project-link")
+      screenshotMode = arguments.contains("--screenshot-fixture")
+      if let localeFlag = arguments.firstIndex(of: "--locale"), arguments.indices.contains(localeFlag + 1) {
+        screenshotLocale = Locale(identifier: arguments[localeFlag + 1])
+      }
       let override = arguments.firstIndex(of: "--data-dir").flatMap {
         arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil
       }
@@ -41,14 +47,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       guard !integration || override != nil else {
         throw ScreenClipError.message("Integration checks require an explicit fresh --data-dir.")
       }
-      let root =
-        override.map { URL(fileURLWithPath: $0) }
-        ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
-        .appendingPathComponent("ScreenClip")
+      let root: URL
+      if screenshotMode {
+        root = try ScreenshotFixture.materialize()
+      } else {
+        root =
+          override.map { URL(fileURLWithPath: $0) }
+          ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+          .appendingPathComponent("ScreenClip")
+      }
       guard !integration || !FileManager.default.fileExists(atPath: root.path) else {
         throw ScreenClipError.message("Choose a new --data-dir for the integration check.")
       }
-      model = try AppModel(root: root)
+      model = try AppModel(root: root, recoverInterruptedWork: !screenshotMode)
+      if screenshotMode { ScreenshotFixture.configure(model) }
       capture = CaptureCoordinator(model: model)
       shortcut = GlobalShortcut()
       model.captureAction = { [weak self] in self?.startCapture() }
@@ -60,14 +72,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         self?.showComposer(image: image, context: context, existing: existing)
       }
       shortcut.action = { [weak self] in self?.startCapture() }
-      if !previewMode { registerShortcut() }
+      if !previewMode && !screenshotMode { registerShortcut() }
       UNUserNotificationCenter.current().delegate = self
       statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
       statusItem.button?.target = self
       statusItem.button?.action = #selector(togglePopover)
-      popover.contentViewController = NSHostingController(rootView: MenuPopover(model: model))
+      popover.contentViewController = NSHostingController(rootView: rooted(MenuPopover(model: model)))
       popover.behavior = .transient
-      popover.contentSize = NSSize(width: 370, height: 440)
+      popover.contentSize = NSSize(width: 460, height: 480)
       timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
         Task { @MainActor in self?.refreshBadge() }
       }
@@ -82,6 +94,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       if arguments.contains("--render-preview") {
         try PreviewSupport.render(model: model, root: root)
         NSApp.terminate(nil)
+        return
+      }
+      if screenshotMode {
+        showQueue()
         return
       }
       if previewMode { try PreviewSupport.seed(model: model) } else { model.worker.start() }
@@ -112,9 +128,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       }
     } catch {
       let alert = NSAlert()
-      alert.messageText = "ScreenClip could not open its queue"
-      alert.informativeText = error.localizedDescription
-      alert.addButton(withTitle: "Quit")
+      alert.messageText = Chrome.text(
+        "ScreenClip could not open its queue", comment: "Alert when the local queue cannot be opened.")
+      alert.informativeText = Chrome.stored(error.localizedDescription, locale: .current)
+      alert.addButton(withTitle: Chrome.text("Quit", locale: .current, comment: "Quits after a startup failure."))
       alert.runModal()
       NSApp.terminate(nil)
     }
@@ -221,13 +238,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
   }
   func refreshBadge() {
+    let active = model.snapshot.activeCount
+    let attention = model.snapshot.attentionCount
     statusItem.button?.image = NSImage(
       systemSymbolName: "viewfinder", accessibilityDescription: "ScreenClip")
-    statusItem.button?.title =
-      model.snapshot.activeCount > 0
-      ? " \(model.snapshot.activeCount)\(model.snapshot.attentionCount > 0 ? " •" : "")" : ""
-    statusItem.button?.toolTip =
-      "ScreenClip: \(model.snapshot.activeCount) open, \(model.snapshot.attentionCount) need attention"
+    let count = active.formatted(.number)
+    statusItem.button?.title = active > 0 ? " \(count)\(attention > 0 ? " •" : "")" : ""
+    let open = Chrome.format(
+      "tooltip.open", "\(active) open", comment: "Menu bar tooltip. %lld is the open count.")
+    let needs = Chrome.format(
+      "tooltip.attention", "\(attention) need attention",
+      comment: "Menu bar tooltip. %lld is how many reports need attention.")
+    statusItem.button?.toolTip = "ScreenClip: \(open), \(needs)"
   }
   @objc func togglePopover() {
     if popover.isShown {
@@ -256,7 +278,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     popover.performClose(nil)
     if queueWindow == nil {
       let window = makeWindow(
-        title: previewMode ? "ScreenClip · Preview" : "ScreenClip", view: QueueView(model: model),
+        title: previewMode
+          ? Chrome.text("ScreenClip · Preview", comment: "Window title for the seeded preview queue.")
+          : "ScreenClip", view: rooted(QueueView(model: model)),
         size: NSSize(width: 1180, height: 760))
       window.setFrameAutosaveName("ScreenClipQueue")
       queueWindow = window
@@ -269,15 +293,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     // Reopening starts from the saved settings rather than a stale or abandoned form.
     if let window = settingsWindow, !window.isVisible {
       window.contentViewController = NSHostingController(
-        rootView: SettingsView(model: model) { [weak self] in self?.settingsWindow?.close() })
+        rootView: rooted(SettingsView(model: model) { [weak self] in self?.settingsWindow?.close() }))
     }
     if settingsWindow == nil {
       settingsWindow = makeWindow(
-        title: "ScreenClip Settings",
-        view: SettingsView(model: model) { [weak self] in
+        title: Chrome.text("ScreenClip Settings", comment: "Settings window title. Keep ScreenClip."),
+        view: rooted(SettingsView(model: model) { [weak self] in
           self?.settingsWindow?.close()
-        },
-        size: NSSize(width: 700, height: 640))
+        }),
+        size: NSSize(width: 780, height: 720))
     }
     settingsWindow?.makeKeyAndOrderFront(nil)
     NSApp.activate(ignoringOtherApps: true)
@@ -301,10 +325,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       let window = NSWindow(
         contentRect: NSRect(origin: .zero, size: NSSize(width: 440, height: 280)),
         styleMask: [.titled, .closable], backing: .buffered, defer: false)
-      window.title = "Support ScreenClip"
+      window.title = Chrome.text("Support ScreenClip", comment: "Tip window title. Keep ScreenClip.")
       window.isReleasedWhenClosed = false
       window.delegate = self
-      window.contentViewController = NSHostingController(rootView: view)
+      window.contentViewController = NSHostingController(rootView: rooted(view))
       window.center()
       donationWindow = window
     }
@@ -329,7 +353,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       }
     }
     composerWindow = makeWindow(
-      title: "New observation", view: view, size: NSSize(width: 780, height: 690))
+      title: Chrome.text("New observation", comment: "Capture composer window title."),
+      view: rooted(view), size: NSSize(width: 860, height: 720))
     composerWindow?.level = .floating
     composerWindow?.delegate = self
     composerWindow?.makeKeyAndOrderFront(nil)
@@ -347,15 +372,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   func windowShouldClose(_ sender: NSWindow) -> Bool {
     guard sender === composerWindow else { return true }
     let alert = NSAlert()
-    alert.messageText = "Keep this capture?"
-    alert.informativeText = "Use Save draft in the capture window to keep your work."
-    alert.addButton(withTitle: "Keep editing")
-    alert.addButton(withTitle: "Discard")
+    alert.messageText = Chrome.text("Keep this capture?", comment: "Asked when closing an unsaved capture.")
+    alert.informativeText = Chrome.text(
+      "Use Save draft in the capture window to keep your work.",
+      comment: "Explains how to keep an unsaved capture.")
+    alert.addButton(withTitle: Chrome.text("Keep editing", comment: "Returns to the capture."))
+    alert.addButton(withTitle: Chrome.text("Discard", comment: "Closes the capture without saving."))
     if alert.runModal() == .alertSecondButtonReturn {
       composerWindow = nil
       return true
     }
     return false
+  }
+  func rooted<V: View>(_ view: V) -> some View {
+    view.environment(\.locale, screenshotMode ? screenshotLocale : .current)
+      .environment(\.timeZone, screenshotMode ? ScreenshotFixture.timeZone : .current)
   }
   func makeWindow<V: View>(title: String, view: V, size: NSSize) -> NSWindow {
     let window = NSWindow(
@@ -391,11 +422,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
     if model?.snapshot.issues.contains(where: { $0.status == .working }) == true {
       let alert = NSAlert()
-      alert.messageText = "Quit while work is running?"
-      alert.informativeText =
-        "The local worker will stop. Your captures are saved; reconcile the existing chats when you reopen ScreenClip."
-      alert.addButton(withTitle: "Keep running")
-      alert.addButton(withTitle: "Quit")
+      alert.messageText = Chrome.text(
+        "Quit while work is running?", comment: "Asked when quitting during agent work.")
+      alert.informativeText = Chrome.text(
+        "The local worker will stop. Your captures are saved; reconcile the existing chats when you reopen ScreenClip.",
+        comment: "Explains that quitting stops local work but keeps captures.")
+      alert.addButton(withTitle: Chrome.text("Keep running", comment: "Cancels quitting."))
+      alert.addButton(withTitle: Chrome.text("Quit", comment: "Quits even though work is running."))
       if alert.runModal() != .alertSecondButtonReturn { return .terminateCancel }
     }
     return .terminateNow

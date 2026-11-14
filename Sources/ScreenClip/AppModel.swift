@@ -28,7 +28,7 @@ import UserNotifications
   var composerAction: ((NSImage, CaptureContext, Issue?) -> Void)?
   var supportAction: (() -> Void)?
 
-  init(root: URL) throws {
+  init(root: URL, recoverInterruptedWork: Bool = true) throws {
     store = try IssueStore(root: root)
     let diagnostics = CaptureDiagnostics(root: root)
     captureDiagnostics = diagnostics
@@ -53,6 +53,7 @@ import UserNotifications
       ])
     snapshot = try store.load()
     // Do not replay uncertain work automatically after a crash.
+    if recoverInterruptedWork {
     for i in snapshot.issues.indices
     where snapshot.issues[i].status == .working || snapshot.issues[i].dispatchUncertain {
       if snapshot.issues[i].resolvedAgent == .external {
@@ -70,6 +71,7 @@ import UserNotifications
         snapshot.issues[i].record(
           "ScreenClip restarted. Reconcile the existing chat before continuing.", status: .needsYou)
       }
+    }
     }
     if snapshot.settings.codexPath.isEmpty {
       snapshot.settings.codexPath = Self.defaultCodexPath()
@@ -411,6 +413,23 @@ import UserNotifications
   }
   /// One-line status for the default agent.
   var agentStatus: (text: String, ready: Bool) { agentStatus(snapshot.settings.preferredAgent) }
+  /// Fixed connection lines for localization screenshots. Does not contact Codex, Claude Code, or Grok Bot.
+  func applyScreenshotAgentStatus() {
+    connection = "Connected to Codex"
+    agents = [
+      AgentDetection(
+        kind: .codex, path: "/usr/local/bin/codex", version: "0.50.0", signedIn: nil,
+        detail: "Codex 0.50.0"),
+      AgentDetection(
+        kind: .claude, path: "/usr/local/bin/claude", version: "2.1.0", signedIn: true,
+        detail: "Claude Code 2.1.0, signed in"),
+      AgentDetection(
+        kind: .external, path: "", version: nil, signedIn: false,
+        detail:
+          "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant."
+      ),
+    ]
+  }
   func agentStatus(_ kind: AgentKind) -> (text: String, ready: Bool) {
     switch kind {
     case .codex: return (connection, connection == "Connected to Codex")

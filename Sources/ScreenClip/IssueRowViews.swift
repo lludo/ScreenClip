@@ -4,6 +4,7 @@ import SwiftUI
 struct IssueRow: View {
   let issue: Issue
   let project: Project?
+  @Environment(\.locale) private var locale
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
       if let image = issue.captures.first.flatMap({ NSImage(contentsOfFile: $0.imagePath) }) {
@@ -18,10 +19,12 @@ struct IssueRow: View {
           Text(issue.referencedTitle).font(.system(size: 13, weight: .medium)).lineLimit(2)
           if issue.unread { Circle().fill(.orange).frame(width: 6, height: 6) }
         }
-        HStack(spacing: 8) {
-          Text(project?.name ?? "Choose project").font(.caption).foregroundStyle(.secondary)
-            .lineLimit(1)
-          Spacer(minLength: 0)
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+          Text(project?.name ?? Chrome.text(
+            "Choose project", locale: locale, comment: "Shown on a report row that has no project yet."))
+            .font(.caption).foregroundStyle(.secondary)
+            .lineLimit(2).fixedSize(horizontal: false, vertical: true)
+          Spacer(minLength: 8)
           StatusBadge(status: issue.status).fixedSize()
         }
       }
@@ -31,6 +34,7 @@ struct IssueRow: View {
 }
 struct StatusBadge: View {
   let status: IssueStatus
+  @Environment(\.locale) private var locale
   var color: Color {
     switch status {
     case .working: return .blue
@@ -42,7 +46,8 @@ struct StatusBadge: View {
   var body: some View {
     HStack(spacing: 5) {
       Circle().fill(color).frame(width: 5, height: 5)
-      Text(status.title).font(.caption.weight(.medium))
+      Text(verbatim: status.localizedTitle(locale: locale)).font(.caption.weight(.medium))
+        .fixedSize(horizontal: true, vertical: true)
     }.foregroundStyle(color).padding(.horizontal, 8).padding(.vertical, 4).background(
       color.opacity(0.10), in: Capsule())
   }
