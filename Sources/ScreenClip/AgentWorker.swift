@@ -1111,6 +1111,14 @@ import ScreenClipCore
     let commit: String
     switch ExternalHandoff.action(state) {
     case .commitEvidence:
+      // A failed attempt can leave `.screenclip/` uncommitted. Commit that before fast-forwarding,
+      // or the retry stops on a dirty worktree and never reaches the push.
+      if FileManager.default.fileExists(atPath: workspace.path + "/.screenclip") {
+        _ = try await GitHubService.commitEvidence(
+          directory: ".screenclip",
+          message: "ScreenClip: #\(number) evidence revision \(preparedRevision)",
+          cwd: workspace.path)
+      }
       try await GitHubService.integrateRemoteBranch(workspace.branch, cwd: workspace.path)
       try ensureExternalActive(id)
       issue = model.issue(id) ?? issue

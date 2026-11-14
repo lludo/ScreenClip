@@ -72,7 +72,7 @@ Use an explicit confidence/reason field rather than an unobservable guess. Never
 
 ## Agent integrations
 
-The capture pipeline is agent-neutral. The dispatcher prepares a worktree, sends one prompt with approved screenshots to the issue's agent, and receives a structured `implemented` / `question` / `blocked` result. ScreenClip then validates, publishes, and verifies merges itself. The shared contract, agent selection, readiness gating, and the checklist for adding an agent are in [Coding agents](agents/README.md). Each agent has its own page:
+The capture pipeline is agent-neutral for Codex and Claude Code. The dispatcher prepares a worktree, sends one prompt with approved screenshots, and receives a structured `implemented` / `question` / `blocked` result. ScreenClip then validates, publishes, and verifies merges itself. Grok Bot does not take that local turn: ScreenClip pushes the approved screenshots to a `screenclip/` branch and POSTs `screenclip.external.v1`, then still validates and merges the pull request itself. The shared contract, agent selection, readiness gating, and the checklist for adding a local agent are in [Coding agents](agents/README.md). Each agent has its own page:
 
 - [Codex](agents/codex.md): app-server transport, thread identity, desktop deep links, project association, and Codex plugin options.
 - [Claude Code](agents/claude-code.md): headless stream-json turns, session identity, sandbox, sign-in, and the Claude Code plugin.

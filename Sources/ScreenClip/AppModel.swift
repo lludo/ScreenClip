@@ -223,7 +223,11 @@ import UserNotifications
       return "The webhook URL must be an http or https address."
     }
     guard !configuration.normalizedAuthorization.isEmpty else {
-      return "Paste the Authorization header value from Grok Bot."
+      return "Paste the Authorization header value from the Grok Bot routine panel."
+    }
+    guard configuration.authorizationIsHeaderSafe else {
+      return
+        "The Authorization header cannot contain a line break. Paste the single-line value from the Grok Bot routine panel."
     }
     do {
       let stored = ExternalAssistantConfiguration(

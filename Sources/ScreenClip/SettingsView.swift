@@ -144,7 +144,7 @@ struct SettingsView: View {
             TextField("Webhook URL", text: $webhookURL, prompt: Text("https://"))
             SecureField("Authorization header", text: $authorization)
             Text(
-              "Paste the full Authorization header value from Grok Bot. ScreenClip sends it verbatim and stores the URL and header in the Keychain, not in the queue database."
+              "Paste the Webhook URL and the Authorization header from the Grok Bot routine panel. ScreenClip sends that header value as the HTTP Authorization header and does not add a prefix. Both are stored in the Keychain, not in the queue database."
             ).font(.caption).foregroundStyle(.secondary)
             HStack {
               Button(sendingTest ? "Sending…" : "Send test") { sendExternalTest() }

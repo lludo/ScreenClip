@@ -2,13 +2,13 @@
 
 Updated: November 14, 2026. Part of [Coding agents](README.md).
 
-Grok Bot is a remote destination. ScreenClip does not run it in a local worktree and does not ask it for the local agents' `implemented` / `question` / `blocked` result. It hands the report to the assistant with a webhook, then tracks the pull request on GitHub. In every agent list the destination is named **Grok Bot**.
+Grok Bot is a remote destination. It does not run on the Mac and does not return the local agents' `implemented` / `question` / `blocked` result. ScreenClip uses an isolated worktree only to commit and push the approved screenshots, wakes Grok Bot with a webhook, then tracks the pull request on GitHub. In every agent list the destination is named **Grok Bot**.
 
 ## At a glance
 
 | Topic | Behavior |
 | --- | --- |
-| Where it appears | Settings → Connections → Default agent, the agent list, and the capture window's Agent picker, next to Codex and Claude Code. |
+| Where it appears | Settings → Connections → **AI agent** → **Default agent**, the agent list, and the capture window's **Agent** picker, next to Codex and Claude Code. |
 | Ready | Detected when a webhook URL and an Authorization header value are saved in the Keychain. A successful Send test is optional and is mentioned in the status line. Otherwise the row says **Not configured** and points at Settings → Connections → External assistant. |
 | Evidence | Approved screenshots and `report.json` are committed to `screenclip/<reportNumber>-<slug>` in the project's repository and pushed. The webhook does not contain image bytes. |
 | Opt-in | Each project has **Allow sending screenshots to the external assistant**, off by default. Public and private repositories both need it. The capture window explains why Grok Bot cannot be chosen while it is off. |
@@ -61,14 +61,27 @@ A follow-up capture adds files and a new commit on the same branch, then sends t
 3. Questions stay in Grok Bot's chat.
 4. The last commit deletes `.screenclip/`. ScreenClip will not auto-merge while those files are still in the pull request.
 
-## Settings
+## Setup
 
-Settings → Connections → External assistant stores:
+1. Open **Settings → Connections → External assistant**.
+2. Paste **Webhook URL** and **Authorization header** from the Grok Bot routine panel. The header is the full value, sent as the HTTP `Authorization` header. ScreenClip does not add `Bearer` or any other prefix. A line break in that value is rejected.
+3. Click **Send test**. It POSTs `{"schema":"screenclip.external.v1.test"}` and shows the HTTP status. Saving both fields is enough for **Detected**; **Send test** is optional.
+4. Click **Save settings**.
+5. Open **Settings → Projects**, edit the project, and turn on **Allow sending screenshots to the external assistant**. It is off until you do that, for private and public repositories.
+6. Choose Grok Bot as **Default agent** under **AI agent**, or pick it in the capture window. The capture-window row stays disabled until the webhook is saved and that project opt-in is on.
 
-- **Webhook URL**
-- **Authorization header** — the full header value from the assistant, sent verbatim as the HTTP `Authorization` header. ScreenClip does not add `Bearer` or any other prefix.
+The URL and header live in the Keychain (`com.screenclip.app.external-assistant`). They are not written to the SQLite queue. Replacing a saved connection updates the Keychain item in place. `scripts/send_test_webhook.py` sends the same test payload from `SCREENCLIP_WEBHOOK_URL` and `SCREENCLIP_AUTHORIZATION`.
 
-Both live in the Keychain (`com.screenclip.app.external-assistant`). They are not written to the SQLite queue. **Send test** POSTs `{"schema":"screenclip.external.v1.test"}` and shows the HTTP status. `scripts/send_test_webhook.py` sends that same payload from `SCREENCLIP_WEBHOOK_URL` and `SCREENCLIP_AUTHORIZATION`.
+## Privacy
+
+What leaves the Mac for a Grok Bot report:
+
+- The webhook JSON in the hand-off section: report number, issue id, revision, title, notes, source app name, bundle ID, project name, `owner/name`, base branch, validation command, evidence branch, commit, and file paths. Browser URL and window title are included only when **Read the active browser URL for project matching** is on.
+- The git push: `.screenclip/<reportNumber>/report.json` and the approved `capture-<n>.png` files. Anyone who can read that GitHub repository can read those files until Grok Bot deletes `.screenclip/`. On a public repository that means anyone.
+
+Redaction is only a rectangle you draw with the redact tool. ScreenClip flattens those rectangles to opaque black in the PNG it stores and sends. Arrows, pen, shapes, and text do not cover pixels. The unredacted crop is not kept when a capture has a redaction, and it is never pushed or posted.
+
+A redirect to a different host does not include the Authorization header.
 
 ## Status
 
@@ -103,5 +116,5 @@ Grok Bot is listed even when it is not configured.
 
 ## Verification status
 
-- **Automated:** payload encoding, branch slugs, GitHub remote parsing, opt-in gating, idempotent retry of the same revision, pull-request matching, the `.screenclip/` merge guard, detection and picker availability, and `scripts/send_test_webhook.py`. GitHub Actions on macos-15 passed `bash scripts/test.sh`, the Python tests, and the Xcode Debug and Release builds.
+- **Automated:** payload encoding, branch slugs, GitHub remote parsing, opt-in gating, idempotent retry of the same revision, pull-request matching, the `.screenclip/` merge guard, detection and picker availability, header-safety, same-host redirect handling, and `scripts/send_test_webhook.py`. GitHub Actions on macos-15 passed the earlier Grok Bot suite, the Python tests, and the Xcode Debug and Release builds. The review fixes are in the tests and wait on the next macOS run.
 - **Not yet exercised:** a live webhook, a real evidence push, pull-request discovery, and auto-merge. See [validation.md](../validation.md).

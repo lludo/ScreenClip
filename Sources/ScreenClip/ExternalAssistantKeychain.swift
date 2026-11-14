@@ -32,7 +32,13 @@ enum ExternalAssistantKeychain {
       kSecAttrService as String: service,
       kSecAttrAccount as String: account,
     ]
-    SecItemDelete(base as CFDictionary)
+    let updated = SecItemUpdate(
+      base as CFDictionary, [kSecValueData as String: data] as CFDictionary)
+    if updated == errSecSuccess { return }
+    guard updated == errSecItemNotFound else {
+      throw ScreenClipError.message(
+        "Could not save the Grok Bot connection in the Keychain (error \(updated)).")
+    }
     var query = base
     query[kSecValueData as String] = data
     query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
