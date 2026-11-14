@@ -55,6 +55,7 @@ struct QueueView: View {
   @State private var agentFilter: AgentKind?
   @State private var showingFilters = false
   @State private var search = ""
+  @FocusState private var searchFocused: Bool
   init(
     model: AppModel, selection: SidebarSelection = .status(.active),
     projectFilter: UUID? = nil, agentFilter: AgentKind? = nil
@@ -153,17 +154,32 @@ struct QueueView: View {
             Image(systemName: "plus").frame(width: 16, height: 16)
           }.help(Text(chrome: "New capture", comment: "Help for the button that starts a capture."))
             .accessibilityLabel(Text(chrome: "New capture", comment: "Help for the button that starts a capture."))
+        }.controlSize(.regular).buttonStyle(.bordered)
+        HStack(spacing: 8) {
+          HStack(spacing: 6) {
+            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+              .accessibilityHidden(true)
+            TextField(text: $search) {
+              Text(chrome: "Search reports and feedback", comment: "Search field in the report list.")
+            }.textFieldStyle(.plain)
+              .accessibilityLabel(Text(chrome: "Search reports and feedback", comment: "Search field in the report list."))
+              .focused($searchFocused)
+          }
+          .padding(.horizontal, 10).padding(.vertical, 6)
+          .background(Color(nsColor: .textBackgroundColor), in: Capsule())
+          .overlay(
+            Capsule().strokeBorder(
+              searchFocused ? Color.accentColor : Color.secondary.opacity(0.3),
+              lineWidth: searchFocused ? 2 : 1)
+          )
           Button {
             model.settingsAction?()
           } label: {
             Image(systemName: "gearshape").frame(width: 16, height: 16)
           }.help(Text(chrome: "Settings", comment: "Help for the button that opens Settings."))
             .accessibilityLabel(Text(chrome: "Settings", comment: "Help for the button that opens Settings."))
-        }.controlSize(.regular).buttonStyle(.bordered)
-        TextField(text: $search) {
-          Text(chrome: "Search reports and feedback", comment: "Search field in the report list.")
-        }.textFieldStyle(.roundedBorder)
-          .accessibilityLabel(Text(chrome: "Search reports and feedback", comment: "Search field in the report list."))
+            .controlSize(.regular).buttonStyle(.bordered)
+        }
       }.padding(20)
       Divider()
       if filtered.isEmpty {
