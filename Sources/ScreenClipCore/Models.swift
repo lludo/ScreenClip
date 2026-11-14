@@ -164,6 +164,25 @@ public struct Activity: Codable, Identifiable, Equatable {
     self.text = text
   }
 }
+/// Evidence an agent conversation has already received, recorded after a turn completes.
+public struct DeliveredContext: Codable, Equatable, Sendable {
+  public var threadID: String
+  public var captureIDs: [UUID]
+  public var contextNoteIDs: [UUID]
+  public var answeredQuestionIDs: [UUID]
+  public var validationFeedback: String?
+  public init(
+    threadID: String, captureIDs: [UUID], contextNoteIDs: [UUID], answeredQuestionIDs: [UUID],
+    validationFeedback: String?
+  ) {
+    self.threadID = threadID
+    self.captureIDs = captureIDs
+    self.contextNoteIDs = contextNoteIDs
+    self.answeredQuestionIDs = answeredQuestionIDs
+    self.validationFeedback = validationFeedback
+  }
+}
+
 public struct ContextNote: Codable, Identifiable, Equatable {
   public var id: UUID
   public var date: Date
@@ -228,6 +247,12 @@ public struct Issue: Codable, Identifiable, Equatable {
   /// Evidence commit already pushed for this revision. A retry of the same revision reuses it.
   public var handoffRevision: Int? = nil
   public var handoffCommit: String? = nil
+  /// The latest validation or CI failure to hand back to the agent. Kept apart from
+  /// `lastError`, which can be any error (a disconnect, a gh failure) and is only shown.
+  public var validationFeedback: String? = nil
+  /// What the agent's current conversation already received, so a resumed turn sends only
+  /// what is new. Nil, or bound to another conversation, means the next turn sends everything.
+  public var deliveredContext: DeliveredContext? = nil
   public var resolvedAgent: AgentKind { agent ?? .codex }
   public init(
     id: UUID = UUID(), projectID: UUID?, title: String, capture: Capture, draft: Bool = false,

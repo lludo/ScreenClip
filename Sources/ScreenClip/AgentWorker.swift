@@ -31,6 +31,8 @@ import ScreenClipCore
   var lastCodexAuthCheck = Date.distantPast
   /// Time limit for each running Codex turn, keyed by issue.
   var codexTurnWatchdogs: [UUID: Task<Void, Never>] = [:]
+  /// What each running Codex turn is sending, recorded on the issue once the turn completes.
+  var sentContext: [UUID: DeliveredContext] = [:]
   lazy var authentication = CodexAuthentication(
     request: { [unowned self] method, params in
       try await self.connect()
