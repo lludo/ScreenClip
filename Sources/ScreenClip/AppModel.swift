@@ -210,12 +210,16 @@ import UserNotifications
     }
     worker.pump()
   }
-  func addContext(_ id: UUID, text: String) throws {
+  func addContext(_ id: UUID, text: String, followUp: Bool = false) throws {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !trimmed.isEmpty else {
       throw ScreenClipError.message("Enter some context before saving.")
     }
-    try updateIssue(id) { $0.addContext(trimmed) }
+    try updateIssue(id) {
+      // A merged or verified report reopens with this note as feedback for a new fix.
+      if followUp { $0.record("Tester requested a follow-up") }
+      $0.addContext(trimmed)
+    }
     worker.pump()
   }
   func retry(_ id: UUID) {
@@ -295,9 +299,18 @@ import UserNotifications
       installed.contains($0) || $0 == snapshot.settings.preferredAgent || $0 == .external
     }
   }
-  /// One-line status for the default agent, shown in the queue sidebar.
-  var agentStatus: (text: String, ready: Bool) {
-    switch snapshot.settings.preferredAgent {
+  /// One status line per agent offered in pickers, default agent first, for the queue sidebar.
+  var agentStatuses: [(kind: AgentKind, text: String, ready: Bool)] {
+    let preferred = snapshot.settings.preferredAgent
+    return ([preferred] + availableAgents.filter { $0 != preferred }).map { kind in
+      let status = agentStatus(kind)
+      return (kind, status.text, status.ready)
+    }
+  }
+  /// One-line status for the default agent.
+  var agentStatus: (text: String, ready: Bool) { agentStatus(snapshot.settings.preferredAgent) }
+  func agentStatus(_ kind: AgentKind) -> (text: String, ready: Bool) {
+    switch kind {
     case .codex: return (connection, connection == "Connected to Codex")
     case .claude:
       guard let found = detection(.claude) else { return ("Checking Claude Code…", false) }
