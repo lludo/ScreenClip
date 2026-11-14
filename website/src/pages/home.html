@@ -10,11 +10,7 @@
         <h2 id="demo-title">{{demo.title}}</h2>
         <figure class="demo-figure">
           <picture>
-            <source media="(prefers-color-scheme: dark)" type="image/avif" srcset="@@POPUP_DARK_AVIF@@">
-            <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="@@POPUP_DARK_WEBP@@">
             <source media="(prefers-color-scheme: dark)" type="image/png" srcset="@@POPUP_DARK_PNG@@">
-            <source type="image/avif" srcset="@@POPUP_LIGHT_AVIF@@">
-            <source type="image/webp" srcset="@@POPUP_LIGHT_WEBP@@">
             <img class="popup" src="@@POPUP_LIGHT_PNG@@" width="@@POPUP_W@@" height="@@POPUP_H@@" alt="{{demo.alt}}" fetchpriority="high">
           </picture>
           <figcaption>{{demo.caption}}</figcaption>

@@ -42,7 +42,7 @@
   },
   "demo": {
     "title": "Die Menüleiste",
-    "alt": "Menüleistenfenster von ScreenClip mit Beispielberichten: 1 offen, 1 braucht dich und 19 zum erneuten Test. Die Liste zeigt Titel, das Projekt ScreenClip, den Status Needs you oder Merged sowie New capture, Open queue und Pause.",
+    "alt": "ScreenClip-Menü mit drei Beispielberichten für einen Demo-Shop: in Bearbeitung, benötigt deine Hilfe und zusammengeführt.",
     "caption": "Offen, braucht dich und bereit zum erneuten Test."
   },
   "loop": {

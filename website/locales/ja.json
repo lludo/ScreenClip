@@ -42,7 +42,7 @@
   },
   "demo": {
     "title": "メニューバー",
-    "alt": "ScreenClipのメニューバーポップアップ。サンプルのレポートは、未対応1件、要対応1件、再テスト待ち19件です。一覧にはタイトル、ScreenClipプロジェクト、Needs youまたはMerged、New capture、Open queue、Pauseがあります。",
+    "alt": "ScreenClipのメニューに、デモストアのサンプルレポート3件と、作業中・要対応・マージ済みの状態が表示されています。",
     "caption": "未対応、要対応、再テスト待ち。"
   },
   "loop": {

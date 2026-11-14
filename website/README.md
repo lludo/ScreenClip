@@ -96,7 +96,7 @@ The build writes:
 - `manifest.webmanifest`, `favicon.ico`, an SVG icon, a 32×32 PNG, and an Apple touch icon.
 - `/privacy`, `/support`, and `404.html`. Localized privacy and support pages use the same paths under each locale prefix.
 
-CSS and the menu bar screenshots are fingerprinted under `/assets/h/`. Each screenshot is an AVIF, a WebP, and a PNG. The home page picks the light or dark set with `prefers-color-scheme`. `vercel.json` gives those files a one-year immutable cache. HTML, `og.png`, and the stable icons stay revalidated. The older capture-editor and queue PNGs in `src/assets/` are not part of the page.
+CSS and the synthetic menu bar screenshots are fingerprinted under `/assets/h/`. The home page picks the light or dark PNG with `prefers-color-scheme`. `vercel.json` gives those files a one-year immutable cache. HTML, `og.png`, and the stable icons stay revalidated. The older capture-editor and queue PNGs in `src/assets/` are not part of the page.
 
 On a Mac, `swift website/render-assets.swift` redraws `src/assets/og.png`. The icons in `dist/` are drawn by `build.py`.
 
