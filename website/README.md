@@ -32,15 +32,37 @@ Edit `site.config.json`, then rebuild. Every value is either an absolute `https:
 
 `githubUrl` is `https://github.com/lludo/ScreenClip`. The support email on `/support` is the literal placeholder **TODO** until a monitored inbox exists.
 
+## Languages
+
+`locales/*.json` holds one string file per language. `build.py` writes the same pages for each locale:
+
+| Locale | Path |
+| --- | --- |
+| English (default) | `/`, `/privacy`, `/support` |
+| Chinese Simplified | `/zh-hans/` |
+| Spanish | `/es/` |
+| Japanese | `/ja/` |
+| Portuguese (Brazil) | `/pt-br/` |
+| German | `/de/` |
+| French | `/fr/` |
+| Korean | `/ko/` |
+| Russian | `/ru/` |
+| Chinese Traditional | `/zh-hant/` |
+
+`hero.title` is the whole headline. `[[this part]]` is the optional accent; the brackets are not shown. Replace that one key when the tagline changes. Product names, `Cmd` / `Shift` / `2`, setting labels, and `{code:…}` paths stay as written.
+
+The footer lists every language as a normal link. Choosing one stores `screenclip_lang` in a cookie and in local storage. On `/`, `middleware.js` reads `Accept-Language` when that cookie is absent and redirects (307) to the best match. It does not redirect known crawlers, and it does not redirect any path except `/`. The page script repeats that choice with `navigator.languages` when the edge redirect did not run. English stays at `/`.
+
 ## Search and sharing
 
 The build writes:
 
-- One `h1` per page, canonical URLs, and descriptions aimed at “screenshot feedback for AI coding agents”, “Mac screenshot to pull request”, and Claude Code / Codex.
-- Open Graph and Twitter card tags. The image is `src/assets/og.png` (1200×630), copied to `/assets/og.png`.
-- `SoftwareApplication` JSON-LD (`operatingSystem` `macOS 14 or later`, free offer, `downloadUrl`) and `FAQPage` JSON-LD on the home page.
-- `robots.txt`, `sitemap.xml` (`/`, `/privacy`, `/support`), `manifest.webmanifest`, `favicon.ico`, an SVG icon, a 32×32 PNG, and an Apple touch icon.
-- `/privacy`, `/support`, and `404.html`.
+- One `h1` per page, a canonical URL per locale, and `hreflang` alternates including `x-default`.
+- Open Graph and Twitter tags, including `og:locale`. The image is `src/assets/og.png` (1200×630), copied to `/assets/og.png`.
+- `SoftwareApplication` JSON-LD (`operatingSystem` includes macOS, free offer, `downloadUrl`, `inLanguage`) and `FAQPage` JSON-LD on each home page.
+- `robots.txt` and `sitemap.xml`. The sitemap lists `/`, `/privacy`, and `/support` in every locale, each with `xhtml:link` alternates.
+- `manifest.webmanifest`, `favicon.ico`, an SVG icon, a 32×32 PNG, and an Apple touch icon.
+- `/privacy`, `/support`, and `404.html`. Localized privacy and support pages use the same paths under each locale prefix.
 
 CSS and the menu bar screenshots are fingerprinted under `/assets/h/`. Each screenshot is an AVIF, a WebP, and a PNG. The home page picks the light or dark set with `prefers-color-scheme`. `vercel.json` gives those files a one-year immutable cache. HTML, `og.png`, and the stable icons stay revalidated. The older capture-editor and queue PNGs in `src/assets/` are not part of the page.
 
@@ -51,7 +73,7 @@ On a Mac, `swift website/render-assets.swift` redraws `src/assets/og.png`. The i
 Do this from the GitHub repository. No tokens or secrets belong in the repo or in the build.
 
 1. In Vercel, import `https://github.com/lludo/ScreenClip`.
-2. Set **Root Directory** to `website`. Framework preset: **Other**. `website/vercel.json` sets the build command to `python3 build.py` and the output directory to `dist`, with `cleanUrls` and `trailingSlash: false`. Vercel’s build image provides `python3`. There is no `package.json` and no install step.
+2. Set **Root Directory** to `website`. Framework preset: **Other**. `website/vercel.json` sets the build command to `python3 build.py` and the output directory to `dist`, with `cleanUrls` and `trailingSlash: false`. Vercel’s build image provides `python3`. `package.json` only installs `@vercel/functions` for the locale redirect in `middleware.js`.
 3. Deploy with Vercel’s Git integration (or `npx vercel deploy` from `website/` once the project is linked). Production deploy is `npx vercel deploy --prod` from that directory.
 4. In the project’s **Settings → Domains**, add `screenclipai.com`. When Vercel offers `www.screenclipai.com`, add it and set it to **redirect to `screenclipai.com`**. `vercel.json` also redirects `www.screenclipai.com` to the apex (path and, by Vercel’s redirect default, query string) if both hostnames are attached to the deployment.
 5. Keep DNS at Cloudflare. Do not switch the domain’s nameservers to Vercel, and do not proxy these records (grey cloud, DNS only). After the domains are added, copy the records from **Settings → Domains**. Vercel’s current docs ([apex and www records](https://vercel.com/docs/domains/troubleshooting)) say the values are per project:
@@ -65,6 +87,6 @@ Do this from the GitHub repository. No tokens or secrets belong in the repo or i
 
 6. Turn Cloudflare’s proxy **off** for both records. Vercel’s docs say to use DNS only when the DNS host is Cloudflare. An orange-cloud proxy, especially with Flexible SSL, is a common cause of redirect loops and failed certificate checks.
 
-`vercel.json` sends a Content-Security-Policy (script sources are `'self'` plus the hash of the home page JSON-LD), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and HSTS (`max-age=63072000; includeSubDomains; preload`). `build.py` fails if the JSON-LD hash is not in that policy. The `preload` token does not by itself submit the domain to the HSTS preload list.
+`vercel.json` sends a Content-Security-Policy (script sources are `'self'` plus the hash of each locale’s home page JSON-LD), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and HSTS (`max-age=63072000; includeSubDomains; preload`). `build.py` fails if those hashes are not in that policy. The `preload` token does not by itself submit the domain to the HSTS preload list.
 
 Unknown paths serve `dist/404.html` with status 404. Submit `https://screenclipai.com/sitemap.xml` to a search engine after the domain is serving the site.
