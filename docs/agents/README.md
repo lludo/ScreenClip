@@ -8,7 +8,7 @@ ScreenClip captures an observation and hands it to a coding agent. Codex and Cla
 | --- | --- | --- | --- | --- | --- |
 | Codex | `codex app-server` (long-lived JSON-RPC over stdio) | Codex thread ID | `codex://threads/<id>` | ChatGPT or API key through app-server | [codex.md](codex.md) |
 | Claude Code | `claude -p` (one stream-json process per turn) | Session UUID chosen by ScreenClip | Copy `cd <worktree> && claude --resume <id>` | `claude auth login` in Terminal | [claude-code.md](claude-code.md) |
-| Grok Bot | Webhook `screenclip.external.v1` after a Git push of approved screenshots | Report number and `screenclip/<number>-<slug>-<workspace>` branch | Pull request link, or a note that the chat is in Grok Bot | Webhook URL and Authorization header in the Keychain | [external-assistant.md](external-assistant.md) |
+| Grok Bot | Webhook `screenclip.external.v1` after a Git push of approved screenshots | Report number and `screenclip/<number>-<slug>-<workspace>` branch | Pull request link, or a note that the chat is in Grok Bot | **Connect Grok Bot** with a setup code or `screenclip://connect` link. The address and secret stay in the Keychain | [external-assistant.md](external-assistant.md) |
 
 Separately from automatic dispatch, Codex and Claude Code can **read** the queue through the optional MCP plugin. See [the plugin README](../../plugins/screenclip/README.md).
 
@@ -21,10 +21,10 @@ Separately from automatic dispatch, Codex and Claude Code can **read** the queue
 
 ## Detection and readiness
 
-`AgentDetector` (in `ScreenClipCore`) finds each local agent's executable, reads its version, and, where the agent supports it, its sign-in state. For Grok Bot, detected means the webhook URL and Authorization header are in the Keychain. Detection runs at launch and from **Detect agents** in Settings.
+`AgentDetector` (in `ScreenClipCore`) finds each local agent's executable, reads its version, and, where the agent supports it, its sign-in state. For Grok Bot, detected means the connection from **Connect Grok Bot** is in the Keychain. Detection runs at launch and from **Detect agents** in Settings.
 
-- Pickers list installed agents plus the current default, so the default never disappears. Grok Bot is always listed. In the capture window its row is disabled, with a hint, until it is configured and the project has opted in to sending screenshots.
-- The queue holds a queued issue whose agent detection reports missing, signed out, or not configured (`AgentDetection.usable == false`). Detecting again resumes it. The capture window warns when the selected local agent is not ready.
+- Pickers list installed agents plus the current default, so the default never disappears. Grok Bot is always listed. In the capture window its row is disabled, with **Connect Grok Bot**, until it is connected and the project has opted in to sending screenshots.
+- The queue holds a queued issue whose agent detection reports missing, signed out, or not connected (`AgentDetection.usable == false`). Detecting again resumes it. The capture window warns when the selected local agent is not ready.
 - The queue sidebar shows the default agent's status (`AppModel.agentStatus`).
 
 ## The agent contract

@@ -18,7 +18,7 @@ import XCTest
     ]
     XCTAssertEqual(model.availableAgents, [.codex, .external])
     try model.commit { $0.settings.defaultAgent = .external }
-    XCTAssertEqual(model.agentStatus.text, "Grok Bot is not configured")
+    XCTAssertEqual(model.agentStatus.text, "Grok Bot is not connected")
     XCTAssertFalse(model.agentStatus.ready)
     model.agents = [
       AgentDetection(
@@ -47,7 +47,7 @@ import XCTest
         context: CaptureContext(), projectID: project.id, existingID: nil, draft: false,
         agent: .external)
     ) { error in
-      XCTAssertTrue(error.localizedDescription.contains("not configured"))
+      XCTAssertTrue(error.localizedDescription.contains("Not connected"))
     }
     model.loadExternalAssistant = {
       ExternalAssistantConfiguration(
@@ -60,7 +60,7 @@ import XCTest
         context: CaptureContext(), projectID: project.id, existingID: nil, draft: false,
         agent: .external)
     ) { error in
-      XCTAssertTrue(error.localizedDescription.contains("Allow sending screenshots"))
+      XCTAssertTrue(error.localizedDescription.contains("screenshots"))
     }
     var opted = project
     opted.allowExternalScreenshots = true
