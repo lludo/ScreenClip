@@ -586,6 +586,24 @@ struct GrokConnectionCheck: Equatable {
     NSPasteboard.general.setString(command, forType: .string)
     banner = "Copied. Paste in Terminal to continue this issue's Claude Code session."
   }
+  /// Opens the report's Claude session in Claude Desktop when the CLI supports it; otherwise
+  /// explains why and leaves the Terminal command as the fallback.
+  func openClaudeInDesktop(_ issue: Issue) {
+    guard let session = issue.threadID, let path = issue.worktreePath else { return }
+    guard !worker.isActive(issue.id) else {
+      banner = "Cancel the active ScreenClip run before opening this session in Claude Desktop."
+      return
+    }
+    let executable = AgentDetector.claudePath(snapshot.settings)
+    Task {
+      do {
+        try await worker.claude.openInDesktop(executable: executable, cwd: path, sessionID: session)
+        banner = "Opened in Claude Desktop. Continue there, and let it finish before ScreenClip runs again."
+      } catch {
+        banner = error.localizedDescription
+      }
+    }
+  }
   func notify(_ issue: Issue, text: String) {
     guard snapshot.settings.notifications else { return }
     let content = UNMutableNotificationContent()
