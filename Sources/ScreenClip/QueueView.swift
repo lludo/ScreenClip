@@ -82,6 +82,7 @@ struct QueueView: View {
       }
       // Fixed width so the sidebar doesn't jump when the panes beside it change.
       .frame(width: 220).frame(maxHeight: .infinity)
+      .background(Color(nsColor: .windowBackgroundColor))
       switch selection {
       case .status:
         reportList
@@ -317,7 +318,7 @@ struct QueueView: View {
             .foregroundStyle(selection == .newProject ? .orange : .secondary)
         }.buttonStyle(.plain)
       }
-    }.listStyle(.sidebar).labelStyle(SidebarLabelStyle())
+    }.listStyle(.sidebar).scrollContentBackground(.hidden).labelStyle(SidebarLabelStyle())
       // Sidebar rows tint icons with the system accent unless told otherwise.
       .listItemTint(.fixed(.orange)).tint(.orange)
   }
