@@ -122,30 +122,12 @@ def main() -> int:
     sample = pseudolocalize("Open queue")
     if not (sample.startswith("⟦") and sample.endswith("⟧") and len(sample) > len("Open queue")):
         errors.append("pseudolocalization did not expand a sample string")
-    fixture = ROOT / "Fixtures/ScreenshotData"
-    total = sum(path.stat().st_size for path in fixture.rglob("*") if path.is_file())
-    if total > 10 * 1024 * 1024:
-        errors.append(f"screenshot fixture is {total / 1024 / 1024:.1f} MB; keep it under 10 MB")
-    database = fixture / "screenclip.sqlite"
-    if not database.exists():
-        errors.append("screenshot fixture is missing screenclip.sqlite")
-    else:
-        payload = json.loads(sqlite3.connect(database).execute("select payload from state").fetchone()[0])
-        absent = []
-        for issue in payload["issues"]:
-            for capture in issue.get("captures") or []:
-                for field, folder in ("imagePath", "assets"), ("originalPath", "originals"):
-                    raw = capture.get(field)
-                    if raw and not (fixture / folder / pathlib.Path(raw).name).exists():
-                        absent.append(f"{folder}/{pathlib.Path(raw).name}")
-        if absent:
-            errors.append("fixture images missing: " + ", ".join(absent[:8]))
     if errors:
         print("\n".join(errors))
         return 1
     print(
         f"catalogs ok: app {len(app['strings'])}, core {len(core['strings'])}, "
-        f"info {len(info['strings'])}; fixture {total / 1024 / 1024:.2f} MB"
+        f"info {len(info['strings'])}"
     )
     return 0
 

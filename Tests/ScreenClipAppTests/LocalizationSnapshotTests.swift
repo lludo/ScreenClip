@@ -30,7 +30,7 @@ import XCTest
         written.append(try render(
           QueueView(model: model), name: "main-\(suffix)", size: NSSize(width: 1180, height: 760),
           locale: identifier, appearance: appearance, output: output))
-        if let issue = model.snapshot.issues.first(where: { $0.reportNumber == 26 }) {
+        if let issue = model.snapshot.issues.first(where: { $0.status == .needsYou }) {
           written.append(try render(
             IssueDetailView(model: model, issue: issue), name: "report-\(suffix)",
             size: NSSize(width: 760, height: 900), locale: identifier, appearance: appearance,
@@ -64,6 +64,7 @@ import XCTest
     let window = NSWindow(
       contentRect: NSRect(origin: .zero, size: size),
       styleMask: [.titled, .closable], backing: .buffered, defer: false)
+    window.isReleasedWhenClosed = false
     window.appearance = NSAppearance(named: appearance)
     window.contentView = NSHostingView(rootView: themed)
     window.orderFront(nil)

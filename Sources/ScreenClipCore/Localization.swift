@@ -1,10 +1,21 @@
 import Foundation
 
+private enum CoreLocalization {
+  static func bundle(for locale: Locale) -> Bundle {
+    let source = Bundle.module
+    let preferred = Bundle.preferredLocalizations(
+      from: source.localizations, forPreferences: [locale.identifier]).first
+    guard let preferred, let path = source.path(forResource: preferred, ofType: "lproj"),
+      let localized = Bundle(path: path) else { return source }
+    return localized
+  }
+}
+
 extension IssueStatus {
   /// English `title` stays stable for logs and tests. Views use this for display.
   public func localizedTitle(locale: Locale) -> String {
     String(
-      localized: String.LocalizationValue(stringLiteral: title), bundle: .module, locale: locale)
+      localized: String.LocalizationValue(stringLiteral: title), bundle: CoreLocalization.bundle(for: locale), locale: locale)
   }
 }
 
@@ -16,24 +27,24 @@ extension AgentDetection {
       return usable
         ? kind.title
         : String(
-          localized: "Grok Bot — not connected", bundle: .module, locale: locale,
+          localized: "Grok Bot — not connected", bundle: CoreLocalization.bundle(for: locale), locale: locale,
           comment: "Agent menu label when Grok Bot has not been connected.")
     case .codex:
       guard installed else {
         return String(
-          localized: "Codex — not found", bundle: .module, locale: locale,
+          localized: "Codex — not found", bundle: CoreLocalization.bundle(for: locale), locale: locale,
           comment: "Agent menu label when the Codex CLI is missing.")
       }
       return kind.title
     case .claude:
       guard installed else {
         return String(
-          localized: "Claude Code — not found", bundle: .module, locale: locale,
+          localized: "Claude Code — not found", bundle: CoreLocalization.bundle(for: locale), locale: locale,
           comment: "Agent menu label when the Claude Code CLI is missing.")
       }
       if signedIn == false {
         return String(
-          localized: "Claude Code — signed out", bundle: .module, locale: locale,
+          localized: "Claude Code — signed out", bundle: CoreLocalization.bundle(for: locale), locale: locale,
           comment: "Agent menu label when Claude Code is installed but signed out.")
       }
       return kind.title
@@ -48,46 +59,46 @@ extension AgentDetection {
           return String(
             localized:
               "Not connected — Connect Grok Bot. The address has to start with https, and the secret can't contain a line break.",
-            bundle: .module, locale: locale,
+            bundle: CoreLocalization.bundle(for: locale), locale: locale,
             comment: "Grok Bot detail when a saved address or secret is unusable.")
         }
         return String(
-          localized: "Not connected — Connect Grok Bot", bundle: .module, locale: locale,
+          localized: "Not connected — Connect Grok Bot", bundle: CoreLocalization.bundle(for: locale), locale: locale,
           comment: "Grok Bot detail when it has not been connected.")
       }
       if detail.hasPrefix("Connected · ") {
         let host = String(detail.dropFirst("Connected · ".count))
         return String(
-          localized: "grok.connectedHost", defaultValue: "Connected · \(host)", bundle: .module,
+          localized: "grok.connectedHost", defaultValue: "Connected · \(host)", bundle: CoreLocalization.bundle(for: locale),
           locale: locale, comment: "Grok Bot is connected. %@ is the webhook host.")
       }
       return String(
-        localized: "Connected", bundle: .module, locale: locale,
+        localized: "Connected", bundle: CoreLocalization.bundle(for: locale), locale: locale,
         comment: "Grok Bot is connected, without a host to show.")
     case .codex:
       guard let version else {
         return path.isEmpty
           ? String(
-            localized: "Codex CLI not found.", bundle: .module, locale: locale,
+            localized: "Codex CLI not found.", bundle: CoreLocalization.bundle(for: locale), locale: locale,
             comment: "Codex detection detail when no executable was found.")
           : String(
             localized: "codex.noResponse",
-            defaultValue: "Codex at \(path) did not respond.", bundle: .module, locale: locale,
+            defaultValue: "Codex at \(path) did not respond.", bundle: CoreLocalization.bundle(for: locale), locale: locale,
             comment: "Codex detection detail. %@ is the executable path.")
       }
       return String(
-        localized: "codex.version", defaultValue: "Codex \(version)", bundle: .module,
+        localized: "codex.version", defaultValue: "Codex \(version)", bundle: CoreLocalization.bundle(for: locale),
         locale: locale, comment: "Codex detection detail. %@ is the version.")
     case .claude:
       guard let version else {
         return path.isEmpty
           ? String(
             localized: "Claude Code CLI not found. Install it from claude.com/claude-code.",
-            bundle: .module, locale: locale,
+            bundle: CoreLocalization.bundle(for: locale), locale: locale,
             comment: "Claude Code detection detail when no executable was found.")
           : String(
             localized: "claude.noResponse",
-            defaultValue: "Claude Code at \(path) did not respond.", bundle: .module,
+            defaultValue: "Claude Code at \(path) did not respond.", bundle: CoreLocalization.bundle(for: locale),
             locale: locale, comment: "Claude Code detection detail. %@ is the executable path.")
       }
       switch signedIn {
@@ -95,24 +106,24 @@ extension AgentDetection {
         if let method = signedInMethod {
           return String(
             localized: "claude.signedInMethod",
-            defaultValue: "Claude Code \(version), signed in (\(method))", bundle: .module,
+            defaultValue: "Claude Code \(version), signed in (\(method))", bundle: CoreLocalization.bundle(for: locale),
             locale: locale,
             comment: "Claude Code detection detail. First %@ is the version, second is the auth method.")
         }
         return String(
           localized: "claude.signedIn", defaultValue: "Claude Code \(version), signed in",
-          bundle: .module, locale: locale,
+          bundle: CoreLocalization.bundle(for: locale), locale: locale,
           comment: "Claude Code detection detail. %@ is the version.")
       case false?:
         return String(
           localized: "claude.signedOut",
           defaultValue: "Claude Code \(version) is signed out. Use Sign in to Claude.",
-          bundle: .module, locale: locale,
+          bundle: CoreLocalization.bundle(for: locale), locale: locale,
           comment: "Claude Code detection detail. %@ is the version.")
       case nil:
         return String(
           localized: "claude.signInUnknown",
-          defaultValue: "Claude Code \(version); sign-in status unavailable.", bundle: .module,
+          defaultValue: "Claude Code \(version); sign-in status unavailable.", bundle: CoreLocalization.bundle(for: locale),
           locale: locale, comment: "Claude Code detection detail. %@ is the version.")
       }
     }
@@ -147,7 +158,7 @@ public enum CoreChrome {
   public static func display(_ english: String, locale: Locale) -> String? {
     guard exact.contains(english) else { return nil }
     return String(
-      localized: String.LocalizationValue(stringLiteral: english), bundle: .module, locale: locale)
+      localized: String.LocalizationValue(stringLiteral: english), bundle: CoreLocalization.bundle(for: locale), locale: locale)
   }
 
   static let exact: Set<String> = [

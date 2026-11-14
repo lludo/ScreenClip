@@ -4688,7 +4688,7 @@
       }
     },
     "Choose…": {
-      "comment": "Picks a Codex executable.",
+      "comment": "Picks the Claude Code executable.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -16370,7 +16370,7 @@
       }
     },
     "Project": {
-      "comment": "Project picker in the Grok Bot sheet.",
+      "comment": "Caption above the project picker.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -16568,7 +16568,7 @@
       }
     },
     "Project settings": {
-      "comment": "Project editor title.",
+      "comment": "Opens settings for this project.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -32144,175 +32144,67 @@
       }
     },
     "metric.open.caption": {
-      "comment": "Menu bar caption under the open-report count. The number is shown separately.",
+      "comment": "Caption under the open-report count.",
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Open"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Open"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open"
           }
         },
         "zh-Hans": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "未完成"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "未完成"
           }
         },
         "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abierto"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abiertos"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "En curso"
           }
         },
         "ja": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "未完了"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "未完了"
           }
         },
         "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Aberto"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Abertos"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Em aberto"
           }
         },
         "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Offen"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Offen"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Offen"
           }
         },
         "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Ouvert"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Ouverts"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "En cours"
           }
         },
         "ko": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "진행 중"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "진행 중"
           }
         },
         "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "открытый"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "открытых"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "открытых"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "открытых"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыто"
           }
         },
         "zh-Hant": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "未完成"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "未完成"
           }
         }
       }
@@ -32492,175 +32384,67 @@
       }
     },
     "metric.needsYou.caption": {
-      "comment": "Menu bar caption under reports that need the user. The number is shown separately.",
+      "comment": "Caption under the count needing attention.",
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Needs you"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Needs you"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Needs you"
           }
         },
         "zh-Hans": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "需要你"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要你"
           }
         },
         "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Te necesita"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Te necesita"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requiere atención"
           }
         },
         "ja": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "要対応"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "要対応"
           }
         },
         "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Precisa de você"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Precisa de você"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Precisa de atenção"
           }
         },
         "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Für dich"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Für dich"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für dich"
           }
         },
         "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "À traiter"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "À traiter"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "À traiter"
           }
         },
         "ko": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "확인 필요"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "확인 필요"
           }
         },
         "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Нужны вы"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Нужны вы"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Нужны вы"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Нужны вы"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нужно внимание"
           }
         },
         "zh-Hant": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "需要你"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要你"
           }
         }
       }
@@ -32840,175 +32624,67 @@
       }
     },
     "metric.retest.caption": {
-      "comment": "Menu bar caption under reports waiting to be retested. The number is shown separately.",
+      "comment": "Caption under the retest count.",
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "To retest"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "To retest"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "To retest"
           }
         },
         "zh-Hans": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "待复测"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "待复测"
           }
         },
         "es": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Por retestar"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Por retestar"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Por retestar"
           }
         },
         "ja": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "再テスト"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "再テスト"
           }
         },
         "pt-BR": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "A retestar"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "A retestar"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "A retestar"
           }
         },
         "de": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Erneut testen"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "Erneut testen"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erneut testen"
           }
         },
         "fr": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "À retester"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "À retester"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "À retester"
           }
         },
         "ko": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "재테스트"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "재테스트"
           }
         },
         "ru": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "На перепроверку"
-                }
-              },
-              "few": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "На перепроверку"
-                }
-              },
-              "many": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "На перепроверку"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "На перепроверку"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "На перепроверку"
           }
         },
         "zh-Hant": {
-          "variations": {
-            "plural": {
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "待重測"
-                }
-              }
-            }
+          "stringUnit": {
+            "state": "translated",
+            "value": "待重測"
           }
         }
       }

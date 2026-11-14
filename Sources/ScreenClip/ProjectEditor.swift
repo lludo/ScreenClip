@@ -69,8 +69,8 @@ struct ProjectEditor: View {
           Text(chrome: "Mac app bundle IDs", comment: "Native app bundle identifiers.")
         }.lineLimit(1...3)
         LabeledContent {
-          TextField(text: $project.validationCommand, axis: .vertical)
-            .lineLimit(2...4).font(.system(.body, design: .monospaced))
+          TextField("", text: $project.validationCommand, axis: .vertical)
+            .labelsHidden().lineLimit(2...4).font(.system(.body, design: .monospaced))
         } label: {
           Text(chrome: "Validation command", comment: "Command that must pass before publishing.")
             .fixedSize(horizontal: false, vertical: true)

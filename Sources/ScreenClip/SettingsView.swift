@@ -20,12 +20,76 @@ struct SettingsView: View {
   var body: some View {
     VStack(spacing: 0) {
       Group {
-        if tab == 0 {
+        if tab == 0 { generalSettings }
+        else if tab == 1 { projectSettings }
+        else { connectionSettings }
+      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      Divider()
+      HStack {
+        if let error {
+          Text(verbatim: Chrome.stored(error, locale: locale)).font(.caption)
+            .foregroundStyle(.secondary).lineLimit(4).fixedSize(horizontal: false, vertical: true)
+            .textSelection(.enabled)
+        }
+        Spacer()
+        Button {
+          do {
+            try model.saveExternalAssistant(webhookURL: webhookURL, authorization: authorization)
+            model.saveSettings(settings)
+            Task { await model.refreshAgents() }
+            close()
+          } catch { self.error = error.localizedDescription }
+        } label: {
+          Text(chrome: "Save settings", comment: "Saves settings and closes the window.")
+        }.buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
+      }.padding(16)
+    }.frame(minWidth: 720, idealWidth: 780, minHeight: 680)
+      .toolbar {
+        ToolbarItem(placement: .principal) {
+          HStack(spacing: 0) {
+            ForEach(Array(["General", "Projects", "Connections"].enumerated()), id: \.offset) {
+              index, title in
+              Button { tab = index } label: {
+                Text(verbatim: Chrome.stored(title, locale: locale))
+                  .fixedSize(horizontal: false, vertical: true)
+              }
+              .buttonStyle(SettingsTabButtonStyle(isSelected: tab == index))
+              .accessibilityAddTraits(tab == index ? .isSelected : [])
+            }
+          }
+          .padding(2)
+          .background(.quaternary.opacity(0.45), in: Capsule())
+        }
+      }
+      .onAppear {
+        settings = model.snapshot.settings
+        reloadGrokConnection()
+        if model.snapshot.projects.isEmpty { tab = 1 }
+        if initialTab != 0 { tab = initialTab }
+        presentGrokConnectIfNeeded()
+      }
+      .onChange(of: model.grokConnectRequest?.id) { _, id in
+        guard id != nil else { return }
+        presentGrokConnectIfNeeded()
+      }
+      .sheet(item: $editProject) { project in ProjectEditor(model: model, project: project) }
+      .background {
+        Color.clear.sheet(isPresented: $showingGrokConnect, onDismiss: {
+          model.grokConnectRequest = nil
+        }) {
+          GrokConnectSheet(
+            model: model, initialCode: grokConnectCode, projectID: nil, onSaved: reloadGrokConnection
+          ).id(grokConnectPresentation)
+        }
+      }
+  }
+  private var generalSettings: some View {
         Form {
           Section {
             ScreenCapturePermissionControls(model: model, permission: model.capturePermission)
             LabeledContent {
-              ShortcutRecorder(settings: $settings).frame(minWidth: 160, idealWidth: 200, height: 26)
+              ShortcutRecorder(settings: $settings).frame(minWidth: 160, idealWidth: 200).frame(height: 26)
             } label: {
               Text(chrome: "Global shortcut", comment: "Settings label for the capture shortcut.")
                 .fixedSize(horizontal: false, vertical: true)
@@ -140,7 +204,8 @@ struct SettingsView: View {
             Text(chrome: "Local data", comment: "Settings section for the local queue.")
           }
         }.formStyle(.grouped)
-        } else if tab == 1 {
+  }
+  private var projectSettings: some View {
         VStack(alignment: .leading, spacing: 16) {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -196,7 +261,8 @@ struct SettingsView: View {
             }
           }
         }.padding(24)
-        } else {
+  }
+  private var connectionSettings: some View {
         Form {
           Section {
             Picker(
@@ -343,67 +409,6 @@ struct SettingsView: View {
             Text(chrome: "GitHub", comment: "Settings section. Do not translate GitHub.")
           }
         }.formStyle(.grouped)
-        }
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      Divider()
-      HStack {
-        if let error {
-          Text(verbatim: Chrome.stored(error, locale: locale)).font(.caption)
-            .foregroundStyle(.secondary).lineLimit(4).fixedSize(horizontal: false, vertical: true)
-            .textSelection(.enabled)
-        }
-        Spacer()
-        Button {
-          do {
-            try model.saveExternalAssistant(webhookURL: webhookURL, authorization: authorization)
-            model.saveSettings(settings)
-            Task { await model.refreshAgents() }
-            close()
-          } catch { self.error = error.localizedDescription }
-        } label: {
-          Text(chrome: "Save settings", comment: "Saves settings and closes the window.")
-        }.buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
-      }.padding(16)
-    }.frame(minWidth: 720, idealWidth: 780, minHeight: 680)
-      .toolbar {
-        ToolbarItem(placement: .principal) {
-          HStack(spacing: 0) {
-            ForEach(Array(["General", "Projects", "Connections"].enumerated()), id: \.offset) {
-              index, title in
-              Button { tab = index } label: {
-                Text(verbatim: Chrome.stored(title, locale: locale))
-                  .fixedSize(horizontal: false, vertical: true)
-              }
-              .buttonStyle(SettingsTabButtonStyle(isSelected: tab == index))
-              .accessibilityAddTraits(tab == index ? .isSelected : [])
-            }
-          }
-          .padding(2)
-          .background(.quaternary.opacity(0.45), in: Capsule())
-        }
-      }
-      .onAppear {
-        settings = model.snapshot.settings
-        reloadGrokConnection()
-        if model.snapshot.projects.isEmpty { tab = 1 }
-        if initialTab != 0 { tab = initialTab }
-        presentGrokConnectIfNeeded()
-      }
-      .onChange(of: model.grokConnectRequest?.id) { _, id in
-        guard id != nil else { return }
-        presentGrokConnectIfNeeded()
-      }
-      .sheet(item: $editProject) { project in ProjectEditor(model: model, project: project) }
-      .background {
-        Color.clear.sheet(isPresented: $showingGrokConnect, onDismiss: {
-          model.grokConnectRequest = nil
-        }) {
-          GrokConnectSheet(
-            model: model, initialCode: grokConnectCode, projectID: nil, onSaved: reloadGrokConnection
-          ).id(grokConnectPresentation)
-        }
-      }
   }
   private func reloadGrokConnection() {
     let connection = model.loadExternalAssistant()
