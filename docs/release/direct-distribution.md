@@ -1,6 +1,6 @@
 # Direct distribution
 
-ScreenClip stays off the Mac App Store. The reason is [the sandbox study](app-store-sandbox.md). The release path is one tag-triggered GitHub Actions workflow: build the unsandboxed Release app, sign it with a Developer ID, notarize with `notarytool`, staple, write a DMG and `SHA256SUMS`, and attach both to a GitHub Release. The website's Download button points at that asset. A small tip window in the app opens GitHub Sponsors. Sparkle and a Homebrew cask are optional and are not in the first pipeline.
+ScreenClip stays off the Mac App Store. The reason is [the sandbox study](app-store-sandbox.md). The release path is one tag-triggered GitHub Actions workflow: build the unsandboxed Release app, sign it with a Developer ID, notarize with `notarytool`, staple, write a DMG and `SHA256SUMS`, and attach both to a GitHub Release. The website's Download button points at that asset. A small tip window in the app opens GitHub Sponsors. Sparkle is not in this pipeline. A Homebrew cask formula is checked in for a personal tap; the release workflow does not publish or update that tap.
 
 People who clone the repo can build it themselves. The DMG is for someone who wants a signed app without Xcode. The tip is optional.
 
@@ -19,14 +19,14 @@ People who clone the repo can build it themselves. The DMG is for someone who wa
    | `APPLE_NOTARY_KEY_ID` | The Key ID |
    | `APPLE_NOTARY_ISSUER_ID` | The Issuer ID |
 
-4. Turn on [GitHub Sponsors](https://github.com/sponsors/lludo) for the `lludo` account and finish the payout and tax steps. `.github/FUNDING.yml` already names that account. The in-app buttons open `https://github.com/sponsors/lludo`.
-5. When the repo should be public, add a `LICENSE` first. `CONTRIBUTING.md` and `SECURITY.md` are still missing. Review the [open-source audit](open-source-audit.md) and scan changes since its recorded commit before publishing.
+4. Turn on [GitHub Sponsors](https://github.com/sponsors/lludo) for the `lludo` account and finish the payout and tax steps. `.github/FUNDING.yml` already names that account. The in-app buttons open `https://github.com/sponsors/lludo`. The profile is not ready, and the website `donateUrl` is empty. Status is in [Open source](../open-source.md#github-sponsors-and-the-donate-url).
+5. When the repo should be public, add a `LICENSE` first. Root `CONTRIBUTING.md` and `SECURITY.md` are still missing. The contributing workflow is in [Development](../development.md#contributing). Review the [open-source audit](open-source-audit.md) and scan changes since its recorded commit before publishing. The checklist is in [Open source](../open-source.md).
 
 ## What the tag does
 
 Push a tag `v1.2.3` (three numbers). [`.github/workflows/release.yml`](../../.github/workflows/release.yml) then:
 
-1. Stops immediately, with a notice and a green job, if none of the Apple secrets are set. If some are set and some are missing, the job fails.
+1. Stops immediately, with a notice and a green job, if none of the Apple secrets are set. That is the current state: the secrets are not configured ([open TODOs](../open-source.md#release-secrets)). If some are set and some are missing, the job fails.
 2. Writes the tag into `CFBundleShortVersionString` and `CFBundleVersion` for that build only. The copy of `Resources/Info.plist` in git is not updated. Local builds keep the versions checked in there. `MARKETING_VERSION` in the Xcode project is unused while `GENERATE_INFOPLIST_FILE` is off.
 3. Imports the Developer ID certificate into a temporary keychain, builds the Release scheme with `scripts/build.sh`, and passes `--timestamp` plus `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO`.
 4. Runs `scripts/release-dmg.sh`. That script refuses an App Sandbox signature. It notarizes a zip of the app, staples the app, builds a UDZO disk image with an Applications shortcut, signs and notarizes the DMG, staples the DMG, and writes `SHA256SUMS`.
@@ -61,7 +61,7 @@ brew tap lludo/homebrew-tap
 brew install --cask screenclip
 ```
 
-The formula points at the same `releases/latest/download/ScreenClip.dmg` asset. When you want a pinned cask, replace `:latest` and `:no_check` with the tag and the `SHA256SUMS` line.
+The formula points at the same `releases/latest/download/ScreenClip.dmg` asset. Its homepage is the GitHub repository. When you want a pinned cask, replace `:latest` and `:no_check` with the tag and the `SHA256SUMS` line, then commit that change in `lludo/homebrew-tap`. Nothing in `.github/workflows/release.yml` edits the formula.
 
 ## Tip window
 
