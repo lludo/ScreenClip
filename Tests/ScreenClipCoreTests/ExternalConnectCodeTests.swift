@@ -109,29 +109,30 @@ final class ExternalConnectCodeTests: XCTestCase {
   }
 
   func testLenientParsingRejectsUnsafeInputWithoutEchoingTheSecret() {
-    XCTAssertEqual(ExternalConnectCode.parse("").failure, .empty)
-    XCTAssertEqual(ExternalConnectCode.parse("   ").failure, .empty)
-    XCTAssertEqual(ExternalConnectCode.parse("not a code").failure, .unrecognized)
+    XCTAssertEqual(connectError(ExternalConnectCode.parse("")), .empty)
+    XCTAssertEqual(connectError(ExternalConnectCode.parse("   ")), .empty)
+    XCTAssertEqual(connectError(ExternalConnectCode.parse("not a code")), .unrecognized)
     let http = "Authorization: Bearer \(secret)\nhttp://evil.example/hook"
     let rejected = ExternalConnectCode.parse(http)
-    XCTAssertEqual(rejected.failure, .invalidURL)
-    assertNoSecret(rejected.failure?.message ?? "")
+    XCTAssertEqual(connectError(rejected), .invalidURL)
+    assertNoSecret(connectError(rejected)?.message ?? "")
     let broken = "{\"url\":\"https://assistant.example/hook\",\"authorization\":\"Bearer \(secret)\\none\"}"
     // The JSON text above contains a backslash and the word "one", not a newline. Build a real newline.
     let newline = #"{"url":"https://assistant.example/hook","authorization":"Bearer \#(secret)\nmore"}"#
-    XCTAssertEqual(ExternalConnectCode.parse(newline).failure, .unsafeAuthorization)
-    assertNoSecret(ExternalConnectCode.parse(newline).failure?.message ?? "")
+    XCTAssertEqual(connectError(ExternalConnectCode.parse(newline)), .unsafeAuthorization)
+    assertNoSecret(connectError(ExternalConnectCode.parse(newline))?.message ?? "")
     XCTAssertEqual(
-      ExternalConnectCode.encode(url: "http://evil.example/hook", authorization: secret).failure,
+      connectError(ExternalConnectCode.encode(url: "http://evil.example/hook", authorization: secret)),
       .invalidURL)
     XCTAssertEqual(
-      ExternalConnectCode.encode(url: "https://assistant.example/hook", authorization: "one\ntwo")
-        .failure, .unsafeAuthorization)
+      connectError(
+        ExternalConnectCode.encode(url: "https://assistant.example/hook", authorization: "one\ntwo")),
+      .unsafeAuthorization)
     assertNoSecret(ExternalConnectCode.Failure.invalidURL.message)
     assertNoSecret(ExternalConnectCode.Failure.unsafeAuthorization.message)
     assertNoSecret(ExternalConnectCode.Failure.unrecognized.message)
-    XCTAssertEqual(ExternalConnectCode.parse(broken).failure, .unrecognized)
-    assertNoSecret(String(describing: ExternalConnectCode.parse(broken).failure))
+    XCTAssertEqual(connectError(ExternalConnectCode.parse(broken)), .unrecognized)
+    assertNoSecret(String(describing: connectError(ExternalConnectCode.parse(broken))))
   }
 
   func testConnectURLCarriesTheSetupCodeAndIssueLinksStillOpen() throws {
@@ -164,26 +165,19 @@ final class ExternalConnectCodeTests: XCTestCase {
       ScreenClipURL.route(try XCTUnwrap(URL(string: "screenclip://Issues/\(issue.uuidString.lowercased())"))),
       .issue(issue))
     XCTAssertNil(ScreenClipURL.route(try XCTUnwrap(URL(string: "screenclip://issues/not-a-uuid"))))
-    XCTAssertNil(
-      ExternalConnectCode.parse("screenclip://issues/\(issue.uuidString)").success)
+    if case .success = ExternalConnectCode.parse("screenclip://issues/\(issue.uuidString)") {
+      XCTFail("An issue link is not a setup code")
+    }
   }
 
   private func assertNoSecret(_ text: String, file: StaticString = #filePath, line: UInt = #line) {
     XCTAssertFalse(text.contains(secret), text, file: file, line: line)
   }
-}
 
-extension Result where Success == ExternalConnectCode.Credentials, Failure == ExternalConnectCode.Failure {
-  fileprivate var failure: ExternalConnectCode.Failure? {
-    switch self {
-    case .success: return nil
-    case .failure(let error): return error
-    }
-  }
-  fileprivate var success: ExternalConnectCode.Credentials? {
-    switch self {
-    case .success(let value): return value
-    case .failure: return nil
-    }
+  private func connectError<Value>(
+    _ result: Result<Value, ExternalConnectCode.Failure>
+  ) -> ExternalConnectCode.Failure? {
+    if case .failure(let error) = result { return error }
+    return nil
   }
 }
