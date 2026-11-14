@@ -11,11 +11,11 @@ jobs:
         run: bash scripts/test.sh
       - name: Plugin tests
         run: python3 scripts/test_plugin.py
-      - name: Xcode app build
-        run: xcodebuild -project ScreenClip.xcodeproj -scheme ScreenClip -configuration Debug -destination 'platform=macOS' -derivedDataPath .local/XcodeBuild build
-      - name: Build app
+      - name: Xcode Debug app build
+        run: bash scripts/build.sh debug
+      - name: Xcode Release app build
         run: bash scripts/build.sh release
       - uses: actions/upload-artifact@v4
         with:
           name: ScreenClip-macOS
-          path: build/ScreenClip.app
+          path: build/DerivedData/Build/Products/Release/ScreenClip.app

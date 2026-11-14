@@ -240,6 +240,9 @@ public struct AppSettings: Codable, Equatable {
   public var model = ""
   public var paused = false
   public var browserContext = false
+  // Optional for compatibility with queues saved before this preference existed.
+  public var hideScreenClipDuringCapture: Bool?
+  public var shouldHideScreenClipDuringCapture: Bool { hideScreenClipDuringCapture ?? false }
   public var notifications = false
   public var shortcutKey: UInt32 = 19  // ANSI 2
   public var shortcutModifiers: UInt32 = 768  // cmdKey | shiftKey
