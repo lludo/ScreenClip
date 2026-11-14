@@ -26,6 +26,7 @@ import UserNotifications
   var settingsAction: (() -> Void)?
   var relaunchAction: (() -> Void)?
   var composerAction: ((NSImage, CaptureContext, Issue?) -> Void)?
+  var supportAction: (() -> Void)?
 
   init(root: URL) throws {
     store = try IssueStore(root: root)
@@ -73,6 +74,9 @@ import UserNotifications
     if snapshot.settings.codexPath.isEmpty {
       snapshot.settings.codexPath = Self.defaultCodexPath()
     }
+    if snapshot.settings.firstLaunchedAt == nil {
+      snapshot.settings.firstLaunchedAt = Date()
+    }
     snapshot = try store.save(snapshot)
   }
   static func defaultCodexPath() -> String { AgentDetector.defaultCodexPath() }
@@ -101,10 +105,32 @@ import UserNotifications
       try commit { state in
         var merged = settings
         merged.paused = state.settings.paused
+        // The Settings form is a copy. Tip-prompt state changes outside that form.
+        merged.firstLaunchedAt = state.settings.firstLaunchedAt
+        merged.donationOptOut = state.settings.donationOptOut
+        merged.donationSnoozeUntil = state.settings.donationSnoozeUntil
         state.settings = merged
       }
     }
     NotificationCenter.default.post(name: .screenClipSettingsChanged, object: nil)
+  }
+  func mergedFixCount() -> Int { DonationPromptPolicy.mergedFixCount(snapshot.issues) }
+  func shouldShowDonationPrompt(at now: Date = Date()) -> Bool {
+    guard DistributionChannel.offersDonations else { return false }
+    return DonationPromptPolicy.shouldShow(
+      at: now, firstLaunchedAt: snapshot.settings.firstLaunchedAt, mergedCount: mergedFixCount(),
+      optedOut: snapshot.settings.donationOptOut == true,
+      snoozeUntil: snapshot.settings.donationSnoozeUntil)
+  }
+  func snoozeDonationPrompt(from now: Date = Date()) {
+    perform {
+      try commit {
+        $0.settings.donationSnoozeUntil = now.addingTimeInterval(DonationPromptPolicy.snoozeInterval)
+      }
+    }
+  }
+  func optOutOfDonationPrompt() {
+    perform { try commit { $0.settings.donationOptOut = true } }
   }
   func togglePaused() {
     perform { try commit { $0.settings.paused.toggle() } }
