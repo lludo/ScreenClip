@@ -1,6 +1,6 @@
 # ScreenClip roadmap
 
-Updated: November 14, 2026. The local app is working: capture, markup, the queue, Codex and Claude Code dispatch, validation, PRs, and guarded merges. This page lists what is still open. What has been verified is in [validation](validation.md). Product questions are under [remaining decisions](product-spec.md#remaining-decisions).
+Updated: November 14, 2026. The local app is working: capture, markup, the queue, Codex and Claude Code dispatch, the Grok Bot hand-off, validation, PRs, and guarded merges. This page lists what is still open. What has been verified is in [validation](validation.md). Product questions are under [remaining decisions](product-spec.md#remaining-decisions).
 
 ## Open gates
 
@@ -8,6 +8,7 @@ Updated: November 14, 2026. The local app is working: capture, markup, the queue
 | --- | --- | --- |
 | Capture, hands-on | Each physical monitor, mixed scales, negative display origins, full-screen Spaces, transient menus, Escape, return-to-source focus, and every ScreenClip surface with hiding on and off | A selection spanning two displays is not implemented |
 | Claude Code, live | A real Claude fix through validation, PR publication, and merge; permanent plugin installation; an interactive plugin fix | Covered today by fake-CLI tests. See [Claude Code](agents/claude-code.md#verification-status) |
+| Grok Bot, live | A live webhook, an evidence push to a real repository, pull-request discovery, and auto-merge while `.screenclip/` is still present | Covered today by unit and app tests. See [Grok Bot](agents/external-assistant.md#verification-status) |
 | Codex desktop | Sidebar project grouping for chats created through app-server | Fails on the tested Codex version; exact chat links work. See [repository association review](validation.md#repository-association-review) |
 | Release signing | Developer ID signing and notarization | The Xcode target currently has `ENABLE_HARDENED_RUNTIME = NO`. Notarization requires the hardened runtime, and browser URL lookup then needs the Apple Events entitlement (`com.apple.security.automation.apple-events`) |
 | Installation | Clean second Mac or user account; a separately installed Codex CLI; older macOS; Intel | Only the development host has been exercised |
@@ -17,7 +18,6 @@ Updated: November 14, 2026. The local app is working: capture, markup, the queue
 
 - **Usage per agent.** Claude Code turns already log tokens and cost as `usage` activities. Record Codex usage too, then aggregate by agent and project so you can see which agent to use.
 - **Per-project default agent.** Today the default is global with a per-report override. A per-project default is likely more natural.
-- **External assistant.** A remote hand-off is designed but not built: [proposal](agents/proposals/external-assistant.md).
 
 ## Deferred cleanups from the November 2026 review
 

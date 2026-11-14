@@ -61,10 +61,12 @@ public struct MergeEvidence: Equatable {
   public var mergeable: Bool
   public var reviewSatisfied: Bool
   public var unresolvedQuestions: Bool
+  /// Grok Bot deletes `.screenclip/` in its last commit. Automatic merge waits until that is gone.
+  public var screenclipEvidenceCleared: Bool
   public init(
     expectedHead: String, currentHead: String, inputRevision: Int, coveredRevision: Int,
     validationPassed: Bool, hasValidation: Bool, checksPassed: Bool, mergeable: Bool,
-    reviewSatisfied: Bool, unresolvedQuestions: Bool
+    reviewSatisfied: Bool, unresolvedQuestions: Bool, screenclipEvidenceCleared: Bool = true
   ) {
     self.expectedHead = expectedHead
     self.currentHead = currentHead
@@ -76,10 +78,11 @@ public struct MergeEvidence: Equatable {
     self.mergeable = mergeable
     self.reviewSatisfied = reviewSatisfied
     self.unresolvedQuestions = unresolvedQuestions
+    self.screenclipEvidenceCleared = screenclipEvidenceCleared
   }
   public var canMerge: Bool {
     !expectedHead.isEmpty && expectedHead == currentHead && inputRevision == coveredRevision
       && validationPassed && hasValidation && checksPassed && mergeable && reviewSatisfied
-      && !unresolvedQuestions
+      && !unresolvedQuestions && screenclipEvidenceCleared
   }
 }
