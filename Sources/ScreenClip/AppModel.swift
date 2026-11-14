@@ -185,6 +185,14 @@ import UserNotifications
     }
     worker.pump()
   }
+  func addContext(_ id: UUID, text: String) throws {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty else {
+      throw ScreenClipError.message("Enter some context before saving.")
+    }
+    try updateIssue(id) { $0.addContext(trimmed) }
+    worker.pump()
+  }
   func retry(_ id: UUID) {
     perform {
       guard let issue = issue(id), !issue.dispatchUncertain else {

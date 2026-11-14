@@ -41,6 +41,7 @@ def call(name, arguments):
     # Deliberately exclude original images, filesystem paths, settings, and credentials.
     public = {k: issue.get(k) for k in ["id", "reportNumber", "title", "status", "revision", "threadID", "prURL", "resultSummary", "activities"]}
     public["agent"] = issue.get("agent") or "codex"
+    public["contextNotes"] = issue.get("contextNotes") or []
     public["captures"] = [{"id": c["id"], "note": c["note"], "context": c["context"]} for c in issue["captures"]]
     content = [{"type": "text", "text": json.dumps(public)}]
     if arguments.get("include_images"):
