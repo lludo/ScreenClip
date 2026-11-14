@@ -37,6 +37,7 @@ A follow-up capture adds files and a new commit on the same branch, then sends t
   "revision": 1,
   "title": "Clipped button",
   "notes": ["The label is cut off"],
+  "contextNotes": ["The purchase button, not the title."],
   "context": { "appName": "Safari", "bundleID": "com.apple.Safari" },
   "project": {
     "name": "ScreenClip",
@@ -52,7 +53,7 @@ A follow-up capture adds files and a new commit on the same branch, then sends t
 }
 ```
 
-`context.browserURL` and `context.windowTitle` are included only when **Read the active browser URL for project matching** is on. App name and bundle ID are always included.
+`notes` are the capture notes, in capture order. `contextNotes` are text added later with **Add context**, kept separate so they do not shift the screenshot paths. `context.browserURL` and `context.windowTitle` are included only when **Read the active browser URL for project matching** is on. App name and bundle ID are always included.
 
 ## What Grok Bot does
 
@@ -76,7 +77,7 @@ The URL and header live in the Keychain (`com.screenclip.app.external-assistant`
 
 What leaves the Mac for a Grok Bot report:
 
-- The webhook JSON in the hand-off section: report number, issue id, revision, title, notes, source app name, bundle ID, project name, `owner/name`, base branch, validation command, evidence branch, commit, and file paths. Browser URL and window title are included only when **Read the active browser URL for project matching** is on.
+- The webhook JSON in the hand-off section: report number, issue id, revision, title, capture notes, **Add context** notes, source app name, bundle ID, project name, `owner/name`, base branch, validation command, evidence branch, commit, and file paths. Browser URL and window title are included only when **Read the active browser URL for project matching** is on.
 - The git push: `.screenclip/<reportNumber>/report.json` and the approved `capture-<n>.png` files. Anyone who can read that GitHub repository can read those files until Grok Bot deletes `.screenclip/`. On a public repository that means anyone.
 
 Redaction is only a rectangle you draw with the redact tool. ScreenClip flattens those rectangles to opaque black in the PNG it stores and sends. Arrows, pen, shapes, and text do not cover pixels. The unredacted crop is not kept when a capture has a redaction, and it is never pushed or posted.
