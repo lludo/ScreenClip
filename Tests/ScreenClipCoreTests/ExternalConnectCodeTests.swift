@@ -162,6 +162,59 @@ final class ExternalConnectCodeTests: XCTestCase {
       .success(canonical))
   }
 
+  func testPartialPasteNamesTheMissingPiece() {
+    XCTAssertEqual(
+      connectError(ExternalConnectCode.parse("https://assistant.example/hook")),
+      .missingAuthorization)
+    XCTAssertEqual(
+      connectError(ExternalConnectCode.parse("http://127.0.0.1:9/hook")),
+      .missingAuthorization)
+    XCTAssertEqual(
+      connectError(ExternalConnectCode.parse("http://evil.example/hook")),
+      .missingAuthorization)
+    XCTAssertEqual(
+      connectError(ExternalConnectCode.parse("{\"url\":\"https://assistant.example/hook\"}")),
+      .missingAuthorization)
+    XCTAssertEqual(connectError(ExternalConnectCode.parse(secret)), .missingURL)
+    XCTAssertEqual(connectError(ExternalConnectCode.parse("Bearer \(secret)")), .missingURL)
+    XCTAssertEqual(
+      connectError(ExternalConnectCode.parse("Authorization: Bearer \(secret)")),
+      .missingURL)
+    XCTAssertEqual(
+      connectError(ExternalConnectCode.parse("{\"authorization\":\"Bearer \(secret)\"}")),
+      .missingURL)
+    XCTAssertEqual(connectError(ExternalConnectCode.parse("not a code")), .unrecognized)
+    XCTAssertEqual(connectError(ExternalConnectCode.parse("hello")), .unrecognized)
+    let failures: [ExternalConnectCode.Failure] = [
+      .empty, .unrecognized, .invalidURL, .unsafeAuthorization, .missingURL, .missingAuthorization,
+    ]
+    for failure in failures {
+      XCTAssertFalse(failure.message.contains("Connect ScreenClip"), failure.message)
+      assertNoSecret(failure.message)
+    }
+    XCTAssertTrue(ExternalConnectCode.Failure.missingURL.message.hasPrefix("Add the webhook URL too."))
+    XCTAssertTrue(ExternalConnectCode.Failure.missingAuthorization.message.contains("key"))
+  }
+
+  func testKeyNormalizationAcceptsABareKeyOrAFullHeader() {
+    func normalized(_ raw: String) -> String? {
+      if case .success(let value) = ExternalConnectCode.normalizeKey(raw) { return value }
+      return nil
+    }
+    XCTAssertEqual(normalized("dummy-key"), "Bearer dummy-key")
+    XCTAssertEqual(normalized("  dummy-key  "), "Bearer dummy-key")
+    XCTAssertEqual(normalized("Bearer dummy-key"), "Bearer dummy-key")
+    XCTAssertEqual(normalized("bearer dummy-key"), "Bearer dummy-key")
+    XCTAssertEqual(normalized("Authorization: Bearer dummy-key"), "Bearer dummy-key")
+    XCTAssertEqual(normalized("authorization:Bearer dummy-key"), "Bearer dummy-key")
+    XCTAssertEqual(normalized("Authorization: dummy-key"), "Bearer dummy-key")
+    XCTAssertEqual(connectError(ExternalConnectCode.normalizeKey("")), .missingAuthorization)
+    XCTAssertEqual(connectError(ExternalConnectCode.normalizeKey("Authorization:")), .missingAuthorization)
+    XCTAssertEqual(connectError(ExternalConnectCode.normalizeKey("Bearer ")), .missingAuthorization)
+    XCTAssertEqual(connectError(ExternalConnectCode.normalizeKey("dummy\nkey")), .unsafeAuthorization)
+    XCTAssertFalse(ExternalConnectCode.Failure.missingAuthorization.message.contains("dummy-key"))
+  }
+
   func testConnectURLCarriesTheSetupCodeAndIssueLinksStillOpen() throws {
     let code = canonical
     let link = try XCTUnwrap(ExternalConnectCode.deepLink(code: code))

@@ -1,6 +1,6 @@
 import Foundation
 
-private enum CoreLocalization {
+enum CoreLocalization {
   static func bundle(for locale: Locale) -> Bundle {
     let source = Bundle.module
     let preferred = Bundle.preferredLocalizations(
@@ -20,128 +20,30 @@ extension IssueStatus {
 }
 
 extension AgentDetection {
-  /// Product names stay untranslated. The surrounding status words are localized.
-  public func localizedLabel(locale: Locale) -> String {
-    switch kind {
-    case .external:
-      return usable
-        ? kind.title
-        : String(
-          localized: "Grok Bot — not connected", bundle: CoreLocalization.bundle(for: locale), locale: locale,
-          comment: "Agent menu label when Grok Bot has not been connected.")
-    case .codex:
-      guard installed else {
-        return String(
-          localized: "Codex — not found", bundle: CoreLocalization.bundle(for: locale), locale: locale,
-          comment: "Agent menu label when the Codex CLI is missing.")
-      }
-      return kind.title
-    case .claude:
-      guard installed else {
-        return String(
-          localized: "Claude Code — not found", bundle: CoreLocalization.bundle(for: locale), locale: locale,
-          comment: "Agent menu label when the Claude Code CLI is missing.")
-      }
-      if signedIn == false {
-        return String(
-          localized: "Claude Code — signed out", bundle: CoreLocalization.bundle(for: locale), locale: locale,
-          comment: "Agent menu label when Claude Code is installed but signed out.")
-      }
-      return kind.title
-    }
-  }
+  /// Pickers show the provider name. Status uses the shared provider phrases.
+  public func localizedLabel(locale: Locale) -> String { kind.title }
 
   public func localizedDetail(locale: Locale) -> String {
-    switch kind {
-    case .external:
-      guard usable else {
-        if detail.contains("https") {
-          return String(
-            localized:
-              "Not connected — Connect Grok Bot. The address has to start with https, and the secret can't contain a line break.",
-            bundle: CoreLocalization.bundle(for: locale), locale: locale,
-            comment: "Grok Bot detail when a saved address or secret is unusable.")
-        }
-        return String(
-          localized: "Not connected — Connect Grok Bot", bundle: CoreLocalization.bundle(for: locale), locale: locale,
-          comment: "Grok Bot detail when it has not been connected.")
-      }
-      if detail.hasPrefix("Connected · ") {
-        let host = String(detail.dropFirst("Connected · ".count))
-        return String(
-          localized: "grok.connectedHost", defaultValue: "Connected · \(host)", bundle: CoreLocalization.bundle(for: locale),
-          locale: locale, comment: "Grok Bot is connected. %@ is the webhook host.")
-      }
-      return String(
-        localized: "Connected", bundle: CoreLocalization.bundle(for: locale), locale: locale,
-        comment: "Grok Bot is connected, without a host to show.")
-    case .codex:
-      guard let version else {
-        return path.isEmpty
-          ? String(
-            localized: "Codex CLI not found.", bundle: CoreLocalization.bundle(for: locale), locale: locale,
-            comment: "Codex detection detail when no executable was found.")
-          : String(
-            localized: "codex.noResponse",
-            defaultValue: "Codex at \(path) did not respond.", bundle: CoreLocalization.bundle(for: locale), locale: locale,
-            comment: "Codex detection detail. %@ is the executable path.")
-      }
-      return String(
-        localized: "codex.version", defaultValue: "Codex \(version)", bundle: CoreLocalization.bundle(for: locale),
-        locale: locale, comment: "Codex detection detail. %@ is the version.")
-    case .claude:
-      guard let version else {
-        return path.isEmpty
-          ? String(
-            localized: "Claude Code CLI not found. Install it from claude.com/claude-code.",
-            bundle: CoreLocalization.bundle(for: locale), locale: locale,
-            comment: "Claude Code detection detail when no executable was found.")
-          : String(
-            localized: "claude.noResponse",
-            defaultValue: "Claude Code at \(path) did not respond.", bundle: CoreLocalization.bundle(for: locale),
-            locale: locale, comment: "Claude Code detection detail. %@ is the executable path.")
-      }
-      switch signedIn {
-      case true?:
-        if let method = signedInMethod {
-          return String(
-            localized: "claude.signedInMethod",
-            defaultValue: "Claude Code \(version), signed in (\(method))", bundle: CoreLocalization.bundle(for: locale),
-            locale: locale,
-            comment: "Claude Code detection detail. First %@ is the version, second is the auth method.")
-        }
-        return String(
-          localized: "claude.signedIn", defaultValue: "Claude Code \(version), signed in",
-          bundle: CoreLocalization.bundle(for: locale), locale: locale,
-          comment: "Claude Code detection detail. %@ is the version.")
-      case false?:
-        return String(
-          localized: "claude.signedOut",
-          defaultValue: "Claude Code \(version) is signed out. Use Sign in to Claude.",
-          bundle: CoreLocalization.bundle(for: locale), locale: locale,
-          comment: "Claude Code detection detail. %@ is the version.")
-      case nil:
-        return String(
-          localized: "claude.signInUnknown",
-          defaultValue: "Claude Code \(version); sign-in status unavailable.", bundle: CoreLocalization.bundle(for: locale),
-          locale: locale, comment: "Claude Code detection detail. %@ is the version.")
-      }
+    if let match = ProviderPhrase.localizedMatch(detail, locale: locale) { return match }
+    let prefix = "\(kind.title) ready · "
+    if detail.hasPrefix(prefix) {
+      let extra = String(detail.dropFirst(prefix.count))
+      return ProviderPhrase.readyDetailLocalized(kind: kind, extra: extra, locale: locale)
     }
-  }
-
-  /// Auth method parsed back out of the English detail, so localization does not depend on it.
-  private var signedInMethod: String? {
-    guard signedIn == true, let open = detail.lastIndex(of: "("), let close = detail.lastIndex(of: ")"),
-      open < close
-    else { return nil }
-    let method = detail[detail.index(after: open)..<close]
-    return method.isEmpty ? nil : String(method)
+    let at = "\(kind.title) at "
+    let suffix = " did not respond."
+    if detail.hasPrefix(at), detail.hasSuffix(suffix) {
+      let path = String(detail.dropFirst(at.count).dropLast(suffix.count))
+      return ProviderPhrase.noResponseLocalized(kind: kind, path: path, locale: locale)
+    }
+    return CoreChrome.display(detail, locale: locale) ?? detail
   }
 }
 
 extension ExternalAgentAvailability {
   public func localizedHint(locale: Locale) -> String? {
     guard let hint else { return nil }
+    if let phrase = ProviderPhrase.localizedMatch(hint, locale: locale) { return phrase }
     return CoreChrome.display(hint, locale: locale) ?? hint
   }
 }
@@ -174,10 +76,12 @@ public enum CoreChrome {
     "Connected",
     "Choose a project that can share screenshots with Grok Bot.",
     "Turn on sharing screenshots with Grok Bot for this project. Approved annotated screenshots are pushed to a branch in the project's GitHub repo.",
-    "Paste the setup code Grok Bot gave you.",
-    "The address has to start with https. Ask Grok Bot for a new setup code.",
-    "The secret can't contain a line break. Ask Grok Bot for a new setup code.",
-    "That doesn't look like a setup code. In Grok Bot, ask \"Connect ScreenClip\" and paste the reply.",
+    "Enter the key from the ScreenClip reports routine.",
+    "The Webhook URL has to start with https.",
+    "The key can't contain a line break.",
+    "Grok Bot is selected, but Allow sending screenshots to the external assistant is off. Turn it on before screenshots can be sent.",
+    "Paste the Webhook URL on one line and the Authorization header on the next. Copy both from the ScreenClip reports routine in Grok Bot.",
+    "Add the webhook URL too. Copy it from the ScreenClip reports routine and paste it with the Authorization header.",
     "Codex — not found",
     "Claude Code — not found",
     "Claude Code — signed out",

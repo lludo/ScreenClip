@@ -51,7 +51,7 @@ Requires **macOS 14 or later**, a local Git repository, GitHub CLI, and one of C
 ## Quick start
 
 1. **Build and install** with Xcode, or `bash scripts/run.sh`. The shared scheme installs `/Applications/ScreenClip.app`. Signing setup and the first-run checklist are in [Getting started](docs/getting-started.md).
-2. **Add a project** (repository, base branch, routing, validation command) and **connect an agent** in Settings. For Grok Bot, ask the assistant **Connect ScreenClip** and paste the setup code, then turn the project switch on.
+2. **Add a project** (repository, base branch, routing, validation command) and **connect an agent** in Settings. For Grok Bot, copy **POST to** and **key** from the assistant's ScreenClip reports routine into **Connect Grok Bot**. Set **System default**, or a **Project default** when one project should use another provider.
 3. Press **⌘⇧2**, select a region, and submit. ScreenClip suggests a project. You can correct it before the report is sent.
 
 Each report keeps its own agent conversation and an isolated Git worktree. ScreenClip opens a GitHub pull request. Automatic merge runs only when the project allows it and the checks pass. Merged fixes show up under **To retest**.

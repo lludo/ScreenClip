@@ -56,7 +56,7 @@ struct CodexConnectionControls: View {
         Button {
           signIn(.browser)
         } label: {
-          Text(chrome: "Sign in…", comment: "Starts Codex browser sign-in.")
+          Text(verbatim: ProviderPhrase.signIn.localized(.codex, locale: locale))
         }.disabled(
           authentication.state == .checking || authentication.state == .ready
             || authentication.loginID != nil)

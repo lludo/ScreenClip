@@ -68,7 +68,7 @@ The language list is repeated. Update every copy, in this order: `en`, `zh-Hans`
 
 There is no `Fixtures/` directory. The screenshot queue is built in code.
 
-`ScreenshotFixture.materialize()` creates a fresh temporary directory and `PreviewSupport.seed` fills it with the synthetic **Demo storefront** project: three reports (working, needs you, merged), one annotated checkout image, and paused processing. No personal queue, screenshot, or local path is included. `ScreenshotFixture.configure` then pins the connection lines: Codex connected, Claude Code ready, Grok Bot not connected. Dates use `America/Los_Angeles` and a fixed instant (`timeIntervalSinceReferenceDate` 816381600).
+`ScreenshotFixture.materialize()` creates a fresh temporary directory and `PreviewSupport.seed` fills it with the synthetic **Demo storefront** project: three reports (working, needs you, merged), one annotated checkout image, and paused processing. No personal queue, screenshot, or local path is included. `ScreenshotFixture.configure` then pins the connection lines: Codex ready, Claude Code ready, Grok Bot is not connected. Dates use `America/Los_Angeles` and a fixed instant (`timeIntervalSinceReferenceDate` 816381600).
 
 ```sh
 bash scripts/render-localizations.sh

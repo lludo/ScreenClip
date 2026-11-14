@@ -80,6 +80,30 @@ struct ProjectEditor: View {
             "This command runs in the issue's worktree before publishing. Automatic merge also requires passing GitHub checks and required reviews.",
           comment: "Explains validation. Keep GitHub."
         ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+        Picker(
+          selection: Binding(
+            get: { project.defaultAgent },
+            set: { project.defaultAgent = $0 })
+        ) {
+          Text(
+            verbatim: Chrome.format(
+              "agent.systemDefault",
+              "System default (\(model.snapshot.settings.preferredAgent.title))",
+              locale: locale,
+              comment: "Project default that follows the system default. %@ is the current provider name.")
+          ).tag(nil as AgentKind?)
+          ForEach(providerChoices) { kind in
+            AgentLabel(kind: kind).tag(Optional(kind))
+          }
+        } label: {
+          Text(chrome: "Project default", comment: "Picker for this project's default provider.")
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        if showsGrokOptInNote {
+          Text(verbatim: Chrome.stored(AgentSelection.grokOptInNote, locale: locale))
+            .font(.caption).foregroundStyle(.orange)
+            .fixedSize(horizontal: false, vertical: true)
+        }
         Toggle(isOn: $project.autoMerge) {
           Text(
             chrome: "Merge fixes automatically after checks pass",
@@ -152,6 +176,15 @@ struct ProjectEditor: View {
     }.padding(24).frame(minWidth: embedded ? 0 : 620, idealWidth: embedded ? nil : 720)
       .frame(maxWidth: embedded ? .infinity : nil, alignment: .leading)
       .onAppear { load(project) }
+  }
+  private var providerChoices: [AgentKind] {
+    let connected = AgentKind.allCases.filter { model.detection($0)?.usable == true }
+    guard let chosen = project.defaultAgent, !connected.contains(chosen) else { return connected }
+    return connected + [chosen]
+  }
+  private var showsGrokOptInNote: Bool {
+    AgentSelection.projectDefault(project, system: model.snapshot.settings.preferredAgent) == .external
+      && !project.sendsExternalScreenshots
   }
   private var isExisting: Bool { model.snapshot.projects.contains(where: { $0.id == project.id }) }
   private func load(_ value: Project) {

@@ -269,11 +269,11 @@ struct SettingsView: View {
             ) {
               ForEach(agentChoices) { kind in
                 AgentLabel(
-                  kind: kind, title: model.detection(kind)?.localizedLabel(locale: locale) ?? kind.title
+                  kind: kind
                 ).tag(kind)
               }
             } label: {
-              Text(chrome: "Default agent", comment: "Picker for the default coding agent.")
+              Text(chrome: "System default", comment: "Picker for the system-wide default provider.")
                 .fixedSize(horizontal: false, vertical: true)
             }
             ForEach(AgentKind.allCases) { kind in
@@ -309,8 +309,8 @@ struct SettingsView: View {
             }
             Text(
               chrome:
-                "New captures use the default agent. You can pick a different agent for any single report in the capture window. Each issue keeps the agent it started with. Connect Grok Bot from its row.",
-              comment: "Explains agent selection. Product names stay untranslated."
+                "The system default applies until a project sets its own. A capture starts from the project default, and you can pick another provider for that report. Connect each provider from its row.",
+              comment: "Explains the system default, project default, and per-capture choice."
             ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
           } header: {
             Text(chrome: "AI agent", comment: "Settings section for the default agent.")
@@ -333,7 +333,7 @@ struct SettingsView: View {
                 model.saveSettings(settings)
                 model.signInToClaude()
               } label: {
-                Text(chrome: "Sign in to Claude", comment: "Opens Terminal for Claude Code sign-in.")
+                Text(verbatim: ProviderPhrase.signIn.localized(.claude, locale: locale))
               }
               Button { detectAgents() } label: {
                 Text(chrome: "Check", comment: "Checks the Claude Code installation.")
