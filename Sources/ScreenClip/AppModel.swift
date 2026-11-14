@@ -355,8 +355,10 @@ struct GrokConnectionCheck: Equatable {
           state.issues[index].record("Moved to \(target.name); continuing in a new report", status: .canceled)
         }
       }
+      // The move is already committed. A failure to add this informational activity must
+      // not turn it into a failed move or remove the new report's copied evidence.
       if let number = self.issue(moved.id)?.reportReference {
-        try updateIssue(issueID) { $0.record("Moved to \(target.name) as \(number)") }
+        try? updateIssue(issueID) { $0.record("Moved to \(target.name) as \(number)") }
       }
       selectedIssueID = moved.id
       worker.pump()
