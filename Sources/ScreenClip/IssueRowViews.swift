@@ -19,8 +19,8 @@ struct IssueRow: View {
           if issue.unread { Circle().fill(.orange).frame(width: 6, height: 6) }
         }
         HStack(spacing: 8) {
-          Text(project?.name ?? "Choose project").font(.caption).foregroundStyle(.secondary)
-            .lineLimit(1)
+          Label(project?.name ?? "Choose project", systemImage: project?.displaySymbol ?? "questionmark.folder")
+            .font(.caption).foregroundStyle(.secondary).lineLimit(1)
           Spacer(minLength: 0)
           StatusBadge(status: issue.status).fixedSize()
         }
