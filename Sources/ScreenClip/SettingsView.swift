@@ -114,19 +114,22 @@ struct SettingsView: View {
             ).frame(maxWidth: .infinity, maxHeight: .infinity)
           } else {
             List(model.snapshot.projects) { project in
-              HStack(alignment: .top) {
-                Image(systemName: project.displaySymbol).foregroundStyle(.orange)
-                  .frame(width: 20)
-                VStack(alignment: .leading, spacing: 5) {
-                  Text(project.name).fontWeight(.medium)
-                  Text(project.path).font(.caption).foregroundStyle(.secondary)
-                  Text((project.origins + project.bundleIDs).joined(separator: " · ")).font(
-                    .caption
-                  ).foregroundStyle(.tertiary)
+              HStack {
+                HStack(alignment: .top) {
+                  Image(systemName: project.displaySymbol).foregroundStyle(.orange)
+                    .frame(width: 20)
+                  VStack(alignment: .leading, spacing: 5) {
+                    Text(project.name).fontWeight(.medium)
+                    Text(project.path).font(.caption).foregroundStyle(.secondary)
+                    Text((project.origins + project.bundleIDs).joined(separator: " · ")).font(
+                      .caption
+                    ).foregroundStyle(.tertiary)
+                  }
                 }
                 Spacer()
                 Button("Edit") { editProject = project }
               }.padding(.vertical, 8)
+                .listRowInsets(EdgeInsets())
             }
           }
         }.padding(24)
