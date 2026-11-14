@@ -1,0 +1,19 @@
+name: macOS build and tests
+on:
+  push:
+  pull_request:
+jobs:
+  macos:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Native tests
+        run: bash scripts/test.sh
+      - name: Plugin tests
+        run: python3 scripts/test_plugin.py
+      - name: Build app
+        run: bash scripts/build.sh release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ScreenClip-macOS
+          path: build/ScreenClip.app

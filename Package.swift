@@ -1,0 +1,21 @@
+// swift-tools-version: 6.0
+import PackageDescription
+
+let package = Package(
+  name: "ScreenClip",
+  platforms: [.macOS(.v14)],
+  products: [
+    .executable(name: "ScreenClip", targets: ["ScreenClip"]),
+    .executable(name: "ScreenClipProbe", targets: ["ScreenClipProbe"]),
+    .library(name: "ScreenClipCore", targets: ["ScreenClipCore"]),
+  ],
+  targets: [
+    .systemLibrary(name: "CSQLite"),
+    .target(name: "ScreenClipCore", dependencies: ["CSQLite"]),
+    .executableTarget(name: "ScreenClip", dependencies: ["ScreenClipCore"]),
+    .executableTarget(name: "ScreenClipProbe", dependencies: ["ScreenClipCore"]),
+    .testTarget(name: "ScreenClipCoreTests", dependencies: ["ScreenClipCore"]),
+    .testTarget(name: "ScreenClipAppTests", dependencies: ["ScreenClip"]),
+  ],
+  swiftLanguageModes: [.v5]
+)
