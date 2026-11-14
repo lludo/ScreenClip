@@ -15,7 +15,7 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 | After a 2xx | Activity `Sent to external assistant`. The issue stays **Working** until a pull request is found. |
 | Pull request | The assistant opens a PR from that same branch whose body contains `ScreenClip: #<reportNumber>`. ScreenClip polls GitHub and **Refresh PR status** picks it up immediately. |
 | Merge | ScreenClip decides. The existing auto-merge checks apply (validated head, passing checks, current revision, reviews). A PR that still contains `.screenclip/` files is not auto-merged and is shown as needing attention. |
-| Conversation | No deep link. The pull request link is shown once known. Before that, the report says the conversation is in Grok Bot's chat. |
+| Conversation | No report-specific deep link in this integration. The pull request link is shown once known. Before that, the report says the conversation is in Grok Bot's chat. |
 | Cancel | Local only. The activity says Grok Bot cannot be stopped from ScreenClip. |
 
 ## Hand-off
@@ -153,7 +153,7 @@ Grok Bot is listed even when it is not connected.
 
 - Questions are not copied into ScreenClip. Answer them in Grok Bot's chat.
 - Cancel does not stop the remote assistant.
-- Grok Bot's chat has no desktop deep link. `screenclip://connect?code=` only opens the connect sheet.
+- ScreenClip has no report-specific Grok Bot chat link. Grok Bot documents a `grokbot://app/v1/prompt` link to open a Bot with a draft message, but that link does not identify a particular ScreenClip report or send the message. `screenclip://connect?code=` opens ScreenClip's connect sheet. See [Grok Bot deep links](https://docs.x.ai/grok-bot/deep-links).
 - Automatic merge waits until `.screenclip/` is gone, even when checks are green.
 - The destination is refused while the project opt-in is off, including for private repositories.
 
