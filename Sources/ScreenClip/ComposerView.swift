@@ -114,7 +114,9 @@ struct ComposerView: View {
             Text("Project").font(.caption).foregroundStyle(.secondary)
             Picker("Project", selection: $projectID) {
               Text("Choose project…").tag(nil as UUID?)
-              ForEach(model.snapshot.projects) { Text($0.name).tag(Optional($0.id)) }
+              ForEach(model.snapshot.projects) {
+                Label($0.name, systemImage: $0.displaySymbol).tag(Optional($0.id))
+              }
             }.labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
               .accessibilityLabel("Project")
               .disabled(existing != nil && existing?.status != .draft)

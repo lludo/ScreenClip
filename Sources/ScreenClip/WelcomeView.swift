@@ -16,7 +16,7 @@ struct WelcomeView: View {
       }
       VStack(alignment: .leading, spacing: 18) {
         step("1", "Add your projects", "Map a website or Mac app to its repository.")
-        step("2", "Connect an agent", "Codex, Claude Code, or Grok Bot. Choose a default.")
+        step("2", "Connect an agent", agentStepText)
         step("3", "Capture an observation", "Select a region, add a note, and submit.")
       }
       HStack {
@@ -25,6 +25,19 @@ struct WelcomeView: View {
         Button("Take a capture") { model.captureAction?() }
       }
     }.padding(40).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+  }
+  /// Names every agent detected and ready, equally; falls back to all supported agents.
+  private var agentStepText: String {
+    let ready = model.agentStatuses.filter(\.ready).map { $0.kind.title }
+    let names = ready.isEmpty ? AgentKind.allCases.map(\.title) : ready
+    let list: String
+    switch names.count {
+    case 1: list = names[0]
+    case 2: list = "\(names[0]) and \(names[1])"
+    default: list = names.dropLast().joined(separator: ", ") + ", and " + names.last!
+    }
+    let prefix = ready.isEmpty ? "Works with" : "Connected:"
+    return "\(prefix) \(list). Choose a default."
   }
   func step(_ number: String, _ title: String, _ text: String) -> some View {
     HStack(alignment: .top, spacing: 14) {
