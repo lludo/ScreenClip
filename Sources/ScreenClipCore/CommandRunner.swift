@@ -107,10 +107,12 @@ public enum GitWorkspace {
     }
     return hash.finalize().map { String(format: "%02x", $0) }.joined()
   }
-  public static func prepare(project: Project, issueID: UUID, root: URL) async throws -> (
-    path: String, branch: String
-  ) {
-    let branch = "codex/screenclip-" + issueID.uuidString.lowercased().prefix(8)
+  public static func prepare(
+    project: Project, issueID: UUID, root: URL, branch requestedBranch: String? = nil
+  ) async throws -> (path: String, branch: String) {
+    let branch =
+      requestedBranch
+      ?? "codex/screenclip-" + String(issueID.uuidString.lowercased().prefix(8))
     let path = root.appendingPathComponent("worktrees").appendingPathComponent(issueID.uuidString)
       .path
     let repo = try await CommandRunner.checked(
@@ -128,11 +130,18 @@ public enum GitWorkspace {
         throw ScreenClipError.message(
           "The issue worktree has an unexpected branch. Inspect it before retrying.")
       }
-      return (path, String(branch))
+      return (path, branch)
     }
-    _ = try await CommandRunner.checked(
-      "/usr/bin/git", ["worktree", "add", "-b", String(branch), path, project.baseBranch],
-      cwd: project.path)
-    return (path, String(branch))
+    let existing = try await CommandRunner.run(
+      "/usr/bin/git", ["show-ref", "--verify", "--quiet", "refs/heads/\(branch)"], cwd: project.path)
+    if existing.status == 0 {
+      _ = try await CommandRunner.checked(
+        "/usr/bin/git", ["worktree", "add", path, branch], cwd: project.path)
+    } else {
+      _ = try await CommandRunner.checked(
+        "/usr/bin/git", ["worktree", "add", "-b", branch, path, project.baseBranch],
+        cwd: project.path)
+    }
+    return (path, branch)
   }
 }

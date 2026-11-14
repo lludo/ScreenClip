@@ -37,6 +37,30 @@ The source review added a regression that reproduced two chats and turns being c
 - Three new regressions cover feedback search, durable archive/restore with capture and PR evidence retained, and rejection of archiving while work or an agent permission request is outstanding. A canceled or verified report can be archived without deleting its screenshots or changing its outcome.
 - Both projects have validation commands and automatic merge configured. Genealogy's CI [PR #1424](https://github.com/lludo/Genealogy/pull/1424) merged; its configured Core validation passed 1,225 tests with 25 skips and no failures. Live ScreenClip queue recovery is coordinated by one native queue writer.
 
+## External assistant (Grok Bot)
+
+November 14, 2026. Grok Bot is implemented as `AgentKind.external` and documented in [external-assistant.md](agents/external-assistant.md). Approved screenshots are pushed to `screenclip/<reportNumber>-<slug>`; the webhook schema `screenclip.external.v1` does not carry image bytes. `report.json` uses the same fields, with `evidence.commit` null because that file cannot contain its own commit id.
+
+The change was made on Linux. This machine has no Swift toolchain and cannot build the macOS app target or run the AppKit/SwiftUI tests.
+
+**Verified here**
+
+- `python3 scripts/test_external_assistant.py` passed. It checks that `scripts/send_test_webhook.py` posts `{"schema":"screenclip.external.v1.test"}`, sends `SCREENCLIP_AUTHORIZATION` verbatim as the `Authorization` header, and returns the HTTP status for both a 204 and a 401.
+- `git check-ref-format --branch` accepts `screenclip/<number>-<slug>`.
+- The Swift sources were reviewed against the existing worker, settings, composer, and merge paths. They were not compiled.
+
+**Not verified here — run on a Mac**
+
+```sh
+bash scripts/test.sh
+python3 scripts/test_plugin.py
+python3 scripts/test_review_queue.py
+python3 scripts/test_external_assistant.py
+bash scripts/build.sh
+```
+
+`bash scripts/test.sh` includes `ExternalAssistantTests` in ScreenClipCore (payload encoding, slug and branch names, opt-in, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, and the Authorization header on a test POST) and `ExternalAssistantAppTests` (Grok Bot stays in the agent list, submit refuses it until the webhook is configured and the project opts in, and a restart during the POST stays retryable). The Xcode Debug and Release builds were not run. A live webhook, an evidence push, pull-request discovery, and auto-merge while `.screenclip/` is still present were not exercised.
+
 ## Local agent and queue review
 
 November 13, 2026: the combined agent selection, worker, plugin, queue layout, and README changes passed **80 Swift tests** (41 core and 39 app), **7 Python plugin tests**, and **4 Python queue-review tests**. Xcode Debug and Release builds and strict signature verification passed. The website build and installed Claude CLI's plugin manifest validation passed. The refreshed README screenshots use synthetic data and were visually inspected.
@@ -93,6 +117,8 @@ For a live read-only handshake, use `scripts/probe_codex.py --codex /path/to/cod
 The GitHub fixture setup helper requires an explicit `OWNER/screenclip-integration-*` name and creates a private repository. `ScreenClip --integration-run` also requires a dedicated fixture path, synthetic image path, and fresh data directory. It intentionally performs real PR and merge operations in that fixture. See the helper's `--help`; do not use production repositories for this diagnostic mode.
 
 ## Remaining hands-on and distribution checks
+
+- Grok Bot still needs a Mac run of `bash scripts/test.sh` and an Xcode build, plus a live webhook, evidence push, pull-request discovery, and the `.screenclip/` auto-merge guard. See [External assistant (Grok Bot)](#external-assistant-grok-bot).
 
 - Basic screen permission, region selection, annotation, submission, and grant retention after the installed update are confirmed. Debug/Release designated requirements also match. Verify the intended crop of each ScreenClip surface with hiding both on and off.
 - Verify capture on each physical monitor, mixed scales, negative display origins, full-screen Spaces, transient menus, Escape, and return-to-source focus. Selection currently stays on the display where dragging starts; a rectangle spanning two displays is not implemented.

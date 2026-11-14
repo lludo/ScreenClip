@@ -170,4 +170,89 @@ public enum GitHubService {
       "/usr/bin/git", ["merge", "--no-edit", "FETCH_HEAD"], cwd: path)
     return true
   }
+  public static func repositoryIsPublic(_ repo: String, gh: String, cwd: String) async -> Bool? {
+    guard
+      let text = try? await CommandRunner.checked(
+        gh, ["repo", "view", repo, "--json", "isPrivate"], cwd: cwd),
+      let json = try? JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)),
+      let isPrivate = json["isPrivate"].bool
+    else { return nil }
+    return !isPrivate
+  }
+  public static func pullRequests(head: String, gh: String, cwd: String) async throws
+    -> [ExternalPullRequestCandidate]
+  {
+    let text = try await CommandRunner.checked(
+      gh,
+      ["pr", "list", "--head", head, "--state", "all", "--json", "url,headRefName,body,state"],
+      cwd: cwd)
+    return try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)).array.map {
+      ExternalPullRequestCandidate(
+        url: $0["url"].string ?? "", headRefName: $0["headRefName"].string ?? "",
+        body: $0["body"].string ?? "", state: $0["state"].string ?? "")
+    }
+  }
+  public static func listScreenclipPaths(revision: String, cwd: String) async throws -> [String] {
+    let result = try await CommandRunner.run(
+      "/usr/bin/git", ["ls-tree", "-r", "--name-only", revision, "--", ".screenclip"], cwd: cwd)
+    guard result.status == 0 else {
+      throw ScreenClipError.message(result.error.isEmpty ? result.output : result.error)
+    }
+    return result.output.split(separator: "\n", omittingEmptySubsequences: true).map(String.init)
+  }
+  public static func commitEvidence(directory: String, message: String, cwd: String) async throws
+    -> String
+  {
+    _ = try await CommandRunner.checked("/usr/bin/git", ["add", "--", directory], cwd: cwd)
+    let status = try await CommandRunner.checked(
+      "/usr/bin/git", ["status", "--porcelain", "--", directory], cwd: cwd)
+    if !status.isEmpty {
+      _ = try await CommandRunner.checked("/usr/bin/git", ["commit", "-m", message], cwd: cwd)
+    }
+    return try await CommandRunner.checked("/usr/bin/git", ["rev-parse", "HEAD"], cwd: cwd)
+  }
+  public static func pushBranch(_ branch: String, cwd: String) async throws {
+    _ = try await CommandRunner.checked(
+      "/usr/bin/git", ["push", "-u", "origin", branch], cwd: cwd)
+  }
+  /// Fast-forward onto the remote branch when it exists. A missing remote branch is the first push.
+  public static func integrateRemoteBranch(_ branch: String, cwd: String) async throws {
+    let fetch = try await CommandRunner.run(
+      "/usr/bin/git", ["fetch", "origin", branch], cwd: cwd)
+    guard fetch.status == 0 else { return }
+    try await fastForwardToFetchHead(cwd: cwd)
+  }
+  public static func remoteContains(commit: String, branch: String, cwd: String) async throws -> Bool
+  {
+    let fetch = try await CommandRunner.run(
+      "/usr/bin/git", ["fetch", "origin", branch], cwd: cwd)
+    guard fetch.status == 0 else { return false }
+    let ancestor = try await CommandRunner.run(
+      "/usr/bin/git", ["merge-base", "--is-ancestor", commit, "FETCH_HEAD"], cwd: cwd)
+    return ancestor.status == 0
+  }
+  public static func fastForwardToFetchHead(cwd: String) async throws {
+    let ahead = try await CommandRunner.checked(
+      "/usr/bin/git", ["rev-list", "--count", "FETCH_HEAD..HEAD"], cwd: cwd)
+    let behind = try await CommandRunner.checked(
+      "/usr/bin/git", ["rev-list", "--count", "HEAD..FETCH_HEAD"], cwd: cwd)
+    guard (Int(behind) ?? 0) > 0 else { return }
+    guard (Int(ahead) ?? 0) == 0 else {
+      throw ScreenClipError.message(
+        "The evidence branch has diverged from GitHub. ScreenClip did not overwrite either side.")
+    }
+    let dirty = try await CommandRunner.checked(
+      "/usr/bin/git", ["status", "--porcelain"], cwd: cwd)
+    guard dirty.isEmpty else {
+      throw ScreenClipError.message(
+        "The evidence worktree has uncommitted changes, so ScreenClip did not update it to the pull request."
+      )
+    }
+    let fastForward = try await CommandRunner.run(
+      "/usr/bin/git", ["merge", "--ff-only", "FETCH_HEAD"], cwd: cwd)
+    if fastForward.status != 0 {
+      _ = try await CommandRunner.checked(
+        "/usr/bin/git", ["reset", "--hard", "FETCH_HEAD"], cwd: cwd)
+    }
+  }
 }

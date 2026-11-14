@@ -13,6 +13,7 @@ jobs:
         run: |
           python3 scripts/test_plugin.py
           python3 scripts/test_review_queue.py
+          python3 scripts/test_external_assistant.py
       - name: Website build
         run: python3 website/build.py
       - name: Xcode Debug app build
