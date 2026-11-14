@@ -30,13 +30,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       previewMode =
         arguments.contains("--preview") || arguments.contains("--render-preview")
         || arguments.contains("--integration-run")
+        || arguments.contains("--integration-project-link")
       let override = arguments.firstIndex(of: "--data-dir").flatMap {
         arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil
+      }
+      let integration =
+        arguments.contains("--integration-run") || arguments.contains("--integration-project-link")
+      guard !integration || override != nil else {
+        throw ScreenClipError.message("Integration checks require an explicit fresh --data-dir.")
       }
       let root =
         override.map { URL(fileURLWithPath: $0) }
         ?? FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
         .appendingPathComponent("ScreenClip")
+      guard !integration || !FileManager.default.fileExists(atPath: root.path) else {
+        throw ScreenClipError.message("Choose a new --data-dir for the integration check.")
+      }
       model = try AppModel(root: root)
       capture = CaptureCoordinator(model: model)
       shortcut = GlobalShortcut()
@@ -63,7 +72,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         forName: .screenClipSettingsChanged, object: nil, queue: .main
       ) { [weak self] _ in Task { @MainActor in self?.registerShortcut() } }
       refreshBadge()
-      if arguments.contains("--integration-run") {
+      if integration {
         try runIntegration(arguments: arguments, root: root)
         return
       }
@@ -150,15 +159,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
     let repo = try option("--integration-repo")
     let imagePath = try option("--integration-image")
-    guard URL(fileURLWithPath: repo).lastPathComponent.hasPrefix("screenclip-integration-") else {
+    let projectLinkOnly = arguments.contains("--integration-project-link")
+    guard
+      projectLinkOnly
+        || URL(fileURLWithPath: repo).lastPathComponent.hasPrefix("screenclip-integration-")
+    else {
       throw ScreenClipError.message("Use a dedicated screenclip-integration-* fixture.")
     }
-    guard model.snapshot.issues.isEmpty else {
+    guard model.snapshot.issues.isEmpty && model.snapshot.projects.isEmpty else {
       throw ScreenClipError.message("Use a fresh data directory for the integration run.")
     }
     let project = Project(
-      name: "ScreenClip integration fixture", path: repo, validationCommand: "python3 -m unittest",
-      autoMerge: true)
+      name: projectLinkOnly
+        ? URL(fileURLWithPath: repo).lastPathComponent : "ScreenClip integration fixture",
+      path: repo, validationCommand: projectLinkOnly ? "" : "python3 -m unittest",
+      autoMerge: !projectLinkOnly)
     try model.saveProject(project)
     try model.commit { $0.settings.paused = false }
     let context = CaptureContext(
@@ -168,7 +183,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       imageData: Data(contentsOf: URL(fileURLWithPath: imagePath)), originalData: nil,
       annotations: [],
       note:
-        "Synthetic integration bug: the Complete purchase button in style.css is clipped at 80px. Change the purchase-button width to 240px so the label fits. Preserve the existing padding. The regression in test_layout.py defines the desired behavior.",
+        projectLinkOnly
+        ? "Synthetic project-link verification. There is no bug or code change requested. Ask whether this test observation can be closed. Do not modify repository files."
+        : "Synthetic integration bug: the Complete purchase button in style.css is clipped at 80px. Change the purchase-button width to 240px so the label fits. Preserve the existing padding. The regression in test_layout.py defines the desired behavior.",
       context: context, projectID: project.id, existingID: nil, draft: false)
     model.worker.start()
     var previous = ""

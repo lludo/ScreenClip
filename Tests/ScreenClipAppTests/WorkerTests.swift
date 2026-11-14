@@ -6,6 +6,30 @@ import XCTest
 
 @MainActor final class WorkerTests: XCTestCase {
   func testNativeWorkerGroupsEvidenceAndContinuesQuestionInSameChat() async throws {
+    try await exerciseWorker(projectLookupSupported: true)
+  }
+  func testNativeWorkerIncludesRepositoryContextWhenProjectAPIIsUnavailable() async throws {
+    try await exerciseWorker(projectLookupSupported: false)
+  }
+  func testCancelDuringProjectLookupDoesNotCreateAChat() async throws {
+    try await exerciseWorker(projectLookupSupported: true, cancelDuring: "project/list")
+  }
+  func testCancelBeforeTurnAcknowledgementInterruptsTheAcknowledgedTurn() async throws {
+    try await exerciseWorker(projectLookupSupported: true, cancelDuring: "turn/start")
+  }
+  func testRetryDuringCanceledProjectLookupWaitsForTheOriginalDispatch() async throws {
+    try await exerciseWorker(
+      projectLookupSupported: true, cancelDuring: "project/list", retryAfterCancel: true)
+  }
+  func testClaudeIssueIsNotSilentlyDispatchedToCodex() async throws {
+    try await exerciseWorker(projectLookupSupported: true, requestedAgent: .claude)
+  }
+  private func exerciseWorker(
+    projectLookupSupported: Bool, cancelDuring: String? = nil, retryAfterCancel: Bool = false,
+    requestedAgent: AgentKind = .codex
+  )
+    async throws
+  {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       "screenclip-worker-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
@@ -24,12 +48,20 @@ import XCTest
     let script = root.appendingPathComponent("fake-codex")
     let source = """
       #!/usr/bin/python3
-      import sys,json
+      import sys,json,os,time
       def send(value): print(json.dumps(value),flush=True)
       for line in sys.stdin:
           m=json.loads(line); method=m.get('method')
           if 'id' not in m: continue
+          with open(os.path.join(os.path.dirname(__file__),'requests.jsonl'),'a') as log: log.write(line)
+          if method=='\(cancelDuring ?? "")': time.sleep(0.3)
           result={}
+          if method=='project/list':
+              if not \(projectLookupSupported ? "True" : "False"):
+                  send({'id':m['id'],'error':{'code':-32601,'message':'Method not found'}})
+                  continue
+              result={'data':[{'id':'saved-project','name':'Different display name','roots':[{'path':os.path.join(os.path.dirname(__file__),'repo')}]}],'nextCursor':None}
+
           if method=='thread/resume':
               send({'id':m['id'],'error':{'code':-1,'message':'thread test-thread already has an active writer'}})
               continue
@@ -54,8 +86,58 @@ import XCTest
       imageData: Data([1]), originalData: nil, annotations: [], note: "First capture",
       context: context, projectID: project.id, existingID: nil, draft: false)
     let id = try XCTUnwrap(model.snapshot.issues.first?.id)
+    try model.updateIssue(id) { $0.agent = requestedAgent }
+    func recordedRequests() throws -> [JSONValue] {
+      guard let data = try? Data(contentsOf: root.appendingPathComponent("requests.jsonl")) else {
+        return []
+      }
+      return try data.split(separator: 10).map {
+        try JSONDecoder().decode(JSONValue.self, from: Data($0))
+      }
+    }
+    if requestedAgent == .claude {
+      try await wait { model.issue(id)?.status == .failed }
+      XCTAssertTrue(model.issue(id)?.lastError?.contains("Claude Code dispatch is not available") == true)
+      XCTAssertFalse(try recordedRequests().contains { $0["method"].string == "thread/start" })
+      await model.worker.resetConnection()
+      return
+    }
+    if let cancelDuring {
+      try await wait {
+        (try? recordedRequests().contains { $0["method"].string == cancelDuring }) == true
+      }
+      await model.worker.cancel(id)
+      if retryAfterCancel {
+        model.retry(id)
+        try await wait { model.issue(id)?.status == .needsYou }
+        _ = try await model.worker.client.request("test/barrier")
+        let requests = try recordedRequests()
+        XCTAssertEqual(requests.filter { $0["method"].string == "thread/start" }.count, 1)
+        XCTAssertEqual(requests.filter { $0["method"].string == "turn/start" }.count, 1)
+        XCTAssertEqual(model.issue(id)?.questions.count, 1)
+        await model.worker.resetConnection()
+        return
+      }
+      _ = try await model.worker.client.request("test/barrier")
+      if cancelDuring == "turn/start" {
+        try await wait {
+          (try? recordedRequests().contains { $0["method"].string == "turn/interrupt" }) == true
+        }
+        let interrupt = try XCTUnwrap(
+          recordedRequests().first { $0["method"].string == "turn/interrupt" })
+        XCTAssertEqual(interrupt["params"]["threadId"].string, "test-thread")
+        XCTAssertEqual(interrupt["params"]["turnId"].string, "turn-1")
+      } else {
+        XCTAssertFalse(try recordedRequests().contains { $0["method"].string == "thread/start" })
+        XCTAssertNil(model.issue(id)?.threadID)
+      }
+      XCTAssertEqual(model.issue(id)?.status, .canceled)
+      await model.worker.resetConnection()
+      return
+    }
     try await wait { model.issue(id)?.status == .needsYou }
     let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.reportNumber, 1)
     XCTAssertEqual(issue.threadID, "test-thread")
     XCTAssertEqual(issue.questions.count, 1)
     try model.submit(
@@ -68,8 +150,39 @@ import XCTest
     XCTAssertEqual(model.snapshot.issues.count, 1)
     XCTAssertEqual(continued.threadID, "test-thread")
     XCTAssertEqual(continued.captures.count, 2)
+    XCTAssertEqual(continued.reportNumber, issue.reportNumber)
     XCTAssertEqual(continued.questions[0].reply, "Yes, wrap it")
     XCTAssertEqual(continued.coveredRevision, 2)
+    let requests = try String(
+      contentsOf: root.appendingPathComponent("requests.jsonl"), encoding: .utf8
+    )
+    .split(separator: "\n").map { try JSONDecoder().decode(JSONValue.self, from: Data($0.utf8)) }
+    let start = try XCTUnwrap(requests.first { $0["method"].string == "thread/start" })
+    XCTAssertEqual(
+      start["params"]["projectId"].string, projectLookupSupported ? "saved-project" : nil)
+    XCTAssertEqual(start["params"]["cwd"].string, issue.worktreePath)
+    XCTAssertNotEqual(start["params"]["cwd"].string, project.path)
+    let turn = try XCTUnwrap(requests.first { $0["method"].string == "turn/start" })
+    let prompt = try XCTUnwrap(turn["params"]["input"].array.first?["text"].string)
+    XCTAssertTrue(prompt.contains("Report number: #1."))
+    let name = requests.first { $0["method"].string == "thread/name/set" }
+    XCTAssertEqual(name?["params"]["name"].string, "ScreenClip: #1 First capture")
+    XCTAssertTrue(prompt.contains("Repository (tester's original checkout): \(project.path)"))
+    XCTAssertTrue(
+      prompt.contains(
+        "Isolated worktree (working directory for all edits and checks): \(try XCTUnwrap(issue.worktreePath))"
+      ))
+    XCTAssertTrue(
+      prompt.contains("Issue branch: \(try XCTUnwrap(issue.branch)); base branch: main."))
+    let link = requests.first { $0["method"].string == "thread/metadata/update" }
+    if projectLookupSupported {
+      XCTAssertEqual(link?["params"]["threadId"].string, "test-thread")
+      XCTAssertEqual(link?["params"]["projectId"].string, "saved-project")
+    } else {
+      XCTAssertNil(link)
+      XCTAssertTrue(
+        continued.activities.contains { $0.text.contains("Codex project link unavailable") })
+    }
     XCTAssertEqual(
       try String(contentsOf: repo.appendingPathComponent("source.txt"), encoding: .utf8), "original"
     )
@@ -85,6 +198,7 @@ import XCTest
       imageData: Data([1]), originalData: nil, annotations: [], note: "Draft",
       context: CaptureContext(), projectID: nil, existingID: nil, draft: true)
     let id = try XCTUnwrap(model.snapshot.issues.first?.id)
+    XCTAssertEqual(model.issue(id)?.reportNumber, 1)
     let project = UUID()
     try model.submit(
       imageData: Data([2]), originalData: nil, annotations: [], note: "Ready",
@@ -92,6 +206,7 @@ import XCTest
     XCTAssertEqual(model.issue(id)?.projectID, project)
     XCTAssertEqual(model.issue(id)?.captures.count, 1)
     XCTAssertEqual(model.issue(id)?.status, .queued)
+    XCTAssertEqual(model.issue(id)?.reportNumber, 1)
   }
   func testReconcileRecoversCompletedFixWithoutAnotherModelTurn() async throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-recover-" + UUID().uuidString)

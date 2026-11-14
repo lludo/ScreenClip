@@ -4,7 +4,7 @@ November 13, 2026. Development host: macOS 27.0.1, Xcode 27.2, Swift 6.4.2, Appl
 
 ## Verified
 
-The current run passed **37 Swift tests**; the unchanged plugin's **4 Python tests** passed in the preceding run. Xcode is now the app build path for development, Terminal and CI; SwiftPM runs the tests and supplies the core library. Xcode Debug and Release builds passed for 0.1.5. The app is installed at `/Applications/ScreenClip.app`, and the Release ZIP was regenerated. Both signatures passed strict verification and have matching designated requirements using the installed Apple Development certificate. Public Developer ID signing and notarization remain separate.
+The latest source review passed **57 Swift tests**, **5 Python plugin tests**, and **4 Python queue-review tests**. Xcode Debug and Release builds and strict signature verification passed for **0.1.6 (7)**. The website build and Python, shell, and JavaScript syntax checks passed. SwiftPM supplies the core library and runs the command-line tests. These review builds were not installed or repackaged. The earlier installed 0.1.6 check retained both registered projects and all six existing reports and assigned their stable numbers. Public Developer ID signing and notarization remain separate. The live desktop project-grouping check failed; see [repository association review](#repository-association-review).
 
 - Native Swift executable and app bundle build without third-party package dependencies.
 - The native `ScreenClip.xcodeproj` shared scheme builds and development-signs the app for My Mac (Apple Silicon). Run has an install pre-action and launches `/Applications/ScreenClip.app`; the XML wiring and installer were checked, while clicking Command-R in Xcode remains a manual check. `scripts/run.sh` uses the same Xcode project and installer. Installation rejects ad-hoc builds, stages/verifies before quitting existing copies, and does not touch Application Support. A checkout without the ignored local signing file still builds ad-hoc for CI. The core library remains a local package dependency; the command-line test suite uses Swift Package Manager.
@@ -17,13 +17,39 @@ The current run passed **37 Swift tests**; the unchanged plugin's **4 Python tes
 - **Hide ScreenClip during capture** is now off by default and available in General settings. Both window hiding and the screenshot filter follow the setting; the source app is ScreenClip when capturing its open popover. A regression checks older settings decode and both choices persist through SQLite. Installation of 0.1.5 preserved all queue contents, including the user's submitted test report. The new self-capture path still needs a hands-on capture of ScreenClip's own windows/popover.
 - After installing 0.1.5 without resetting permissions, live diagnostics recorded two successful selections with `hideScreenClip=false`, sizes 1439 × 115 and 1038 × 957. Preflight and actual access both succeeded. This confirms permission retention after the installed update and successful selection with self-capture enabled; visual coverage of every ScreenClip surface remains a manual check.
 - Synthetic native queue/composer/settings previews are rendered and inspected; no user screen content is used in those previews.
+- Report-numbering regressions are included in the latest run. They cover legacy decoding and numbering without queue reordering, persistence, deleted-number retirement, draft submission and related captures retaining their number, exact reference search across project/status/archive filters, references in Codex names/prompts, exports, and plugin lookup by number. Synthetic native queue and menu previews visibly show the report numbers, with the selected report's copy control beside its status. The installed 0.1.6 build assigned numbers to all six existing reports on opening the queue.
 - Optional MCP bridge tests cover approved-image retrieval, status filtering, excluded private fields, and rejection of image paths outside the asset directory.
 - Codex `initialize`, account and model discovery passed with runtime `0.169.0-alpha.11.1` using the existing ChatGPT sign-in. No credentials were copied into this repository.
+- Repository context and runtime assignment are implemented and tested. The installed-app association check found a desktop sidebar compatibility failure; details and review fixes are below.
 - Authentication checks reuse existing ChatGPT/API-key sessions and providers that do not require OpenAI authentication. Nine regressions cover avoiding redundant browser login, missing account data, reported passkey failure, cancellation and stale callbacks, code-based fallback, missing callback timeout, failed browser launch, and recovering a session while a login is pending. Browser errors that never return to the local callback are bounded by a five-minute timeout; the user can cancel sooner. The fallback is tested against the runtime's generated contract, without signing the user out to test it live.
 - A synthetic screenshot produced a question, then a reply after process restart/resume in the same chat. The desktop app's chat reader independently recognized the saved conversation and both completed turns. Test chat ID: `01a1d7aa-7bbc-7620-987b-f497c14f91e1`.
 - The actual native worker completed a synthetic CSS bug through isolated editing, local validation, PR creation, passing GitHub CI, guarded merge, and confirmed merged state. [Private fixture PR](https://github.com/lludo/screenclip-integration-20261113/pull/1). Its Codex chat ID is `01a1d7b6-c810-7213-879d-51dd0dc111b6`.
 
-The private fixture contains synthetic HTML/CSS and a regression test. It is retained as inspectable test evidence and contains no user screenshots. The ScreenClip source repository itself has no configured remote.
+The private fixture contains synthetic HTML/CSS and a regression test. It is retained as inspectable test evidence and contains no user screenshots. The ScreenClip source repository has `https://github.com/lludo/ScreenClip.git` configured as its origin.
+
+The source review added a regression that reproduced two chats and turns being created when canceling and immediately retrying during project lookup. Outstanding dispatches now stay serialized until their requests return, and their tasks retain the model through cleanup. Claude process-client regressions cover evidence input, progress and structured output, usage, final records without a newline, unsuccessful process exits, malformed JSON text, and shell-quoted resume commands. Claude detection and the process client are groundwork only: selection and dispatch are not connected to the app, and a Claude-labelled issue is rejected rather than silently sent to Codex. Queue-review tests cover read-only database access, exact report-number searches, archive eligibility, missing project configuration, and agent-specific session output. CI runs the new Python tests and website build.
+
+## Repository association review
+
+ScreenClip **0.1.6 (7)** was installed at `/Applications/ScreenClip.app` with the existing development signature. Its native worker ran `--integration-project-link` with a separate test queue, the registered ScreenClip repository, and a synthetic image. It created chat `01a1d833-aeda-7623-92c8-38e4c5f37953`, returned a structured question, and left the isolated worktree clean. The user subsequently moved that test chat to Trash. The clean test worktree and its fully merged branch were removed; `.local/project-link-check-1/integration-result.json` remains as local evidence.
+
+The runtime's `thread/read` reported canonical project `01a1d709-ddcf-7822-baf5-32d587d4ea5e`, whose root was the ScreenClip repository. The desktop's saved ScreenClip project was `74741be5-2042-4af7-829a-68e0a3f2f2af`. Its sidebar listing still reported the synthetic chat with `projectId: null`, in the ungrouped Tasks section. The supported desktop move tool returned **"The task's source project could not be safely determined."** Direct computer-control inspection of the Codex window was unavailable; the desktop's connected sidebar listing supplied the membership evidence.
+
+Result: **repository context, worktree isolation, and runtime association pass; automatic desktop sidebar grouping fails on this installed Codex combination.** A schema field or successful app-server response alone is insufficient evidence of sidebar placement. The worktree remains the execution directory. The exact chat link is the working navigation route until the desktop and runtime project identities are reconciled through a supported integration.
+
+The source review also fixed cancellation during project lookup and before turn acknowledgement, superseded draft image retention, approved-image cleanup after a failed original write, repository-root symlink handling, and validation fingerprints for leading-space filenames, executable permissions, and dangling symlinks. Project-link diagnostics are consolidated and deduplicated. Codex client version metadata follows the app bundle version. Both integration modes now require an explicit, previously nonexistent test directory before opening a store. Python syntax checks, shell syntax checks, and `git diff --check` also passed.
+
+To repeat the installed native check (creates a synthetic Codex chat and consumes normal account usage):
+
+```sh
+/Applications/ScreenClip.app/Contents/MacOS/ScreenClip \
+  --integration-project-link \
+  --data-dir "$PWD/.local/project-link-check-NEW" \
+  --integration-repo "$PWD" \
+  --integration-image "$PWD/docs/screenshots/composer-preview.png"
+```
+
+Inspect `integration-result.json`, the runtime's `thread/read`, and the desktop sidebar listing separately. The test stops at a question; publishing is disabled by its empty validation command and automatic merge is off.
 
 ## Native previews
 

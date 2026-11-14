@@ -10,6 +10,8 @@ import UserNotifications
   @Published var connection = "Not connected"
   @Published var captureBusy = false
   @Published var capturePermissionIssue = false
+  /// Reserved for the agent selection UI; dispatch currently uses Codex.
+  @Published var agents: [AgentDetection] = []
   let store: IssueStore
   let captureDiagnostics: CaptureDiagnostics
   let capturePermission: ScreenCapturePermission
@@ -53,33 +55,13 @@ import UserNotifications
     if snapshot.settings.codexPath.isEmpty {
       snapshot.settings.codexPath = Self.defaultCodexPath()
     }
-    try store.save(snapshot)
+    snapshot = try store.save(snapshot)
   }
-  static func defaultCodexPath() -> String {
-    // App-bundled runtime is an optional local-development fallback, never copied or redistributed.
-    let candidates = [
-      "/usr/local/bin/codex", "/opt/homebrew/bin/codex",
-      "/Applications/ChatGPT.app/Contents/Resources/codex-cli/bin/codex",
-    ]
-    return candidates.first(where: { path in
-      guard FileManager.default.isExecutableFile(atPath: path) else { return false }
-      // An npm launcher can exist without its native dependency. Prefer the verified runtime in that case.
-      if path == "/opt/homebrew/bin/codex",
-        !FileManager.default.fileExists(
-          atPath:
-            "/opt/homebrew/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex/codex"
-        )
-      {
-        return false
-      }
-      return true
-    }) ?? ""
-  }
+  static func defaultCodexPath() -> String { AgentDetector.defaultCodexPath() }
   func commit(_ change: (inout StoreSnapshot) throws -> Void) throws {
     var next = snapshot
     try change(&next)
-    try store.save(next)
-    snapshot = next
+    snapshot = try store.save(next)
   }
   func updateIssue(_ id: UUID, _ change: (inout Issue) -> Void) throws {
     try commit { state in
@@ -119,11 +101,13 @@ import UserNotifications
   ) throws {
     let approved = try store.writeAsset(imageData)
     // A redacted original is never retained where a local coding agent could read it.
-    let original = try originalData.map { try store.writeAsset($0, original: true) }
-    let capture = Capture(
-      note: note, imagePath: approved, originalPath: original, annotations: annotations,
-      context: context)
+    var original: String?
+    let replacedDraft = existingID.flatMap { issue($0) }.flatMap { $0.status == .draft ? $0 : nil }
     do {
+      original = try originalData.map { try store.writeAsset($0, original: true) }
+      let capture = Capture(
+        note: note, imagePath: approved, originalPath: original, annotations: annotations,
+        context: context)
       try commit { state in
         if let existingID, let index = state.issues.firstIndex(where: { $0.id == existingID }) {
           guard state.issues[index].projectID == projectID || state.issues[index].status == .draft
@@ -157,6 +141,7 @@ import UserNotifications
       if let original { try? FileManager.default.removeItem(atPath: original) }
       throw error
     }
+    if let replacedDraft { try? store.deleteAssets(for: replacedDraft) }
     if !draft { worker.pump() }
   }
   func assignProject(_ issueID: UUID, projectID: UUID) {
@@ -189,7 +174,7 @@ import UserNotifications
   func notify(_ issue: Issue, text: String) {
     guard snapshot.settings.notifications else { return }
     let content = UNMutableNotificationContent()
-    content.title = issue.title
+    content.title = issue.referencedTitle
     content.body = text
     content.userInfo = ["issueID": issue.id.uuidString]
     UNUserNotificationCenter.current().add(

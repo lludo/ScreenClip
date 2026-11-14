@@ -43,6 +43,20 @@ class PluginTests(unittest.TestCase):
         self.assertEqual(json.loads(plugin.call("list_issues", {"status": "merged"})["content"][0]["text"]), [])
         with self.assertRaises(ValueError):
             plugin.call("get_issue", {"issue_id": str(uuid.uuid4())})
+    def test_report_number_lookup_and_listing(self):
+        self.issue["reportNumber"] = 234
+        self.issue["archived"] = True
+        self.save()
+        for reference in ["#234", "234", " #234 "]:
+            found = json.loads(plugin.call("get_issue", {"issue_id": reference})["content"][0]["text"])
+            self.assertEqual(found["id"], self.id)
+            self.assertEqual(found["reportNumber"], 234)
+        with self.assertRaises(ValueError):
+            plugin.call("get_issue", {"issue_id": "#23"})
+        self.issue["archived"] = False
+        self.save()
+        listed = json.loads(plugin.call("list_issues", {})["content"][0]["text"])
+        self.assertEqual(listed[0]["reportNumber"], 234)
     def test_stdio_handshake_and_tool_discovery(self):
         requests = [
             {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05"}},
