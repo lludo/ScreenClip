@@ -135,6 +135,33 @@ final class ExternalConnectCodeTests: XCTestCase {
     assertNoSecret(String(describing: connectError(ExternalConnectCode.parse(broken))))
   }
 
+  func testCapabilitiesAreOptionalAndAreNotPartOfTheSecret() {
+    let json = """
+      {"authorization":"Bearer secret","capabilities":["cancel","not a secret","cancel"],"url":"https://assistant.example/hook"}
+      """
+    guard case .success(let credentials) = ExternalConnectCode.parse(json) else {
+      return XCTFail("Expected capabilities to be read")
+    }
+    XCTAssertEqual(credentials.authorization, "Bearer secret")
+    XCTAssertEqual(credentials.capabilities, ["cancel"])
+    guard
+      case .success(let code) = ExternalConnectCode.encode(
+        url: credentials.url, authorization: credentials.authorization, capabilities: ["cancel"])
+    else { return XCTFail("Expected a setup code with capabilities") }
+    guard case .success(let again) = ExternalConnectCode.parse(code) else {
+      return XCTFail("Expected the setup code to parse")
+    }
+    XCTAssertEqual(again.capabilities, ["cancel"])
+    XCTAssertFalse(code.contains("Bearer secret"))
+    guard case .success(let older) = ExternalConnectCode.parse(canonical) else {
+      return XCTFail("Expected an older setup code to parse")
+    }
+    XCTAssertEqual(older.capabilities, [])
+    XCTAssertEqual(
+      ExternalConnectCode.encode(url: older.url, authorization: older.authorization),
+      .success(canonical))
+  }
+
   func testConnectURLCarriesTheSetupCodeAndIssueLinksStillOpen() throws {
     let code = canonical
     let link = try XCTUnwrap(ExternalConnectCode.deepLink(code: code))

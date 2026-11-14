@@ -283,15 +283,20 @@ import ScreenClipCore
   func cancel(_ id: UUID) async {
     guard let issue = model.issue(id) else { return }
     if issue.resolvedAgent == .external {
+      let remoteCancel = model.loadExternalAssistant().supportsCancel
       model.perform {
         try model.updateIssue(id) {
           $0.dispatchUncertain = false
           $0.turnID = nil
-          $0.record(ExternalAssistant.canceledActivity, status: .canceled)
+          $0.record(
+            remoteCancel
+              ? ExternalAssistant.bestEffortCancelActivity : ExternalAssistant.canceledActivity,
+            status: .canceled)
         }
       }
       externalRuns.removeValue(forKey: id)
       jobs.remove(id)
+      if remoteCancel { await sendExternalCancel(issue) }
       return
     }
     // Cancellation is recorded before interrupting, so late events cannot publish the result.

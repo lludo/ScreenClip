@@ -10,6 +10,8 @@ enum ExternalAssistantKeychain {
     var webhookURL: String
     var authorization: String
     var testSucceeded: Bool
+    /// Not secret. Missing on items saved before cancel support.
+    var capabilities: [String]?
   }
 
   static func load() -> ExternalAssistantConfiguration {
@@ -18,7 +20,7 @@ enum ExternalAssistantKeychain {
     }
     return ExternalAssistantConfiguration(
       webhookURL: record.webhookURL, authorization: record.authorization,
-      testSucceeded: record.testSucceeded)
+      testSucceeded: record.testSucceeded, capabilities: record.capabilities ?? [])
   }
 
   static func save(_ configuration: ExternalAssistantConfiguration) throws {
@@ -35,6 +37,7 @@ enum ExternalAssistantKeychain {
     if current.normalizedURL == configuration.normalizedURL
       && current.normalizedAuthorization == configuration.normalizedAuthorization
       && current.testSucceeded == (configuration.testSucceeded && configuration.isConfigured)
+      && current.capabilities == configuration.capabilities
     {
       return  // Unchanged: avoid rewriting the item on every Settings save.
     }
@@ -42,7 +45,8 @@ enum ExternalAssistantKeychain {
       Record(
         webhookURL: configuration.normalizedURL,
         authorization: configuration.normalizedAuthorization,
-        testSucceeded: configuration.testSucceeded && configuration.isConfigured))
+        testSucceeded: configuration.testSucceeded && configuration.isConfigured,
+        capabilities: configuration.capabilities))
     let base = baseQuery
     let updated = SecItemUpdate(
       base as CFDictionary, [kSecValueData as String: data] as CFDictionary)

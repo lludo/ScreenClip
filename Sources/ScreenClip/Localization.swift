@@ -176,6 +176,37 @@ enum ActivityPatterns {
         locale: locale,
         comment: "Activity log when Claude Code starts a turn. %lld is the revision.")
     }
+    if let revision = firstInt(
+      #"^Grok Bot hasn't picked up revision (\d+) yet \(run may have failed or hit a rate limit\)\. Continue resends it\.$"#,
+      text)
+    {
+      return Chrome.format(
+        "activity.grokPickup",
+        "Grok Bot hasn't picked up revision \(revision) yet (run may have failed or hit a rate limit). Continue resends it.",
+        locale: locale,
+        comment: "Activity when Grok Bot has not acknowledged a revision. %lld is the revision. Keep Grok Bot.")
+    }
+    if let revision = firstInt(#"^Grok Bot acknowledged revision (\d+)$"#, text) {
+      return Chrome.format(
+        "activity.grokAcknowledged", "Grok Bot acknowledged revision \(revision)", locale: locale,
+        comment: "Activity when a Grok Bot status has no description. %lld is the revision. Keep Grok Bot.")
+    }
+    if let status = firstInt(#"^Grok Bot rejected the report \(HTTP (\d+)\)\.$"#, text) {
+      return Chrome.format(
+        "activity.grokRejected", "Grok Bot rejected the report (HTTP \(status)).", locale: locale,
+        comment: "Delivery error. %lld is the HTTP status. The response body is never included. Keep Grok Bot and HTTP.")
+    }
+    if let status = firstInt(#"^Grok Bot could not be asked to stop \(HTTP (\d+)\)\.$"#, text) {
+      return Chrome.format(
+        "activity.grokCancelHTTP", "Grok Bot could not be asked to stop (HTTP \(status)).",
+        locale: locale,
+        comment: "Best-effort cancel failed. %lld is the HTTP status. Keep Grok Bot and HTTP.")
+    }
+    if let description = remainder("Grok Bot: ", text) {
+      return Chrome.format(
+        "activity.grokStatus", "Grok Bot: \(description)", locale: locale,
+        comment: "Activity from a Grok Bot commit status. %@ is the status text and stays unchanged. Keep Grok Bot.")
+    }
     if let count = firstInt(#"^Sending report revision (\d+) to Grok Bot$"#, text) {
       return Chrome.format(
         "activity.sendingGrok", "Sending report revision \(count) to Grok Bot", locale: locale,
