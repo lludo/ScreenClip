@@ -72,7 +72,7 @@ public enum ExternalAssistant {
     return ExternalWebhookPayload(
       schema: handoffSchema, reportNumber: number, issueID: issue.id.uuidString,
       revision: issue.revision, title: issue.title, notes: issue.captures.map(\.note),
-      context: context,
+      contextNotes: (issue.contextNotes ?? []).map(\.text), context: context,
       project: ExternalWebhookProject(
         name: project.name, repo: repo, baseBranch: project.baseBranch,
         validationCommand: project.validationCommand),
@@ -203,12 +203,15 @@ public struct ExternalWebhookPayload: Equatable, Encodable {
   public var revision: Int
   public var title: String
   public var notes: [String]
+  /// Text-only follow-ups from Add context. Separate from capture notes so image paths stay aligned.
+  public var contextNotes: [String]
   public var context: ExternalWebhookContext
   public var project: ExternalWebhookProject
   public var evidence: ExternalWebhookEvidence
   public init(
     schema: String, reportNumber: Int, issueID: String, revision: Int, title: String,
-    notes: [String], context: ExternalWebhookContext, project: ExternalWebhookProject,
+    notes: [String], contextNotes: [String] = [], context: ExternalWebhookContext,
+    project: ExternalWebhookProject,
     evidence: ExternalWebhookEvidence
   ) {
     self.schema = schema
@@ -217,6 +220,7 @@ public struct ExternalWebhookPayload: Equatable, Encodable {
     self.revision = revision
     self.title = title
     self.notes = notes
+    self.contextNotes = contextNotes
     self.context = context
     self.project = project
     self.evidence = evidence
