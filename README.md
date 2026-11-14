@@ -12,31 +12,28 @@ A native macOS menu bar app for the small things you notice: a clipped button, c
 
 <p align="center"><em>Keep reports, captures, and agent conversations together.</em></p>
 
+### Capture a report
+
 <table>
   <tr>
-    <th>From the menu bar</th>
-    <th>Clip and annotate</th>
+    <th>1. Start a capture</th>
+    <th>2. Select an area</th>
   </tr>
   <tr>
     <td><img src="docs/screenshots/menu-preview.png" alt="ScreenClip menu bar popover showing report status and the new capture button."></td>
-    <td><img src="docs/screenshots/composer-preview.png" alt="ScreenClip capture editor with annotations, a note, and project and agent selectors."></td>
-  </tr>
-</table>
-
-*The menu-bar surroundings have been simplified; the capture editor above uses sample data.*
-
-### From selection to observation
-
-<table>
-  <tr>
-    <th>1. Select an area</th>
-    <th>2. Add your observation</th>
-  </tr>
-  <tr>
     <td><img src="docs/screenshots/capture-selection.png" alt="Selecting a region of the screen to capture, with the selection crosshair restored."></td>
+  </tr>
+  <tr>
+    <th>3. Add your observation</th>
+    <th>4. Annotate and submit</th>
+  </tr>
+  <tr>
     <td><img src="docs/screenshots/capture-annotation.png" alt="The selected region in ScreenClip's annotation editor, ready for a note and submission."></td>
+    <td><img src="docs/screenshots/composer-preview.png" alt="An example capture annotated with an arrow and rectangle, ready to submit."></td>
   </tr>
 </table>
+
+*The menu-bar image and selection crosshair have been edited. The final annotated capture uses sample data.*
 
 ## Download
 
