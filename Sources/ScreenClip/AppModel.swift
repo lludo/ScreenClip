@@ -151,6 +151,14 @@ import UserNotifications
         note: note, imagePath: approved, originalPath: original, annotations: annotations,
         context: context)
       try commit { state in
+        // Remember the app for the project the tester chose, so its next capture routes itself.
+        if let projectID,
+          let identifier = ProjectRouter.identifierToLearn(
+            from: context, for: projectID, projects: state.projects),
+          let index = state.projects.firstIndex(where: { $0.id == projectID })
+        {
+          state.projects[index].bundleIDs.append(identifier)
+        }
         if let existingID, let index = state.issues.firstIndex(where: { $0.id == existingID }) {
           guard state.issues[index].projectID == projectID || state.issues[index].status == .draft
           else {
