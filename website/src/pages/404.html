@@ -1,11 +1,11 @@
 <article class="prose not-found">
-      <p class="eyebrow">404</p>
-      <h1>That page is not here.</h1>
-      <p>The address may be mistyped, or the page may have moved. The links below are the pages this site actually has.</p>
+      <p class="eyebrow">{{notFound.eyebrow}}</p>
+      <h1>{{notFound.title}}</h1>
+      <p>{{notFound.body}}</p>
       <div class="actions">
-        <a class="button button-primary" href="/">Back home</a>
-        <a class="button button-secondary" href="/support">Support</a>
-        <a class="button button-secondary" href="/privacy">Privacy policy</a>
+        <a class="button button-primary" href="@@HOME_PATH@@">{{nav.home}}</a>
+        <a class="button button-secondary" href="@@SUPPORT_PATH@@">{{nav.support}}</a>
+        <a class="button button-secondary" href="@@PRIVACY_PATH@@">{{nav.privacy}}</a>
         @@GITHUB_BUTTON@@
       </div>
     </article>

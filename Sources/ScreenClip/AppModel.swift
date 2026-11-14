@@ -23,9 +23,18 @@ struct GrokConnectionCheck: Equatable {
   @Published var connection = "Not connected"
   @Published var captureBusy = false
   @Published var capturePermissionIssue = false
-  /// Locally installed coding agents, refreshed at launch and from Settings.
+  /// Locally installed coding agents, refreshed at launch, from Settings, and every minute
+  /// while a queued report is held for an agent that is not ready.
   @Published var agents: [AgentDetection] = []
   @Published var detectingAgents = false
+  var lastAgentDetection = Date.distantPast
+  /// Agents whose run reported a sign-in failure, and when. Detection can still say "signed in"
+  /// (an expired token, for example), so automatic checks keep the agent held for
+  /// `signInRetryInterval` before trying a report again. Detect agents clears it at once.
+  private(set) var runSignInFailures: [AgentKind: Date] = [:]
+  static let signInRetryInterval: TimeInterval = 10 * 60
+  /// Claude reports a crash survived only through its session; these are checked after launch.
+  private(set) var restartedClaudeIssues: [UUID] = []
   let store: IssueStore
   let captureDiagnostics: CaptureDiagnostics
   let capturePermission: ScreenCapturePermission
@@ -83,8 +92,10 @@ struct GrokConnectionCheck: Equatable {
           snapshot.issues[i].record(ExternalAssistant.restartWatchActivity)
         }
       } else {
-        snapshot.issues[i].record(
-          "ScreenClip restarted. Reconcile the existing chat before continuing.", status: .needsYou)
+        if snapshot.issues[i].resolvedAgent == .claude && snapshot.issues[i].status == .working {
+          restartedClaudeIssues.append(snapshot.issues[i].id)
+        }
+        snapshot.issues[i].record(Self.restartActivity, status: .needsYou)
       }
     }
     }
@@ -101,6 +112,30 @@ struct GrokConnectionCheck: Equatable {
     var next = snapshot
     try change(&next)
     snapshot = try store.save(next)
+    // Any deferred progress was part of `next` and is now saved.
+    pendingSave?.cancel()
+    pendingSave = nil
+  }
+  private var pendingSave: Task<Void, Never>?
+  /// For agent progress lines: they arrive often and losing the last second of them in a crash
+  /// is harmless, so update the queue in memory now and save within a second. Every state
+  /// change still goes through `commit`, which saves at once (and saves these with it).
+  func updateIssueSoon(_ id: UUID, _ change: (inout Issue) -> Void) {
+    guard let index = snapshot.issues.firstIndex(where: { $0.id == id }) else { return }
+    change(&snapshot.issues[index])
+    guard pendingSave == nil else { return }
+    pendingSave = Task { [weak self] in
+      try? await Task.sleep(nanoseconds: 1_000_000_000)
+      guard !Task.isCancelled else { return }
+      self?.flushPendingSave()
+    }
+  }
+  /// Saves progress kept in memory by `updateIssueSoon`. Called before quitting.
+  func flushPendingSave() {
+    guard pendingSave != nil else { return }
+    pendingSave?.cancel()
+    pendingSave = nil
+    perform { snapshot = try store.save(snapshot) }
   }
   func updateIssue(_ id: UUID, _ change: (inout Issue) -> Void) throws {
     try commit { state in
@@ -354,11 +389,49 @@ struct GrokConnectionCheck: Equatable {
     }
     worker.pump()
   }
-  func refreshAgents() async {
+  /// `automatic` is the worker's periodic check; it never overlaps another detection and
+  /// keeps an agent held for a while after a run reported it signed out.
+  func refreshAgents(automatic: Bool = false) async {
+    if automatic && detectingAgents { return }
     detectingAgents = true
     defer { detectingAgents = false }
-    agents = await AgentDetector.detectAll(snapshot.settings, external: loadExternalAssistant())
+    lastAgentDetection = Date()
+    var detected = await AgentDetector.detectAll(
+      snapshot.settings, external: loadExternalAssistant())
+    for (kind, failedAt) in runSignInFailures {
+      if !automatic || Date().timeIntervalSince(failedAt) >= Self.signInRetryInterval {
+        runSignInFailures[kind] = nil
+      } else if let index = detected.firstIndex(where: { $0.kind == kind }),
+        detected[index].installed
+      {
+        detected[index].signedIn = false
+        detected[index].detail = Self.signedOutDetail(kind)
+      }
+    }
+    agents = detected
     worker.pump()
+  }
+  /// A run failed because the agent is signed out: hold its queue instead of failing each report.
+  func agentReportedSignedOut(_ kind: AgentKind) {
+    runSignInFailures[kind] = Date()
+    if let index = agents.firstIndex(where: { $0.kind == kind }) {
+      agents[index].signedIn = false
+      agents[index].detail = Self.signedOutDetail(kind)
+    } else {
+      agents.append(
+        AgentDetection(
+          kind: kind, path: "", version: "unknown", signedIn: false,
+          detail: Self.signedOutDetail(kind)))
+    }
+  }
+  static let restartActivity = "ScreenClip restarted. Reconcile the existing chat before continuing."
+  /// Returns the Claude reports interrupted by the last restart, once.
+  func takeRestartedClaudeIssues() -> [UUID] {
+    defer { restartedClaudeIssues = [] }
+    return restartedClaudeIssues
+  }
+  static func signedOutDetail(_ kind: AgentKind) -> String {
+    "\(kind.title) reported that it is signed out. Sign in to \(kind.title); held reports start automatically, or click Detect agents."
   }
   func saveExternalAssistant(webhookURL: String, authorization: String) throws {
     let previous = loadExternalAssistant()
@@ -470,8 +543,7 @@ struct GrokConnectionCheck: Equatable {
         detail: "Claude Code 2.1.0, signed in"),
       AgentDetection(
         kind: .external, path: "", version: nil, signedIn: false,
-        detail:
-          "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant."
+        detail: "Not connected — Connect Grok Bot"
       ),
     ]
   }
@@ -502,7 +574,7 @@ struct GrokConnectionCheck: Equatable {
         #!/bin/zsh
         \(quoted) auth login
         echo
-        echo "Return to ScreenClip and click Detect agents."
+        echo "\(Chrome.text("ScreenClip notices the sign-in within a minute. Click Detect agents to check now.", comment: "Shown in Terminal after Claude Code sign-in. Keep ScreenClip."))"
         """.write(to: script, atomically: true, encoding: .utf8)
       try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
       NSWorkspace.shared.open(script)

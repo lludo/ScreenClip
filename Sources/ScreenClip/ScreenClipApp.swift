@@ -29,6 +29,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   var screenshotLocale = Locale.current
   private var deferredOpenURLs: [URL] = []
   func applicationDidFinishLaunching(_ notification: Notification) {
+    // Child processes (agents, git, validation) can exit before reading what ScreenClip writes.
+    ProcessEnvironment.ignoreBrokenPipes()
     NSApp.setActivationPolicy(.accessory)
     do {
       let arguments = ProcessInfo.processInfo.arguments
@@ -445,12 +447,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       alert.messageText = Chrome.text(
         "Quit while work is running?", comment: "Asked when quitting during agent work.")
       alert.informativeText = Chrome.text(
-        "The local worker will stop. Your captures are saved; reconcile the existing chats when you reopen ScreenClip.",
-        comment: "Explains that quitting stops local work but keeps captures.")
+        "The local worker will stop. Your captures are saved. Claude Code work continues when you reopen ScreenClip; reconcile Codex chats then.",
+        comment: "Explains that quitting stops local work. Keep Claude Code and Codex.")
       alert.addButton(withTitle: Chrome.text("Keep running", comment: "Cancels quitting."))
       alert.addButton(withTitle: Chrome.text("Quit", comment: "Quits even though work is running."))
       if alert.runModal() != .alertSecondButtonReturn { return .terminateCancel }
     }
     return .terminateNow
+  }
+  func applicationWillTerminate(_ notification: Notification) {
+    // Agent progress is saved within a second; save the last of it before quitting.
+    model?.flushPendingSave()
   }
 }

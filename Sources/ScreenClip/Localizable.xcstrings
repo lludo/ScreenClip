@@ -23498,7 +23498,7 @@
       }
     },
     "The local worker will stop. Your captures are saved; reconcile the existing chats when you reopen ScreenClip.": {
-      "comment": "Explains that quitting stops local work but keeps captures.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -31879,6 +31879,270 @@
         }
       }
     },
+    "The local worker will stop. Your captures are saved. Claude Code work continues when you reopen ScreenClip; reconcile Codex chats then.": {
+      "comment": "Explains that quitting stops local work. Keep Claude Code and Codex.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The local worker will stop. Your captures are saved. Claude Code work continues when you reopen ScreenClip; reconcile Codex chats then."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地工作会停止。你的捕获已保存。重新打开 ScreenClip 后，Claude Code 的工作会继续；届时请核对 Codex 聊天。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El trabajo local se detendrá. Tus capturas están guardadas. El trabajo de Claude Code continúa al volver a abrir ScreenClip; reconcilia entonces los chats de Codex."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカルの処理は止まります。キャプチャは保存されています。ScreenClip を開き直すと Claude Code の作業は続き、そのとき Codex のチャットを照合してください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O trabalho local vai parar. Suas capturas estão salvas. O trabalho do Claude Code continua quando você reabre o ScreenClip; reconcilie os chats do Codex nesse momento."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Die lokale Arbeit stoppt. Deine Aufnahmen sind gesichert. Claude Code arbeitet weiter, wenn du ScreenClip wieder öffnest; gleiche dann die Codex-Chats ab."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le travail local s’arrête. Vos captures sont enregistrées. Le travail Claude Code reprend quand vous rouvrez ScreenClip ; rapprochez alors les chats Codex."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 작업은 멈춥니다. 캡처는 저장되어 있습니다. ScreenClip을 다시 열면 Claude Code 작업이 계속되며, 그때 Codex 채팅을 맞추세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Локальная работа остановится. Снимки сохранены. Работа Claude Code продолжится, когда вы снова откроете ScreenClip; тогда сверьте чаты Codex."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本機工作會停止。你的擷取已儲存。重新開啟 ScreenClip 後，Claude Code 的工作會繼續；屆時請核對 Codex 聊天。"
+          }
+        }
+      }
+    },
+    "No Claude Code process survived the restart; continuing the same session": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Claude Code process survived the restart; continuing the same session"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重启后没有留下 Claude Code 进程；将继续同一会话"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No quedó ningún proceso de Claude Code tras el reinicio; se continúa la misma sesión"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再起動後に Claude Code のプロセスは残っていません。同じセッションを続けます"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum processo do Claude Code sobreviveu à reinicialização; continuando a mesma sessão"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach dem Neustart lief kein Claude Code-Prozess mehr; dieselbe Sitzung wird fortgesetzt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun processus Claude Code n’a survécu au redémarrage ; poursuite de la même session"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "재시작 후 남은 Claude Code 프로세스가 없습니다. 같은 세션을 계속합니다"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "После перезапуска процесс Claude Code не сохранился; продолжаем ту же сессию"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新啟動後沒有留下 Claude Code 行程；將繼續同一工作階段"
+          }
+        }
+      }
+    },
+    "Grok Bot has not opened a pull request yet. ScreenClip is still watching. Continue sends the report again, or cancel it.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot has not opened a pull request yet. ScreenClip is still watching. Continue sends the report again, or cancel it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 还没有打开拉取请求。ScreenClip 仍在关注。继续会再次发送报告，也可以取消。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot todavía no ha abierto una pull request. ScreenClip sigue pendiente. Continuar vuelve a enviar el informe, o puedes cancelarlo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot はまだ pull request を開いていません。ScreenClip は監視を続けます。続けるとレポートを再送信し、キャンセルもできます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Grok Bot ainda não abriu um pull request. O ScreenClip continua observando. Continuar envia o relatório de novo, ou você pode cancelar."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot hat noch keinen Pull Request geöffnet. ScreenClip schaut weiter zu. Weiter sendet den Bericht erneut, oder brich ihn ab."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot n’a pas encore ouvert de pull request. ScreenClip continue de surveiller. Continuer renvoie le rapport, ou annulez-le."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot이 아직 pull request를 열지 않았습니다. ScreenClip은 계속 지켜봅니다. 계속하면 리포트를 다시 보내고, 취소할 수도 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot ещё не открыл pull request. ScreenClip продолжает следить. Продолжение отправит отчёт снова, либо отмените его."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 還沒有開啟拉取請求。ScreenClip 仍在關注。繼續會再次傳送報告，也可以取消。"
+          }
+        }
+      }
+    },
+    "ScreenClip notices the sign-in within a minute. Click Detect agents to check now.": {
+      "comment": "Shown in Terminal after Claude Code sign-in. Keep ScreenClip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip notices the sign-in within a minute. Click Detect agents to check now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 会在一分钟内发现这次登录。现在可点击“检测代理”立即检查。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip detecta el inicio de sesión en menos de un minuto. Pulsa Detectar agentes para comprobarlo ahora."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip は 1 分以内にサインインを認識します。今すぐ確認するには「エージェントを検出」をクリックしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O ScreenClip percebe o login em até um minuto. Clique em Detectar agentes para verificar agora."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip bemerkt die Anmeldung innerhalb einer Minute. Klicke auf Agenten erkennen, um jetzt zu prüfen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip remarque la connexion en moins d’une minute. Cliquez sur Détecter les agents pour vérifier maintenant."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip은 1분 안에 로그인을 알아챕니다. 지금 확인하려면 에이전트 검색을 클릭하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip заметит вход в течение минуты. Нажмите «Найти агентов», чтобы проверить сейчас."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 會在一分鐘內發現這次登入。現在可點擊「偵測代理」立即檢查。"
+          }
+        }
+      }
+    },
     "metric.open.caption": {
       "comment": "Menu bar caption under the open-report count. The number is shown separately.",
       "extractionState": "manual",
@@ -36999,6 +37263,204 @@
           "stringUnit": {
             "state": "translated",
             "value": "Grok Bot 已連線至 %@。"
+          }
+        }
+      }
+    },
+    "activity.codexTimeout": {
+      "comment": "Activity log. %lld is the time limit in minutes. Keep Codex.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex did not finish within %lld minutes and was stopped. Retry to continue in the same chat."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 在 %lld 分钟内没有完成，已停止。重试可在同一聊天中继续。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex no terminó en %lld minutos y se detuvo. Reintenta para continuar en el mismo chat."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex は %lld 分以内に終わらなかったため停止しました。同じチャットで続けるには再試行してください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Codex não terminou em %lld minutos e foi interrompido. Tente de novo para continuar no mesmo chat."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex wurde nach %lld Minuten ohne Ergebnis gestoppt. Versuche es erneut, um im selben Chat weiterzumachen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex ne s’est pas terminé en %lld minutes et a été arrêté. Réessayez pour continuer dans le même chat."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex가 %lld분 안에 끝나지 않아 중지되었습니다. 같은 채팅에서 계속하려면 다시 시도하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex не завершился за %lld мин. и был остановлен. Повторите, чтобы продолжить в том же чате."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 在 %lld 分鐘內沒有完成，已停止。重試可在同一聊天中繼續。"
+          }
+        }
+      }
+    },
+    "activity.claudeTimeout": {
+      "comment": "Error when a Claude Code turn exceeds its time limit. %lld is minutes. Keep Claude Code.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code did not finish within %lld minutes and was stopped."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code 在 %lld 分钟内没有完成，已停止。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code no terminó en %lld minutos y se detuvo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code は %lld 分以内に終わらなかったため停止しました。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Claude Code não terminou em %lld minutos e foi interrompido."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code wurde nach %lld Minuten ohne Ergebnis gestoppt."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code ne s’est pas terminé en %lld minutes et a été arrêté."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code가 %lld분 안에 끝나지 않아 중지되었습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code не завершился за %lld мин. и был остановлен."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude Code 在 %lld 分鐘內沒有完成，已停止。"
+          }
+        }
+      }
+    },
+    "grok.rejected": {
+      "comment": "Grok Bot rejected the saved connection. %lld is the HTTP status. Keep the English phrase Connect ScreenClip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot didn't accept the connection (HTTP %lld). Ask it \"Connect ScreenClip\" again, then paste the new setup code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 没有接受这次连接（HTTP %lld）。请再次询问“Connect ScreenClip”，然后粘贴新的设置代码。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot no aceptó la conexión (HTTP %lld). Pídele \"Connect ScreenClip\" otra vez y pega el código nuevo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot はこの接続を受け付けませんでした（HTTP %lld）。もう一度 \"Connect ScreenClip\" と頼み、新しいセットアップコードを貼り付けてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Grok Bot não aceitou a conexão (HTTP %lld). Peça \"Connect ScreenClip\" de novo e cole o novo código."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot hat die Verbindung nicht angenommen (HTTP %lld). Frage erneut nach \"Connect ScreenClip\" und füge den neuen Code ein."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot n’a pas accepté la connexion (HTTP %lld). Demandez à nouveau \"Connect ScreenClip\", puis collez le nouveau code."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot이 연결을 수락하지 않았습니다(HTTP %lld). \"Connect ScreenClip\"을 다시 요청하고 새 설정 코드를 붙여 넣으세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot не принял подключение (HTTP %lld). Снова спросите \"Connect ScreenClip\" и вставьте новый код."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot 沒有接受這次連線（HTTP %lld）。請再次詢問「Connect ScreenClip」，然後貼上新的設定代碼。"
           }
         }
       }

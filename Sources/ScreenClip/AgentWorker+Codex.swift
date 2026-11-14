@@ -114,10 +114,10 @@ extension AgentWorker {
       return
     }
     issue = current
-    var input: [JSONValue] = [
-      .object(["type": .string("text"), "text": .string(AgentPrompt.text(for: issue, project: project))])
-    ]
-    for capture in issue.captures {
+    // A resumed chat already holds earlier evidence; send only what is new.
+    let turn = AgentPrompt.turn(for: issue, project: project, threadID: issue.threadID)
+    var input: [JSONValue] = [.object(["type": .string("text"), "text": .string(turn.text)])]
+    for capture in turn.captures {
       let image = try Data(contentsOf: URL(fileURLWithPath: capture.imagePath))
       input.append(
         .object([
@@ -132,6 +132,7 @@ extension AgentWorker {
       $0.record("Investigating capture revision \(issue.revision)", status: .working)
     }
     texts[id] = nil
+    sentContext[id] = AgentPrompt.delivered(issue, threadID: issue.threadID!)
     let result = try await client.request(
       "turn/start",
       params: .object([
@@ -149,7 +150,62 @@ extension AgentWorker {
     // before cancel() knows which turn to interrupt.
     if !jobs.contains(id) || model.issue(id)?.status == .canceled {
       await interrupt(threadID: issue.threadID!, turnID: turnID)
+      return
     }
+    watchCodexTurn(id, threadID: issue.threadID!, turnID: turnID)
+  }
+  /// Completion of a Codex turn arrives only as an app-server event. If Codex stalls without
+  /// disconnecting, that event never comes, so stop the turn after `turnTimeLimit`. Time the
+  /// turn spends waiting for the tester's answer does not count.
+  func watchCodexTurn(_ id: UUID, threadID: String, turnID: String) {
+    codexTurnWatchdogs[id]?.cancel()
+    let limit = turnTimeLimit
+    codexTurnWatchdogs[id] = Task { [weak self] in
+      var activeTime: TimeInterval = 0
+      var lastCheck = Date()
+      var wasWorking = true
+      while true {
+        let wait = min(1, max(0.01, limit - activeTime))
+        try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+        guard !Task.isCancelled, let self else { return }
+        guard let issue = self.model.issue(id), self.jobs.contains(id), issue.threadID == threadID,
+          issue.turnID == nil || issue.turnID == turnID, !self.finishing.contains(id),
+          !self.publishing.contains(id), issue.status == .working || issue.status == .needsYou
+        else {
+          self.codexTurnWatchdogs[id] = nil
+          return
+        }
+        let now = Date()
+        // Exclude intervals that touch a wait for the tester. Sampling conservatively
+        // can add at most one polling interval, rather than timing out on their reply.
+        if wasWorking && issue.status == .working { activeTime += now.timeIntervalSince(lastCheck) }
+        lastCheck = now
+        wasWorking = issue.status == .working
+        guard activeTime >= limit else { continue }
+        self.codexTurnWatchdogs[id] = nil
+        await self.expireCodexTurn(id, threadID: threadID, turnID: turnID, limit: limit)
+        return
+      }
+    }
+  }
+  func expireCodexTurn(_ id: UUID, threadID: String, turnID: String, limit: TimeInterval) async {
+    let minutes = max(1, Int((limit / 60).rounded()))
+    let message =
+      "Codex did not finish within \(minutes) minutes and was stopped. Retry to continue in the same chat."
+    // Record first, so the interrupted turn's late events cannot publish a result.
+    jobs.remove(id)
+    model.perform {
+      try model.updateIssue(id) {
+        $0.turnID = nil
+        $0.dispatchUncertain = false
+        $0.lastError = message
+        $0.unread = true
+        $0.record(message, status: .failed, kind: "error")
+      }
+    }
+    if let issue = model.issue(id) { model.notify(issue, text: message) }
+    await interrupt(threadID: threadID, turnID: turnID)
+    pump()
   }
   func recordProjectLinkIssue(_ id: UUID, message: String) throws {
     let text =
@@ -173,6 +229,7 @@ extension AgentWorker {
       where model.issue(id)?.resolvedAgent == .codex && !finishing.contains(id)
         && !publishing.contains(id)
       {
+        codexTurnWatchdogs.removeValue(forKey: id)?.cancel()
         model.perform {
           try model.updateIssue(id) {
             $0.record(
@@ -234,13 +291,18 @@ extension AgentWorker {
       if item["type"].string == "agentMessage", let text = item["text"].string {
         texts[id] = text
         if item["phase"].string != "final_answer" {
-          model.perform { try model.updateIssue(id) { $0.record(String(text.prefix(3000))) } }
+          model.updateIssueSoon(id) { $0.record(String(text.prefix(3000))) }
         }
       }
     case "turn/completed":
       guard jobs.contains(id) else { return }
       guard issue.turnID == nil || issue.turnID == p["turn"]["id"].string else { return }
+      codexTurnWatchdogs.removeValue(forKey: id)?.cancel()
+      let delivered = sentContext.removeValue(forKey: id)
       if p["turn"]["status"].string == "completed" {
+        if let delivered, delivered.threadID == threadID {
+          model.perform { try model.updateIssue(id) { $0.deliveredContext = delivered } }
+        }
         if !finishing.contains(id) {
           finishing.insert(id)
           Task {
@@ -249,9 +311,14 @@ extension AgentWorker {
           }
         }
       } else {
-        jobs.remove(id)
         let error =
           p["turn"]["error"]["message"].string ?? "Turn " + (p["turn"]["status"].string ?? "failed")
+        if issue.status != .canceled, AgentDetector.isSignInError(error) {
+          holdForSignIn(id, agent: .codex)
+          pump()
+          return
+        }
+        jobs.remove(id)
         model.perform {
           try model.updateIssue(id) {
             $0.turnID = nil

@@ -71,7 +71,7 @@ public actor ClaudeCodeClient {
   private var processes: [String: Process] = [:]
   private var canceled = Set<String>()
   private var timedOut = Set<String>()
-  public init() {}
+  public init() { ProcessEnvironment.ignoreBrokenPipes() }
 
   /// Bash runs inside Claude Code's sandbox: writes stay in the worktree and the
   /// unsandboxed escape hatch is off, comparable to Codex's workspace-write mode.
@@ -140,14 +140,27 @@ public actor ClaudeCodeClient {
     process.standardError = stderr
     let errors = StderrBuffer()
     let exit = ExitSignal()
-    process.terminationHandler = { _ in exit.signal() }
-    try process.run()
-    let errorReader = Task.detached {
-      while true {
-        let chunk = stderr.fileHandleForReading.availableData
-        if chunk.isEmpty { break }
-        errors.append(chunk)
+    let output = Self.stream(stdout)
+    let errorOutput = Self.stream(stderr)
+    // A process Claude started can inherit its pipes and keep them open after Claude exits.
+    // Stop reading shortly after exit instead of waiting for an end of file that never comes.
+    let grace = Self.drainGrace
+    process.terminationHandler = { _ in
+      exit.signal()
+      DispatchQueue.global().asyncAfter(deadline: .now() + grace) {
+        output.stop()
+        errorOutput.stop()
       }
+    }
+    do {
+      try process.run()
+    } catch {
+      output.stop()
+      errorOutput.stop()
+      throw error
+    }
+    let errorReader = Task.detached {
+      for await chunk in errorOutput.chunks { errors.append(chunk) }
     }
     processes[request.sessionID] = process
     defer {
@@ -156,6 +169,7 @@ public actor ClaudeCodeClient {
     var line = Self.userMessage(for: request).data
     line.append(10)
     // Screenshots can make this several megabytes; write off the actor so cancel() stays responsive.
+    // SIGPIPE is ignored, so a Claude that exits early makes this write fail instead of the app.
     let input = stdin.fileHandleForWriting
     Task.detached {
       try? input.write(contentsOf: line)
@@ -171,9 +185,9 @@ public actor ClaudeCodeClient {
     var result: ClaudeTurnResult?
     var sessionID: String?
     var buffer = Data()
-    let reader = stdout.fileHandleForReading
+    var chunks = output.chunks.makeAsyncIterator()
     while true {
-      let data = await Task.detached { reader.availableData }.value
+      let data = await chunks.next() ?? Data()
       if data.isEmpty {
         if buffer.isEmpty { break }
         // EOF can terminate the last JSON record without a newline.
@@ -242,16 +256,47 @@ public actor ClaudeCodeClient {
       permissionDenials: denials)
   }
 
+  /// How long to keep reading after Claude exits, and how long Claude gets to save its
+  /// session after SIGTERM before it and the processes it started are killed.
+  static let drainGrace: TimeInterval = 3
+
   private func expire(sessionID: String) {
     guard let process = processes[sessionID] else { return }
     timedOut.insert(sessionID)
-    process.terminate()
+    Self.stop(process)
   }
 
   public func cancel(sessionID: String) {
     guard let process = processes[sessionID] else { return }
     canceled.insert(sessionID)
-    process.terminate()
+    Self.stop(process)
+  }
+
+  /// SIGTERM Claude and everything it started, then SIGKILL whatever ignores it.
+  private static func stop(_ process: Process) {
+    let pid = process.processIdentifier
+    DispatchQueue.global(qos: .userInitiated).async {
+      CommandRunner.terminateTree(pid, grace: drainGrace)
+    }
+  }
+
+  /// Delivers a pipe's output as chunks until end of file or `stop()`.
+  private static func stream(_ pipe: Pipe) -> PipeStream {
+    let (chunks, continuation) = AsyncStream<Data>.makeStream()
+    let handle = pipe.fileHandleForReading
+    handle.readabilityHandler = { handle in
+      let chunk = handle.availableData
+      if chunk.isEmpty {
+        handle.readabilityHandler = nil
+        continuation.finish()
+      } else {
+        continuation.yield(chunk)
+      }
+    }
+    return PipeStream(chunks: chunks) {
+      handle.readabilityHandler = nil
+      continuation.finish()
+    }
   }
 
   public func isRunning(sessionID: String) -> Bool { processes[sessionID] != nil }
@@ -267,6 +312,11 @@ public actor ClaudeCodeClient {
       $0.range(of: pattern, options: [.regularExpression, .caseInsensitive]) != nil
     }
   }
+}
+
+private struct PipeStream: Sendable {
+  let chunks: AsyncStream<Data>
+  let stop: @Sendable () -> Void
 }
 
 private final class StderrBuffer: @unchecked Sendable {

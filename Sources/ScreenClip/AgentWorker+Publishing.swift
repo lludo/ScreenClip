@@ -74,7 +74,10 @@ extension AgentWorker {
       }
       let receipt = try await GitWorkspace.validate(project: project, path: path)
       guard receipt.passed else {
-        if scheduleRepair(id, message: "Project validation failed:\n" + receipt.output) { return }
+        let feedback = "Project validation failed:\n" + receipt.output
+        if scheduleRepair(id, message: feedback) { return }
+        // Continue after a manual look still hands the agent the failing output.
+        try model.updateIssue(id) { $0.validationFeedback = feedback }
         throw ScreenClipError.message(
           "Validation failed after two repair attempts.\n" + receipt.output)
       }
@@ -100,6 +103,7 @@ extension AgentWorker {
         current.prURL = published.url
         current.prHead = published.head
         current.lastError = nil
+        current.validationFeedback = nil
         current.record(
           "PR opened: " + published.url,
           status: current.status == .canceled
@@ -270,7 +274,10 @@ extension AgentWorker {
             id, project: project, path: path, branch: issue.branch ?? "", previousHead: pr.head)
           return
         }
-        guard model.issue(id)?.revision == issue.coveredRevision, model.issue(id)?.status == .prOpen
+        // publish() returns at once while another publish runs; marking the report working
+        // first would leave it working with nothing to finish it.
+        guard model.issue(id)?.revision == issue.coveredRevision, model.issue(id)?.status == .prOpen,
+          !publishing.contains(id)
         else { return }
         try model.updateIssue(id) {
           $0.record("Base branch advanced; revalidating the updated fix", status: .working)
@@ -307,6 +314,7 @@ extension AgentWorker {
     }
     try model.updateIssue(id) { issue in
       issue.mergeCommit = commit
+      issue.validationFeedback = nil
       issue.unread = true
       if issue.revision == coveredRevision {
         issue.record("Merged. Rebuild or deploy the app, then retest.", status: .merged)
@@ -347,6 +355,7 @@ extension AgentWorker {
       try model.updateIssue(id) {
         $0.repairAttempts = ($0.repairAttempts ?? 0) + 1
         $0.lastError = message
+        $0.validationFeedback = message
         $0.record(
           "Checks failed; starting repair attempt \($0.repairAttempts ?? 1) of 2", status: .queued)
       }

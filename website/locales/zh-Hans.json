@@ -1,0 +1,227 @@
+{
+  "languageName": "简体中文",
+  "meta": {
+    "homeTitle": "ScreenClip — 面向 AI 编程代理的截图反馈",
+    "homeDescription": "免费的 Mac 菜单栏应用。截取屏幕区域，交给 Codex、Claude Code 或 Grok Bot，并跟踪拉取请求的检查、合并和复测。",
+    "privacyTitle": "隐私政策 — ScreenClip",
+    "privacyDescription": "ScreenClip 在 Mac 上保存什么、可能发给 Codex、Claude Code、Grok Bot 或 GitHub 的内容，以及遮盖如何工作。",
+    "supportTitle": "支持 — ScreenClip",
+    "supportDescription": "通过 GitHub issues 获取 ScreenClip 帮助，以及运行或构建 Mac 应用所需的条件。",
+    "notFoundTitle": "找不到页面 — ScreenClip",
+    "notFoundDescription": "ScreenClip 网站上没有这个页面。",
+    "ogAlt": "ScreenClip。从截图到拉取请求，适用于 Codex、Claude Code 和 Grok Bot。"
+  },
+  "nav": {
+    "skip": "跳到正文",
+    "primary": "主导航",
+    "footer": "页脚",
+    "how": "如何使用",
+    "agents": "编程代理",
+    "questions": "问题",
+    "download": "下载",
+    "privacy": "隐私政策",
+    "support": "支持",
+    "source": "GitHub 上的源码",
+    "languages": "语言",
+    "home": "ScreenClip 首页"
+  },
+  "link": {
+    "privacy": "隐私政策",
+    "githubRead": "在 GitHub 上阅读",
+    "github": "在 GitHub 上",
+    "issues": "GitHub issues",
+    "download": "Download for Mac",
+    "support": "支持页面",
+    "site": "screenclipai.com",
+    "privacyLead": "阅读隐私政策"
+  },
+  "hero": {
+    "eyebrow": "面向 AI 编程代理的截图反馈",
+    "title": "从截图到[[拉取请求。]]",
+    "lead": "在 Mac 上框选区域，标出重点，交给 Codex、Claude Code 或 Grok Bot。ScreenClip 跟踪 GitHub 拉取请求，只在你允许时合并，并把结果留待复测。"
+  },
+  "demo": {
+    "title": "菜单栏",
+    "alt": "ScreenClip 菜单栏弹窗，示例报告为：1 个未完成、1 个需要你处理、19 个待复测。列表包含标题、ScreenClip 项目、Needs you 或 Merged 状态，以及 New capture、Open queue 和 Pause。",
+    "caption": "未完成、需要你处理，以及可以复测。"
+  },
+  "loop": {
+    "eyebrow": "如何使用",
+    "title": "截下来，送出修复，再测一次。",
+    "intro": "一个被裁切的按钮或一句费解的文案就够了。你可以继续手头的事。报告和拉取请求由 ScreenClip 保管。",
+    "captureTitle": "截取",
+    "captureBody": "按下 {kbd}，拖选网站或 Mac 应用上的一块区域。快捷键可以在 Settings 里修改。",
+    "annotateTitle": "标注",
+    "annotateBody": "可以加备注、箭头、形状或文字。只有截图也行。遮盖是你画的矩形，会被压成不透明的黑色。",
+    "agentTitle": "代理",
+    "agentBody": "Codex 和 Claude Code 在这台 Mac 上工作，各自使用独立的 Git worktree。Grok Bot 在远端，只有在你保存 webhook 并让该项目加入之后才会开始。",
+    "prTitle": "拉取请求",
+    "prBody": "对 Codex 和 Claude Code，ScreenClip 会运行你的验证命令并打开拉取请求。Grok Bot 从 ScreenClip 推送的分支打开拉取请求。",
+    "mergedTitle": "已合并",
+    "mergedBody": "打开自动合并后，ScreenClip 会在验证、检查和审查规则都通过之后合并。它不会跳过必需的审查。合并不是部署。",
+    "retestTitle": "复测",
+    "retestBody": "已合并的报告会进入 To retest。对同一份报告再截一张，就是继续这项工作。Codex 或 Claude Code 运行时，请让 Mac 保持唤醒，并让 ScreenClip 继续运行。"
+  },
+  "agents": {
+    "eyebrow": "编程代理",
+    "title": "Codex、Claude Code 或 Grok Bot。",
+    "intro": "在 Settings 里选一个默认代理，或为每份新报告单独选择。后续截图仍交给这份报告原来的代理。",
+    "codexTitle": "Codex",
+    "codexBody": "在这台 Mac 上的隔离 Git worktree 中工作。它自己不会推送，也不会打开拉取请求。ScreenClip 运行验证命令并打开它。你在报告里回答问题。",
+    "claudeTitle": "Claude Code",
+    "claudeBody": "在这台 Mac 上自己的 Git worktree 中工作。拉取请求由 ScreenClip 打开。问题出现在报告上，你在那里回答。",
+    "grokTitle": "Grok Bot",
+    "grokBody": "在远端。在你保存 webhook 并为该项目打开发送之前，什么都不会送出。Grok Bot 从 ScreenClip 推送的分支打开拉取请求。问题留在 Grok Bot 的对话里。"
+  },
+  "download": {
+    "eyebrow": "下载",
+    "title": "在 Mac 上免费。源码在 GitHub。",
+    "price": "ScreenClip 免费。没有订阅。",
+    "source": "ScreenClip 是开源的。{link:githubRead}，提交 issue，或用 Xcode 16 或更高版本构建。",
+    "sourceMissing": "源码链接尚未配置。",
+    "button": "Download for Mac（免费）",
+    "headerButton": "Download for Mac",
+    "github": "在 GitHub 上查看",
+    "donate": "支持这个项目",
+    "noteReady": "GitHub Releases 上的已公证磁盘映像。发布版本标签后才会附上文件。",
+    "noteSoon": "Mac 直接下载即将提供。",
+    "sourceSoon": "源码即将提供。",
+    "macSoon": "Mac 版下载即将提供。",
+    "needsTitle": "你需要",
+    "needOs": "macOS 14 或更高版本",
+    "needGit": "正在测试的应用的本地 Git 仓库",
+    "needAgent": "Codex CLI、Claude Code，或 Grok Bot 的 webhook",
+    "needGh": "GitHub CLI，用于拉取请求和 Grok Bot",
+    "awake": "Codex 或 Claude Code 工作时，请保持 ScreenClip 运行，并让 Mac 保持唤醒。Mac 睡眠时 Grok Bot 仍会继续。下次打开 ScreenClip 时，它会更新该拉取请求。",
+    "privacy": "{link:privacyLead}，了解哪些内容留在 Mac 上，哪些可能离开。"
+  },
+  "faq": {
+    "title": "问题",
+    "cost": "ScreenClip 免费。没有订阅。",
+    "costSource": " 源码在 GitHub。",
+    "downloadYes": "可以。本页的 Download for Mac 指向 GitHub Releases 上最新的已公证磁盘映像。发布版本标签后才会附上文件。",
+    "downloadSource": " 也可以从 GitHub 构建源码。",
+    "downloadNo": "还不行。发布之后，本页会提供 Mac 下载链接。",
+    "downloadNoSource": " 在此之前，源码在 GitHub。",
+    "items": [
+      {
+        "q": "ScreenClip 做什么？",
+        "a": "ScreenClip 是 macOS 菜单栏应用。按 Command-Shift-2，框选网站或 Mac 应用的一块区域，需要的话加上备注或标记，然后提交。报告会交给 Codex、Claude Code 或 Grok Bot。对 Codex 和 Claude Code，ScreenClip 会运行项目的验证命令并打开 GitHub 拉取请求。Grok Bot 从 ScreenClip 推送的分支打开拉取请求，并由 ScreenClip 跟踪。启用自动合并后，ScreenClip 会在验证、检查和审查规则通过后合并。已合并的报告进入 To retest。"
+      },
+      {
+        "q": "支持哪些编程代理？",
+        "a": "Codex、Claude Code 和 Grok Bot。Codex 和 Claude Code 在你的 Mac 上、隔离的 Git worktree 中运行，它们自己不会推送或打开拉取请求。Grok Bot 在远端：你要保存 webhook，并且每个项目都要先选择加入，才会发送截图。可以在 Settings 里选默认代理，也可以为新报告另选。后续截图仍使用该报告原来的代理。"
+      },
+      {
+        "q": "只能用来报缺陷吗？",
+        "a": "不是。被裁切的控件、费解的文案、别扭的间距，或以后再用的想法，都可以截下来。只有截图也够。"
+      },
+      {
+        "q": "需要安装什么？",
+        "a": "需要 macOS 14 或更高版本、一个本地 Git 仓库，以及一个代理：带 app-server 的 Codex CLI、Claude Code，或 Grok Bot 的 webhook。打开拉取请求以及把截图发给 Grok Bot 都需要 GitHub CLI。请授予屏幕录制权限，以便截取你选中的区域。Codex 或 Claude Code 工作时，请保持 ScreenClip 运行，并让 Mac 保持唤醒。Mac 睡眠时 Grok Bot 仍会继续，下次运行 ScreenClip 时会更新拉取请求状态。从源码构建还需要 Xcode 16 或更高版本。"
+      },
+      {
+        "q": "什么会离开这台 Mac？",
+        "a": "ScreenClip 不会自己上传 Codex 或 Claude Code 的报告。它把已确认的截图和备注交给 Mac 上的代理，该代理可能按你登录的账户把它们发给提供方。GitHub 会收到用你的 GitHub CLI 打开的分支和拉取请求。截图默认不会附在该拉取请求上。只有在你保存 webhook 并为该项目打开发送之后，Grok Bot 才会收到已确认的截图。ScreenClip 没有分析统计。完整列表在隐私政策里。"
+      },
+      {
+        "q": "遮盖如何工作？",
+        "a": "遮盖是你用 redact 工具画的矩形。ScreenClip 把它压成不透明的黑色。箭头、笔迹、形状和文字不会盖住下面的像素。如果截图里有遮盖，未遮盖的裁切不会保留，也不会送出。"
+      },
+      {
+        "q": "修复会自己合并吗？",
+        "a": "除非你为该项目启用自动合并，否则不会。启用之后，ScreenClip 也只在自己的验证以及拉取请求的检查和审查规则都通过时才合并。它不会绕过必需的审查。合并不是部署。复测从 To retest 开始，对同一份报告再截一张可以继续这项工作。"
+      },
+      {
+        "q": "代理的问题出现在哪里？",
+        "a": "Codex 和 Claude Code 的问题出现在报告上，你在那里回复。Grok Bot 的问题留在 Grok Bot 的对话里。Cancel 只停止本地记录，不会停止已经送出的 Grok Bot 运行。"
+      },
+      { "id": "cost", "q": "要钱吗？" },
+      { "id": "download", "q": "现在能下载吗？" },
+      {
+        "q": "网站和 Mac 应用都能用吗？",
+        "a": "可以。网站或原生 Mac 应用都可以框选区域。注册仓库，并把它和网站地址或应用 bundle ID 关联起来。提交前可以改项目。如果项目不明确，ScreenClip 会保存报告并等待，而不是猜一个仓库。"
+      }
+    ]
+  },
+  "schema": {
+    "os": "macOS 14 或更高版本",
+    "features": [
+      "可用全局快捷键截取区域",
+      "可选的备注、手绘、箭头、形状、文字和不透明遮盖",
+      "从网站和原生 Mac 应用截取",
+      "Codex、Claude Code 和 Grok Bot",
+      "项目验证、GitHub 拉取请求、可选合并和复测队列"
+    ]
+  },
+  "privacy": {
+    "eyebrow": "隐私政策",
+    "title": "隐私政策",
+    "updated": "更新于 2026 年 11 月 14 日。",
+    "intro": "ScreenClip 是 macOS 菜单栏应用。你截取选中的区域，可选地标注并加备注，然后把报告交给你配置的编程代理。本政策说明应用在 Mac 上保存什么、什么可能离开，以及这个网站做什么。",
+    "staysTitle": "留在 Mac 上的内容",
+    "stays1": "报告、截图、备注、标注、项目设置、问题和活动保存在 Mac 上的 {code:appSupport}。队列是 SQLite 数据库加上图像文件。代理的工作在同一文件夹下的 Git worktree 中进行。你自己的项目检出目录不是工作目录。",
+    "stays2": "该文件夹中的诊断日志记录构建和 API 错误的元数据。其中不包括截图、备注、浏览器 URL 或窗口标题。",
+    "stays3": "如果你保存 Grok Bot 的 webhook URL 和 Authorization header，它们会存在 macOS 钥匙串中，标识为 {code:keychain}。它们不会写入队列数据库。",
+    "stays4": "ScreenClip 不会创建 ScreenClip 账户。应用不包含分析、广告，或向 ScreenClip 发送数据的崩溃报告。没有接收你报告的 ScreenClip 服务器。",
+    "captureTitle": "屏幕截取和可选上下文",
+    "capture1": "屏幕录制权限用于截取你选中的区域。ScreenClip 不会持续录屏，也不能还原你从未截取的操作。",
+    "capture2": "每次截取都可以带上源应用名称和 bundle ID，以便把报告分到项目。如果打开 {ui:browserUrl}，ScreenClip 可能会请求 Safari 或 Chrome 自动化，并把浏览器 URL 和窗口标题与该截图一起保存。该设置关闭时，这两项不会收集。",
+    "redactTitle": "遮盖",
+    "redact1": "遮盖是你用 redact 工具画的矩形。ScreenClip 会在保存的截图里把这些矩形压成不透明的黑色。箭头、笔迹、形状和文字不会遮住下面的像素。",
+    "redact2": "截图含有遮盖时，未遮盖的裁切不会保留。它不会交给代理、推送到 GitHub，或放进 webhook。",
+    "localTitle": "Codex 和 Claude Code",
+    "local1": "Codex 和 Claude Code 在你的 Mac 上运行。ScreenClip 把已确认的截图、备注和提示交给该本地代理。ScreenClip 自己不会上传这些报告。",
+    "local2": "代理使用你登录的账户：Codex 通过 app-server，Claude Code 通过它自己的登录。该代理可能按该账户的条款把提示和图像发给自己的提供方。ScreenClip 启动这些代理时，环境里没有 GitHub 令牌。推送分支和打开拉取请求的是 ScreenClip，不是代理。",
+    "githubTitle": "GitHub",
+    "github1": "拉取请求自动化使用你安装的 GitHub CLI，以及该 CLI 登录的 GitHub 账户。ScreenClip 推送 {code:branch} 分支，并为 Codex 和 Claude Code 打开拉取请求。它读取检查状态，并且只在该项目启用自动合并、检查和审查规则都通过时才合并。",
+    "github2": "拉取请求正文包含代理的摘要、已涂掉疑似秘密值的项目验证命令，以及报告引用。正文说明截图和来源上下文仍留在 ScreenClip。截图默认不会附在拉取请求上。",
+    "grokTitle": "Grok Bot",
+    "grok1": "在你保存 webhook URL 和 Authorization header，并为该项目打开 {ui:allowSend} 之前，不会向 Grok Bot 发送任何内容。包括私有仓库在内，这个选项在你启用之前保持关闭。",
+    "grok2": "然后 ScreenClip 会把已确认的 PNG 和 {code:reportJson} 推送到项目仓库的 {code:branch} 分支，并发送一个很小的 JSON webhook。webhook 不含图像字节。它包含报告编号、issue id、修订、标题、备注、后来的上下文备注、源应用名称、bundle ID、项目名称、仓库、基线分支、验证命令，以及证据分支、提交和文件路径。只有在 {ui:browserUrl} 打开时，才会包含浏览器 URL 和窗口标题。",
+    "grok3": "能读取该 GitHub 仓库的人，在这些文件被删除之前都能读取它们。公开仓库意味着互联网上的任何人。Grok Bot 从该分支打开拉取请求。在 ScreenClip 里 Cancel 只停止本地记录，不会停止 Grok Bot。Grok Bot 的问题留在 Grok Bot 的对话里，不在 ScreenClip 里。",
+    "grok4": "webhook 被重定向到另一个主机时，不会带上 Authorization header。",
+    "deleteTitle": "删除数据",
+    "delete1": "在 ScreenClip 中删除报告会移除它的本地截图和备注。这不会删除代理自己的对话记录，或已经在 GitHub 上打开的拉取请求。移除应用本身不会删除 {code:appSupport} 或钥匙串项。",
+    "delete2": "GitHub，以及你登录的代理背后的提供方，会按各自的条款保留他们收到的内容。",
+    "tipsTitle": "打赏",
+    "tips": "ScreenClip 免费。应用可以显示一个可选的打赏窗口，菜单和 Settings 里也能打开同一个窗口。选择打赏会在浏览器中打开 GitHub Sponsors。ScreenClip 不处理付款，也不会收到银行卡或收款信息。你可以关掉窗口或关闭提示。本网站不链接到付款页面。",
+    "siteTitle": "本网站",
+    "site1": "{link:site} 是静态网站。本站页面不加载第三方脚本、字体或分析。选择语言会把该选择存在名为 screenclip_lang 的 cookie 和你设备的本地存储中。该 cookie 只用于下次打开首页时选择语言。它不用于广告或分析。提供网站的主机为了送达页面，会收到 IP 地址和用户代理等普通连接数据。",
+    "site2": "下载按钮前往 Mac 应用的 GitHub Release。其他链接，例如仓库以及日后若配置的捐赠链接，会离开本站前往该目的地。",
+    "contactTitle": "联系",
+    "contact": "关于本政策的问题请通过{link:support}提出。",
+    "changesTitle": "变更",
+    "changes": "本政策的实质性变更会发布在本页，并更新日期。"
+  },
+  "support": {
+    "eyebrow": "支持",
+    "title": "支持",
+    "intro": "ScreenClip 是 macOS 菜单栏应用，用来把截图、备注和标记发给 Codex、Claude Code 或 Grok Bot，然后跟踪 GitHub 拉取请求。",
+    "statusReady": "Mac 应用免费。{link:download} 指向 GitHub Releases 上最新的已公证磁盘映像。发布版本标签后才会附上文件。",
+    "statusSoon": "还没有直接的 Mac 下载链接。发布后，本页会指向该文件。",
+    "contactTitle": "联系",
+    "issues": "缺陷、安装问题和功能请求请使用{link:issues}。请写上 macOS 版本、所选代理，以及 ScreenClip 在报告里显示的内容。不要附上你本想遮住的未遮盖截图。",
+    "issuesMissing": "GitHub issues 尚未链接，因为 site.config.json 里的 githubUrl 是空的。",
+    "needTitle": "运行它需要什么",
+    "needOs": "macOS 14 或更高版本。",
+    "needGit": "正在测试的项目的本地 Git 仓库。在 Settings 里添加它，写上应路由到它的网站地址或 Mac 应用 bundle ID，以及验证命令。",
+    "needAgent": "至少一个代理：带 {code:appServer} 的 Codex CLI、Claude Code，或 Grok Bot（webhook URL 和 Authorization header）。Grok Bot 还需要为该项目打开 {ui:allowSend}。",
+    "needGh": "已登录 GitHub 的 GitHub CLI。ScreenClip 用它打开拉取请求，并为 Grok Bot 推送截图。",
+    "needRecord": "屏幕录制权限，这样 ScreenClip 才能截取你选中的区域。",
+    "awake": "Codex 或 Claude Code 工作时，请保持 ScreenClip 运行，并让 Mac 保持唤醒。Mac 睡眠时 Grok Bot 仍会继续。下次打开应用时，ScreenClip 会更新该拉取请求。",
+    "buildTitle": "从源码构建",
+    "build": "仓库 README 是构建说明：复制本地签名示例，打开 Xcode 项目，运行 ScreenClip scheme。需要 macOS 14 或更高版本，以及带 Swift 6 的 Xcode 16 或更高版本。",
+    "buildSource": "源码{link:github}。",
+    "buildMissing": "本页尚未链接源码仓库。",
+    "captureTitle": "如果截取失败",
+    "capture": "在 Settings 里使用 {ui:checkAccess}。在系统设置中更改权限后，使用权限横幅上的 {ui:checkAgain} 或 {ui:reopen}。诊断写在 {code:diagnostics}，不含截图、备注、浏览器 URL 或窗口标题。屏幕录制的重置步骤在仓库 README 里。",
+    "privacyTitle": "隐私",
+    "privacy": "本地保存什么、发给代理或 GitHub 的内容，以及遮盖如何工作，都写在{link:privacy}中。"
+  },
+  "notFound": {
+    "eyebrow": "404",
+    "title": "这里没有这个页面。",
+    "body": "地址可能写错了，或者页面已经移动。下面这些才是本站实际有的页面。"
+  }
+}

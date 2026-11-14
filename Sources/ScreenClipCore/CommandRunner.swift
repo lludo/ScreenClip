@@ -14,25 +14,30 @@ public enum CommandRunner {
   static let drainGrace: TimeInterval = 3
 
   public static func run(
-    _ executable: String, _ arguments: [String], cwd: String? = nil, timeout: TimeInterval = 120
+    _ executable: String, _ arguments: [String], cwd: String? = nil, timeout: TimeInterval = 120,
+    environment: [String: String]? = nil
   ) async throws -> CommandResult {
     // A dedicated thread, not the cooperative pool: commands can run for minutes.
     try await withCheckedThrowingContinuation { continuation in
       DispatchQueue.global(qos: .utility).async {
         continuation.resume(
-          with: Result { try runBlocking(executable, arguments, cwd: cwd, timeout: timeout) })
+          with: Result {
+            try runBlocking(
+              executable, arguments, cwd: cwd, timeout: timeout, environment: environment)
+          })
       }
     }
   }
 
   private static func runBlocking(
-    _ executable: String, _ arguments: [String], cwd: String?, timeout: TimeInterval
+    _ executable: String, _ arguments: [String], cwd: String?, timeout: TimeInterval,
+    environment custom: [String: String]?
   ) throws -> CommandResult {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: executable)
     process.arguments = arguments
     if let cwd { process.currentDirectoryURL = URL(fileURLWithPath: cwd) }
-    var environment = ProcessEnvironment.tools()
+    var environment = custom ?? ProcessEnvironment.tools()
     environment["GIT_LFS_SKIP_SMUDGE"] = "1"
     process.environment = environment
     let stdout = Pipe()
@@ -84,7 +89,7 @@ public enum CommandRunner {
 
   /// SIGTERM the process and its descendants (a validation shell's test runners, for
   /// example), then SIGKILL anything still alive after a short grace period.
-  static func terminateTree(_ root: pid_t) {
+  static func terminateTree(_ root: pid_t, grace: TimeInterval = 0.5) {
     var pids = [root]
     var index = 0
     while index < pids.count {
@@ -92,7 +97,10 @@ public enum CommandRunner {
       index += 1
     }
     for pid in pids { kill(pid, SIGTERM) }
-    Thread.sleep(forTimeInterval: 0.5)
+    let deadline = Date().addingTimeInterval(grace)
+    while Date() < deadline, pids.contains(where: { kill($0, 0) == 0 }) {
+      Thread.sleep(forTimeInterval: 0.05)
+    }
     for pid in pids where kill(pid, 0) == 0 { kill(pid, SIGKILL) }
   }
 

@@ -1,0 +1,233 @@
+{
+  "languageName": "日本語",
+  "meta": {
+    "homeTitle": "ScreenClip — AIコーディングエージェント向けのスクリーンショットフィードバック",
+    "homeDescription": "無料のMacメニューバーアプリ。スクリーンショットをCodex、Claude Code、Grok Botに渡し、チェック、マージ、再テストまでプルリクエストを追跡します。",
+    "privacyTitle": "プライバシーポリシー — ScreenClip",
+    "privacyDescription": "ScreenClipがMacに保存するもの、Codex、Claude Code、Grok Bot、GitHubに送られるもの、そして墨消しの仕組み。",
+    "supportTitle": "サポート — ScreenClip",
+    "supportDescription": "GitHub issuesでの問い合わせと、Macアプリの実行またはビルドに必要なもの。",
+    "notFoundTitle": "ページが見つかりません — ScreenClip",
+    "notFoundDescription": "そのページはScreenClipのサイトにありません。",
+    "ogAlt": "ScreenClip。スクリーンショットからプルリクエストへ。Codex、Claude Code、Grok Bot向け。"
+  },
+  "nav": {
+    "skip": "本文へスキップ",
+    "primary": "メイン",
+    "footer": "フッター",
+    "how": "使い方",
+    "agents": "コーディングエージェント",
+    "questions": "質問",
+    "download": "ダウンロード",
+    "privacy": "プライバシーポリシー",
+    "support": "サポート",
+    "source": "GitHubのソース",
+    "languages": "言語",
+    "home": "ScreenClipホーム"
+  },
+  "link": {
+    "privacy": "プライバシーポリシー",
+    "githubRead": "GitHubで読む",
+    "github": "GitHubにあります",
+    "issues": "GitHub issues",
+    "download": "Download for Mac",
+    "support": "サポートページ",
+    "site": "screenclipai.com",
+    "privacyLead": "プライバシーポリシーを読む"
+  },
+  "hero": {
+    "eyebrow": "AIコーディングエージェント向けのスクリーンショットフィードバック",
+    "title": "スクリーンショットから[[プルリクエスト]]へ。",
+    "lead": "Mac上で範囲をキャプチャし、要点に印を付けてCodex、Claude Code、またはGrok Botに渡します。ScreenClipはGitHubのプルリクエストを追跡し、許可したときだけマージし、再テスト用に結果を残します。"
+  },
+  "demo": {
+    "title": "メニューバー",
+    "alt": "ScreenClipのメニューバーポップアップ。サンプルのレポートは、未対応1件、要対応1件、再テスト待ち19件です。一覧にはタイトル、ScreenClipプロジェクト、Needs youまたはMerged、New capture、Open queue、Pauseがあります。",
+    "caption": "未対応、要対応、再テスト待ち。"
+  },
+  "loop": {
+    "eyebrow": "使い方",
+    "title": "キャプチャして、修正を出して、再テストする。",
+    "intro": "切れたボタンや分かりにくいラベルで十分です。作業はそのまま続けられます。レポートとプルリクエストはScreenClipが持っています。",
+    "captureTitle": "キャプチャ",
+    "captureBody": "{kbd}を押して、WebサイトかMacアプリの範囲をドラッグします。ショートカットはSettingsで変更できます。",
+    "annotateTitle": "注釈",
+    "annotateBody": "メモ、矢印、図形、テキストを足せます。スクリーンショットだけでも十分です。墨消しは自分で描く矩形で、不透明な黒に平坦化されます。",
+    "agentTitle": "エージェント",
+    "agentBody": "CodexとClaude CodeはこのMac上で、それぞれ独立したGit worktreeで動きます。Grok Botはリモートで、webhookを保存し、そのプロジェクトをオプトインしたあとだけです。",
+    "prTitle": "プルリクエスト",
+    "prBody": "CodexとClaude Codeでは、ScreenClipが検証コマンドを実行してプルリクエストを開きます。Grok Botは、ScreenClipがpushしたブランチからプルリクエストを開きます。",
+    "mergedTitle": "マージ済み",
+    "mergedBody": "自動マージをオンにすると、検証、チェック、レビュールールを通過したあとでScreenClipがマージします。必須レビューは飛ばしません。マージはデプロイではありません。",
+    "retestTitle": "再テスト",
+    "retestBody": "マージ済みのレポートはTo retestに移ります。同じレポートへの新しいキャプチャはその作業の続きです。CodexまたはClaude Codeの実行中は、MacをスリープさせずScreenClipを起動したままにしてください。"
+  },
+  "agents": {
+    "eyebrow": "コーディングエージェント",
+    "title": "Codex、Claude Code、Grok Bot。",
+    "intro": "Settingsで既定を選ぶか、新しいレポートごとにエージェントを選べます。追記のキャプチャは、そのレポートのエージェントのままです。",
+    "codexTitle": "Codex",
+    "codexBody": "このMac上の、隔離されたGit worktreeで動きます。pushやプルリクエストの作成は自分では行いません。ScreenClipが検証コマンドを実行してプルリクエストを開きます。質問にはレポート上で答えます。",
+    "claudeTitle": "Claude Code",
+    "claudeBody": "このMac上の、専用のGit worktreeで動きます。プルリクエストはScreenClipが開きます。質問はレポートに表示され、そこで答えます。",
+    "grokTitle": "Grok Bot",
+    "grokBody": "リモートです。webhookを保存し、そのプロジェクトで送信をオンにするまで何も送られません。Grok BotはScreenClipがpushしたブランチからプルリクエストを開きます。質問はGrok Botのチャットに残ります。"
+  },
+  "download": {
+    "eyebrow": "ダウンロード",
+    "title": "Macでは無料。ソースはGitHubで公開。",
+    "price": "ScreenClipは無料です。サブスクリプションはありません。",
+    "source": "ScreenClipはオープンソースです。{link:githubRead}、issueを立てるか、Xcode 16以降でビルドできます。",
+    "sourceMissing": "ソースのリンクはまだ設定されていません。",
+    "button": "Download for Mac（無料）",
+    "headerButton": "Download for Mac",
+    "github": "GitHubで見る",
+    "donate": "プロジェクトを支援",
+    "noteReady": "GitHub Releasesの公証済みディスクイメージです。バージョンタグを公開するとファイルが付きます。",
+    "noteSoon": "Macの直接ダウンロードは近日公開です。",
+    "sourceSoon": "ソースは近日公開です。",
+    "macSoon": "Mac版のダウンロードは近日公開です。",
+    "needsTitle": "必要なもの",
+    "needOs": "macOS 14以降",
+    "needGit": "テスト対象アプリのローカルGitリポジトリ",
+    "needAgent": "Codex CLI、Claude Code、またはGrok Botのwebhook",
+    "needGh": "GitHub CLI。プルリクエストとGrok Botの両方に使います",
+    "awake": "CodexまたはClaude Codeの作業中は、ScreenClipを起動したまま、Macをスリープさせないでください。Grok BotはMacがスリープしても作業を続けます。ScreenClipを次に開いたときに、そのプルリクエストの状態を更新します。",
+    "privacy": "Macに残るものと外に出るものは、{link:privacyLead}。"
+  },
+  "faq": {
+    "title": "質問",
+    "cost": "ScreenClipは無料です。サブスクリプションはありません。",
+    "costSource": " ソースはGitHubにあります。",
+    "downloadYes": "はい。このページのDownload for Macは、GitHub Releases上の最新の公証済みディスクイメージにリンクします。バージョンタグを公開するとファイルが付きます。",
+    "downloadSource": " GitHubのソースからビルドすることもできます。",
+    "downloadNo": "まだです。リリースが公開されたら、このページからMac版をダウンロードできるようになります。",
+    "downloadNoSource": " それまではソースがGitHubにあります。",
+    "items": [
+      {
+        "q": "ScreenClipは何をしますか？",
+        "a": "ScreenClipはmacOSのメニューバーアプリです。Command-Shift-2でWebサイトかMacアプリの範囲を選び、必要ならメモやマークアップを足して送信します。レポートはCodex、Claude Code、またはGrok Botに渡ります。CodexとClaude Codeでは、ScreenClipがプロジェクトの検証コマンドを実行し、GitHubのプルリクエストを開きます。Grok BotはScreenClipがpushしたブランチからプルリクエストを開き、ScreenClipがそれを追跡します。自動マージを有効にすると、検証、チェック、レビュールールの通過後にScreenClipがマージします。マージ済みはTo retestに移ります。"
+      },
+      {
+        "q": "どのコーディングエージェントに対応していますか？",
+        "a": "Codex、Claude Code、Grok Botです。CodexとClaude CodeはこのMac上の隔離されたGit worktreeで動き、自分ではpushもプルリクエストも開きません。Grok Botはリモートです。webhookを保存し、スクリーンショットを送る前にプロジェクトごとにオプトインが必要です。既定はSettingsで選び、新しいレポートでは別のエージェントも選べます。追記のキャプチャは、そのレポートのエージェントのままです。"
+      },
+      {
+        "q": "バグ専用ですか？",
+        "a": "いいえ。切れたコントロール、分かりにくい文言、ぎこちない余白、あとで使うアイデアもキャプチャできます。スクリーンショットだけでも十分です。"
+      },
+      {
+        "q": "何をインストールする必要がありますか？",
+        "a": "macOS 14以降、ローカルのGitリポジトリ、そしてエージェントが1つ必要です。Codex CLI（app-server）、Claude Code、またはGrok Botのwebhookです。プルリクエストを開くため、およびGrok Botへスクリーンショットを送るためにGitHub CLIが必要です。選んだ範囲をキャプチャするにはScreen Recordingの許可が必要です。CodexまたはClaude Codeの作業中は、ScreenClipを起動したままMacをスリープさせないでください。Grok BotはMacがスリープしても作業を続け、次回ScreenClipを起動したときにプルリクエストの状態が更新されます。ソースからビルドするにはXcode 16以降も必要です。"
+      },
+      {
+        "q": "Macから出るものは何ですか？",
+        "a": "ScreenClipはCodexとClaude Codeのレポートを自分ではアップロードしません。承認したスクリーンショットとメモをMac上のエージェントに渡し、そのエージェントがサインイン済みのアカウントへ送ることがあります。GitHubには、自分のGitHub CLIで開いたブランチとプルリクエストが届きます。スクリーンショットは、既定ではそのプルリクエストに添付されません。Grok Botは、webhookを保存し、そのプロジェクトで送信をオンにしたあとだけ、承認済みスクリーンショットを受け取ります。ScreenClipの解析送信はありません。一覧はプライバシーポリシーにあります。"
+      },
+      {
+        "q": "墨消しはどう動きますか？",
+        "a": "墨消しは、redactツールで描く矩形です。ScreenClipはそれを不透明な黒に平坦化します。矢印、ペン、図形、テキストは下のピクセルを隠しません。キャプチャに墨消しがあると、墨消し前の切り抜きは残さず、送りもしません。"
+      },
+      {
+        "q": "修正は勝手にマージされますか？",
+        "a": "そのプロジェクトで自動マージを有効にしない限り、しません。有効にしても、ScreenClip自身の検証と、プルリクエストのチェックおよびレビュールールを通過したときだけマージします。必須レビューは迂回しません。マージはデプロイではありません。再テストはTo retestから行い、同じレポートへの新しいキャプチャで作業を続けられます。"
+      },
+      {
+        "q": "エージェントの質問はどこに出ますか？",
+        "a": "CodexとClaude Codeの質問はレポートに出て、そこで返信します。Grok Botの質問はGrok Botのチャットに残ります。Cancelはローカルの記録を止めるだけで、すでに送ったGrok Botの実行は止めません。"
+      },
+      {
+        "id": "cost",
+        "q": "料金はいくらですか？"
+      },
+      {
+        "id": "download",
+        "q": "ダウンロードできますか？"
+      },
+      {
+        "q": "WebサイトとMacアプリの両方で使えますか？",
+        "a": "はい。WebサイトでもネイティブのMacアプリでも、範囲をキャプチャできます。リポジトリを登録し、Webサイトのアドレスかアプリのbundle IDを関連付けます。送信前にプロジェクトは変更できます。プロジェクトが曖昧なときは、リポジトリを推測せず、レポートを保存して待ちます。"
+      }
+    ]
+  },
+  "schema": {
+    "os": "macOS 14以降",
+    "features": [
+      "変更できるグローバルショートカットでの範囲スクリーンショット",
+      "任意のメモ、描画、矢印、図形、テキスト、不透明な墨消し",
+      "WebサイトとネイティブMacアプリからのキャプチャ",
+      "Codex、Claude Code、Grok Bot",
+      "プロジェクトの検証、GitHubプルリクエスト、任意のマージ、再テストキュー"
+    ]
+  },
+  "privacy": {
+    "eyebrow": "プライバシーポリシー",
+    "title": "プライバシーポリシー",
+    "updated": "2026年11月14日更新。",
+    "intro": "ScreenClipはmacOSのメニューバーアプリです。選んだ範囲をキャプチャし、必要なら注釈とメモを足して、設定したコーディングエージェントにそのレポートを渡します。このポリシーは、アプリがMacに保存するもの、外に出うるもの、そしてこのWebサイトがすることを説明します。",
+    "staysTitle": "Macに残るもの",
+    "stays1": "レポート、スクリーンショット、メモ、注釈、プロジェクト設定、質問、アクティビティは、Mac上の{code:appSupport}に保存されます。キューはSQLiteデータベースと画像ファイルです。エージェントの作業は、同じフォルダ内のGit worktreeで動きます。自分のプロジェクトのチェックアウトは作業ディレクトリではありません。",
+    "stays2": "そのフォルダの診断ログには、ビルドとAPIエラーのメタデータが記録されます。スクリーンショット、メモ、ブラウザのURL、ウィンドウタイトルは含みません。",
+    "stays3": "Grok Botのwebhook URLとAuthorization headerを保存すると、それらはmacOSのKeychainに{code:keychain}として入ります。キューのデータベースには書き込まれません。",
+    "stays4": "ScreenClipはScreenClipのアカウントを作りません。アプリに解析、広告、ScreenClipへデータを送るクラッシュレポーターはありません。レポートを受け取るScreenClipのサーバーもありません。",
+    "captureTitle": "画面キャプチャと任意のコンテキスト",
+    "capture1": "Screen Recordingの許可は、選んだ範囲をキャプチャするために使います。ScreenClipは画面を連続録画せず、キャプチャしていない操作を復元することもできません。",
+    "capture2": "各キャプチャには、レポートをプロジェクトへ振り分けるため、元アプリの名前とbundle IDを含められます。{ui:browserUrl}をオンにすると、ScreenClipはSafariまたはChromeの自動化を求め、そのキャプチャにブラウザのURLとウィンドウタイトルを保存することがあります。この設定がオフのとき、その2つの項目は収集しません。",
+    "redactTitle": "墨消し",
+    "redact1": "墨消しは、redactツールで描く矩形です。ScreenClipは保存するスクリーンショットの中で、その矩形を不透明な黒に平坦化します。矢印、ペン、図形、テキストは下のピクセルを隠しません。",
+    "redact2": "キャプチャに墨消しがあると、墨消し前の切り抜きは残しません。エージェントにも渡さず、GitHubにもpushせず、webhookにも含めません。",
+    "localTitle": "CodexとClaude Code",
+    "local1": "CodexとClaude CodeはこのMac上で動きます。ScreenClipは承認したスクリーンショット、メモ、プロンプトをそのローカルエージェントに渡します。ScreenClip自身はそれらのレポートをアップロードしません。",
+    "local2": "エージェントは、サインインしたアカウントを使います。Codexはapp-server経由、Claude Codeは自身のログインです。そのエージェントは、アカウントの条件に従ってプロンプトと画像を自分の提供者へ送ることがあります。ScreenClipは、環境にGitHubトークンを入れずにこれらのエージェントを起動します。ブランチのpushとプルリクエストを開くのはエージェントではなくScreenClipです。",
+    "githubTitle": "GitHub",
+    "github1": "プルリクエストの自動化には、インストールしたGitHub CLIと、そのCLIがログインしているGitHubアカウントを使います。ScreenClipは{code:branch}ブランチをpushし、CodexとClaude Codeについてはプルリクエストを開きます。チェック状態を読み、そのプロジェクトで自動マージが有効で、チェックとレビュールールを通過したときだけマージします。",
+    "github2": "プルリクエスト本文には、エージェントの要約、秘密らしい値を伏せたプロジェクトの検証コマンド、レポート参照が含まれます。本文には、スクリーンショットと取得時のコンテキストはScreenClipに残ると書かれます。スクリーンショットは既定ではプルリクエストに添付されません。",
+    "grokTitle": "Grok Bot",
+    "grok1": "webhook URLとAuthorization headerを保存し、そのプロジェクトで{ui:allowSend}をオンにするまで、Grok Botには何も送られません。オプトインは、プライベートリポジトリを含めて、自分で有効にするまでオフのままです。",
+    "grok2": "その後ScreenClipは、承認したPNGと{code:reportJson}をプロジェクトリポジトリの{code:branch}ブランチにpushし、小さなJSON webhookを送ります。webhookに画像バイトは含まれません。含まれるのは、レポート番号、issue id、revision、タイトル、メモ、その後のコンテキストメモ、元アプリ名、bundle ID、プロジェクト名、リポジトリ、base branch、検証コマンド、証拠ブランチ、コミット、ファイルパスです。ブラウザのURLとウィンドウタイトルは、{ui:browserUrl}がオンのときだけ含まれます。",
+    "grok3": "そのGitHubリポジトリを読める人は、ファイルが削除されるまでそれらを読めます。公開リポジトリでは、インターネット上の誰もが含まれます。Grok Botはそのブランチからプルリクエストを開きます。ScreenClipのCancelはローカルの記録だけを止め、Grok Botは止めません。Grok Botからの質問はScreenClipではなく、Grok Botのチャットに残ります。",
+    "grok4": "webhookが別のホストへリダイレクトされても、Authorization headerは付きません。",
+    "deleteTitle": "データの削除",
+    "delete1": "ScreenClipでレポートを削除すると、ローカルのスクリーンショットとメモが消えます。エージェント自身の会話履歴や、すでにGitHubで開いたプルリクエストは削除されません。アプリを削除しても、それだけでは{code:appSupport}もKeychain項目も消えません。",
+    "delete2": "GitHubと、サインインしたエージェントの提供者は、受け取ったものをそれぞれの条件に従って保持します。",
+    "tipsTitle": "チップ",
+    "tips": "ScreenClipは無料です。アプリは任意のチップウィンドウを表示でき、同じウィンドウはメニューとSettingsからも開けます。チップを選ぶとブラウザでGitHub Sponsorsが開きます。ScreenClipは支払いを処理せず、カードや入金の詳細を受け取りません。ウィンドウは閉じられ、表示もオフにできます。このWebサイトは支払いページへリンクしません。",
+    "siteTitle": "このWebサイト",
+    "site1": "{link:site}は静的なWebサイトです。このサイトのページは、第三者のスクリプト、フォント、解析を読み込みません。言語を選ぶと、その選択がscreenclip_langというcookieと、このデバイスのlocal storageに保存されます。cookieは、次回ホームページを開く言語を選ぶためだけに使います。広告や解析には使いません。サイトを配信するホストは、ページを届けるために、IPアドレスやユーザーエージェントなどの通常の接続データを受け取ります。",
+    "site2": "ダウンロードボタンは、MacアプリのGitHub Releaseへ移動します。リポジトリや、あとで設定される寄付リンクなど、その他のリンクはこのサイトを離れてその宛先へ移動します。",
+    "contactTitle": "連絡先",
+    "contact": "このポリシーについての質問は{link:support}から送ってください。",
+    "changesTitle": "変更",
+    "changes": "このポリシーの重要な変更は、更新日とともにこのページに掲載します。"
+  },
+  "support": {
+    "eyebrow": "サポート",
+    "title": "サポート",
+    "intro": "ScreenClipは、スクリーンショット、メモ、マークアップをCodex、Claude Code、またはGrok Botに送り、GitHubのプルリクエストを追跡するためのmacOSメニューバーアプリです。",
+    "statusReady": "Macアプリは無料です。{link:download}はGitHub Releases上の最新の公証済みディスクイメージを指します。バージョンタグを公開するとファイルが付きます。",
+    "statusSoon": "Macの直接ダウンロードはまだリンクされていません。リリースファイルが公開されたら、このページから指します。",
+    "contactTitle": "連絡先",
+    "issues": "バグ、セットアップの質問、機能要望は{link:issues}を使ってください。macOSのバージョン、選んだエージェント、レポートにScreenClipが表示した内容を書いてください。隠すつもりだったものの、墨消し前のスクリーンショットは添付しないでください。",
+    "issuesMissing": "site.config.jsonのgithubUrlが空のため、GitHub issuesはまだリンクされていません。",
+    "needTitle": "実行に必要なもの",
+    "needOs": "macOS 14以降。",
+    "needGit": "テストするプロジェクトのローカルGitリポジトリ。Settingsで追加し、振り分け先になるWebサイトのアドレスかMacアプリのbundle ID、および検証コマンドを設定します。",
+    "needAgent": "エージェントが少なくとも1つ。Codex CLI（{code:appServer}）、Claude Code、またはGrok Bot（webhook URLとAuthorization header）です。Grok Botでは、そのプロジェクトで{ui:allowSend}もオンにする必要があります。",
+    "needGh": "GitHubにログインしたGitHub CLI。ScreenClipはこれでプルリクエストを開き、Grok Bot用にスクリーンショットをpushします。",
+    "needRecord": "選んだ範囲をScreenClipがキャプチャするためのScreen Recording許可。",
+    "awake": "CodexまたはClaude Codeの作業中は、ScreenClipを起動したまま、Macをスリープさせないでください。Grok BotはMacがスリープしても作業を続けます。次回アプリを起動したときに、そのプルリクエストの状態を更新します。",
+    "buildTitle": "ソースからビルドする",
+    "build": "リポジトリのREADMEがビルド手順です。ローカル署名の例をコピーし、Xcodeプロジェクトを開いてScreenClipスキームを実行します。macOS 14以降と、Swift 6を含むXcode 16以降が必要です。",
+    "buildSource": "ソースは{link:github}。",
+    "buildMissing": "このページにはソースリポジトリがまだリンクされていません。",
+    "captureTitle": "キャプチャに失敗するとき",
+    "capture": "Settingsの{ui:checkAccess}を使います。システム設定でアクセスを変えたあとは、許可バナーの{ui:checkAgain}か{ui:reopen}を使います。診断は{code:diagnostics}に書かれ、スクリーンショット、メモ、ブラウザのURL、ウィンドウタイトルは含みません。画面収録のリセット手順はリポジトリのREADMEにあります。",
+    "privacyTitle": "プライバシー",
+    "privacy": "ローカルに保存されるもの、エージェントやGitHubに送られるもの、墨消しの仕組みは{link:privacy}に書いてあります。"
+  },
+  "notFound": {
+    "eyebrow": "404",
+    "title": "そのページはありません。",
+    "body": "アドレスの入力ミスか、ページが移動した可能性があります。下のリンクが、このサイトにあるページです。"
+  }
+}

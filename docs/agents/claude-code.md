@@ -53,8 +53,10 @@ ScreenClip generates the session UUID and stores it in `Issue.threadID` before t
 
 ## Recovery
 
-- **Cancel** terminates the running `claude` child process.
-- A turn that runs longer than 45 minutes is stopped and reported as failed. Continue runs it again in the same session.
+- **Cancel** sends SIGTERM to `claude` and every process it started, then SIGKILL to anything still running 3 seconds later. ScreenClip stops reading Claude's output 3 seconds after it exits, so a background process that inherited the pipes cannot keep the turn open.
+- A turn that runs longer than 45 minutes is stopped the same way and reported as failed. Continue runs it again in the same session.
+- A run that reports Claude Code is signed out (`Not logged in · Please run /login`, an invalid API key, an expired token) goes back to the queue, held until you sign in.
+- After a ScreenClip restart, a report that was working continues the same session automatically when no `claude` process for that session is still running. If one is (it survived the crash, or you resumed it in Terminal), the report waits under **Needs you** for **Reconcile chat**.
 - A child process can survive a ScreenClip crash, and a session may also be running in Terminal. **Reconcile chat** and resumed dispatch check for those processes and refuse a competing turn. Reconciliation clears interrupted state only when no matching process is found; it does not read completed results from Claude history. Continue to run the turn again.
 - **Link existing chat…** accepts a Claude Code session UUID.
 - Codex disconnects do not affect Claude jobs.

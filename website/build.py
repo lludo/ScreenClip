@@ -16,14 +16,16 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
 
+import i18n
+
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 DIST = ROOT / "dist"
 
 HOME_TITLE = "ScreenClip — Screenshot feedback for AI coding agents"
 HOME_DESCRIPTION = (
-    "Capture a Mac screenshot, annotate it, and hand it to Claude Code, Codex, or Grok Bot. "
-    "ScreenClip tracks the pull request through checks, merge, and retest."
+    "Free Mac menu bar app. Capture a screenshot, hand it to Codex, Claude Code, or Grok Bot, "
+    "and track the pull request through checks, merge, and retest."
 )
 OG_TITLE = "From a screenshot to a pull request"
 OG_ALT = "ScreenClip. From a screenshot to a pull request, for Codex, Claude Code, and Grok Bot."
@@ -82,169 +84,93 @@ def link(url, label, class_name):
     return f'<a class="{class_name}" href="{esc(url)}">{esc(label)}</a>'
 
 
-def price_copy(config):
-    return "ScreenClip is free. There is no subscription."
+def catalog_or_english(catalog):
+    return catalog if catalog is not None else i18n.load_catalogs()[0]
 
 
-def action_rows(config):
+def render_actions(config, catalog=None):
+    catalog = catalog_or_english(catalog)
+    download = catalog.strings["download"]
     rows = []
     if config.download_url:
-        rows.append(("primary", config.download_url, "Download for Mac (free)"))
+        rows.append(("primary", config.download_url, download["button"]))
     if config.github_url:
         kind = "secondary" if config.download_url else "primary"
-        rows.append((kind, config.github_url, "View on GitHub"))
+        rows.append((kind, config.github_url, download["github"]))
     if config.donate_url:
-        rows.append(("text", config.donate_url, "Support the project"))
+        rows.append(("text", config.donate_url, download["donate"]))
     notes = []
     if config.download_url:
-        notes.append(
-            "Notarized disk image on GitHub Releases. The file is attached when a version tag is published."
-        )
+        notes.append(download["noteReady"])
     else:
-        notes.append("Direct Mac download coming soon.")
+        notes.append(download["noteSoon"])
     if not config.github_url:
-        notes.append("Source coming soon.")
-    return rows, notes
-
-
-def render_actions(config):
-    rows, notes = action_rows(config)
+        notes.append(download["sourceSoon"])
     parts = []
     for kind, url, label in rows:
-        if kind == "primary":
-            parts.append(link(url, label, "button button-primary"))
-        elif kind == "secondary":
-            parts.append(link(url, label, "button button-secondary"))
-        else:
-            parts.append(link(url, label, "text-link"))
+        class_name = {"primary": "button button-primary", "secondary": "button button-secondary"}[kind] if kind != "text" else "text-link"
+        parts.append(link(url, label, class_name))
     for note in notes:
         parts.append(f'<p class="status-note">{esc(note)}</p>')
     if not parts:
-        parts.append('<p class="status-note">Mac download coming soon.</p>')
+        parts.append(f'<p class="status-note">{esc(download["macSoon"])}</p>')
     return '<div class="actions">' + "".join(parts) + "</div>"
 
 
-def header_cta(config):
-    for kind, url, label in action_rows(config)[0]:
-        if kind == "primary":
-            return link(url, label, "button button-primary button-small")
-    return ""
+def header_cta(config, catalog):
+    if not config.download_url:
+        return ""
+    return link(config.download_url, catalog.get("download.headerButton"), "button button-primary button-small")
 
 
-def source_line(config):
+def source_line(config, catalog):
     if config.github_url:
-        return (
-            f'ScreenClip is open source. <a href="{esc(config.github_url)}">Read it on GitHub</a>, '
-            "file an issue, or build it with Xcode 16 or later."
-        )
-    return "The source link is not configured yet."
+        return catalog.html("download.source", config)
+    return catalog.html("download.sourceMissing", config)
 
 
-def issues_html(config):
-    if config.issues_url:
-        return (
-            f'Use <a href="{esc(config.issues_url)}">GitHub issues</a> for bugs, setup questions, and feature requests. '
-            "Include the macOS version, the agent you selected, and what ScreenClip showed in the report. "
-            "Do not attach an unredacted screenshot of something you meant to hide."
-        )
-    return "GitHub issues are not linked yet, because githubUrl is empty in site.config.json."
+def issues_html(config, catalog):
+    key = "support.issues" if config.issues_url else "support.issuesMissing"
+    return catalog.html(key, config)
 
 
-def download_status(config):
-    if config.download_url:
-        return (
-            f'The Mac app is free. <a href="{esc(config.download_url)}">Download for Mac</a> '
-            "tracks the latest notarized disk image on GitHub Releases. The file is attached when a version tag is published."
-        )
-    return "A direct Mac download is not linked yet. This page will point at the release file when it is published."
+def download_status(config, catalog):
+    key = "support.statusReady" if config.download_url else "support.statusSoon"
+    return catalog.html(key, config)
 
 
-def source_html(config):
-    if config.github_url:
-        return f'The source is <a href="{esc(config.github_url)}">on GitHub</a>.'
-    return "The source repository is not linked on this page yet."
+def source_html(config, catalog):
+    key = "support.buildSource" if config.github_url else "support.buildMissing"
+    return catalog.html(key, config)
 
 
-def github_button(config):
+def github_button(config, catalog):
     if not config.github_url:
         return ""
-    return link(config.github_url, "View on GitHub", "button button-secondary")
+    return link(config.github_url, catalog.get("download.github"), "button button-secondary")
 
 
-def faq_items(config):
-    if config.download_url:
-        download_answer = (
-            "Yes. Download for Mac on this page links to the latest notarized disk image on GitHub Releases. "
-            "The file is attached when a version tag is published."
-        )
-        if config.github_url:
-            download_answer += " You can also build the source from GitHub."
-    elif config.github_url:
-        download_answer = "Not yet. This page will link the Mac download when a release is published. The source is on GitHub in the meantime."
-    else:
-        download_answer = "Not yet. This page will link the Mac download when a release is published."
-    cost = price_copy(config)
-    if config.github_url:
-        cost += " The source is on GitHub."
-    return [
-        (
-            "What does ScreenClip do?",
-            "ScreenClip is a macOS menu bar app. Press Command-Shift-2, select a region of a website or a Mac app, add a note or markup if you want, and submit. "
-            "The report goes to Codex, Claude Code, or Grok Bot. For Codex and Claude Code, ScreenClip runs your project’s validation command and opens the GitHub pull request. "
-            "Grok Bot opens the pull request from the branch ScreenClip pushed, and ScreenClip tracks it. "
-            "With automatic merge enabled, ScreenClip merges after validation, checks, and review rules pass. Merged reports move to To retest.",
-        ),
-        (
-            "Which coding agents does it support?",
-            "Codex, Claude Code, and Grok Bot. Codex and Claude Code run on your Mac, in an isolated Git worktree, and do not push or open the pull request themselves. "
-            "Grok Bot is remote: you save a webhook, and each project has to opt in before screenshots are sent. "
-            "Choose a default agent in Settings, or pick one for a new report. A follow-up capture stays with that report’s agent.",
-        ),
-        (
-            "Is it only for bugs?",
-            "No. Capture a clipped control, confusing copy, awkward spacing, or an idea for later. A screenshot alone is enough.",
-        ),
-        (
-            "What do I need installed?",
-            "macOS 14 or later, a local Git repository, and one agent: Codex CLI with app-server, Claude Code, or a Grok Bot webhook. "
-            "The GitHub CLI is required to open pull requests, and to send screenshots to Grok Bot. Grant Screen Recording permission for the region you select. "
-            "Leave ScreenClip running, and the Mac awake, while Codex or Claude Code works. Grok Bot keeps working if the Mac sleeps, and the pull request status updates the next time ScreenClip is running. "
-            "Building from source also needs Xcode 16 or later.",
-        ),
-        (
-            "What leaves my Mac?",
-            "ScreenClip does not upload Codex or Claude Code reports. It hands the approved screenshot and note to the agent on your Mac, and that agent may send them to the account you signed into. "
-            "GitHub receives the branch and pull request opened with your GitHub CLI. Screenshots are not attached to that pull request by default. "
-            "Grok Bot receives approved screenshots only after you save a webhook and turn on sending for that project. There is no ScreenClip analytics. The privacy policy has the full list.",
-        ),
-        (
-            "How does redaction work?",
-            "A redaction is a rectangle you draw with the redact tool. ScreenClip flattens it to opaque black. Arrows, pen strokes, shapes, and text do not hide the pixels underneath. "
-            "If a capture has a redaction, the unredacted crop is not kept and is not sent.",
-        ),
-        (
-            "Does a fix merge on its own?",
-            "Not unless you enable automatic merge for that project. ScreenClip then merges only after its own validation and the pull request’s checks and review rules pass. "
-            "It does not bypass required reviews. A merge is not a deploy. You retest from To retest, and a new capture on the same report continues the work.",
-        ),
-        (
-            "Where do agent questions show up?",
-            "Codex and Claude Code questions appear on the report, and you reply there. Grok Bot questions stay in Grok Bot’s chat. "
-            "Cancel stops the local record. It does not stop a Grok Bot run that has already been sent.",
-        ),
-        ("What does it cost?", cost),
-        ("Can I download it?", download_answer),
-        (
-            "Does it work on websites and Mac apps?",
-            "Yes. Capture a region of a website or a native Mac app. Register a repository and associate it with website addresses or app bundle IDs. "
-            "You can change the project before you submit. If the project is ambiguous, ScreenClip saves the report and waits instead of guessing a repository.",
-        ),
-    ]
+def faq_items(config, catalog=None):
+    catalog = catalog_or_english(catalog)
+    faq = catalog.strings["faq"]
+    items = []
+    for item in faq["items"]:
+        if item.get("id") == "cost":
+            answer = faq["cost"] + (faq["costSource"] if config.github_url else "")
+        elif item.get("id") == "download":
+            if config.download_url:
+                answer = faq["downloadYes"] + (faq["downloadSource"] if config.github_url else "")
+            else:
+                answer = faq["downloadNo"] + (faq["downloadNoSource"] if config.github_url else "")
+        else:
+            answer = item["a"]
+        items.append((item["q"], answer))
+    return items
 
 
-def render_faq(config):
+def render_faq(config, catalog):
     blocks = []
-    for question, answer in faq_items(config):
+    for question, answer in faq_items(config, catalog):
         blocks.append(
             "<details><summary>"
             + esc(question)
@@ -255,7 +181,8 @@ def render_faq(config):
     return "\n        ".join(blocks)
 
 
-def structured_data(config):
+def structured_data(config, catalog=None):
+    catalog = catalog_or_english(catalog)
     offers = {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
     if config.download_url:
         offers["url"] = config.download_url
@@ -263,20 +190,16 @@ def structured_data(config):
         "@type": "SoftwareApplication",
         "name": "ScreenClip",
         "applicationCategory": "DeveloperApplication",
-        "operatingSystem": "macOS 14+",
-        "description": HOME_DESCRIPTION,
+        "operatingSystem": catalog.get("schema.os"),
+        "inLanguage": catalog.html_lang,
+        "description": catalog.plain("meta.homeDescription"),
         "offers": offers,
-        "featureList": [
-            "Region screenshots with a configurable global shortcut",
-            "Optional notes, drawing, arrows, shapes, text, and opaque redaction",
-            "Capture from websites and native Mac apps",
-            "Codex, Claude Code, and Grok Bot",
-            "Project validation, GitHub pull requests, optional merge, and a retest queue",
-        ],
+        "featureList": list(catalog.strings["schema"]["features"]),
         "isAccessibleForFree": True,
     }
+    page = i18n.absolute(config.origin, catalog.page("home"))
     if config.origin:
-        app["url"] = config.page_url("")
+        app["url"] = page
         app["image"] = f"{config.origin}/assets/og.png"
     if config.github_url:
         app["codeRepository"] = config.github_url
@@ -285,55 +208,123 @@ def structured_data(config):
         app["downloadUrl"] = config.download_url
     faq = {
         "@type": "FAQPage",
+        "inLanguage": catalog.html_lang,
         "mainEntity": [
             {
                 "@type": "Question",
                 "name": question,
                 "acceptedAnswer": {"@type": "Answer", "text": answer},
             }
-            for question, answer in faq_items(config)
+            for question, answer in faq_items(config, catalog)
         ],
     }
     payload = {"@context": "https://schema.org", "@graph": [app, faq]}
     return json.dumps(payload, ensure_ascii=False, separators=(",", ":")).replace("<", "\\u003c")
 
 
-def nav(current):
+def fragment_href(catalog, slug, fragment):
+    if slug == "home":
+        return f"#{fragment}"
+    return f"{catalog.page('home')}#{fragment}"
+
+
+def nav(catalog, slug):
     items = [
-        ("/#loop" if current != "home" else "#loop", "How it works", None),
-        ("/privacy", "Privacy", "privacy"),
-        ("/#download" if current != "home" else "#download", "Download", None),
-        ("/support", "Support", "support"),
+        (fragment_href(catalog, slug, "loop"), catalog.get("nav.how"), ""),
+        (fragment_href(catalog, slug, "agents"), catalog.get("nav.agents"), ""),
+        (fragment_href(catalog, slug, "faq"), catalog.get("nav.questions"), ""),
+        (fragment_href(catalog, slug, "download"), catalog.get("nav.download"), "nav-download"),
     ]
     parts = []
-    for href, label, page in items:
-        current_attr = ' aria-current="page"' if page and page == current else ""
-        parts.append(f'<a href="{href}"{current_attr}>{label}</a>')
+    for href, label, class_name in items:
+        class_attr = f' class="{class_name}"' if class_name else ""
+        parts.append(f'<a href="{esc(href)}"{class_attr}>{esc(label)}</a>')
     return "".join(parts)
 
 
-def footer_nav(config):
-    items = [("/", "Home"), ("/privacy", "Privacy"), ("/support", "Support")]
+def footer_nav(config, catalog, slug):
+    items = [
+        (catalog.page("privacy"), catalog.get("nav.privacy"), slug == "privacy"),
+        (catalog.page("support"), catalog.get("nav.support"), slug == "support"),
+        (fragment_href(catalog, slug, "faq"), catalog.get("nav.questions"), False),
+    ]
     if config.github_url:
-        items.append((config.github_url, "GitHub"))
-    return "".join(f'<a href="{esc(href)}">{esc(label)}</a>' for href, label in items)
+        items.append((config.github_url, catalog.get("nav.source"), False))
+    parts = []
+    for href, label, current in items:
+        current_attr = ' aria-current="page"' if current else ""
+        parts.append(f'<a href="{esc(href)}"{current_attr}>{esc(label)}</a>')
+    return "".join(parts)
 
 
-def layout(config, *, title, description, slug, robots, current, body, json_ld, css_href, js_href, preload):
+def language_switcher(catalogs, catalog, slug):
+    target = "home" if slug == "404" else slug
+    parts = []
+    for other in catalogs:
+        current_attr = ' aria-current="true"' if other.id == catalog.id else ""
+        parts.append(
+            f'<a href="{esc(other.page(target))}" lang="{esc(other.html_lang)}" hreflang="{esc(other.hreflang)}" data-locale="{esc(other.path or "en")}"{current_attr}>{esc(other.get("languageName"))}</a>'
+        )
+    return (
+        f'<nav class="lang-switcher wrap" aria-label="{esc(catalog.get("nav.languages"))}" data-lang-switcher>'
+        + "".join(parts)
+        + "</nav>"
+    )
+
+
+def hreflang_tags(config, catalogs, slug):
+    tags = []
+    for other in catalogs:
+        href = i18n.absolute(config.origin, other.page(slug))
+        tags.append(f'<link rel="alternate" hreflang="{esc(other.hreflang)}" href="{esc(href)}">')
+    default_href = i18n.absolute(config.origin, catalogs[0].page(slug))
+    tags.append(f'<link rel="alternate" hreflang="x-default" href="{esc(default_href)}">')
+    return "\n  ".join(tags)
+
+
+def render_preloads(preloads):
+    tags = []
+    for href, media, mime in preloads:
+        attrs = f'rel="preload" as="image" href="{esc(href)}"'
+        if mime:
+            attrs += f' type="{esc(mime)}"'
+        if media:
+            attrs += f' media="{esc(media)}"'
+        tags.append(f"<link {attrs}>")
+    return "\n  ".join(tags)
+
+
+def layout(config, catalogs, catalog, *, slug, robots, body, json_ld, css_href, js_href, preloads):
+    title = catalog.plain("meta.notFoundTitle" if slug == "404" else {
+        "home": "meta.homeTitle",
+        "privacy": "meta.privacyTitle",
+        "support": "meta.supportTitle",
+    }[slug])
+    description = catalog.plain({
+        "home": "meta.homeDescription",
+        "privacy": "meta.privacyDescription",
+        "support": "meta.supportDescription",
+        "404": "meta.notFoundDescription",
+    }[slug])
+    og_title = catalog.plain("hero.title") if slug == "home" else title
     canonical = ""
     og_url = ""
-    if config.origin and slug != "404":
-        url = config.page_url("" if slug == "home" else slug)
+    alternates = ""
+    if slug != "404":
+        url = i18n.absolute(config.origin, catalog.page(slug))
         canonical = f'<link rel="canonical" href="{esc(url)}">'
         og_url = f'<meta property="og:url" content="{esc(url)}">'
-    image = f"{config.origin}/assets/og.png" if config.origin else "/assets/og.png"
-    script = f'<script src="{esc(js_href)}" defer></script>' if js_href else ""
-    json_tag = f'<script type="application/ld+json">{json_ld}</script>' if json_ld else ""
-    preload_tag = (
-        f'<link rel="preload" as="image" href="{esc(preload)}">' if preload else ""
+        alternates = hreflang_tags(config, catalogs, slug)
+    alternate_locales = "\n  ".join(
+        f'<meta property="og:locale:alternate" content="{esc(other.og)}">'
+        for other in catalogs
+        if other.id != catalog.id and slug != "404"
     )
+    image = f"{config.origin}/assets/og.png" if config.origin else "/assets/og.png"
+    json_tag = f'<script type="application/ld+json">{json_ld}</script>' if json_ld else ""
+    home = catalog.page("home")
     return f"""<!doctype html>
-<html lang="en">
+<html lang="{esc(catalog.html_lang)}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -343,38 +334,41 @@ def layout(config, *, title, description, slug, robots, current, body, json_ld, 
   <meta name="theme-color" content="#f6f3ec" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#161411" media="(prefers-color-scheme: dark)">
   <meta property="og:type" content="website">
-  <meta property="og:locale" content="en_US">
+  <meta property="og:locale" content="{esc(catalog.og)}">
+  {alternate_locales}
   <meta property="og:site_name" content="ScreenClip">
-  <meta property="og:title" content="{esc(OG_TITLE if slug == "home" else title)}">
+  <meta property="og:title" content="{esc(og_title)}">
   <meta property="og:description" content="{esc(description)}">
   <meta property="og:image" content="{esc(image)}">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="{esc(OG_ALT)}">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="{esc(catalog.plain("meta.ogAlt"))}">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="{esc(OG_TITLE if slug == "home" else title)}">
+  <meta name="twitter:title" content="{esc(og_title)}">
   <meta name="twitter:description" content="{esc(description)}">
   <meta name="twitter:image" content="{esc(image)}">
-  <meta name="twitter:image:alt" content="{esc(OG_ALT)}">
+  <meta name="twitter:image:alt" content="{esc(catalog.plain("meta.ogAlt"))}">
   {canonical}
   {og_url}
+  {alternates}
   <link rel="icon" href="/favicon.ico" sizes="32x32">
   <link rel="icon" href="/assets/icon.svg" type="image/svg+xml">
   <link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
   <link rel="manifest" href="/manifest.webmanifest">
-  {preload_tag}
+  {render_preloads(preloads)}
   <link rel="stylesheet" href="{esc(css_href)}">
   {json_tag}
-  {script}
+  <script type="module" src="{esc(js_href)}"></script>
 </head>
 <body>
-  <a class="skip-link" href="#main">Skip to content</a>
+  <a class="skip-link" href="#main">{esc(catalog.get("nav.skip"))}</a>
   <header class="site-header">
     <div class="wrap header-bar">
-      <a class="brand" href="/"><img src="/assets/icon.svg" width="32" height="32" alt=""><span>ScreenClip</span></a>
-      <nav aria-label="Primary">{nav(current)}</nav>
-      <div class="header-cta">{header_cta(config)}</div>
+      <a class="brand" href="{esc(home)}"><img src="/assets/icon.svg" width="32" height="32" alt=""><span>ScreenClip</span></a>
+      <nav aria-label="{esc(catalog.get("nav.primary"))}">{nav(catalog, slug)}</nav>
+      <div class="header-cta">{header_cta(config, catalog)}</div>
     </div>
   </header>
   <main id="main">
@@ -382,10 +376,11 @@ def layout(config, *, title, description, slug, robots, current, body, json_ld, 
   </main>
   <footer class="site-footer">
     <div class="wrap footer-bar">
-      <a class="brand" href="/"><img src="/assets/icon.svg" width="28" height="28" alt=""><span>ScreenClip</span></a>
-      <nav class="footer-nav" aria-label="Footer">{footer_nav(config)}</nav>
+      <a class="brand" href="{esc(home)}"><img src="/assets/icon.svg" width="28" height="28" alt=""><span>ScreenClip</span></a>
+      <nav class="footer-nav" aria-label="{esc(catalog.get("nav.footer"))}">{footer_nav(config, catalog, slug)}</nav>
       <p class="copyright">© {datetime.now().year} ScreenClip</p>
     </div>
+    {language_switcher(catalogs, catalog, slug)}
   </footer>
 </body>
 </html>
@@ -395,6 +390,13 @@ def layout(config, *, title, description, slug, robots, current, body, json_ld, 
 def sha256_file(path):
     digest = hashlib.sha256(path.read_bytes()).hexdigest()
     return digest[:12]
+
+
+def png_size(path):
+    data = path.read_bytes()
+    if data[:8] != b"\x89PNG\r\n\x1a\n":
+        raise SystemExit(f"{path.name} is not a PNG")
+    return struct.unpack(">II", data[16:24])
 
 
 def fingerprinted(path, dest_dir):
@@ -584,8 +586,10 @@ def check_output(config, pages):
         page = path.read_text()
         if page.count("<h1") != 1:
             raise SystemExit(f"{path.name} should have exactly one h1")
-        if "<html lang=\"en\">" not in page:
-            raise SystemExit(f"{path.name} is missing lang")
+        if not re.search(r'<html lang="[a-zA-Z-]+">', page):
+            raise SystemExit(f"{path} is missing lang")
+        if 'rel="alternate" hreflang="x-default"' not in page and "noindex" not in page:
+            raise SystemExit(f"{path} is missing hreflang")
     joined = text + (DIST / "sitemap.xml").read_text() + (DIST / "manifest.webmanifest").read_text()
     if "0.99" in joined or "App Store" in text:
         raise SystemExit("App Store copy leaked into the site")
@@ -601,7 +605,21 @@ def check_output(config, pages):
         raise SystemExit("Donate link rendered without donateUrl")
     if '"price":"0"' not in text:
         raise SystemExit("JSON-LD is missing the free offer")
-    for href in re.findall(r'(?:href|src)="([^"]+)"', text):
+    if '"@type":"FAQPage"' not in text or '"@type":"SoftwareApplication"' not in text:
+        raise SystemExit("JSON-LD is missing SoftwareApplication or FAQPage")
+    if '"operatingSystem":"macOS 14 or later"' not in text or '"inLanguage":' not in text:
+        raise SystemExit("JSON-LD must name macOS and inLanguage")
+    if config.download_url and '"downloadUrl":' not in text:
+        raise SystemExit("JSON-LD is missing downloadUrl")
+    home = (DIST / "index.html").read_text()
+    lcp = re.search(r"<img[^>]*fetchpriority=\"high\"[^>]*>", home)
+    if not lcp or "loading=" in lcp.group(0) or 'alt=""' in lcp.group(0):
+        raise SystemExit("The menu bar image must be eager, sized, and described")
+    if 'width="' not in lcp.group(0) or 'height="' not in lcp.group(0):
+        raise SystemExit("The menu bar image needs explicit width and height")
+    if "image/avif" not in home or "image/webp" not in home or "prefers-color-scheme: dark" not in home:
+        raise SystemExit("The menu bar picture is missing a dark or modern source")
+    for href in re.findall(r'(?:href|src|srcset)="([^"]+)"', text):
         if href.startswith(("https://", "http://", "mailto:")):
             continue
         check_local_ref(href, pages)
@@ -610,26 +628,30 @@ def check_output(config, pages):
         raise SystemExit("og.png must be 1200 by 630")
 
 
-def check_local_ref(url, pages):
+def resolve_output(url):
     path, _, fragment = url.partition("#")
     if path in ("", "/"):
-        target = "home"
         file_path = DIST / "index.html"
     else:
         rel = path.lstrip("/")
         file_path = DIST / rel
         html_path = DIST / f"{rel}.html"
-        if file_path.is_file():
-            target = None
-        elif html_path.is_file():
+        index_path = DIST / rel / "index.html"
+        if file_path.is_dir():
+            file_path = index_path
+        elif not file_path.is_file() and html_path.is_file():
             file_path = html_path
-            target = rel
-        else:
+        elif not file_path.is_file() and index_path.is_file():
+            file_path = index_path
+        if not file_path.is_file():
             raise SystemExit(f"Missing local target for {url}")
-    if fragment:
-        haystack = (DIST / "index.html").read_text() if target == "home" or path in ("", "/") else file_path.read_text()
-        if f'id="{fragment}"' not in haystack:
-            raise SystemExit(f"Missing fragment #{fragment} for {url}")
+    if fragment and f'id="{fragment}"' not in file_path.read_text():
+        raise SystemExit(f"Missing fragment #{fragment} for {url}")
+    return file_path
+
+
+def check_local_ref(url, pages):
+    resolve_output(url)
 
 
 def build():
@@ -646,60 +668,103 @@ def build():
     shutil.copyfile(SRC / "assets" / "icon.svg", assets / "icon.svg")
     shutil.copyfile(SRC / "assets" / "og.png", assets / "og.png")
     css_href = fingerprinted(SRC / "styles.css", hashed)
-    js_href = fingerprinted(SRC / "site.js", hashed)
-    composer = fingerprinted(SRC / "assets" / "composer-preview.png", hashed)
-    queue = fingerprinted(SRC / "assets" / "queue-preview.png", hashed)
+    popup_width, popup_height = png_size(SRC / "assets" / "popup-light.png")
+    popup = {
+        "POPUP_LIGHT_AVIF": fingerprinted(SRC / "assets" / "popup-light.avif", hashed),
+        "POPUP_LIGHT_WEBP": fingerprinted(SRC / "assets" / "popup-light.webp", hashed),
+        "POPUP_LIGHT_PNG": fingerprinted(SRC / "assets" / "popup-light.png", hashed),
+        "POPUP_DARK_AVIF": fingerprinted(SRC / "assets" / "popup-dark.avif", hashed),
+        "POPUP_DARK_WEBP": fingerprinted(SRC / "assets" / "popup-dark.webp", hashed),
+        "POPUP_DARK_PNG": fingerprinted(SRC / "assets" / "popup-dark.png", hashed),
+        "POPUP_W": str(popup_width),
+        "POPUP_H": str(popup_height),
+    }
+    home_preloads = [
+        (popup["POPUP_LIGHT_AVIF"], "(prefers-color-scheme: light)", "image/avif"),
+        (popup["POPUP_DARK_AVIF"], "(prefers-color-scheme: dark)", "image/avif"),
+    ]
     print("Drawing icons…")
     write_icons(assets)
 
-    tokens = {
-        "ACTIONS": render_actions(config),
-        "PRICE": esc(price_copy(config)),
-        "FAQ": render_faq(config),
-        "IMG_COMPOSER": composer,
-        "IMG_QUEUE": queue,
-        "SOURCE_LINE": source_line(config),
-        "ISSUES_HTML": issues_html(config),
-        "DOWNLOAD_STATUS": download_status(config),
-        "SOURCE_HTML": source_html(config),
-        "GITHUB_BUTTON": github_button(config),
-    }
-    pages = [
-        ("home", "index.html", HOME_TITLE, HOME_DESCRIPTION, "index, follow, max-image-preview:large", True, composer),
-        ("privacy", "privacy.html", "Privacy policy — ScreenClip", "What ScreenClip stores on your Mac, what can be sent to an agent or GitHub, and how redaction works.", "index, follow", False, ""),
-        ("support", "support.html", "Support — ScreenClip", "Get ScreenClip help through GitHub issues, plus what you need to run or build the Mac app.", "index, follow", False, ""),
-        ("404", "404.html", "Page not found — ScreenClip", "That page is not on the ScreenClip site.", "noindex", False, ""),
+    match_source = (ROOT / "locale-match.js").read_text()
+    match_href = fingerprinted(ROOT / "locale-match.js", hashed)
+    locale_script = (SRC / "locale.js").read_text().replace("/assets/locale-match.js", match_href)
+    locale_path = hashed / "locale.js"
+    locale_path.write_text(locale_script)
+    js_href = fingerprinted(locale_path, hashed)
+    locale_path.unlink()
+    if "export function matchTags" not in match_source:
+        raise SystemExit("locale-match.js is missing matchTags")
+    catalogs = i18n.load_catalogs()
+    page_specs = [
+        ("home", "index.html", "index, follow, max-image-preview:large", True),
+        ("privacy", "privacy.html", "index, follow", False),
+        ("support", "support.html", "index, follow", False),
+        ("404", "404.html", "noindex", False),
     ]
     written = {}
     hashes = []
-    for slug, filename, title, description, robots, with_json, preload in pages:
-        body = (SRC / "pages" / ("home.html" if slug == "home" else f"{slug}.html")).read_text()
-        for key, value in tokens.items():
-            body = body.replace(f"@@{key}@@", value)
-        json_ld = structured_data(config) if with_json else ""
-        document = layout(
-            config,
-            title=title,
-            description=description,
-            slug=slug,
-            robots=robots,
-            current=slug,
-            body=body,
-            json_ld=json_ld,
-            css_href=css_href,
-            js_href=js_href if slug == "home" else "",
-            preload=preload,
-        )
-        (DIST / filename).write_text(document)
-        written[slug] = document
-        hashes.extend(csp_hashes(document))
+    for catalog in catalogs:
+        tokens = {
+            "ACTIONS": render_actions(config, catalog),
+            "FAQ": render_faq(config, catalog),
+            "SOURCE_LINE": source_line(config, catalog),
+            "ISSUES_HTML": issues_html(config, catalog),
+            "DOWNLOAD_STATUS": download_status(config, catalog),
+            "SOURCE_HTML": source_html(config, catalog),
+            "GITHUB_BUTTON": github_button(config, catalog),
+            "HOME_PATH": catalog.page("home"),
+            "SUPPORT_PATH": catalog.page("support"),
+            "PRIVACY_PATH": catalog.page("privacy"),
+            **popup,
+        }
+        for slug, filename, robots, with_json in page_specs:
+            body = (SRC / "pages" / ("home.html" if slug == "home" else f"{slug}.html")).read_text()
+            body = i18n.apply_copy(body, catalog, config)
+            for key, value in tokens.items():
+                body = body.replace(f"@@{key}@@", value)
+            json_ld = structured_data(config, catalog) if with_json else ""
+            document = layout(
+                config,
+                catalogs,
+                catalog,
+                slug=slug,
+                robots=robots,
+                body=body,
+                json_ld=json_ld,
+                css_href=css_href,
+                js_href=js_href,
+                preloads=home_preloads if slug == "home" else [],
+            )
+            if catalog.path:
+                destination = DIST / catalog.path / filename
+                destination.parent.mkdir(parents=True, exist_ok=True)
+            else:
+                destination = DIST / filename
+            destination.write_text(document)
+            written[f"{catalog.path or 'en'}:{slug}"] = document
+            hashes.extend(csp_hashes(document))
     if config.origin:
-        locs = [config.page_url(slug) for slug in ("", "privacy", "support")]
-        body = "".join(f"<url><loc>{esc(loc)}</loc></url>" for loc in locs)
+        blocks = []
+        for slug in ("home", "privacy", "support"):
+            for catalog in catalogs:
+                loc = i18n.absolute(config.origin, catalog.page(slug))
+                alternates = []
+                for other in catalogs:
+                    href = i18n.absolute(config.origin, other.page(slug))
+                    alternates.append(
+                        f'<xhtml:link rel="alternate" hreflang="{esc(other.hreflang)}" href="{esc(href)}"/>'
+                    )
+                default_href = i18n.absolute(config.origin, catalogs[0].page(slug))
+                alternates.append(
+                    f'<xhtml:link rel="alternate" hreflang="x-default" href="{esc(default_href)}"/>'
+                )
+                blocks.append(f"<url><loc>{esc(loc)}</loc>{''.join(alternates)}</url>")
         (DIST / "sitemap.xml").write_text(
             '<?xml version="1.0" encoding="UTF-8"?>\n'
-            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
-            + body
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+            'xmlns:xhtml="http://www.w3.org/1999/xhtml">'
+            + "".join(blocks)
             + "</urlset>\n"
         )
         (DIST / "robots.txt").write_text(
@@ -732,7 +797,13 @@ def self_test():
         ("#5c564e", "#f6f3ec", 4.5),
         ("#b8430a", "#f6f3ec", 4.5),
         ("#1a120c", "#f76826", 4.5),
+        ("#1a120c", "#ff7a3c", 4.5),
+        ("#5c564e", "#fffdf8", 4.5),
+        ("#b8430a", "#fffdf8", 4.5),
         ("#f4efe6", "#161411", 7),
+        ("#c8bfb2", "#221e1a", 4.5),
+        ("#ffb088", "#221e1a", 4.5),
+        ("#f4efe6", "#221e1a", 7),
         ("#c8bfb2", "#161411", 4.5),
         ("#ffb088", "#161411", 4.5),
         ("#f6f1e8", "#2a211c", 7),
@@ -747,7 +818,8 @@ def self_test():
     empty = Config("", "", "", "")
     free = Config("", "", "https://example.com/ScreenClip.dmg", "")
     tipped = Config("", "https://example.com/repo", free.download_url, "https://example.com/donate")
-    if "0.99" in price_copy(empty) or "App Store" in price_copy(empty):
+    price = i18n.load_catalogs()[0].get("download.price")
+    if "0.99" in price or "App Store" in price:
         raise SystemExit("Pricing copy must stay free of the App Store")
     free_actions = render_actions(free)
     if "Download for Mac (free)" not in free_actions:
@@ -769,6 +841,8 @@ class PreviewHandler(SimpleHTTPRequestHandler):
         ".webmanifest": "application/manifest+json",
         ".svg": "image/svg+xml",
         ".ico": "image/x-icon",
+        ".avif": "image/avif",
+        ".webp": "image/webp",
     }
 
     def __init__(self, *args, **kwargs):
@@ -801,6 +875,8 @@ class PreviewHandler(SimpleHTTPRequestHandler):
             return False
         relative = path.lstrip("/")
         file_path = DIST / "index.html" if relative == "" else DIST / relative
+        if relative and file_path.is_dir():
+            file_path = file_path / "index.html"
         if relative and not file_path.is_file():
             html_path = DIST / f"{relative}.html"
             if html_path.is_file():
