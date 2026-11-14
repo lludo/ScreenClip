@@ -203,6 +203,36 @@ final class CoreTests: XCTestCase {
         projects: [Project(name: "Wrong", path: "/c", bundleIDs: ["com.apple.Safari"])]
       ).projectID)
   }
+  func testRoutingFallsBackToAppNameAndLearnsTheChosenApp() {
+    let genealogy = Project(name: "Genealogy", path: "/repos/Genealogy")
+    let clip = Project(name: "Clip tool", path: "/repos/ScreenClip")
+    let projects = [genealogy, clip]
+    let capture = CaptureContext(appName: "Genealogy", bundleID: "com.example.Genealogy")
+    let decision = ProjectRouter.infer(capture, projects: projects)
+    XCTAssertEqual(decision.projectID, genealogy.id)
+    XCTAssertEqual(decision.reason, "Matched app name")
+    // The repository folder name also matches.
+    XCTAssertEqual(
+      ProjectRouter.infer(
+        CaptureContext(appName: "ScreenClip", bundleID: "com.example.screenclip"), projects: projects
+      ).projectID, clip.id)
+    // A browser or an app another project claims never routes by name.
+    XCTAssertNil(
+      ProjectRouter.infer(
+        CaptureContext(appName: "Genealogy", bundleID: "com.apple.Safari"), projects: projects
+      ).projectID)
+    let claimed = Project(name: "Other", path: "/o", bundleIDs: ["com.example.Genealogy"])
+    XCTAssertEqual(
+      ProjectRouter.infer(capture, projects: projects + [claimed]).projectID, claimed.id)
+    XCTAssertEqual(
+      ProjectRouter.identifierToLearn(from: capture, for: genealogy.id, projects: projects),
+      "com.example.Genealogy")
+    XCTAssertNil(
+      ProjectRouter.identifierToLearn(from: capture, for: genealogy.id, projects: projects + [claimed]))
+    XCTAssertNil(
+      ProjectRouter.identifierToLearn(
+        from: CaptureContext(bundleID: "com.google.Chrome"), for: genealogy.id, projects: projects))
+  }
   func testMergeRejectsStaleRevisionsHeadsAndMissingValidation() {
     var e = MergeEvidence(
       expectedHead: "abc", currentHead: "abc", inputRevision: 2, coveredRevision: 2,

@@ -53,6 +53,8 @@ Local installation requires a signing certificate to keep macOS permissions stab
 2. **Connect an agent** in **Settings → Connections**. Use **Detect agents**, choose the default, and check sign-in. Codex reuses an existing session when available; **Sign in to Claude** opens Terminal for Claude Code’s login flow. You can also set a Claude executable path and model.
 3. **Press ⌘⇧2**, grant macOS Screen Recording permission, select a region, and submit. Change the shortcut in Settings if needed.
 
+A native app with no bundle ID listed still routes when exactly one project’s name or repository folder matches the app’s name. When you pick a project for an app capture yourself, ScreenClip remembers that app’s bundle ID for the project, unless another project already lists it.
+
 Browser URL context is optional and may request Safari or Chrome Automation access. Without it, select the project yourself when routing is unavailable.
 
 ScreenClip hides its own windows during capture by default. To report a bug in ScreenClip itself, turn off **Settings → General → Capture → Hide ScreenClip during capture** and save.
