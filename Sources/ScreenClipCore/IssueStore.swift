@@ -1,15 +1,6 @@
 import CSQLite
 import Foundation
 
-public enum ScreenClipError: LocalizedError {
-  case message(String)
-  public var errorDescription: String? {
-    switch self {
-    case .message(let text): return text
-    }
-  }
-}
-
 /// A single-writer durable store. SQLite commits the issue, input revision, and pending dispatch together.
 public final class IssueStore {
   public let root: URL
@@ -86,10 +77,11 @@ public final class IssueStore {
     defer { lock.unlock() }
     var numbered = snapshot
     let previous = try load()
+    // Tolerate a damaged snapshot with repeated IDs instead of trapping on every save.
     let existingNumbers = Dictionary(
-      uniqueKeysWithValues: previous.issues.compactMap { issue in
+      previous.issues.compactMap { issue in
         issue.reportNumber.map { (issue.id, $0) }
-      })
+      }, uniquingKeysWith: { first, _ in first })
     for index in numbered.issues.indices {
       if let number = existingNumbers[numbered.issues[index].id] {
         numbered.issues[index].reportNumber = number

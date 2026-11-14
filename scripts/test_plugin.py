@@ -81,6 +81,33 @@ class PluginTests(unittest.TestCase):
         market = json.loads((root / ".claude-plugin/marketplace.json").read_text())
         self.assertEqual(market["plugins"][0]["source"], "./plugins/screenclip")
         self.assertTrue((root / "plugins/screenclip/skills/fix-report/SKILL.md").is_file())
+    def test_invalid_arguments_return_errors_instead_of_crashing(self):
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("get_issue", {"issue_id": 5})
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("get_issue", "not an object")
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("get_issue", {"issue_id": "not-a-uuid"})
+        self.issue["captures"] = None
+        self.save()
+        found = json.loads(plugin.call("get_issue", {"issue_id": self.id})["content"][0]["text"])
+        self.assertEqual(found["captures"], [])
+    def test_malformed_requests_get_a_response(self):
+        requests = [
+            '{"jsonrpc": "2.0", "id": 1, "method": "tools/call", "params": null}',
+            '{"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "get_issue", "arguments": {"issue_id": 5}}}',
+            '{"jsonrpc": "2.0", "id": 3, "method": "initialize", "params": {"protocolVersion": "2099-01-01"}}',
+            'not json',
+            '{"jsonrpc": "2.0", "id": 4, "method": "nope"}',
+        ]
+        result = subprocess.run([sys.executable, spec.origin], input="\n".join(requests)+"\n", capture_output=True, text=True, check=True, env={**os.environ, "SCREENCLIP_DATA_DIR": str(plugin.ROOT)})
+        messages = [json.loads(line) for line in result.stdout.splitlines()]
+        self.assertEqual([m.get("id") for m in messages], [1, 2, 3, None, 4])
+        self.assertEqual(messages[0]["error"]["code"], -32602)
+        self.assertEqual(messages[1]["error"]["code"], -32602)
+        self.assertEqual(messages[2]["result"]["protocolVersion"], "2024-11-05")
+        self.assertEqual(messages[3]["error"]["code"], -32700)
+        self.assertEqual(messages[4]["error"]["code"], -32601)
     def test_stdio_handshake_and_tool_discovery(self):
         requests = [
             {"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2024-11-05"}},

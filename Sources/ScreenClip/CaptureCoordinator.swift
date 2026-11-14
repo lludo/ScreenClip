@@ -267,11 +267,21 @@ private final class SelectionView: NSView {
         return noErr
       }, 1, &type, Unmanaged.passUnretained(self).toOpaque(), &handler)
   }
+  private var registered: (key: UInt32, modifiers: UInt32)?
+  /// Registers the new shortcut before releasing the old one, so a conflicting choice keeps
+  /// the working shortcut. Unchanged shortcuts are left alone.
   func register(key: UInt32, modifiers: UInt32) -> Bool {
+    if let registered, registered == (key, modifiers), reference != nil { return true }
+    var replacement: EventHotKeyRef?
+    guard
+      RegisterEventHotKey(
+        key, modifiers, EventHotKeyID(signature: 0x5343_4C50, id: 1), GetApplicationEventTarget(),
+        0, &replacement) == noErr
+    else { return false }
     if let reference { UnregisterEventHotKey(reference) }
-    return RegisterEventHotKey(
-      key, modifiers, EventHotKeyID(signature: 0x5343_4C50, id: 1), GetApplicationEventTarget(), 0,
-      &reference) == noErr
+    reference = replacement
+    registered = (key, modifiers)
+    return true
   }
   deinit {
     if let reference { UnregisterEventHotKey(reference) }

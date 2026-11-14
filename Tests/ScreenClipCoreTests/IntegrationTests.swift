@@ -26,13 +26,13 @@ final class IntegrationTests: XCTestCase {
       "/usr/bin/git", ["commit", "-m", "Advance base"], cwd: source.path)
     _ = try await CommandRunner.checked(
       "/usr/bin/git", ["push", "origin", "main"], cwd: source.path)
-    let updated = try await GitHubService.updateBaseIfNeeded(project: project, path: workspace.path)
+    let updated = try await GitWorkspace.updateBaseIfNeeded(project: project, path: workspace.path)
     XCTAssertTrue(updated)
     XCTAssertEqual(
       try String(
         contentsOf: URL(fileURLWithPath: workspace.path).appendingPathComponent("base.txt"),
         encoding: .utf8), "base advanced")
-    let repeated = try await GitHubService.updateBaseIfNeeded(
+    let repeated = try await GitWorkspace.updateBaseIfNeeded(
       project: project, path: workspace.path)
     XCTAssertFalse(repeated)
   }
@@ -90,7 +90,7 @@ final class IntegrationTests: XCTestCase {
     let project = Project(
       name: "Test", path: url.path, validationCommand: "printf changed > source.txt")
     do {
-      _ = try await GitHubService.validate(project: project, path: url.path)
+      _ = try await GitWorkspace.validate(project: project, path: url.path)
       XCTFail("Changing source during checks must invalidate validation")
     } catch { XCTAssertTrue(error.localizedDescription.contains("changed during validation")) }
   }

@@ -140,7 +140,7 @@ def print_review(result, details):
     print(f"ScreenClip queue — {result['observedAt']}")
     print(f"{len(result['reports'])} matching reports; processing " +
           ("paused" if result["processingPaused"] else "enabled"))
-    print("Stored statuses; check the linked Codex chat before taking over an existing job.")
+    print("Stored statuses; check the linked agent conversation before taking over an existing job.")
     for project in result["projectChecks"]:
         for blocker in project["blockers"]:
             print(f"Project {project['name']}: {blocker}")
@@ -196,7 +196,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--data-dir", type=Path, default=Path(os.environ.get(
         "SCREENCLIP_DATA_DIR", str(Path.home() / "Library/Application Support/ScreenClip"))))
-    parser.add_argument("--project", help="Exact project name or UUID")
+    parser.add_argument("--project", help="Project name (case-insensitive) or UUID")
     parser.add_argument("--status", action="append", help="Stored status; repeat to select several")
     parser.add_argument("--search", help="Search report numbers, feedback, results, and conversation text")
     parser.add_argument("--include-archived", action="store_true")
