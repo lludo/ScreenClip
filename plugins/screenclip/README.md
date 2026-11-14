@@ -4,7 +4,14 @@ This local MCP plugin lets a Codex or Claude Code session read the queue, notes,
 
 Requires Python 3 and local execution. Add this folder to a local plugin marketplace using the supported Codex plugin setup, or configure the MCP server directly in Codex with `python3 /absolute/path/to/plugins/screenclip/server.py`. No cloud service or lifecycle hook is required.
 
-For a temporary Claude Code session, run `claude --plugin-dir /absolute/path/to/plugins/screenclip`. The Claude manifest loads the same local MCP server and includes a `fix-report` skill for interactive review. The repository's `.claude-plugin/marketplace.json` also exposes this plugin as a local marketplace. The installed Claude CLI's plugin manifest validation passes; permanent plugin installation and a live interactive fix remain separate checks.
+Claude Code: the repository root is a local plugin marketplace (`.claude-plugin/marketplace.json`). Install the plugin, which bundles the same MCP server and a `fix-report` skill for interactive fixes:
+
+```sh
+claude plugin marketplace add /absolute/path/to/ScreenClip
+claude plugin install screenclip@screenclip
+```
+
+For one session only, run `claude --plugin-dir /absolute/path/to/plugins/screenclip`. See [Claude Code](../../docs/agents/claude-code.md#reading-the-queue-interactively-plugin) for the workflow and verification status, and [Coding agents](../../docs/agents/README.md) for how the plugin relates to automatic dispatch.
 
 The default data folder is `~/Library/Application Support/ScreenClip`. For a development instance, set `SCREENCLIP_DATA_DIR` on the server process. Tools:
 

@@ -45,6 +45,8 @@ The review corrected an obsolete disabled-Claude dispatch test, preserved Claude
 
 Claude worker tests use fake CLIs and isolated Git fixtures. A live Claude fix through validation, PR publication, and merge, permanent Claude plugin installation, and an interactive plugin fix remain unverified. Claude reconciliation checks for active processes but does not read completed results from Claude history. The review builds were not installed as part of this review.
 
+A follow-up fixed a Claude client defect: after `claude` exited, the stderr readability handler kept firing at end-of-file and spun a CPU core, which could also stall waiting for exit. The client now drains stderr to EOF on a dedicated reader, waits for that reader before reporting errors, and waits for process exit through the termination handler. The full Swift suite passed afterwards, along with the 7 plugin tests. Agent documentation moved to [docs/agents/](agents/README.md).
+
 ## Repository association review
 
 ScreenClip **0.1.6 (7)** was installed at `/Applications/ScreenClip.app` with the existing development signature. Its native worker ran `--integration-project-link` with a separate test queue, the registered ScreenClip repository, and a synthetic image. It created chat `01a1d833-aeda-7623-92c8-38e4c5f37953`, returned a structured question, and left the isolated worktree clean. The user subsequently moved that test chat to Trash. The clean test worktree and its fully merged branch were removed; `.local/project-link-check-1/integration-result.json` remains as local evidence.
@@ -104,5 +106,6 @@ The GitHub fixture setup helper requires an explicit `OWNER/screenclip-integrati
 
 - `Sources/ScreenClip/`: native app, capture, annotation editor, queue/settings, and worker.
 - `Sources/ScreenClipCore/`: durable model/store, routing, transport, Git and GitHub integration, and merge policy.
-- `plugins/screenclip/`: optional local read-only MCP bridge.
+- `Sources/ScreenClipCore/CodexClient.swift`, `ClaudeCodeClient.swift`, `AgentDetector.swift`: agent transports and detection. See [Coding agents](agents/README.md).
+- `plugins/screenclip/`: optional local read-only MCP bridge, packaged for Codex and Claude Code.
 - `scripts/`: app builds, packaging, probes, fixtures, and plugin tests.
