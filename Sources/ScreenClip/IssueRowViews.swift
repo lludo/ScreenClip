@@ -18,8 +18,12 @@ struct IssueRow: View {
           Text(issue.referencedTitle).font(.system(size: 13, weight: .medium)).lineLimit(2)
           if issue.unread { Circle().fill(.orange).frame(width: 6, height: 6) }
         }
-        Text(project?.name ?? "Choose project").font(.caption).foregroundStyle(.secondary)
-        StatusBadge(status: issue.status)
+        HStack(spacing: 8) {
+          Text(project?.name ?? "Choose project").font(.caption).foregroundStyle(.secondary)
+            .lineLimit(1)
+          Spacer(minLength: 0)
+          StatusBadge(status: issue.status).fixedSize()
+        }
       }
       Spacer(minLength: 0)
     }.padding(.vertical, 9)

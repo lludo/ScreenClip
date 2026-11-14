@@ -8,6 +8,7 @@ struct IssueDetailView: View {
   @State private var showLinkChat = false
   @State private var confirmDelete = false
   @State private var showContextEditor = false
+  @State private var showFollowUpEditor = false
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 22) {
@@ -134,6 +135,13 @@ struct IssueDetailView: View {
               }
             }.buttonStyle(.borderedProminent).tint(.green)
           }
+          if [.merged, .verified].contains(issue.status) {
+            Button {
+              showFollowUpEditor = true
+            } label: {
+              Label("Needs follow-up", systemImage: "arrow.uturn.backward.circle")
+            }.help("Describe what was not addressed; the agent starts a new fix with your feedback.")
+          }
         }
         if let summary = issue.resultSummary {
           Text(summary).textSelection(.enabled).padding(16).frame(
@@ -198,6 +206,9 @@ struct IssueDetailView: View {
           ).font(.caption).foregroundStyle(.secondary)
         }
       }.padding(28)
+    }
+    .sheet(isPresented: $showFollowUpEditor) {
+      ContextNoteEditor(model: model, issueID: issue.id, followUp: true)
     }
     .sheet(isPresented: $showContextEditor) {
       ContextNoteEditor(model: model, issueID: issue.id)

@@ -145,9 +145,10 @@ struct QueueView: View {
             HStack {
               Label(item.rawValue, systemImage: item.symbol)
               Spacer()
-              Text("\(model.snapshot.issues.filter { item.includes($0) }.count)").foregroundStyle(
-                .secondary
-              ).monospacedDigit()
+              // Counts follow the project filter so they match the list they open.
+              Text(
+                "\(model.snapshot.issues.filter { item.includes($0, projectID: projectFilter) }.count)"
+              ).foregroundStyle(.secondary).monospacedDigit()
             }
             .padding(.vertical, 4).foregroundStyle(filter == item ? Color.orange : Color.primary)
           }.buttonStyle(.plain)
@@ -176,14 +177,16 @@ struct QueueView: View {
           Label("Manage projects…", systemImage: "plus")
         }.buttonStyle(.plain).foregroundStyle(.secondary)
       }
-    }.listStyle(.sidebar)
+    }.listStyle(.sidebar).labelStyle(SidebarLabelStyle())
   }
   private var sidebarFooter: some View {
     VStack(alignment: .leading, spacing: 8) {
-      HStack(spacing: 6) {
-        Circle().fill(model.agentStatus.ready ? .green : .secondary).frame(
-          width: 6, height: 6)
-        Text(model.agentStatus.text).lineLimit(2).font(.caption)
+      ForEach(model.agentStatuses, id: \.kind) { status in
+        HStack(spacing: 6) {
+          Circle().fill(status.ready ? .green : .secondary).frame(width: 6, height: 6)
+          Text(status.text).lineLimit(2).font(.caption)
+            .foregroundStyle(status.ready ? .primary : .secondary)
+        }
       }
       Button {
         model.togglePaused()
@@ -194,5 +197,16 @@ struct QueueView: View {
       }.buttonStyle(.plain).font(.caption)
     }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
       .background(Color(nsColor: .windowBackgroundColor))
+  }
+}
+
+/// Sidebar icons use the app's orange accent instead of the system accent color.
+struct SidebarLabelStyle: LabelStyle {
+  func makeBody(configuration: Configuration) -> some View {
+    Label {
+      configuration.title
+    } icon: {
+      configuration.icon.foregroundStyle(.orange)
+    }
   }
 }
