@@ -46,6 +46,13 @@ public struct Project: Codable, Identifiable, Equatable {
   /// Off until a project explicitly allows approved screenshots to leave the Mac for Grok Bot.
   public var allowExternalScreenshots: Bool? = nil
   public var sendsExternalScreenshots: Bool { allowExternalScreenshots ?? false }
+  /// SF Symbol shown next to the project name. Optional so projects saved earlier still decode.
+  public var symbol: String? = nil
+  public static let defaultSymbol = "folder"
+  public var displaySymbol: String {
+    guard let symbol, !symbol.isEmpty else { return Project.defaultSymbol }
+    return symbol
+  }
   public init(
     id: UUID = UUID(), name: String, path: String, baseBranch: String = "main",
     origins: [String] = [], bundleIDs: [String] = [], validationCommand: String = "",

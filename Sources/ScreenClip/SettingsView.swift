@@ -16,7 +16,19 @@ struct SettingsView: View {
   @State private var sendingTest = false
   var body: some View {
     VStack(spacing: 0) {
-      TabView(selection: $tab) {
+      HStack(spacing: 0) {
+        ForEach(Array(["General", "Projects", "Connections"].enumerated()), id: \.offset) { index, title in
+          Button(title) { tab = index }
+            .buttonStyle(SettingsTabButtonStyle(isSelected: tab == index))
+            .accessibilityAddTraits(tab == index ? .isSelected : [])
+        }
+      }
+      .padding(2)
+      .background(.quaternary.opacity(0.45), in: Capsule())
+      .padding(.vertical, 8)
+      Divider()
+      Group {
+        if tab == 0 {
         Form {
           Section("Capture") {
             ScreenCapturePermissionControls(model: model, permission: model.capturePermission)
@@ -83,8 +95,8 @@ struct SettingsView: View {
               "Exports include approved screenshots and notes. Deleting evidence in ScreenClip does not delete the agent's own conversation history or PRs."
             ).font(.caption).foregroundStyle(.secondary)
           }
-        }.formStyle(.grouped).tabItem { Label("General", systemImage: "slider.horizontal.3") }.tag(
-          0)
+        }.formStyle(.grouped)
+        } else if tab == 1 {
         VStack(alignment: .leading, spacing: 16) {
           HStack {
             VStack(alignment: .leading, spacing: 4) {
@@ -101,10 +113,13 @@ struct SettingsView: View {
           if model.snapshot.projects.isEmpty {
             ContentUnavailableView(
               "Add your first repository", systemImage: "folder.badge.plus",
-              description: Text("Map a website or Mac app and set the checks a fix must pass."))
+              description: Text("Map a website or Mac app and set the checks a fix must pass.")
+            ).frame(maxWidth: .infinity, maxHeight: .infinity)
           } else {
             List(model.snapshot.projects) { project in
-              HStack {
+              HStack(alignment: .top) {
+                Image(systemName: project.displaySymbol).foregroundStyle(.orange)
+                  .frame(width: 20)
                 VStack(alignment: .leading, spacing: 5) {
                   Text(project.name).fontWeight(.medium)
                   Text(project.path).font(.caption).foregroundStyle(.secondary)
@@ -117,7 +132,8 @@ struct SettingsView: View {
               }.padding(.vertical, 8)
             }
           }
-        }.padding(24).tabItem { Label("Projects", systemImage: "folder") }.tag(1)
+        }.padding(24)
+        } else {
         Form {
           Section("AI agent") {
             Picker(
@@ -218,10 +234,10 @@ struct SettingsView: View {
               "Authenticate GitHub CLI with gh auth login. Fixes are published from isolated branches; project checks and required reviews govern automatic merge."
             ).font(.caption).foregroundStyle(.secondary)
           }
-        }.formStyle(.grouped).tabItem {
-          Label("Connections", systemImage: "point.3.connected.trianglepath.dotted")
-        }.tag(2)
+        }.formStyle(.grouped)
+        }
       }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
       Divider()
       HStack {
         if let error {
@@ -302,5 +318,22 @@ struct SettingsView: View {
         NSWorkspace.shared.open(folder)
       } catch { self.error = error.localizedDescription }
     }
+  }
+}
+
+private struct SettingsTabButtonStyle: ButtonStyle {
+  let isSelected: Bool
+
+  func makeBody(configuration: Configuration) -> some View {
+    configuration.label
+      .frame(minWidth: 90)
+      .padding(.horizontal, 8)
+      .padding(.vertical, 4)
+      .background {
+        if isSelected || configuration.isPressed {
+          Capsule().fill(Color.primary.opacity(configuration.isPressed ? 0.22 : 0.15))
+        }
+      }
+      .contentShape(Capsule())
   }
 }
