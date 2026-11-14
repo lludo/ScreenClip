@@ -24,6 +24,8 @@ The checks below describe the coverage and the live verification completed on th
 
 A synthetic run confirmed repository context, worktree isolation, and runtime project association, but the chat appeared ungrouped in the desktop sidebar on the tested Codex version. Runtime association and desktop sidebar placement are separate checks; a successful app-server response does not establish the latter. **Open in Codex** provides an exact chat link.
 
+A follow-up probe started a read-only chat with the repository as its initial directory, then used app-server's per-turn `cwd` override to work in a separate directory. The desktop listed the chat without a project and recorded the turn directory as its `cwd`. Continuing the same chat from the repository did not assign it to the desktop project, and the desktop move operation reported that the test chat was not available in the sidebar. The test chat was archived. This does not establish a reliable project association or justify changing worktree isolation.
+
 To repeat it (creates a synthetic Codex chat and uses normal account usage):
 
 ```sh
