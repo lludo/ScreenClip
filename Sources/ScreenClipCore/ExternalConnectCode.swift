@@ -58,10 +58,10 @@ public enum ExternalConnectCode {
   /// `Authorization:` is removed. Anything that is not already a `Bearer` value gets that prefix.
   public static func normalizeKey(_ raw: String) -> Result<String, Failure> {
     var value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-    if value.isEmpty { return .failure(.missingAuthorization) }
+    if value.isEmpty || isBareScheme(value) { return .failure(.missingAuthorization) }
     if let stripped = strippingPrefix(value, "authorization:") {
       value = stripped.trimmingCharacters(in: .whitespacesAndNewlines)
-      if value.isEmpty { return .failure(.missingAuthorization) }
+      if value.isEmpty || isBareScheme(value) { return .failure(.missingAuthorization) }
     }
     if let token = strippingPrefix(value, "bearer ") {
       let rest = token.trimmingCharacters(in: .whitespaces)
@@ -74,6 +74,13 @@ public enum ExternalConnectCode {
       return .failure(.unsafeAuthorization)
     }
     return .success(value)
+  }
+
+  /// `Bearer` or `Authorization:` with no key after it.
+  private static func isBareScheme(_ value: String) -> Bool {
+    value.caseInsensitiveCompare("bearer") == .orderedSame
+      || value.caseInsensitiveCompare("authorization:") == .orderedSame
+      || value.caseInsensitiveCompare("authorization") == .orderedSame
   }
 
   private static func strippingPrefix(_ value: String, _ prefix: String) -> String? {
@@ -126,8 +133,15 @@ public enum ExternalConnectCode {
     if depth < 2, let code = embeddedConnectCode(in: trimmed), code != trimmed {
       return parse(code, depth: depth + 1)
     }
-    if let credentials = jsonObjectCredentials(in: trimmed) {
+    switch jsonConnect(in: trimmed) {
+    case .absent:
+      break
+    case .credentials(let credentials):
       return validate(credentials)
+    case .missingURL:
+      return .failure(.missingURL)
+    case .missingAuthorization:
+      return .failure(.missingAuthorization)
     }
     return parseLoose(trimmed)
   }
@@ -254,17 +268,45 @@ public enum ExternalConnectCode {
     return nil
   }
 
-  private static func jsonObjectCredentials(in text: String) -> Credentials? {
-    guard let start = text.firstIndex(of: "{"), let end = text.lastIndex(of: "}"), start < end
+  private enum JSONConnect {
+    case absent
+    case credentials(Credentials)
+    case missingURL
+    case missingAuthorization
+  }
+
+  /// A JSON object with only `authorization` (or `header`) is a key without a URL.
+  /// An object with only `url` is an address without a key.
+  private static func jsonConnect(in text: String) -> JSONConnect {
+    guard let start = text.firstIndex(of: "{"), let end = text.lastIndex(of: "}"), start < end,
+      let data = String(text[start...end]).data(using: .utf8),
+      let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    else { return .absent }
+    let url = nonempty(stringValue(object, keys: ["url"]))
+    let authorization = nonempty(stringValue(object, keys: ["authorization", "header"]))
+    switch (url, authorization) {
+    case (nil, nil):
+      return .absent
+    case (nil, .some):
+      return .missingURL
+    case (.some, nil):
+      return .missingAuthorization
+    case let (url?, authorization?):
+      return .credentials(
+        Credentials(url: url, authorization: authorization, capabilities: capabilityList(object)))
+    }
+  }
+
+  private static func nonempty(_ value: String?) -> String? {
+    guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty
     else { return nil }
-    guard let data = String(text[start...end]).data(using: .utf8) else { return nil }
-    return jsonCredentials(data)
+    return trimmed
   }
 
   private static func jsonCredentials(_ data: Data) -> Credentials? {
     guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-      let url = stringValue(object, keys: ["url"]),
-      let authorization = stringValue(object, keys: ["authorization", "header"])
+      let url = nonempty(stringValue(object, keys: ["url"])),
+      let authorization = nonempty(stringValue(object, keys: ["authorization", "header"]))
     else { return nil }
     return Credentials(url: url, authorization: authorization, capabilities: capabilityList(object))
   }
