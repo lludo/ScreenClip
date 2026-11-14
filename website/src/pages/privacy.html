@@ -1,0 +1,51 @@
+<article class="prose">
+      <p class="eyebrow">Privacy policy</p>
+      <h1>Privacy policy</h1>
+      <p class="updated">Updated November 14, 2026.</p>
+      <p>ScreenClip is a macOS menu bar app. You capture a region you select, optionally annotate it and add a note, and hand that report to a coding agent you configure. This policy describes what the app stores on your Mac, what can leave it, and what this website does.</p>
+
+      <h2>What stays on your Mac</h2>
+      <p>Reports, screenshots, notes, annotations, project settings, questions, and activity are stored on your Mac under <code>~/Library/Application Support/ScreenClip</code>. The queue is a SQLite database plus image files. Agent work runs in a Git worktree under that same folder. Your own project checkout is not the working directory.</p>
+      <p>A diagnostics log in that folder records build and API error metadata. It does not include screenshots, notes, browser URLs, or window titles.</p>
+      <p>If you save a Grok Bot webhook URL and Authorization header, they are stored in the macOS Keychain under <code>com.screenclip.app.external-assistant</code>. They are not written into the queue database.</p>
+      <p>ScreenClip does not create an account with ScreenClip. The app does not include analytics, advertising, or a crash reporter that sends data to ScreenClip. There is no ScreenClip server that receives your reports.</p>
+
+      <h2>Screen capture and optional context</h2>
+      <p>Screen Recording permission is used to capture the region you select. ScreenClip does not record the screen continuously, and it cannot reconstruct actions you never captured.</p>
+      <p>Each capture can include the source app name and bundle ID so the report can be routed to a project. If you turn on <strong>Read the active browser URL for project matching</strong>, ScreenClip may ask for Safari or Chrome automation and store the browser URL and window title with that capture. When that setting is off, those two fields are not collected.</p>
+
+      <h2>Redaction</h2>
+      <p>Redaction is a rectangle you draw with the redact tool. ScreenClip flattens those rectangles to opaque black in the screenshot it saves. Arrows, pen strokes, shapes, and text do not hide the pixels underneath.</p>
+      <p>When a capture has a redaction, the unredacted crop is not kept. It is not passed to an agent, pushed to GitHub, or included in a webhook.</p>
+
+      <h2>Codex and Claude Code</h2>
+      <p>Codex and Claude Code run on your Mac. ScreenClip passes the approved screenshot, your note, and the prompt to that local agent. ScreenClip does not upload those reports itself.</p>
+      <p>The agent uses the account you signed into: Codex through its app-server, Claude Code through its own login. That agent may send the prompt and images to its own provider under that account’s terms. ScreenClip starts these agents without GitHub tokens in their environment. ScreenClip, not the agent, pushes branches and opens pull requests for them.</p>
+
+      <h2>GitHub</h2>
+      <p>Pull request automation uses the GitHub CLI you install and the GitHub account that CLI is logged into. ScreenClip pushes a <code>screenclip/</code> branch, and for Codex and Claude Code it opens the pull request. It reads check status, and it merges only when automatic merge is enabled for that project and the checks and review rules pass.</p>
+      <p>The pull request body includes the agent’s summary, the project’s validation command with secret-like values redacted, and the report reference. The body states that screenshots and source context remain in ScreenClip. Screenshots are not attached to the pull request by default.</p>
+
+      <h2>Grok Bot</h2>
+      <p>Nothing is sent to Grok Bot until you save a webhook URL and Authorization header, and you turn on <strong>Allow sending screenshots to the external assistant</strong> for that project. The opt-in stays off until you enable it, including for private repositories.</p>
+      <p>ScreenClip then pushes the approved PNGs and a <code>report.json</code> file to a <code>screenclip/</code> branch in the project repository, and sends a small JSON webhook. The webhook does not contain image bytes. It includes the report number, issue id, revision, title, notes, later context notes, source app name, bundle ID, project name, repository, base branch, validation command, and the evidence branch, commit, and file paths. The browser URL and window title are included only when <strong>Read the active browser URL for project matching</strong> is on.</p>
+      <p>Anyone who can read that GitHub repository can read those files until they are removed. On a public repository, that includes anyone on the internet. Grok Bot opens the pull request from that branch. Cancel in ScreenClip stops the local record only. It does not stop Grok Bot. Questions from Grok Bot stay in Grok Bot’s chat, not in ScreenClip.</p>
+      <p>A redirect of the webhook to a different host does not include the Authorization header.</p>
+
+      <h2>Deleting data</h2>
+      <p>Delete a report in ScreenClip to remove its local screenshots and notes. That does not delete the agent’s own conversation history, or a pull request already opened on GitHub. Removing the app does not by itself delete <code>~/Library/Application Support/ScreenClip</code> or the Keychain item.</p>
+      <p>GitHub, and the provider behind the agent you signed into, keep what they received under their own terms.</p>
+
+      <h2>Tips</h2>
+      <p>ScreenClip is free. The app can show an optional tip window, and the same window is available from the menu and from Settings. Choosing a tip opens GitHub Sponsors in your browser. ScreenClip does not process the payment and does not receive card or payout details. You can dismiss the window or turn the prompt off. This website does not link to a payment page.</p>
+
+      <h2>This website</h2>
+      <p><a href="/">screenclipai.com</a> is a static website. Pages on this site set no cookies and load no third-party scripts, fonts, or analytics. The host that serves the site receives ordinary connection data, such as IP address and user agent, in order to deliver the page.</p>
+      <p>The download button goes to a GitHub Release of the Mac app. Other links, such as the repository and a donation link if one is configured later, leave this site for that destination.</p>
+
+      <h2>Contact</h2>
+      <p>Questions about this policy go through the <a href="/support">support page</a>.</p>
+
+      <h2>Changes</h2>
+      <p>Material changes to this policy will be posted on this page, with an updated date.</p>
+    </article>
