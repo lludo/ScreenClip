@@ -21,10 +21,11 @@ Separately from automatic dispatch, Codex and Claude Code can **read** the queue
 
 ## Detection and readiness
 
-`AgentDetector` (in `ScreenClipCore`) finds each local agent's executable, reads its version, and, where the agent supports it, its sign-in state. For Grok Bot, detected means the webhook URL and Authorization header are in the Keychain. Detection runs at launch and from **Detect agents** in Settings.
+`AgentDetector` (in `ScreenClipCore`) finds each local agent's executable, reads its version, and, where the agent supports it, its sign-in state. For Grok Bot, detected means the webhook URL and Authorization header are in the Keychain. Detection runs at launch, from **Detect agents** in Settings, and every minute while a queued report is held for an agent that is not ready. It searches Homebrew and system folders, common per-user install folders (`~/.local/bin`, `~/.bun/bin`, `~/.volta/bin` and similar), and the PATH your login shell sets up, so npm, nvm, Volta and bun installs are found when ScreenClip is opened from Finder.
 
 - Pickers list installed agents plus the current default, so the default never disappears. Grok Bot is always listed. In the capture window its row is disabled, with a hint, until it is configured and the project has opted in to sending screenshots.
-- The queue holds a queued issue whose agent detection reports missing, signed out, or not configured (`AgentDetection.usable == false`). Detecting again resumes it. The capture window warns when the selected local agent is not ready.
+- The queue holds a queued issue whose agent detection reports missing, signed out, or not configured (`AgentDetection.usable == false`), and Codex reports while Codex sign-in is known to be signed out. The once-a-minute check resumes them after you sign in or install the agent; **Detect agents** resumes them at once.
+- A run that fails because its agent is signed out goes back to the queue, held, instead of failing. It and the reports queued after it wait for sign-in. Because `claude auth status` can still say signed in (an expired token, for example), the automatic check keeps that agent held for 10 minutes after such a failure; **Detect agents** clears it immediately. The capture window warns when the selected local agent is not ready.
 - The queue sidebar shows the default agent's status (`AppModel.agentStatus`).
 
 ## The agent contract
@@ -49,6 +50,8 @@ Codex and Claude Code follow the same contract, so the rest of ScreenClip stays 
 **Conversation identity.** `Issue.threadID` holds the agent's conversation ID (a Codex thread or a Claude session UUID). Replies and new evidence continue the same conversation. `Issue.turnID` is non-nil while a turn runs.
 
 **Lifecycle hooks every agent implements:** dispatch (start or resume a turn), progress messages into the activity log, cancel, and reconcile after a restart or interruption.
+
+**Every turn ends.** A Claude Code or Codex turn running longer than 45 minutes (`AgentWorker.turnTimeLimit`) is stopped and the report fails with a note; Continue resumes the same conversation. Time a Codex turn spends waiting for your answer does not count. Cancel and the time limit stop the agent and every process it started, and kill whatever ignores SIGTERM after 3 seconds. Only reports ScreenClip is actually dispatching, running or publishing count toward the per-project parallel limit.
 
 ## Usage and cost
 

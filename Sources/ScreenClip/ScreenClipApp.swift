@@ -26,6 +26,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   var integrationTimer: Timer?
   var previewMode = false
   func applicationDidFinishLaunching(_ notification: Notification) {
+    // Child processes (agents, git, validation) can exit before reading what ScreenClip writes.
+    ProcessEnvironment.ignoreBrokenPipes()
     NSApp.setActivationPolicy(.accessory)
     do {
       let arguments = ProcessInfo.processInfo.arguments

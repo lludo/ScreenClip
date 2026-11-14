@@ -95,6 +95,7 @@ The webhook URL must use HTTPS (plain HTTP is accepted only for `localhost` test
 | Cancel | **Canceled**. The remote run is not stopped. |
 | Restart during the POST | **Failed**, with a note that Retry delivers the same revision. The evidence commit is kept. |
 | Restart after a successful send | Stays **Working** and keeps watching for the pull request. |
+| No pull request 2 hours after the send | Moves to **Needs you** once, with a notification. ScreenClip keeps watching and attaches a later pull request. **Continue** sends the same report again. |
 
 Polling looks for an open (or already merged) pull request whose head is the evidence branch and whose body contains `ScreenClip: #<reportNumber>`, about once a minute, and whenever **Refresh PR status** is used. A closed pull request is reported and not attached.
 

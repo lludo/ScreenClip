@@ -13,6 +13,7 @@ Codex was ScreenClip's first agent and is the default when no agent is chosen. S
 | Turn | `thread/start` or `thread/resume` with `cwd` set to the worktree, `approvalPolicy: on-request`, `sandbox: workspace-write`, then `turn/start` with the prompt, images as data URLs, and `outputSchema`. |
 | Questions | Typed user-input and approval requests from app-server appear under **Needs you** and are answered in ScreenClip. A structured `question` or `blocked` result also becomes **Needs you**. |
 | Open the conversation | **Open in Codex** uses `codex://threads/<id>`. |
+| Time limit | A turn still running after 45 minutes, not counting time waiting for your answer, is interrupted and the report fails. Continue resumes the same chat. |
 | Recovery | **Reconcile chat** reads the thread and its latest turn, and can recover a completed `implemented` result, which is validated again before publication. **Link existing chat…** binds a thread whose `cwd` matches the worktree. |
 | Usage | Not recorded yet. |
 | Known gap | Desktop sidebar project membership. See [repository association review](../validation.md#repository-association-review). |

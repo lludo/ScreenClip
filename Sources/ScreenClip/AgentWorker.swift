@@ -24,19 +24,31 @@ import ScreenClipCore
   var mergingProjects = Set<UUID>()
   var pendingRequests = Set<String>()
   var timer: Timer?
+  /// A turn running longer than this, not counting time spent waiting for the tester, is stopped.
+  var turnTimeLimit: TimeInterval = 45 * 60
+  /// How often agents holding queued reports are checked again.
+  var heldRecheckInterval: TimeInterval = 60
+  var lastCodexAuthCheck = Date.distantPast
+  /// Time limit for each running Codex turn, keyed by issue.
+  var codexTurnWatchdogs: [UUID: Task<Void, Never>] = [:]
   lazy var authentication = CodexAuthentication(
     request: { [unowned self] method, params in
       try await self.connect()
       return try await self.client.request(method, params: params)
     },
     openURL: { NSWorkspace.shared.open($0) },
-    statusChanged: { [unowned self] in self.model.connection = $0 }
+    statusChanged: { [unowned self] in
+      self.model.connection = $0
+      // Signing in releases Codex reports held while signed out.
+      self.pump()
+    }
   )
   init(model: AppModel) { self.model = model }
   func start() {
     timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
       Task { @MainActor in
         self?.pump()
+        await self?.recheckHeldAgents()
         await self?.refreshPullRequests(discoverInterval: 60)
       }
     }
@@ -44,6 +56,7 @@ import ScreenClipCore
       await model.refreshAgents()
       // Only probe Codex sign-in when Codex is present, so a Claude-only Mac shows no Codex error.
       if model.detection(.codex)?.installed != false { await checkConnection() }
+      await recoverClaudeAfterRestart()
     }
     pump()
   }
@@ -70,10 +83,9 @@ import ScreenClipCore
     guard !model.snapshot.settings.paused else { return }
     // Each report runs in its own worktree, so a project runs up to the configured number at once.
     let limit = model.snapshot.settings.parallelReportLimit
-    var running = model.snapshot.issues.filter {
-      jobs.contains($0.id) || dispatching.contains($0.id)
-        || ($0.status == .working && $0.resolvedAgent != .external)
-    }.reduce(into: [UUID: Int]()) { counts, issue in
+    // Count work ScreenClip is actually doing. A report left "working" without a job (after
+    // an interrupted publish, for example) must not hold a slot forever.
+    var running = model.snapshot.issues.filter { isActive($0.id) }.reduce(into: [UUID: Int]()) { counts, issue in
       if let projectID = issue.projectID { counts[projectID, default: 0] += 1 }
     }
     for issue in model.snapshot.issues
@@ -83,17 +95,63 @@ import ScreenClipCore
     {
       guard let project = model.project(issue.projectID), running[project.id, default: 0] < limit
       else { continue }
-      // Hold work for an agent that detection found missing, signed out, or not configured.
-      // Grok Bot stays queued until detection has seen a saved webhook, including before the first check.
-      if issue.resolvedAgent == .external {
-        if model.detection(.external)?.usable != true { continue }
-      } else if model.detection(issue.resolvedAgent)?.usable == false {
-        continue
-      }
+      if isHeld(issue.resolvedAgent) { continue }
       jobs.insert(issue.id)
       dispatching.insert(issue.id)
       running[project.id, default: 0] += 1
       Task { [model] in await model.worker.dispatch(issue.id) }
+    }
+  }
+  /// Whether queued work for `agent` waits: detection found it missing, signed out, or not
+  /// configured, or Codex sign-in is known to be signed out. Grok Bot stays queued until
+  /// detection has seen a saved webhook, including before the first check.
+  func isHeld(_ agent: AgentKind) -> Bool {
+    switch agent {
+    case .external: return model.detection(.external)?.usable != true
+    case .codex:
+      return model.detection(.codex)?.usable == false || authentication.state == .signedOut
+    case .claude: return model.detection(.claude)?.usable == false
+    }
+  }
+  /// While reports are held, check their agents again every `heldRecheckInterval`, so signing
+  /// in from Terminal or finishing an install resumes the queue without visiting Settings.
+  func recheckHeldAgents(now: Date = Date()) async {
+    guard !model.snapshot.settings.paused else { return }
+    let held = Set(
+      model.snapshot.issues.filter {
+        $0.status == .queued && !$0.archived && model.project($0.projectID) != nil
+      }.map(\.resolvedAgent)
+    ).filter(isHeld)
+    guard !held.isEmpty else { return }
+    if now.timeIntervalSince(model.lastAgentDetection) >= heldRecheckInterval {
+      await model.refreshAgents(automatic: true)
+    }
+    if held.contains(.codex), authentication.state == .signedOut,
+      now.timeIntervalSince(lastCodexAuthCheck) >= heldRecheckInterval
+    {
+      lastCodexAuthCheck = now
+      await authentication.check()
+      pump()
+    }
+  }
+  /// A run failed because its agent is signed out. Put the report back in the queue, held
+  /// until the agent is signed in, instead of failing it and every report queued after it.
+  func holdForSignIn(_ id: UUID, agent: AgentKind) {
+    jobs.remove(id)
+    model.agentReportedSignedOut(agent)
+    model.perform {
+      try model.updateIssue(id) {
+        $0.turnID = nil
+        $0.dispatchUncertain = false
+        $0.lastError = nil
+        $0.unread = true
+        $0.record(
+          "\(agent.title) is signed out. This report starts again once you sign in.",
+          status: .queued)
+      }
+    }
+    if let issue = model.issue(id) {
+      model.notify(issue, text: "\(agent.title) is signed out. Sign in to continue.")
     }
   }
   func dispatch(_ id: UUID) async {
@@ -143,6 +201,13 @@ import ScreenClipCore
       }
       try await runCodex(id, project: project, path: path)
     } catch {
+      if let agent = model.issue(id)?.resolvedAgent, agent != .external,
+        AgentDetector.isSignInError(error.localizedDescription),
+        model.issue(id)?.status == .working, model.issue(id)?.dispatchUncertain != true
+      {
+        holdForSignIn(id, agent: agent)
+        return
+      }
       jobs.remove(id)
       model.perform {
         try model.updateIssue(id) {
@@ -229,6 +294,7 @@ import ScreenClipCore
     } else if let thread = issue.threadID, let turn = issue.turnID {
       await interrupt(threadID: thread, turnID: turn)
     }
+    codexTurnWatchdogs.removeValue(forKey: id)?.cancel()
     jobs.remove(id)
   }
 }
