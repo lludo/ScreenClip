@@ -339,6 +339,15 @@ public struct AppSettings: Codable, Equatable {
   public var ghPath = "/opt/homebrew/bin/gh"
   public var model = ""
   public var paused = false
+  // Optional for compatibility with queues saved before parallel reports per project.
+  public var maxParallelReports: Int?
+  public static let parallelReportRange = 1...6
+  /// How many reports of one project may run at once; each runs in its own worktree.
+  public var parallelReportLimit: Int {
+    min(
+      max(maxParallelReports ?? 3, Self.parallelReportRange.lowerBound),
+      Self.parallelReportRange.upperBound)
+  }
   public var browserContext = false
   // Optional for compatibility with queues saved before this preference existed.
   public var hideScreenClipDuringCapture: Bool?
