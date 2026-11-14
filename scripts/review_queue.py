@@ -53,6 +53,7 @@ def searchable(issue):
     values = [issue.get(key) or "" for key in ("id", "title", "resultSummary", "lastError")]
     values.append(str(issue.get("reportNumber") or ""))
     values.extend(capture.get("note", "") for capture in issue.get("captures", []))
+    values.extend(note.get("text", "") for note in issue.get("contextNotes") or [])
     values.extend(activity.get("text", "") for activity in issue.get("activities", []))
     for question in issue.get("questions", []):
         values.extend([question.get("title", ""), question.get("reply") or ""])
@@ -109,7 +110,8 @@ def review(state, args):
             "project": names.get(issue.get("projectID"), "Unassigned"),
             "archived": bool(issue.get("archived")),
             "updatedAt": updated_at(issue.get("updatedAt")),
-            "notes": [capture.get("note", "") for capture in issue.get("captures", [])],
+            "notes": [capture.get("note", "") for capture in issue.get("captures", [])] +
+                     [note.get("text", "") for note in issue.get("contextNotes") or []],
             "pendingQuestions": [question.get("title", "") for question in
                                  issue.get("questions", []) if question.get("reply") is None],
             "latestActivity": [activity.get("text", "") for activity in

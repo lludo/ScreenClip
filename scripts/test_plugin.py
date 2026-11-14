@@ -64,6 +64,14 @@ class PluginTests(unittest.TestCase):
         self.save()
         found = json.loads(plugin.call("get_issue", {"issue_id": self.id})["content"][0]["text"])
         self.assertEqual(found["agent"], "claude")
+    def test_text_only_context_is_returned_with_legacy_default(self):
+        found = json.loads(plugin.call("get_issue", {"issue_id": self.id})["content"][0]["text"])
+        self.assertEqual(found["contextNotes"], [])
+        notes = [{"id": "note", "date": 123, "text": "Details added after filing"}]
+        self.issue["contextNotes"] = notes
+        self.save()
+        found = json.loads(plugin.call("get_issue", {"issue_id": self.id})["content"][0]["text"])
+        self.assertEqual(found["contextNotes"], notes)
     def test_claude_code_plugin_manifests(self):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / "plugins/screenclip/.claude-plugin/plugin.json").read_text())
