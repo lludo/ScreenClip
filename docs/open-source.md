@@ -4,7 +4,7 @@ ScreenClip is source-available under the [PolyForm Noncommercial License 1.0.0](
 
 The agent icons under `Sources/ScreenClip/Assets.xcassets` are from Lobe Icons and already carry an MIT notice in `Sources/ScreenClip/AgentIcons-LICENSE.txt`. That notice covers those icons. It is not a license for the app.
 
-The [secret-scan record](release/open-source-audit.md) covers history through `a1c72c6` (November 14, 2026). Every commit after that, including localization and the website locales, is outside that scan. Run the scan again before changing visibility.
+The [secret-scan record](release/open-source-audit.md) was repeated on November 14, 2026 through `e32f81b`. Branch tips are synthetic. Pull-request refs 24, 25, 26, 28, 29, and 30 still point at the pre-rewrite commits, and the tip of pull request 25 still contains the real queue snapshot. Replace or purge that history before changing visibility.
 
 The repository is private. These are the items that are still open. Other pages describe how a feature works today and link here instead of keeping a second checklist.
 
@@ -46,7 +46,7 @@ A tag push still starts the Release workflow. When none of the secrets are set, 
 
 ## Before the repository is public
 
-1. Rescan history from `a1c72c6` forward. The earlier scan did not require a history rewrite.
+1. Publish from a new repository or a single new commit, and have GitHub purge the pre-rewrite pull-request refs. The branch rewrite did not remove them. The path list is in the [open-source audit](release/open-source-audit.md#what-to-do-before-the-repository-is-public).
 2. Add root `CONTRIBUTING.md` and `SECURITY.md`, or accept that those files are still missing and that [Development](development.md#contributing) is the only contributing page.
 3. Replace the support-email placeholder if the public site should list an address.
 4. Decide whether the Sponsors link and `donateUrl` should go live with the first public download.
