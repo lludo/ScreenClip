@@ -291,6 +291,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       styleMask: [.titled, .closable, .miniaturizable, .resizable], backing: .buffered, defer: false
     )
     window.title = title
+    window.toolbarStyle = .unifiedCompact
+    window.titlebarAppearsTransparent = false
     window.isReleasedWhenClosed = false
     window.center()
     window.contentViewController = NSHostingController(rootView: view)

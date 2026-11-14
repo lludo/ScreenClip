@@ -197,6 +197,19 @@ import UserNotifications
   }
   func openCodex(_ issue: Issue) { if let url = issue.codexURL { NSWorkspace.shared.open(url) } }
   func markRead(_ id: UUID) { perform { try updateIssue(id) { $0.unread = false } } }
+  func setArchived(_ id: UUID, archived: Bool) {
+    perform {
+      guard let issue = issue(id) else { throw ScreenClipError.message("Report no longer exists.") }
+      guard !archived || issue.canArchive else {
+        throw ScreenClipError.message("Cancel active work before archiving this report.")
+      }
+      guard issue.archived != archived else { return }
+      try updateIssue(id) {
+        $0.archived = archived
+        $0.record(archived ? "Report archived; evidence retained" : "Report restored from archive")
+      }
+    }
+  }
   func openCaptureSettings() {
     if let url = URL(
       string: "x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture")

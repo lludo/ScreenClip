@@ -206,6 +206,22 @@ public struct Issue: Codable, Identifiable, Equatable {
     dispatchUncertain = false
   }
   public var codexURL: URL? { threadID.flatMap { URL(string: "codex://threads/\($0)") } }
+  public var canArchive: Bool {
+    !dispatchUncertain && ![.working, .queued, .prOpen].contains(status)
+      && questions.allSatisfy { $0.requestID == nil || $0.reply != nil }
+  }
+  public func matchesFeedback(_ query: String) -> Bool {
+    let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    if text.isEmpty { return true }
+    return title.localizedCaseInsensitiveContains(text)
+      || captures.contains { $0.note.localizedCaseInsensitiveContains(text) }
+      || resultSummary?.localizedCaseInsensitiveContains(text) == true
+      || activities.contains { $0.text.localizedCaseInsensitiveContains(text) }
+      || questions.contains {
+        $0.title.localizedCaseInsensitiveContains(text)
+          || $0.reply?.localizedCaseInsensitiveContains(text) == true
+      }
+  }
   public mutating func add(_ capture: Capture) {
     repairAttempts = 0
     if [.merged, .verified].contains(status) {

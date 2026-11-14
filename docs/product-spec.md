@@ -80,6 +80,8 @@ Proposed compact menu bar label: icon plus the count of submitted, unresolved is
 | Issue detail | Ordered images and notes, captured context, concise activity, questions and replies, Codex link, PR link, validation result |
 | Queue window | All issues, project/status filters, search, drafts, archive |
 
+The queue has resizable panes with a status filter and feedback search above the report list. Search includes capture notes, questions, replies, results, and activity. Archive and Restore are available directly in report details and the report row's context menu; archiving retains screenshots, status, and PR/merge evidence. Active work and outstanding agent permission requests must be canceled or resolved before archiving. The composer uses the regular macOS close control with its existing discard confirmation.
+
 Counts represent issues, so adding a second screenshot to an existing issue does not increment the count. Drafts are counted separately. **Merged** issues leave the active count and appear under **To retest**. Keep row positions stable during updates; offer explicit sorting and filtering.
 
 Notify on a question, blocked run, or completed merge. Do not interrupt testing with a notification for every agent action. Clicking a notification opens the relevant issue. Notification permission is optional; the queue remains usable without it.
