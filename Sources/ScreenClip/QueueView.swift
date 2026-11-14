@@ -52,6 +52,7 @@ struct QueueView: View {
   @State private var selection: SidebarSelection
   @State private var projectFilter: UUID?
   @State private var agentFilter: AgentKind?
+  @State private var showingFilters = false
   @State private var search = ""
   init(
     model: AppModel, selection: SidebarSelection = .status(.active),
@@ -199,39 +200,28 @@ struct QueueView: View {
   private func filterCount(project: UUID? = nil, agent: AgentKind? = nil) -> Int {
     model.snapshot.issues.filter { filter.includes($0, projectID: project, agent: agent) }.count
   }
-  private func filterOption(_ title: String, symbol: String? = nil, count: Int) -> some View {
-    HStack {
-      if let symbol { Image(systemName: symbol) }
-      Text(title)
-      Spacer()
-      Text("\(count)").foregroundStyle(.secondary)
-    }
+  private func filterOption(
+    _ title: String, symbol: String? = nil, count: Int, selected: Bool, action: @escaping () -> Void
+  ) -> some View {
+    Button {
+      action()
+      showingFilters = false
+    } label: {
+      HStack(spacing: 8) {
+        Image(systemName: selected ? "checkmark" : "circle.fill")
+          .opacity(selected ? 1 : 0).frame(width: 12)
+        if let symbol { Image(systemName: symbol).frame(width: 16) }
+        Text(title)
+        Spacer(minLength: 16)
+        Text("\(count)").foregroundStyle(.secondary).monospacedDigit()
+      }
+      .padding(.horizontal, 8).padding(.vertical, 5)
+      .contentShape(Rectangle())
+    }.buttonStyle(.plain)
   }
   /// Counts reflect the current status and the other active filter.
   private var filterMenu: some View {
-    Menu {
-      Picker("Projects", selection: $projectFilter) {
-        filterOption("All projects", symbol: "square.grid.2x2", count: filterCount(agent: agentFilter))
-          .tag(UUID?.none)
-        ForEach(model.snapshot.projects) { project in
-          let count = filterCount(project: project.id, agent: agentFilter)
-          if count > 0 || projectFilter == project.id {
-            filterOption(project.name, symbol: project.displaySymbol, count: count)
-              .tag(Optional(project.id))
-          }
-        }
-      }.pickerStyle(.inline)
-      Picker("AI agents", selection: $agentFilter) {
-        filterOption("All AI agents", symbol: "sparkles", count: filterCount(project: projectFilter))
-          .tag(AgentKind?.none)
-        ForEach(AgentKind.allCases) { agent in
-          let count = filterCount(project: projectFilter, agent: agent)
-          if count > 0 || agentFilter == agent {
-            filterOption(agent.title, count: count).tag(Optional(agent))
-          }
-        }
-      }.pickerStyle(.inline)
-    } label: {
+    Button { showingFilters.toggle() } label: {
       HStack(spacing: 5) {
         Image(systemName: isFiltered
           ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
@@ -244,8 +234,31 @@ struct QueueView: View {
       .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
       .contentShape(Rectangle())
     }
-    .menuStyle(.borderlessButton)
+    .buttonStyle(.plain)
     .frame(maxWidth: .infinity)
+    .popover(isPresented: $showingFilters, arrowEdge: .bottom) {
+      VStack(alignment: .leading, spacing: 2) {
+        Text("Projects").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+          .padding(.horizontal, 8).padding(.top, 4)
+        filterOption("All projects", symbol: "square.grid.2x2", count: filterCount(agent: agentFilter), selected: projectFilter == nil) { projectFilter = nil }
+        ForEach(model.snapshot.projects) { project in
+          let count = filterCount(project: project.id, agent: agentFilter)
+          if count > 0 || projectFilter == project.id {
+            filterOption(project.name, symbol: project.displaySymbol, count: count, selected: projectFilter == project.id) { projectFilter = project.id }
+          }
+        }
+        Divider().padding(.vertical, 4)
+        Text("AI agents").font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+          .padding(.horizontal, 8)
+        filterOption("All AI agents", symbol: "sparkles", count: filterCount(project: projectFilter), selected: agentFilter == nil) { agentFilter = nil }
+        ForEach(AgentKind.allCases) { agent in
+          let count = filterCount(project: projectFilter, agent: agent)
+          if count > 0 || agentFilter == agent {
+            filterOption(agent.title, symbol: "sparkles", count: count, selected: agentFilter == agent) { agentFilter = agent }
+          }
+        }
+      }.padding(8).frame(minWidth: 210)
+    }
     .help(isFiltered ? "Showing \(filterSummary)" : "Filter reports by project and AI agent")
     .accessibilityLabel("Filter: \(filterSummary)")
   }
