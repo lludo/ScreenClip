@@ -41,25 +41,13 @@ The source review added a regression that reproduced two chats and turns being c
 
 November 14, 2026. Grok Bot is implemented as `AgentKind.external` and documented in [external-assistant.md](agents/external-assistant.md). Approved screenshots are pushed to `screenclip/<reportNumber>-<slug>`; the webhook schema `screenclip.external.v1` does not carry image bytes. `report.json` uses the same fields, with `evidence.commit` null because that file cannot contain its own commit id.
 
-The change was made on Linux. This machine has no Swift toolchain and cannot build the macOS app target or run the AppKit/SwiftUI tests.
+The change was written on Linux, which has no Swift toolchain. GitHub Actions then ran the suite on macos-15 (arm64). After a slug-length fix, the macOS workflow passed `bash scripts/test.sh`, the Python tests (`test_plugin.py`, `test_review_queue.py`, `test_external_assistant.py`), and the Xcode Debug and Release builds.
 
-**Verified here**
+`bash scripts/test.sh` covers `ExternalAssistantTests` (payload encoding, slug and branch names, opt-in, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, and the Authorization header on a test POST) and `ExternalAssistantAppTests` (Grok Bot stays in the agent list, submit refuses it until the webhook is configured and the project opts in, and a restart during the POST stays retryable). One slug-length failure on the first green-compile run was fixed before the passing run.
 
-- `python3 scripts/test_external_assistant.py` passed. It checks that `scripts/send_test_webhook.py` posts `{"schema":"screenclip.external.v1.test"}`, sends `SCREENCLIP_AUTHORIZATION` verbatim as the `Authorization` header, and returns the HTTP status for both a 204 and a 401.
-- `git check-ref-format --branch` accepts `screenclip/<number>-<slug>`.
-- The Swift sources were reviewed against the existing worker, settings, composer, and merge paths. They were not compiled.
+**Still not exercised**
 
-**Not verified here — run on a Mac**
-
-```sh
-bash scripts/test.sh
-python3 scripts/test_plugin.py
-python3 scripts/test_review_queue.py
-python3 scripts/test_external_assistant.py
-bash scripts/build.sh
-```
-
-`bash scripts/test.sh` includes `ExternalAssistantTests` in ScreenClipCore (payload encoding, slug and branch names, opt-in, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, and the Authorization header on a test POST) and `ExternalAssistantAppTests` (Grok Bot stays in the agent list, submit refuses it until the webhook is configured and the project opts in, and a restart during the POST stays retryable). The Xcode Debug and Release builds were not run. A live webhook, an evidence push, pull-request discovery, and auto-merge while `.screenclip/` is still present were not exercised.
+A live webhook, an evidence push to a real repository, pull-request discovery, and auto-merge while `.screenclip/` is still present. Those need a configured assistant and a GitHub repository.
 
 ## Local agent and queue review
 
@@ -118,7 +106,7 @@ The GitHub fixture setup helper requires an explicit `OWNER/screenclip-integrati
 
 ## Remaining hands-on and distribution checks
 
-- Grok Bot still needs a Mac run of `bash scripts/test.sh` and an Xcode build, plus a live webhook, evidence push, pull-request discovery, and the `.screenclip/` auto-merge guard. See [External assistant (Grok Bot)](#external-assistant-grok-bot).
+- Grok Bot's Swift tests and Xcode Debug/Release builds passed on GitHub Actions (macos-15). A live webhook, evidence push, pull-request discovery, and the `.screenclip/` auto-merge guard still need a configured assistant and a repository. See [External assistant (Grok Bot)](#external-assistant-grok-bot).
 
 - Basic screen permission, region selection, annotation, submission, and grant retention after the installed update are confirmed. Debug/Release designated requirements also match. Verify the intended crop of each ScreenClip surface with hiding both on and off.
 - Verify capture on each physical monitor, mixed scales, negative display origins, full-screen Spaces, transient menus, Escape, and return-to-source focus. Selection currently stays on the display where dragging starts; a rectangle spanning two displays is not implemented.
