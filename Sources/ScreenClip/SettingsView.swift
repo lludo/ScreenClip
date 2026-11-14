@@ -17,17 +17,6 @@ struct SettingsView: View {
   @State private var grokConnectPresentation = 0
   var body: some View {
     VStack(spacing: 0) {
-      HStack(spacing: 0) {
-        ForEach(Array(["General", "Projects", "Connections"].enumerated()), id: \.offset) { index, title in
-          Button(title) { tab = index }
-            .buttonStyle(SettingsTabButtonStyle(isSelected: tab == index))
-            .accessibilityAddTraits(tab == index ? .isSelected : [])
-        }
-      }
-      .padding(2)
-      .background(.quaternary.opacity(0.45), in: Capsule())
-      .padding(.vertical, 8)
-      Divider()
       Group {
         if tab == 0 {
         Form {
@@ -248,6 +237,19 @@ struct SettingsView: View {
         }.buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
       }.padding(16)
     }.frame(width: 700, height: 680)
+      .toolbar {
+        ToolbarItem(placement: .principal) {
+          HStack(spacing: 0) {
+            ForEach(Array(["General", "Projects", "Connections"].enumerated()), id: \.offset) { index, title in
+              Button(title) { tab = index }
+                .buttonStyle(SettingsTabButtonStyle(isSelected: tab == index))
+                .accessibilityAddTraits(tab == index ? .isSelected : [])
+            }
+          }
+          .padding(2)
+          .background(.quaternary.opacity(0.45), in: Capsule())
+        }
+      }
       .onAppear {
         settings = model.snapshot.settings
         reloadGrokConnection()
