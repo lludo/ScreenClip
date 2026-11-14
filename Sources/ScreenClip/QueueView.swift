@@ -374,7 +374,7 @@ struct QueueView: View {
               ).foregroundStyle(.secondary).monospacedDigit().fixedSize()
             }
             .padding(.vertical, 4).contentShape(Rectangle())
-            .fontWeight(selection == .status(item) ? .semibold : .regular)
+            .fontWeight(selection == .status(item) ? .bold : .regular)
           }.buttonStyle(.plain)
             .listRowBackground(sidebarHighlight(selection == .status(item)))
             .accessibilityAddTraits(selection == .status(item) ? .isSelected : [])
@@ -388,7 +388,7 @@ struct QueueView: View {
             selection = .project(project.id)
           } label: {
             Label(project.name, systemImage: project.displaySymbol)
-              .fontWeight(selection == .project(project.id) ? .semibold : .regular)
+              .fontWeight(selection == .project(project.id) ? .bold : .regular)
               .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
           }.buttonStyle(.plain).help(
             Text(chrome: "Project settings", comment: "Opens settings for this project."))
@@ -403,7 +403,7 @@ struct QueueView: View {
           } icon: {
             Image(systemName: "plus")
           }
-          .fontWeight(selection == .newProject ? .semibold : .regular)
+          .fontWeight(selection == .newProject ? .bold : .regular)
           .foregroundStyle(selection == .newProject ? Color.primary : Color.secondary)
           .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
         }.buttonStyle(.plain)
@@ -422,7 +422,7 @@ struct QueueView: View {
       .foregroundStyle(Color(nsColor: .secondaryLabelColor))
       .fixedSize(horizontal: false, vertical: true)
   }
-  /// Finder-style selection: a rounded neutral pill behind the row, with bolder text.
+  /// Finder-style selection: a rounded neutral pill behind the row, with bold text.
   @ViewBuilder private func sidebarHighlight(_ selected: Bool) -> some View {
     if selected {
       RoundedRectangle(cornerRadius: 8, style: .continuous)
