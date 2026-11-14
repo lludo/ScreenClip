@@ -16,7 +16,7 @@ struct WelcomeView: View {
       }
       VStack(alignment: .leading, spacing: 18) {
         step("1", "Add your projects", "Map a website or Mac app to its repository.")
-        step("2", "Connect an agent", "Detect Codex or Claude Code, choose a default, and sign in.")
+        step("2", "Connect an agent", "Codex, Claude Code, or Grok Bot. Choose a default.")
         step("3", "Capture an observation", "Select a region, add a note, and submit.")
       }
       HStack {

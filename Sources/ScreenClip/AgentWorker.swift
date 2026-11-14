@@ -17,6 +17,7 @@ import ScreenClipCore
   var publishing = Set<UUID>()
   var finishing = Set<UUID>()
   var refreshing = Set<UUID>()
+  var lastExternalDiscovery = Date.distantPast
   var mergingProjects = Set<UUID>()
   var pendingRequests = Set<String>()
   var timer: Timer?
@@ -33,7 +34,7 @@ import ScreenClipCore
     timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
       Task { @MainActor in
         self?.pump()
-        await self?.refreshPRs()
+        await self?.refreshPullRequests(discoverInterval: 60)
       }
     }
     Task {
@@ -67,7 +68,8 @@ import ScreenClipCore
     // Each report runs in its own worktree, so a project runs up to the configured number at once.
     let limit = model.snapshot.settings.parallelReportLimit
     var running = model.snapshot.issues.filter {
-      jobs.contains($0.id) || dispatching.contains($0.id) || $0.status == .working
+      jobs.contains($0.id) || dispatching.contains($0.id)
+        || ($0.status == .working && $0.resolvedAgent != .external)
     }.reduce(into: [UUID: Int]()) { counts, issue in
       if let projectID = issue.projectID { counts[projectID, default: 0] += 1 }
     }
@@ -78,8 +80,13 @@ import ScreenClipCore
     {
       guard let project = model.project(issue.projectID), running[project.id, default: 0] < limit
       else { continue }
-      // Hold work for an agent that detection found missing or signed out; detecting again resumes it.
-      if model.detection(issue.resolvedAgent)?.usable == false { continue }
+      // Hold work for an agent that detection found missing, signed out, or not configured.
+      // Grok Bot stays queued until detection has seen a saved webhook, including before the first check.
+      if issue.resolvedAgent == .external {
+        if model.detection(.external)?.usable != true { continue }
+      } else if model.detection(issue.resolvedAgent)?.usable == false {
+        continue
+      }
       jobs.insert(issue.id)
       dispatching.insert(issue.id)
       running[project.id, default: 0] += 1
@@ -99,6 +106,10 @@ import ScreenClipCore
       issue = model.issue(id) ?? issue
       guard issue.status == .queued && jobs.contains(id) else {
         jobs.remove(id)
+        return
+      }
+      if issue.resolvedAgent == .external {
+        await runExternal(id, project: project)
         return
       }
       try model.updateIssue(id) {
@@ -190,6 +201,17 @@ import ScreenClipCore
   }
   func cancel(_ id: UUID) async {
     guard let issue = model.issue(id) else { return }
+    if issue.resolvedAgent == .external {
+      model.perform {
+        try model.updateIssue(id) {
+          $0.dispatchUncertain = false
+          $0.turnID = nil
+          $0.record(ExternalAssistant.canceledActivity, status: .canceled)
+        }
+      }
+      jobs.remove(id)
+      return
+    }
     // Cancellation is recorded before interrupting, so late events cannot publish the result.
     model.perform {
       try model.updateIssue(id) {

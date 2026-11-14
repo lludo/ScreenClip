@@ -361,9 +361,9 @@ import XCTest
     XCTAssertEqual(model.snapshot.issues.first?.status, .queued)
     XCTAssertNil(model.snapshot.issues.first?.worktreePath)
     // Detection lists installed agents plus the default, which stays selectable.
-    XCTAssertEqual(model.availableAgents, [.codex, .claude])
+    XCTAssertEqual(model.availableAgents, [.codex, .claude, .external])
     model.agents[0].version = nil
-    XCTAssertEqual(model.availableAgents, [.codex])
+    XCTAssertEqual(model.availableAgents, [.codex, .external])
   }
   func testProjectRunsQueuedReportsInParallelUpToTheLimit() async throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(

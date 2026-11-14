@@ -21,14 +21,15 @@ public enum IssueStatus: String, Codable, CaseIterable, Identifiable {
   public var needsAttention: Bool { [.needsProject, .needsYou, .failed].contains(self) }
 }
 
-/// The local coding agent that investigates and fixes an issue.
+/// Where a report is handled. `external` is Grok Bot, a remote assistant rather than a local CLI.
 public enum AgentKind: String, Codable, CaseIterable, Identifiable, Sendable {
-  case codex, claude
+  case codex, claude, external
   public var id: String { rawValue }
   public var title: String {
     switch self {
     case .codex: return "Codex"
     case .claude: return "Claude Code"
+    case .external: return "Grok Bot"
     }
   }
 }
@@ -42,6 +43,9 @@ public struct Project: Codable, Identifiable, Equatable {
   public var bundleIDs: [String]
   public var validationCommand: String
   public var autoMerge: Bool
+  /// Off until a project explicitly allows approved screenshots to leave the Mac for Grok Bot.
+  public var allowExternalScreenshots: Bool? = nil
+  public var sendsExternalScreenshots: Bool { allowExternalScreenshots ?? false }
   public init(
     id: UUID = UUID(), name: String, path: String, baseBranch: String = "main",
     origins: [String] = [], bundleIDs: [String] = [], validationCommand: String = "",
@@ -214,6 +218,9 @@ public struct Issue: Codable, Identifiable, Equatable {
   public var checkSummary: String?
   // Optional so queues from earlier versions decode; those issues were always Codex issues.
   public var agent: AgentKind?
+  /// Evidence commit already pushed for this revision. A retry of the same revision reuses it.
+  public var handoffRevision: Int? = nil
+  public var handoffCommit: String? = nil
   public var resolvedAgent: AgentKind { agent ?? .codex }
   public init(
     id: UUID = UUID(), projectID: UUID?, title: String, capture: Capture, draft: Bool = false,
@@ -248,6 +255,15 @@ public struct Issue: Codable, Identifiable, Equatable {
       "'\(value.replacingOccurrences(of: "'", with: "'\\''"))'"
     }
     return "cd \(quote(worktreePath)) && claude --resume \(quote(threadID))"
+  }
+  /// Grok Bot has no deep link. The pull request is the link once it exists.
+  public var externalConversationNote: String? {
+    guard resolvedAgent == .external, prURL == nil else { return nil }
+    return ExternalAssistant.conversationNote
+  }
+  public var wantsAttention: Bool {
+    status.needsAttention
+      || (status == .prOpen && checkSummary == ExternalAssistant.evidenceStillPresentSummary)
   }
   public var reportReference: String? { reportNumber.map { "#\($0)" } }
   public var referencedTitle: String {
@@ -294,7 +310,10 @@ public struct Issue: Codable, Identifiable, Equatable {
     revision += 1
     updatedAt = Date()
     archived = false
-    if ![.working, .needsYou].contains(status) {
+    if resolvedAgent == .external {
+      // A new revision is another handoff on the same branch, including while a PR is open.
+      status = projectID == nil ? .needsProject : .queued
+    } else if ![.working, .needsYou].contains(status) {
       status = projectID == nil ? .needsProject : .queued
     }
     activities.append(Activity("Added capture \(captures.count)"))
@@ -304,7 +323,10 @@ public struct Issue: Codable, Identifiable, Equatable {
     contextNotes = (contextNotes ?? []) + [ContextNote(text)]
     revision += 1
     archived = false
-    if ![.draft, .working, .needsYou].contains(status) {
+    if resolvedAgent == .external && status != .draft {
+      // A new revision is another handoff on the same branch, including while a PR is open.
+      status = projectID == nil ? .needsProject : .queued
+    } else if ![.draft, .working, .needsYou].contains(status) {
       status = projectID == nil ? .needsProject : .queued
     }
     record("Context added")
@@ -319,6 +341,8 @@ public struct Issue: Codable, Identifiable, Equatable {
       prURL = nil
       prHead = nil
       mergeCommit = nil
+      handoffCommit = nil
+      handoffRevision = nil
     }
   }
   public mutating func record(_ text: String, status: IssueStatus? = nil, kind: String = "update") {
@@ -387,6 +411,6 @@ public struct StoreSnapshot: Codable {
   }
   public var activeCount: Int { issues.filter { !$0.archived && $0.status.isActive }.count }
   public var attentionCount: Int {
-    issues.filter { !$0.archived && $0.status.needsAttention }.count
+    issues.filter { !$0.archived && $0.wantsAttention }.count
   }
 }

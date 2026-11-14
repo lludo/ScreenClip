@@ -292,6 +292,11 @@ extension AgentWorker {
   }
   func reconcile(_ id: UUID, linkingThread: String? = nil) async {
     guard let issue = model.issue(id) else { return }
+    if issue.resolvedAgent == .external {
+      model.banner =
+        "The conversation is in Grok Bot's chat. ScreenClip cannot open or reconcile it from here."
+      return
+    }
     if issue.resolvedAgent == .claude {
       await reconcileClaude(id, linkingSession: linkingThread)
       return

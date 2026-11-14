@@ -1,6 +1,6 @@
 # Optional ScreenClip plugin
 
-This local MCP plugin lets a Codex or Claude Code session read the queue, notes, approved screenshots, and status. The native ScreenClip app owns automatic dispatch, replies, publication, and merge verification. This bridge is read-only to avoid competing agents and queue writers.
+This local MCP plugin lets a Codex or Claude Code session read the queue, notes, approved screenshots, and status. Grok Bot does not install this plugin; its questions stay in Grok Bot's chat. The native ScreenClip app owns automatic dispatch, replies, publication, and merge verification. This bridge is read-only to avoid competing agents and queue writers.
 
 Requires Python 3.9+ and local execution. Add this folder to a local plugin marketplace using the supported Codex plugin setup, or configure the MCP server directly in Codex with `python3 /absolute/path/to/plugins/screenclip/server.py`. No cloud service or lifecycle hook is required.
 
