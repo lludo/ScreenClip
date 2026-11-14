@@ -23,7 +23,20 @@ A native macOS menu bar app for the small things you notice: a clipped button, c
   </tr>
 </table>
 
-*The menu-bar surroundings have been simplified; the capture editor uses sample data.*
+*The menu-bar surroundings have been simplified; the capture editor above uses sample data.*
+
+### From selection to observation
+
+<table>
+  <tr>
+    <th>1. Select an area</th>
+    <th>2. Add your observation</th>
+  </tr>
+  <tr>
+    <td><img src="docs/screenshots/capture-selection.png" alt="Selecting a region of the screen to capture, with the selection crosshair restored."></td>
+    <td><img src="docs/screenshots/capture-annotation.png" alt="The selected region in ScreenClip's annotation editor, ready for a note and submission."></td>
+  </tr>
+</table>
 
 ## Download
 
