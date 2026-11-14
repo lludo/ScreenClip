@@ -8,7 +8,7 @@ ScreenClip captures an observation and hands it to a coding agent. Codex and Cla
 | --- | --- | --- | --- | --- | --- |
 | Codex | `codex app-server` (long-lived JSON-RPC over stdio) | Codex thread ID | `codex://threads/<id>` | ChatGPT or API key through app-server | [codex.md](codex.md) |
 | Claude Code | `claude -p` (one stream-json process per turn) | Session UUID chosen by ScreenClip | Copy `cd <worktree> && claude --resume <id>` | `claude auth login` in Terminal | [claude-code.md](claude-code.md) |
-| Grok Bot | Webhook `screenclip.external.v1` after a Git push of approved screenshots | Report number and `screenclip/<number>-<slug>-<workspace>` branch | Pull request link, or a note that the chat is in Grok Bot | **Connect Grok Bot** with a setup code or `screenclip://connect` link. The address and secret stay in the Keychain | [external-assistant.md](external-assistant.md) |
+| Grok Bot | Webhook `screenclip.external.v1` after a Git push of approved screenshots | Report number and `screenclip/<number>-<slug>-<workspace>` branch | Pull request link, or a note that the chat is in Grok Bot | **Connect Grok Bot** with **POST to** and **key** (or **header**) from the ScreenClip reports routine. The address and secret stay in the Keychain | [external-assistant.md](external-assistant.md) |
 
 Separately from automatic dispatch, Codex and Claude Code can **read** the queue through the optional MCP plugin. See [the plugin README](../../plugins/screenclip/README.md).
 
@@ -16,8 +16,9 @@ For agent-specific investigation and handoff prompts, see [Claude Code and Grok 
 
 ## Choosing an agent
 
-- **Default agent.** Settings → Connections → **AI agent** → **Default agent** sets `AppSettings.defaultAgent`. Missing in older queues means Codex.
-- **Per report.** The capture window's **Agent** picker starts at the default and can be changed for a new report or a draft. The choice is stamped on the issue (`Issue.agent`).
+- **System default.** Settings → Connections → **AI agent** → **System default** sets `AppSettings.defaultAgent`. Missing in older queues means Codex.
+- **Project default.** Project settings stores either inherit (`defaultAgent` null) or an explicit provider. Inherit follows the system default. An explicit provider stays when the system default changes. An older project with screenshot sharing on migrates to Grok Bot; every other older project inherits.
+- **Per report.** The capture window's **Agent** picker starts at the project's effective default and can be changed for a new report or a draft. The choice is stamped on the issue (`Issue.agent`).
 - **Follow-ups keep their agent.** Adding a capture to a submitted issue locks the picker to that issue's agent, because conversation IDs are not interchangeable between agents. Switching a submitted issue to another agent is not supported; cancel it and submit a new report.
 - **Older issues** have no `agent` field and resolve to Codex (`Issue.resolvedAgent`).
 
@@ -25,10 +26,10 @@ For agent-specific investigation and handoff prompts, see [Claude Code and Grok 
 
 `AgentDetector` (in `ScreenClipCore`) finds each local agent's executable, reads its version, and, where supported, its sign-in state. For Grok Bot, detection checks the connection saved in the Keychain. Detection runs at launch, from **Detect agents** in Settings, and every minute while a queued report is held for an agent that is not ready. It searches Homebrew and system folders, common per-user install folders, and the login shell's PATH.
 
-- Settings lists installed agents and the current default. The capture window offers usable agents, including Grok Bot only when connected and the project has opted in to sending screenshots. A follow-up retains its original agent.
+- Settings lists installed agents and the system default. The capture window offers connected providers, including Grok Bot once its webhook is saved. If Grok Bot is chosen while screenshot sharing is off, the capture window shows the opt-in note and does not send. A follow-up retains its original agent.
 - The queue holds a queued issue whose agent detection reports missing, signed out, or not configured (`AgentDetection.usable == false`), and Codex reports while Codex sign-in is known to be signed out. The once-a-minute check resumes them after you sign in or install the agent; **Detect agents** resumes them at once.
 - A run that fails because its agent is signed out goes back to the queue, held, instead of failing. It and the reports queued after it wait for sign-in. Because `claude auth status` can still say signed in (an expired token, for example), the automatic check keeps that agent held for 10 minutes after such a failure; **Detect agents** clears it immediately.
-- The queue sidebar shows the default agent's status (`AppModel.agentStatus`).
+- The queue sidebar shows each provider's status (`AppModel.agentStatus`) as **Codex ready**, **Claude Code ready**, or **Grok Bot ready**, and the same shape for not connected, not found, and sign-in.
 
 ## The agent contract
 

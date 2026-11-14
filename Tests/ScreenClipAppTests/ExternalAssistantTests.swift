@@ -47,7 +47,7 @@ import XCTest
         context: CaptureContext(), projectID: project.id, existingID: nil, draft: false,
         agent: .external)
     ) { error in
-      XCTAssertTrue(error.localizedDescription.contains("Not connected"))
+      XCTAssertTrue(error.localizedDescription.contains("Grok Bot is not connected"))
     }
     model.loadExternalAssistant = {
       ExternalAssistantConfiguration(

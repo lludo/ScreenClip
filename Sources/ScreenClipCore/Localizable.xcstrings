@@ -3763,266 +3763,398 @@
         }
       }
     },
-    "Paste the setup code Grok Bot gave you.": {
+    "Paste the Webhook URL on one line and the Authorization header on the next. Copy both from the ScreenClip reports routine in Grok Bot.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Paste the setup code Grok Bot gave you."
+            "value": "Paste the Webhook URL on one line and the Authorization header on the next. Copy both from the ScreenClip reports routine in Grok Bot."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请粘贴 Grok Bot 给你的设置代码。"
+            "value": "请把 Webhook URL 放在一行，下一行放 Authorization 标头。两者都从 Grok Bot 的 ScreenClip reports 例程复制。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pega el código de configuración que te dio Grok Bot."
+            "value": "Pega la URL del webhook en una línea y el encabezado Authorization en la siguiente. Copia ambos de la rutina ScreenClip reports en Grok Bot."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot からもらったセットアップコードを貼り付けてください。"
+            "value": "Webhook URL を 1 行目に、Authorization ヘッダーを次の行に貼り付けてください。どちらも Grok Bot の ScreenClip reports ルーチンからコピーします。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cole o código de configuração que o Grok Bot deu a você."
+            "value": "Cole a URL do webhook em uma linha e o cabeçalho Authorization na seguinte. Copie os dois da rotina ScreenClip reports no Grok Bot."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Füge den Einrichtungscode ein, den Grok Bot dir gegeben hat."
+            "value": "Füge die Webhook-URL in eine Zeile ein und den Authorization-Header in die nächste. Kopiere beides aus der Routine ScreenClip reports in Grok Bot."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Collez le code de configuration que Grok Bot vous a donné."
+            "value": "Collez l’URL du webhook sur une ligne et l’en-tête Authorization sur la suivante. Copiez les deux depuis la routine ScreenClip reports dans Grok Bot."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot이 준 설정 코드를 붙여 넣으세요."
+            "value": "Webhook URL은 한 줄에, Authorization 헤더는 다음 줄에 붙여 넣으세요. 둘 다 Grok Bot의 ScreenClip reports 루틴에서 복사합니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Вставьте код настройки, который дал Grok Bot."
+            "value": "Вставьте URL вебхука на одну строку, а заголовок Authorization — на следующую. Скопируйте оба из процедуры ScreenClip reports в Grok Bot."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "請貼上 Grok Bot 給你的設定代碼。"
+            "value": "請把 Webhook URL 放在一行，下一行放 Authorization 標頭。兩者都從 Grok Bot 的 ScreenClip reports 例程複製。"
           }
         }
       }
     },
-    "The address has to start with https. Ask Grok Bot for a new setup code.": {
+    "Add the webhook URL too. Copy it from the ScreenClip reports routine and paste it with the Authorization header.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The address has to start with https. Ask Grok Bot for a new setup code."
+            "value": "Add the webhook URL too. Copy it from the ScreenClip reports routine and paste it with the Authorization header."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "地址必须以 https 开头。请向 Grok Bot 再要一个设置代码。"
+            "value": "请也加上 webhook URL。从 ScreenClip reports 例程复制它，并和 Authorization 标头一起粘贴。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La dirección tiene que empezar por https. Pide a Grok Bot un código nuevo."
+            "value": "Añade también la URL del webhook. Cópiala de la rutina ScreenClip reports y pégala con el encabezado Authorization."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "アドレスは https で始まる必要があります。Grok Bot に新しいセットアップコードを頼んでください。"
+            "value": "Webhook URL も追加してください。ScreenClip reports ルーチンからコピーし、Authorization ヘッダーと一緒に貼り付けてください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O endereço precisa começar com https. Peça um novo código ao Grok Bot."
+            "value": "Adicione a URL do webhook também. Copie-a da rotina ScreenClip reports e cole junto com o cabeçalho Authorization."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die Adresse muss mit https beginnen. Bitte Grok Bot um einen neuen Einrichtungscode."
+            "value": "Füge auch die Webhook-URL hinzu. Kopiere sie aus der Routine ScreenClip reports und füge sie mit dem Authorization-Header ein."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "L’adresse doit commencer par https. Demandez un nouveau code à Grok Bot."
+            "value": "Ajoutez aussi l’URL du webhook. Copiez-la depuis la routine ScreenClip reports et collez-la avec l’en-tête Authorization."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "주소는 https로 시작해야 합니다. Grok Bot에게 새 설정 코드를 요청하세요."
+            "value": "Webhook URL도 추가하세요. ScreenClip reports 루틴에서 복사해 Authorization 헤더와 함께 붙여 넣으세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Адрес должен начинаться с https. Попросите у Grok Bot новый код настройки."
+            "value": "Добавьте и URL вебхука. Скопируйте его из процедуры ScreenClip reports и вставьте вместе с заголовком Authorization."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "位址必須以 https 開頭。請向 Grok Bot 再要一組設定代碼。"
+            "value": "請也加上 webhook URL。從 ScreenClip reports 例程複製它，並和 Authorization 標頭一起貼上。"
           }
         }
       }
     },
-    "The secret can't contain a line break. Ask Grok Bot for a new setup code.": {
+    "Enter the key from the ScreenClip reports routine.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The secret can't contain a line break. Ask Grok Bot for a new setup code."
+            "value": "Enter the key from the ScreenClip reports routine."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "密钥不能包含换行。请向 Grok Bot 再要一个设置代码。"
+            "value": "请输入 ScreenClip reports 例程中的密钥。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El secreto no puede contener un salto de línea. Pide a Grok Bot un código nuevo."
+            "value": "Introduce la clave de la rutina ScreenClip reports."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "シークレットに改行は含められません。Grok Bot に新しいセットアップコードを頼んでください。"
+            "value": "ScreenClip reports ルーチンのキーを入力してください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O segredo não pode ter uma quebra de linha. Peça um novo código ao Grok Bot."
+            "value": "Digite a chave da rotina ScreenClip reports."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das Geheimnis darf keinen Zeilenumbruch enthalten. Bitte Grok Bot um einen neuen Einrichtungscode."
+            "value": "Gib den Schlüssel aus der Routine ScreenClip reports ein."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le secret ne peut pas contenir de saut de ligne. Demandez un nouveau code à Grok Bot."
+            "value": "Saisissez la clé de la routine ScreenClip reports."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "비밀에는 줄바꿈이 들어갈 수 없습니다. Grok Bot에게 새 설정 코드를 요청하세요."
+            "value": "ScreenClip reports 루틴의 키를 입력하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Секрет не может содержать перевод строки. Попросите у Grok Bot новый код настройки."
+            "value": "Введите ключ из процедуры ScreenClip reports."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "密鑰不能包含換行。請向 Grok Bot 再要一組設定代碼。"
+            "value": "請輸入 ScreenClip reports 例程中的金鑰。"
           }
         }
       }
     },
-    "That doesn't look like a setup code. In Grok Bot, ask \"Connect ScreenClip\" and paste the reply.": {
+    "The Webhook URL has to start with https.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "That doesn't look like a setup code. In Grok Bot, ask \"Connect ScreenClip\" and paste the reply."
+            "value": "The Webhook URL has to start with https."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这看起来不是设置代码。请在 Grok Bot 中询问「Connect ScreenClip」，然后粘贴回复。"
+            "value": "Webhook URL 必须以 https 开头。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Eso no parece un código de configuración. En Grok Bot, pregunta \"Connect ScreenClip\" y pega la respuesta."
+            "value": "La URL del webhook tiene que empezar por https."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "セットアップコードではないようです。Grok Bot で \"Connect ScreenClip\" と頼み、返信を貼り付けてください。"
+            "value": "Webhook URL は https で始まる必要があります。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Isso não parece um código de configuração. No Grok Bot, peça \"Connect ScreenClip\" e cole a resposta."
+            "value": "A URL do webhook precisa começar com https."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Das sieht nicht nach einem Einrichtungscode aus. Frage in Grok Bot nach \"Connect ScreenClip\" und füge die Antwort ein."
+            "value": "Die Webhook-URL muss mit https beginnen."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cela ne ressemble pas à un code de configuration. Dans Grok Bot, demandez \"Connect ScreenClip\" et collez la réponse."
+            "value": "L’URL du webhook doit commencer par https."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "설정 코드로 보이지 않습니다. Grok Bot에서 \"Connect ScreenClip\"이라고 요청하고 답변을 붙여 넣으세요."
+            "value": "Webhook URL은 https로 시작해야 합니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Это не похоже на код настройки. В Grok Bot спросите \"Connect ScreenClip\" и вставьте ответ."
+            "value": "URL вебхука должен начинаться с https."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "這看起來不是設定代碼。請在 Grok Bot 中詢問「Connect ScreenClip」，然後貼上回覆。"
+            "value": "Webhook URL 必須以 https 開頭。"
+          }
+        }
+      }
+    },
+    "The key can't contain a line break.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The key can't contain a line break."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密钥不能包含换行。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La clave no puede contener un salto de línea."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キーに改行は含められません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A chave não pode ter uma quebra de linha."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Schlüssel darf keinen Zeilenumbruch enthalten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La clé ne peut pas contenir de saut de ligne."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "키에는 줄바꿈이 들어갈 수 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ключ не может содержать перевод строки."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金鑰不能包含換行。"
+          }
+        }
+      }
+    },
+    "Grok Bot is selected, but Allow sending screenshots to the external assistant is off. Turn it on before screenshots can be sent.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot is selected, but Allow sending screenshots to the external assistant is off. Turn it on before screenshots can be sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选择 Grok Bot，但“允许向外部助手发送截图”尚未打开。发送截图之前请先打开它。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot está seleccionado, pero Permitir el envío de capturas al asistente externo está desactivado. Actívalo antes de enviar capturas."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot が選ばれていますが、「外部アシスタントへのスクリーンショット送信を許可」はオフです。送信する前にオンにしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Grok Bot está selecionado, mas Permitir o envio de capturas ao assistente externo está desligado. Ative antes de enviar capturas."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot ist ausgewählt, aber Screenshots an den externen Assistenten senden erlauben ist aus. Schalte es ein, bevor Screenshots gesendet werden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot est sélectionné, mais Autoriser l’envoi de captures à l’assistant externe est désactivé. Activez-le avant d’envoyer des captures."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot이 선택되었지만 외부 도우미에 스크린샷 보내기 허용이 꺼져 있습니다. 스크린샷을 보내기 전에 켜세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Выбран Grok Bot, но Разрешить отправку снимков внешнему ассистенту выключено. Включите его, прежде чем отправлять снимки."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已選擇 Grok Bot，但「允許向外部助手傳送截圖」尚未打開。傳送截圖之前請先打開它。"
           }
         }
       }
@@ -4749,6 +4881,732 @@
           "stringUnit": {
             "state": "translated",
             "value": "已連線 · %@"
+          }
+        }
+      }
+    },
+    "provider.ready": {
+      "comment": "A provider is ready. %@ is Codex, Claude Code, or Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ready"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 已就绪"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ listo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 準備完了"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ pronto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ bereit"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ prêt"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 준비됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ готов"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 已就緒"
+          }
+        }
+      }
+    },
+    "provider.checking": {
+      "comment": "A provider is being checked. %@ is Codex, Claude Code, or Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking %@…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查 %@…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando %@…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ を確認しています…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificando %@…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ wird geprüft…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification de %@…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 확인 중…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверка %@…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在檢查 %@…"
+          }
+        }
+      }
+    },
+    "provider.notConnected": {
+      "comment": "A provider has no saved connection. %@ is Codex, Claude Code, or Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is not connected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 未连接"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no está conectado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ は未接続です"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ não está conectado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ist nicht verbunden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ n’est pas connecté"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@이(가) 연결되지 않았습니다"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ не подключен"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 未連線"
+          }
+        }
+      }
+    },
+    "provider.notFound": {
+      "comment": "A provider executable was not found. %@ is Codex, Claude Code, or Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ not found"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到 %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no encontrado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ が見つかりません"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ não encontrado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ nicht gefunden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ introuvable"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@를 찾지 못함"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ не найден"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到 %@"
+          }
+        }
+      }
+    },
+    "provider.signInToStart": {
+      "comment": "A provider is signed out. %@ is Codex, Claude Code, or Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to %@ to start work"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录 %@ 以开始工作"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia sesión en %@ para empezar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作業を始めるには %@ にサインインしてください"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entre no %@ para começar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Melde dich bei %@ an, um zu starten"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connectez-vous à %@ pour commencer"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "작업을 시작하려면 %@에 로그인하세요"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Войдите в %@, чтобы начать работу"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登入 %@ 以開始工作"
+          }
+        }
+      }
+    },
+    "provider.connect": {
+      "comment": "Button that connects a provider. %@ is Codex, Claude Code, or Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接 %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ に接続"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectar %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ verbinden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecter %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 연결"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подключить %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連接 %@"
+          }
+        }
+      }
+    },
+    "provider.disconnect": {
+      "comment": "Button that removes a provider connection. %@ is Codex, Claude Code, or Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disconnect %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "断开 %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ を切断"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desconectar %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ trennen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déconnecter %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 연결 해제"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отключить %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中斷 %@ 連線"
+          }
+        }
+      }
+    },
+    "provider.signIn": {
+      "comment": "Button that starts provider sign-in. %@ is Codex, Claude Code, or Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录 %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar sesión en %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ にサインイン"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entrar no %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei %@ anmelden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se connecter à %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@에 로그인"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Войти в %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登入 %@"
+          }
+        }
+      }
+    },
+    "provider.disconnected": {
+      "comment": "A provider connection dropped. %@ is Codex, Claude Code, or Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ disconnected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 已断开"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ desconectado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ が切断されました"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ desconectado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ getrennt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ déconnecté"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 연결 끊김"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ отключён"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 已中斷連線"
+          }
+        }
+      }
+    },
+    "provider.readyDetail": {
+      "comment": "A provider is ready. %1$@ is the provider name. %2$@ is a version or webhook host.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ready · %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 已就绪 · %2$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ listo · %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 準備完了 · %2$@"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ pronto · %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ bereit · %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ prêt · %2$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 준비됨 · %2$@"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ готов · %2$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 已就緒 · %2$@"
+          }
+        }
+      }
+    },
+    "provider.noResponse": {
+      "comment": "A provider executable did not respond. %1$@ is the provider name. %2$@ is the path.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ at %2$@ did not respond."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 在 %2$@ 没有响应。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ en %2$@ no respondió."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@（%2$@）が応答しませんでした。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ em %2$@ não respondeu."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ unter %2$@ hat nicht geantwortet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ à %2$@ n’a pas répondu."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@이(가) %2$@에서 응답하지 않았습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ по пути %2$@ не ответил."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 在 %2$@ 沒有回應。"
           }
         }
       }

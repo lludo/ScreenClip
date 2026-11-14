@@ -10,12 +10,12 @@ import ScreenClipCore
     var isPending: Bool { self == .awaitingBrowser || self == .awaitingCode }
     var message: String {
       switch self {
-      case .idle: return "Not connected"
-      case .checking: return "Checking Codex sign-in…"
-      case .ready: return "Connected to Codex"
-      case .signedOut: return "Sign in to Codex to start work"
-      case .awaitingBrowser: return "Finish signing in in your browser"
-      case .awaitingCode: return "Enter the one-time code on the sign-in page"
+      case .idle: return ProviderPhrase.notConnected.english(.codex)
+      case .checking: return ProviderPhrase.checking.english(.codex)
+      case .ready: return ProviderPhrase.ready.english(.codex)
+      case .signedOut: return ProviderPhrase.signInToStart.english(.codex)
+      case .awaitingBrowser: return "Sign in to Codex in your browser"
+      case .awaitingCode: return "Sign in to Codex with the one-time code"
       case .failed(let message): return message
       }
     }

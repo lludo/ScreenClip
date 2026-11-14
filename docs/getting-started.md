@@ -6,7 +6,7 @@ You also need a local Git repository for each project, and at least one agent:
 
 - **Codex CLI**, with `app-server`
 - **Claude Code**
-- **Grok Bot**, connected with a setup code
+- **Grok Bot**, connected with the Webhook URL and Authorization header from its ScreenClip reports routine
 
 **GitHub CLI** (`gh`) is required to open and merge pull requests, and to push screenshots for Grok Bot.
 
@@ -34,7 +34,7 @@ More commands, tests, and CI are in [Development](development.md).
 ## First capture
 
 1. **Add a project** in **Settings → Projects**: the Git repository root, base branch, website URLs or native app bundle IDs, and a validation command.
-2. **Connect an agent** in **Settings → Connections**. **Detect agents** fills the list. Set **Default agent** under **AI agent**. Codex reuses an existing session when it can. **Sign in to Claude** opens Terminal for `claude auth login`. You can set **Claude Code executable** and **Model** (empty uses Claude Code's default). For Grok Bot, click **Connect Grok Bot**, ask your ScreenClip assistant **Connect ScreenClip**, and paste the setup code. Then turn on **Turn on for this project**. The same switch in **Settings → Projects** is **Allow sending screenshots to the external assistant**. It stays off until you turn it on. The setup code format is in [Grok Bot](agents/external-assistant.md#setup-code).
+2. **Connect an agent** in **Settings → Connections**. **Detect agents** fills the list. Set **System default** under **AI agent**. Codex reuses an existing session when it can. **Sign in to Claude Code** opens Terminal for `claude auth login`. You can set **Claude Code executable** and **Model** (empty uses Claude Code's default). For Grok Bot, open the **Grok Bot** section, click **Connect Grok Bot**, copy **POST to** and **key** (or **header**) from the assistant's **ScreenClip reports** routine, and click **Connect**. In **Project settings**, **Project default** starts as **System default**. **Allow sending screenshots to the external assistant** stays off until you turn it on. The webhook fields are described in [Grok Bot](agents/external-assistant.md#webhook-and-key).
 3. Press **⌘⇧2**, allow Screen Recording, select a region, and submit. Change the shortcut in Settings if you want a different one.
 
 A native app with no bundle ID listed still routes when exactly one project's name or repository folder matches the app's name. When you pick a project for an app capture yourself, ScreenClip remembers that app's bundle ID for the project, unless another project already lists it.

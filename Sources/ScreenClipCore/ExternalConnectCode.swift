@@ -1,6 +1,10 @@
 import Foundation
 
-/// The copy-paste setup code and `screenclip://` routes for connecting Grok Bot.
+/// Pasted Grok Bot connection text and `screenclip://` routes.
+///
+/// The sheet asks for the Webhook URL and the `Authorization` header copied from the
+/// ScreenClip reports routine. This parser also accepts JSON, a curl command, the
+/// canonical `screenclip-connect:v1:` code, and a `screenclip://connect` link.
 ///
 /// Canonical code: `screenclip-connect:v1:` + base64url(JSON). The JSON object is UTF-8,
 /// compact, with keys sorted alphabetically:
@@ -11,7 +15,6 @@ import Foundation
 /// do not echo the input.
 public enum ExternalConnectCode {
   public static let prefix = "screenclip-connect:v1:"
-  public static let askPhrase = "Connect ScreenClip"
 
   public struct Credentials: Equatable, Sendable {
     public var url: String
@@ -30,20 +33,61 @@ public enum ExternalConnectCode {
     case unrecognized
     case invalidURL
     case unsafeAuthorization
+    case missingURL
+    case missingAuthorization
 
     public var message: String {
       switch self {
-      case .empty:
-        return "Paste the setup code Grok Bot gave you."
+      case .empty, .missingAuthorization:
+        return "Enter the key from the ScreenClip reports routine."
       case .unrecognized:
         return
-          "That doesn't look like a setup code. In Grok Bot, ask \"\(ExternalConnectCode.askPhrase)\" and paste the reply."
+          "Paste the Webhook URL on one line and the Authorization header on the next. Copy both from the ScreenClip reports routine in Grok Bot."
       case .invalidURL:
-        return "The address has to start with https. Ask Grok Bot for a new setup code."
+        return "The Webhook URL has to start with https."
       case .unsafeAuthorization:
-        return "The secret can't contain a line break. Ask Grok Bot for a new setup code."
+        return "The key can't contain a line break."
+      case .missingURL:
+        return
+          "Add the webhook URL too. Copy it from the ScreenClip reports routine and paste it with the Authorization header."
       }
     }
+  }
+
+  /// The Key field accepts a bare key or the full header from the routine panel.
+  /// `Authorization:` is removed. Anything that is not already a `Bearer` value gets that prefix.
+  public static func normalizeKey(_ raw: String) -> Result<String, Failure> {
+    var value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+    if value.isEmpty || isBareScheme(value) { return .failure(.missingAuthorization) }
+    if let stripped = strippingPrefix(value, "authorization:") {
+      value = stripped.trimmingCharacters(in: .whitespacesAndNewlines)
+      if value.isEmpty || isBareScheme(value) { return .failure(.missingAuthorization) }
+    }
+    if let token = strippingPrefix(value, "bearer ") {
+      let rest = token.trimmingCharacters(in: .whitespaces)
+      if rest.isEmpty { return .failure(.missingAuthorization) }
+      value = "Bearer " + rest
+    } else {
+      value = "Bearer " + value
+    }
+    guard ExternalAssistantConfiguration.isSafeHeaderValue(value) else {
+      return .failure(.unsafeAuthorization)
+    }
+    return .success(value)
+  }
+
+  /// `Bearer` or `Authorization:` with no key after it.
+  private static func isBareScheme(_ value: String) -> Bool {
+    value.caseInsensitiveCompare("bearer") == .orderedSame
+      || value.caseInsensitiveCompare("authorization:") == .orderedSame
+      || value.caseInsensitiveCompare("authorization") == .orderedSame
+  }
+
+  private static func strippingPrefix(_ value: String, _ prefix: String) -> String? {
+    guard value.count >= prefix.count else { return nil }
+    let head = String(value.prefix(prefix.count))
+    guard head.caseInsensitiveCompare(prefix) == .orderedSame else { return nil }
+    return String(value.dropFirst(prefix.count))
   }
 
   public static func encode(
@@ -71,7 +115,8 @@ public enum ExternalConnectCode {
 
   /// Accepts the canonical code, a `screenclip://connect?code=` link, JSON with `url` and
   /// `authorization` (or `header`), a curl command, or a block that contains both an address
-  /// and an `Authorization:` line.
+  /// and an `Authorization:` line. A URL with no header, or a bare token with no URL, fails
+  /// with a message that names the missing piece.
   public static func parse(_ text: String) -> Result<Credentials, Failure> {
     parse(text, depth: 0)
   }
@@ -88,8 +133,15 @@ public enum ExternalConnectCode {
     if depth < 2, let code = embeddedConnectCode(in: trimmed), code != trimmed {
       return parse(code, depth: depth + 1)
     }
-    if let credentials = jsonObjectCredentials(in: trimmed) {
+    switch jsonConnect(in: trimmed) {
+    case .absent:
+      break
+    case .credentials(let credentials):
       return validate(credentials)
+    case .missingURL:
+      return .failure(.missingURL)
+    case .missingAuthorization:
+      return .failure(.missingAuthorization)
     }
     return parseLoose(trimmed)
   }
@@ -121,9 +173,12 @@ public enum ExternalConnectCode {
     let secrets = authorizationValues(in: text).map {
       $0.trimmingCharacters(in: .whitespacesAndNewlines)
     }.filter { !$0.isEmpty }
-    guard !foundURLs.isEmpty || !secrets.isEmpty else { return .failure(.unrecognized) }
+    if foundURLs.isEmpty && secrets.isEmpty {
+      return .failure(looksLikeBareCredential(text) ? .missingURL : .unrecognized)
+    }
+    if secrets.isEmpty { return .failure(.missingAuthorization) }
     guard let secret = secrets.first(where: ExternalAssistantConfiguration.isSafeHeaderValue) else {
-      return .failure(secrets.isEmpty ? .unrecognized : .unsafeAuthorization)
+      return .failure(.unsafeAuthorization)
     }
     guard
       let url = foundURLs.first(where: { candidate in
@@ -132,9 +187,34 @@ public enum ExternalConnectCode {
         ).endpoint != nil
       })
     else {
-      return .failure(foundURLs.isEmpty ? .unrecognized : .invalidURL)
+      return .failure(foundURLs.isEmpty ? .missingURL : .invalidURL)
     }
     return validate(Credentials(url: url, authorization: secret))
+  }
+
+  /// A single pasted token, or `Bearer` plus one token, with no webhook URL.
+  private static func looksLikeBareCredential(_ text: String) -> Bool {
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !trimmed.isEmpty, !trimmed.contains(where: \.isNewline) else { return false }
+    let token: Substring
+    let minimum: Int
+    if let space = trimmed.firstIndex(where: \.isWhitespace) {
+      let head = trimmed[..<space]
+      let rest = trimmed[trimmed.index(after: space)...].drop { $0.isWhitespace }
+      guard head.caseInsensitiveCompare("Bearer") == .orderedSame, !rest.isEmpty,
+        !rest.contains(where: \.isWhitespace)
+      else { return false }
+      token = rest
+      minimum = 1
+    } else {
+      token = Substring(trimmed)
+      minimum = 8
+    }
+    guard token.count >= minimum else { return false }
+    return token.unicodeScalars.allSatisfy { scalar in
+      let value = scalar.value
+      return value >= 0x21 && value <= 0x7E
+    }
   }
 
   private static func prefixedToken(in text: String) -> String? {
@@ -188,17 +268,45 @@ public enum ExternalConnectCode {
     return nil
   }
 
-  private static func jsonObjectCredentials(in text: String) -> Credentials? {
-    guard let start = text.firstIndex(of: "{"), let end = text.lastIndex(of: "}"), start < end
+  private enum JSONConnect {
+    case absent
+    case credentials(Credentials)
+    case missingURL
+    case missingAuthorization
+  }
+
+  /// A JSON object with only `authorization` (or `header`) is a key without a URL.
+  /// An object with only `url` is an address without a key.
+  private static func jsonConnect(in text: String) -> JSONConnect {
+    guard let start = text.firstIndex(of: "{"), let end = text.lastIndex(of: "}"), start < end,
+      let data = String(text[start...end]).data(using: .utf8),
+      let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+    else { return .absent }
+    let url = nonempty(stringValue(object, keys: ["url"]))
+    let authorization = nonempty(stringValue(object, keys: ["authorization", "header"]))
+    switch (url, authorization) {
+    case (nil, nil):
+      return .absent
+    case (nil, .some):
+      return .missingURL
+    case (.some, nil):
+      return .missingAuthorization
+    case let (url?, authorization?):
+      return .credentials(
+        Credentials(url: url, authorization: authorization, capabilities: capabilityList(object)))
+    }
+  }
+
+  private static func nonempty(_ value: String?) -> String? {
+    guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty
     else { return nil }
-    guard let data = String(text[start...end]).data(using: .utf8) else { return nil }
-    return jsonCredentials(data)
+    return trimmed
   }
 
   private static func jsonCredentials(_ data: Data) -> Credentials? {
     guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-      let url = stringValue(object, keys: ["url"]),
-      let authorization = stringValue(object, keys: ["authorization", "header"])
+      let url = nonempty(stringValue(object, keys: ["url"])),
+      let authorization = nonempty(stringValue(object, keys: ["authorization", "header"]))
     else { return nil }
     return Credentials(url: url, authorization: authorization, capabilities: capabilityList(object))
   }

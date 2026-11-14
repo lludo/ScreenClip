@@ -44,6 +44,7 @@ enum Chrome {
 
   /// Translates an English sentence the app generated. Anything not in the catalog is returned unchanged.
   static func stored(_ english: String, locale: Locale) -> String {
+    if let phrase = ProviderPhrase.localizedMatch(english, locale: locale) { return phrase }
     if let patterned = ActivityPatterns.translate(english, locale: locale) { return patterned }
     if AppChrome.exact.contains(english) {
       return String(
@@ -59,15 +60,12 @@ enum Chrome {
 enum AppChrome {
   static let exact: Set<String> = [
     "All open", "Needs you", "To retest", "Drafts", "History", "Archived",
-    "Not connected", "Checking Codex sign-in…", "Connected to Codex",
-    "Sign in to Codex to start work", "Finish signing in in your browser",
-    "Enter the one-time code on the sign-in page", "Codex disconnected",
+    "Not connected", "Sign in to Codex in your browser",
+    "Sign in to Codex with the one-time code", "Codex disconnected",
     "Codex disconnected. Check the connection to reconnect.",
     "Selected model is unavailable; choose another model",
-    "Checking Claude Code…", "Claude Code not found",
-    "Sign in to Claude Code to start work", "Claude Code ready",
-    "Checking Grok Bot…", "Grok Bot is not configured", "Grok Bot is not connected",
-    "Grok Bot is not connected.", "Grok Bot ready", "Connected",
+    "Grok Bot is not configured", "Grok Bot is not connected.",
+    "Grok Bot rejected that key (HTTP 401).", "Connected",
     "Couldn't reach Grok Bot. Check your connection, then try again.",
     "Screen capture has not been checked yet.",
     "This running copy of ScreenClip was rebuilt. Reopen it to refresh screen-capture access.",
@@ -370,14 +368,14 @@ enum ActivityPatterns {
         comment: "Error when a Claude Code turn exceeds its time limit. %lld is minutes. Keep Claude Code.")
     }
     if let status = firstInt(
-      #"^Grok Bot didn't accept the connection \(HTTP (\d+)\)\. Ask it "Connect ScreenClip" again, then paste the new setup code\.$"#,
+      #"^Grok Bot didn't accept the connection \(HTTP (\d+)\)\.$"#,
       text)
     {
       return Chrome.format(
         "grok.rejected",
-        "Grok Bot didn't accept the connection (HTTP \(status)). Ask it \"Connect ScreenClip\" again, then paste the new setup code.",
+        "Grok Bot didn't accept the connection (HTTP \(status)).",
         locale: locale,
-        comment: "Grok Bot rejected the saved connection. %lld is the HTTP status. Keep the English phrase Connect ScreenClip.")
+        comment: "Grok Bot rejected the saved connection. %lld is the HTTP status. Keep Grok Bot.")
     }
     if text.hasPrefix("Could not save the report: ") {
       let detail = String(text.dropFirst("Could not save the report: ".count))

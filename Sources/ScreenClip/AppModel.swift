@@ -20,7 +20,7 @@ struct GrokConnectionCheck: Equatable {
   @Published private(set) var snapshot: StoreSnapshot
   @Published var selectedIssueID: UUID?
   @Published var banner: String?
-  @Published var connection = "Not connected"
+  @Published var connection = ProviderPhrase.notConnected.english(.codex)
   @Published var captureBusy = false
   @Published var capturePermissionIssue = false
   /// Locally installed coding agents, refreshed at launch, from Settings, and every minute
@@ -210,7 +210,8 @@ struct GrokConnectionCheck: Equatable {
     context: CaptureContext, projectID: UUID?, existingID: UUID?, draft: Bool,
     agent: AgentKind? = nil
   ) throws {
-    let chosenAgent = agent ?? snapshot.settings.preferredAgent
+    let chosenAgent = agent ?? AgentSelection.projectDefault(
+      projectID.flatMap(project), system: snapshot.settings.preferredAgent)
     if draft, let existingID, let target = issue(existingID), target.status != .draft {
       throw ScreenClipError.message(
         "Drafts cannot be added to a submitted issue. Submit the capture, or choose New issue.")
@@ -486,7 +487,8 @@ struct GrokConnectionCheck: Equatable {
     let secret = configuration.normalizedAuthorization
     guard !secret.isEmpty else {
       return GrokConnectionCheck(
-        connected: false, message: ExternalConnectCode.Failure.empty.message, host: nil, stored: false)
+        connected: false, message: ExternalConnectCode.Failure.missingAuthorization.message, host: nil,
+        stored: false)
     }
     guard ExternalAssistantConfiguration.isSafeHeaderValue(secret) else {
       return GrokConnectionCheck(
@@ -515,11 +517,12 @@ struct GrokConnectionCheck: Equatable {
         return GrokConnectionCheck(connected: true, message: "Connected", host: host, stored: true)
       }
       await refreshAgents()
+      let message =
+        response.status == 401
+        ? "Grok Bot rejected that key (HTTP 401)."
+        : "Grok Bot didn't accept the connection (HTTP \(response.status))."
       return GrokConnectionCheck(
-        connected: false,
-        message:
-          "Grok Bot didn't accept the connection (HTTP \(response.status)). Ask it \"\(ExternalConnectCode.askPhrase)\" again, then paste the new setup code.",
-        host: host, stored: true)
+        connected: false, message: message, host: host, stored: true)
     } catch {
       await refreshAgents()
       return GrokConnectionCheck(
@@ -549,7 +552,7 @@ struct GrokConnectionCheck: Equatable {
   var agentStatus: (text: String, ready: Bool) { agentStatus(snapshot.settings.preferredAgent) }
   /// Fixed connection lines for localization screenshots. Does not contact Codex, Claude Code, or Grok Bot.
   func applyScreenshotAgentStatus() {
-    connection = "Connected to Codex"
+    connection = ProviderPhrase.ready.english(.codex)
     agents = [
       AgentDetection(
         kind: .codex, path: "/usr/local/bin/codex", version: "0.50.0", signedIn: nil,
@@ -559,22 +562,26 @@ struct GrokConnectionCheck: Equatable {
         detail: "Claude Code 2.1.0, signed in"),
       AgentDetection(
         kind: .external, path: "", version: nil, signedIn: false,
-        detail: "Not connected — Connect Grok Bot"
+        detail: ProviderPhrase.notConnected.english(.external)
       ),
     ]
   }
+  func effectiveAgent(for projectID: UUID?) -> AgentKind {
+    AgentSelection.projectDefault(
+      projectID.flatMap(project), system: snapshot.settings.preferredAgent)
+  }
   func agentStatus(_ kind: AgentKind) -> (text: String, ready: Bool) {
     switch kind {
-    case .codex: return (connection, connection == "Connected to Codex")
+    case .codex: return (connection, connection == ProviderPhrase.ready.english(.codex))
     case .claude:
-      guard let found = detection(.claude) else { return ("Checking Claude Code…", false) }
-      if !found.installed { return ("Claude Code not found", false) }
-      if found.signedIn == false { return ("Sign in to Claude Code to start work", false) }
-      return ("Claude Code ready", true)
+      guard let found = detection(.claude) else { return (ProviderPhrase.checking.english(.claude), false) }
+      if !found.installed { return (ProviderPhrase.notFound.english(.claude), false) }
+      if found.signedIn == false { return (ProviderPhrase.signInToStart.english(.claude), false) }
+      return (ProviderPhrase.ready.english(.claude), true)
     case .external:
-      guard let found = detection(.external) else { return ("Checking Grok Bot…", false) }
-      if !found.usable { return ("Grok Bot is not connected", false) }
-      return ("Grok Bot ready", true)
+      guard let found = detection(.external) else { return (ProviderPhrase.checking.english(.external), false) }
+      if !found.usable { return (ProviderPhrase.notConnected.english(.external), false) }
+      return (ProviderPhrase.ready.english(.external), true)
     }
   }
   /// `claude auth login` needs an interactive terminal and a browser, so run it in Terminal.
