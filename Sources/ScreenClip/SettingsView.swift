@@ -17,6 +17,9 @@ struct SettingsView: View {
   @State private var showingGrokConnect = false
   @State private var grokConnectCode: String?
   @State private var grokConnectPresentation = 0
+  @State private var testingGrok = false
+  @State private var grokTestResult: String?
+  @State private var grokTestOK = false
   var body: some View {
     VStack(spacing: 0) {
       Group {
@@ -277,13 +280,7 @@ struct SettingsView: View {
                 .fixedSize(horizontal: false, vertical: true)
             }
             ForEach(AgentKind.allCases) { kind in
-              if kind == .external {
-                GrokBotConnectionRow(
-                  model: model, webhookURL: $webhookURL, authorization: $authorization,
-                  onConnect: { openGrokConnect(code: nil) })
-              } else {
-                AgentDetectionRow(kind: kind, detection: model.detection(kind))
-              }
+              AgentDetectionRow(kind: kind, detection: model.detection(kind))
             }
             HStack {
               Button { detectAgents() } label: {
@@ -309,7 +306,7 @@ struct SettingsView: View {
             }
             Text(
               chrome:
-                "The system default applies until a project sets its own. A capture starts from the project default, and you can pick another provider for that report. Connect each provider from its row.",
+                "The system default applies until a project sets its own. A capture starts from the project default, and you can pick another provider for that report. Connect each provider in its section.",
               comment: "Explains the system default, project default, and per-capture choice."
             ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
           } header: {
@@ -384,6 +381,63 @@ struct SettingsView: View {
             Text(chrome: "Codex", comment: "Settings section. Do not translate Codex.")
           }
           Section {
+            TextField(text: $webhookURL, prompt: Text(verbatim: "https://")) {
+              Text(chrome: "Webhook URL", comment: "Grok Bot address field.")
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            LabeledContent {
+              if grokKeyIsSet {
+                Text(chrome: "Set", comment: "The Grok Bot key is saved. The value is never shown.")
+                  .foregroundStyle(.secondary)
+              } else {
+                Text(chrome: "Not set", comment: "The Grok Bot key is not saved.")
+                  .foregroundStyle(.secondary)
+              }
+            } label: {
+              Text(chrome: "Key", comment: "Grok Bot key field.")
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            LabeledContent {
+              Text(verbatim: grokCapabilityText).foregroundStyle(.secondary)
+            } label: {
+              Text(
+                chrome: "Capabilities",
+                comment: "Saved Grok Bot capabilities. Not a secret."
+              ).fixedSize(horizontal: false, vertical: true)
+            }
+            FlowLayout {
+              if grokConnected {
+                Button { testGrokConnection() } label: {
+                  if testingGrok {
+                    Text(chrome: "Checking…", comment: "A Grok Bot check is in progress.")
+                  } else {
+                    Text(chrome: "Test connection", comment: "Rechecks the saved Grok Bot webhook and key.")
+                  }
+                }.disabled(testingGrok)
+              } else {
+                Button { openGrokConnect(code: nil) } label: {
+                  Text(verbatim: ProviderPhrase.connect.localized(.external, locale: locale))
+                }
+              }
+              Button { disconnectGrok() } label: {
+                Text(verbatim: ProviderPhrase.disconnect.localized(.external, locale: locale))
+              }.disabled(!grokConnected && webhookURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !grokKeyIsSet)
+              if testingGrok { ProgressView().controlSize(.small) }
+            }
+            if let grokTestResult {
+              Text(verbatim: Chrome.stored(grokTestResult, locale: locale)).font(.caption)
+                .foregroundStyle(grokTestOK ? Color.green : Color.secondary).textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            Text(
+              chrome:
+                "Reports go to the ScreenClip reports routine through a webhook. Grok Bot opens the pull request. Screenshots are sent only when the project allows it.",
+              comment: "Explains Grok Bot. Keep ScreenClip, Grok Bot, and the routine name ScreenClip reports."
+            ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+          } header: {
+            Text(chrome: "Grok Bot", comment: "Settings section. Do not translate Grok Bot.")
+          }
+          Section {
             TextField(text: $settings.ghPath) {
               Text(chrome: "GitHub CLI executable", comment: "Path to the GitHub CLI. Keep GitHub.")
                 .fixedSize(horizontal: false, vertical: true)
@@ -407,6 +461,48 @@ struct SettingsView: View {
             Text(chrome: "GitHub", comment: "Settings section. Do not translate GitHub.")
           }
         }.formStyle(.grouped)
+  }
+  private var grokSaved: ExternalAssistantConfiguration { model.loadExternalAssistant() }
+  private var grokConnected: Bool { grokSaved.isConfigured }
+  private var grokKeyIsSet: Bool {
+    !authorization.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+  }
+  private var grokCapabilityText: String {
+    let names = grokSaved.capabilities
+    if names.isEmpty {
+      return Chrome.text("None", locale: locale, comment: "No Grok Bot capabilities are saved.")
+    }
+    return names.joined(separator: ", ")
+  }
+  private func testGrokConnection() {
+    let secret = model.loadExternalAssistant().authorization
+    testingGrok = true
+    grokTestResult = nil
+    Task {
+      let result = await model.checkGrokConnection(webhookURL: webhookURL, authorization: secret)
+      grokTestOK = result.connected
+      if result.connected, let host = result.host, !host.isEmpty {
+        grokTestResult = ProviderPhrase.readyDetail(kind: .external, extra: host)
+      } else if result.connected {
+        grokTestResult = ProviderPhrase.ready.english(.external)
+      } else {
+        grokTestResult = result.message
+      }
+      testingGrok = false
+      reloadGrokConnection()
+    }
+  }
+  private func disconnectGrok() {
+    do {
+      try model.disconnectExternalAssistant()
+      webhookURL = ""
+      authorization = ""
+      grokTestResult = nil
+      Task { await model.refreshAgents() }
+    } catch {
+      grokTestOK = false
+      grokTestResult = error.localizedDescription
+    }
   }
   private func reloadGrokConnection() {
     let connection = model.loadExternalAssistant()

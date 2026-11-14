@@ -117,8 +117,16 @@ public enum ProviderPhrase: String, CaseIterable, Sendable {
   }
 
   public static func localizedMatch(_ text: String, locale: Locale) -> String? {
-    guard let (phrase, kind) = match(text) else { return nil }
-    return phrase.localized(kind, locale: locale)
+    if let (phrase, kind) = match(text) { return phrase.localized(kind, locale: locale) }
+    let marker = " ready · "
+    for kind in AgentKind.allCases {
+      let prefix = kind.title + marker
+      if text.hasPrefix(prefix) {
+        return readyDetailLocalized(
+          kind: kind, extra: String(text.dropFirst(prefix.count)), locale: locale)
+      }
+    }
+    return nil
   }
 }
 

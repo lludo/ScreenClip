@@ -19,6 +19,11 @@ final class AgentSelectionTests: XCTestCase {
     XCTAssertEqual(ProviderPhrase.ready.english(.external), "Grok Bot ready")
     XCTAssertEqual(ProviderPhrase.readyDetail(kind: .external, extra: "example.invalid"), "Grok Bot ready · example.invalid")
     XCTAssertEqual(
+      ProviderPhrase.readyDetail(kind: .external, extra: "api2.cursor.sh"),
+      "Grok Bot ready · api2.cursor.sh")
+    XCTAssertEqual(ProviderPhrase.connect.english(.external), "Connect Grok Bot")
+    XCTAssertEqual(ProviderPhrase.disconnect.english(.external), "Disconnect Grok Bot")
+    XCTAssertEqual(
       ProviderPhrase.noResponse(kind: .codex, path: "/tmp/codex"), "Codex at /tmp/codex did not respond.")
   }
 

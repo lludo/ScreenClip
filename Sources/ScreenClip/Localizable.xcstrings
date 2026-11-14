@@ -29240,7 +29240,7 @@
       }
     },
     "Test again": {
-      "comment": "Rechecks the saved Grok Bot connection.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -29372,7 +29372,7 @@
       }
     },
     "Advanced": {
-      "comment": "Shows the saved Grok Bot address and secret.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -29438,7 +29438,7 @@
       }
     },
     "The address and secret, if you already have them. ScreenClip keeps both in the Keychain and sends the secret unchanged. Save settings stores edits here. Disconnect removes the saved connection.": {
-      "comment": "Explains the advanced Grok Bot fields. Keep ScreenClip and Keychain.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -29899,6 +29899,468 @@
         }
       }
     },
+    "Grok Bot": {
+      "comment": "Settings section. Do not translate Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Grok Bot"
+          }
+        }
+      }
+    },
+    "Set": {
+      "comment": "The Grok Bot key is saved. The value is never shown.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已设置"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definida"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定済み"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Definida"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gesetzt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Défini"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Задан"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已設定"
+          }
+        }
+      }
+    },
+    "Not set": {
+      "comment": "The Grok Bot key is not saved.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未设置"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin definir"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未設定"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não definida"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht gesetzt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non défini"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정 안 됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не задан"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未設定"
+          }
+        }
+      }
+    },
+    "Capabilities": {
+      "comment": "Saved Grok Bot capabilities. Not a secret.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capabilities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "功能"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacidades"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "機能"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recursos"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Funktionen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacités"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기능"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Возможности"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "功能"
+          }
+        }
+      }
+    },
+    "None": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ninguna"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "なし"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "없음"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Нет"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無"
+          }
+        }
+      }
+    },
+    "Test connection": {
+      "comment": "Rechecks the saved Grok Bot webhook and key.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Test connection"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试连接"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Probar conexión"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続をテスト"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Testar conexão"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbindung testen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tester la connexion"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결 테스트"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить подключение"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "測試連線"
+          }
+        }
+      }
+    },
+    "Reports go to the ScreenClip reports routine through a webhook. Grok Bot opens the pull request. Screenshots are sent only when the project allows it.": {
+      "comment": "Explains Grok Bot. Keep ScreenClip, Grok Bot, and the routine name ScreenClip reports.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reports go to the ScreenClip reports routine through a webhook. Grok Bot opens the pull request. Screenshots are sent only when the project allows it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "报告通过 webhook 发到 ScreenClip reports 例程。Grok Bot 会打开拉取请求。只有项目允许时才会发送截图。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los informes van a la rutina ScreenClip reports por un webhook. Grok Bot abre la pull request. Las capturas se envían solo cuando el proyecto lo permite."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "レポートは webhook 経由で ScreenClip reports ルーチンに送られます。Grok Bot が pull request を開きます。スクリーンショットが送られるのは、プロジェクトが許可しているときだけです。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os relatórios vão para a rotina ScreenClip reports por um webhook. O Grok Bot abre o pull request. Capturas são enviadas só quando o projeto permite."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berichte gehen per Webhook an die Routine ScreenClip reports. Grok Bot öffnet den Pull Request. Screenshots werden nur gesendet, wenn das Projekt es erlaubt."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les rapports partent vers la routine ScreenClip reports par un webhook. Grok Bot ouvre la pull request. Les captures ne partent que si le projet l’autorise."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "리포트는 webhook으로 ScreenClip reports 루틴에 갑니다. Grok Bot이 pull request를 엽니다. 스크린샷은 프로젝트가 허용할 때만 보냅니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отчёты уходят в процедуру ScreenClip reports через webhook. Grok Bot открывает pull request. Снимки отправляются только если проект это разрешает."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "報告透過 webhook 發到 ScreenClip reports 例程。Grok Bot 會開啟拉取請求。只有專案允許時才會傳送截圖。"
+          }
+        }
+      }
+    },
     "Copy 'key' (or 'header').": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
@@ -29965,68 +30427,68 @@
         }
       }
     },
-    "The system default applies until a project sets its own. A capture starts from the project default, and you can pick another provider for that report. Connect each provider from its row.": {
+    "The system default applies until a project sets its own. A capture starts from the project default, and you can pick another provider for that report. Connect each provider in its section.": {
       "comment": "Explains the system default, project default, and per-capture choice.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The system default applies until a project sets its own. A capture starts from the project default, and you can pick another provider for that report. Connect each provider from its row."
+            "value": "The system default applies until a project sets its own. A capture starts from the project default, and you can pick another provider for that report. Connect each provider in its section."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在项目自行设置之前，使用系统默认。捕获从项目默认开始，你可以为该报告另选提供方。请从每一行连接对应的提供方。"
+            "value": "在项目自行设置之前，使用系统默认。捕获从项目默认开始，你可以为该报告另选提供方。请在各自的分区里连接对应的提供方。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Se usa el predeterminado del sistema hasta que un proyecto defina el suyo. Una captura empieza por el predeterminado del proyecto, y puedes elegir otro proveedor para ese informe. Conecta cada proveedor desde su fila."
+            "value": "Se usa el predeterminado del sistema hasta que un proyecto defina el suyo. Una captura empieza por el predeterminado del proyecto, y puedes elegir otro proveedor para ese informe. Conecta cada proveedor en su sección."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "プロジェクトが独自に設定するまではシステムのデフォルトを使います。キャプチャはプロジェクトのデフォルトから始まり、そのレポートだけ別のプロバイダを選べます。各行からプロバイダを接続してください。"
+            "value": "プロジェクトが独自に設定するまではシステムのデフォルトを使います。キャプチャはプロジェクトのデフォルトから始まり、そのレポートだけ別のプロバイダを選べます。各セクションでプロバイダを接続してください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O padrão do sistema vale até um projeto definir o seu. Uma captura começa pelo padrão do projeto, e você pode escolher outro provedor para esse relatório. Conecte cada provedor na linha dele."
+            "value": "O padrão do sistema vale até um projeto definir o seu. Uma captura começa pelo padrão do projeto, e você pode escolher outro provedor para esse relatório. Conecte cada provedor na seção dele."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Systemstandard gilt, bis ein Projekt einen eigenen setzt. Eine Aufnahme startet mit dem Projektstandard, und du kannst für diesen Bericht einen anderen Anbieter wählen. Verbinde jeden Anbieter in seiner Zeile."
+            "value": "Der Systemstandard gilt, bis ein Projekt einen eigenen setzt. Eine Aufnahme startet mit dem Projektstandard, und du kannst für diesen Bericht einen anderen Anbieter wählen. Verbinde jeden Anbieter in seinem Abschnitt."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La valeur système s’applique jusqu’à ce qu’un projet définisse la sienne. Une capture commence par la valeur du projet, et vous pouvez choisir un autre fournisseur pour ce rapport. Connectez chaque fournisseur depuis sa ligne."
+            "value": "La valeur système s’applique jusqu’à ce qu’un projet définisse la sienne. Une capture commence par la valeur du projet, et vous pouvez choisir un autre fournisseur pour ce rapport. Connectez chaque fournisseur dans sa section."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "프로젝트가 직접 정하기 전에는 시스템 기본값을 씁니다. 캡처는 프로젝트 기본값으로 시작하고, 그 리포트만 다른 제공자를 고를 수 있습니다. 각 행에서 제공자를 연결하세요."
+            "value": "프로젝트가 직접 정하기 전에는 시스템 기본값을 씁니다. 캡처는 프로젝트 기본값으로 시작하고, 그 리포트만 다른 제공자를 고를 수 있습니다. 각 섹션에서 제공자를 연결하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Системное значение действует, пока проект не задаст своё. Захват начинается со значения проекта, и для этого отчёта можно выбрать другого поставщика. Подключайте каждого поставщика в его строке."
+            "value": "Системное значение действует, пока проект не задаст своё. Захват начинается со значения проекта, и для этого отчёта можно выбрать другого поставщика. Подключайте каждого поставщика в его разделе."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "在專案自行設定之前，使用系統預設。擷取從專案預設開始，你可以為該報告另選提供方。請從每一列連接對應的提供方。"
+            "value": "在專案自行設定之前，使用系統預設。擷取從專案預設開始，你可以為該報告另選提供方。請在各自的區段裡連接對應的提供方。"
           }
         }
       }
