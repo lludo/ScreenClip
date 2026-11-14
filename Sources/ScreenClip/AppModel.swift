@@ -200,7 +200,7 @@ import UserNotifications
     perform {
       guard let issue = issue(issueID), issue.threadID == nil && issue.worktreePath == nil else {
         throw ScreenClipError.message(
-          "An issue with agent work cannot be moved silently. Cancel it and create a new issue in the correct project."
+          "This report already has agent work. Use Move to project in the report's menu to continue it under the correct project."
         )
       }
       try updateIssue(issueID) { issue in
@@ -209,6 +209,73 @@ import UserNotifications
       }
     }
     worker.pump()
+  }
+  /// Whether a report can move to another project from its detail view.
+  func canMove(_ issue: Issue) -> Bool {
+    !worker.isActive(issue.id) && !issue.dispatchUncertain && !issue.archived
+      && [.needsProject, .queued, .needsYou, .failed, .canceled].contains(issue.status)
+  }
+  /// Moves a report filed under the wrong project. Before agent work starts the report is simply
+  /// reassigned. Once a chat or worktree exists for the old repository, that work cannot follow
+  /// it, so the report is canceled and a copy with the same captures and notes is queued under
+  /// the chosen project. Returns the report that now carries the work.
+  @discardableResult func moveToProject(_ issueID: UUID, projectID: UUID) throws -> UUID {
+    guard let issue = issue(issueID), let target = project(projectID) else {
+      throw ScreenClipError.message("Report or project no longer exists.")
+    }
+    guard issue.projectID != projectID else { return issueID }
+    guard canMove(issue) else {
+      throw ScreenClipError.message("Cancel active work before moving this report to another project.")
+    }
+    if issue.threadID == nil && issue.worktreePath == nil {
+      try updateIssue(issueID) {
+        $0.projectID = projectID
+        $0.record("Moved to \(target.name)", status: $0.status == .canceled ? .canceled : .queued)
+      }
+      worker.pump()
+      return issueID
+    }
+    // Copy the evidence so deleting either report's files never removes the other's.
+    var copied: [String] = []
+    do {
+      let captures = try issue.captures.map { capture -> Capture in
+        let image = try store.writeAsset(Data(contentsOf: URL(fileURLWithPath: capture.imagePath)))
+        copied.append(image)
+        let original = try capture.originalPath.map {
+          try store.writeAsset(Data(contentsOf: URL(fileURLWithPath: $0)), original: true)
+        }
+        if let original { copied.append(original) }
+        var context = capture.context
+        context.routingReason = "Moved from another project by tester"
+        return Capture(
+          note: capture.note, imagePath: image, originalPath: original,
+          annotations: capture.annotations, context: context)
+      }
+      guard let first = captures.first else {
+        throw ScreenClipError.message("This report has no captures to move.")
+      }
+      var moved = Issue(projectID: projectID, title: issue.title, capture: first, agent: issue.agent)
+      moved.captures = captures
+      moved.revision = captures.count
+      moved.contextNotes = issue.contextNotes
+      let from = project(issue.projectID)?.name ?? "another project"
+      moved.record("Moved from \(from)" + (issue.reportReference.map { " (\($0))" } ?? ""))
+      try commit { state in
+        state.issues.append(moved)
+        if let index = state.issues.firstIndex(where: { $0.id == issueID }) {
+          state.issues[index].record("Moved to \(target.name); continuing in a new report", status: .canceled)
+        }
+      }
+      if let number = self.issue(moved.id)?.reportReference {
+        try updateIssue(issueID) { $0.record("Moved to \(target.name) as \(number)") }
+      }
+      selectedIssueID = moved.id
+      worker.pump()
+      return moved.id
+    } catch {
+      for path in copied { try? FileManager.default.removeItem(atPath: path) }
+      throw error
+    }
   }
   func addContext(_ id: UUID, text: String, followUp: Bool = false) throws {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -70,6 +70,15 @@ struct IssueDetailView: View {
                 Button("Link existing chat…") { showLinkChat = true }.disabled(
                   issue.status == .working || issue.worktreePath == nil)
               }
+              if model.canMove(issue) && model.snapshot.projects.count > 1 {
+                Menu("Move to project") {
+                  ForEach(model.snapshot.projects.filter { $0.id != issue.projectID }) { project in
+                    Button(project.name) {
+                      model.perform { _ = try model.moveToProject(issue.id, projectID: project.id) }
+                    }
+                  }
+                }
+              }
               if issue.canDelete && !model.worker.isActive(issue.id) {
                 Button("Delete local evidence…", role: .destructive) { confirmDelete = true }
               }
