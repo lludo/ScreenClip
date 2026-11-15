@@ -57,13 +57,13 @@ extension AgentWorker {
     }
     if !project.sendsExternalScreenshots {
       let remote = try await CommandRunner.checked(
-        "/usr/bin/git", ["remote", "get-url", "origin"], cwd: project.path)
+        GitWorkspace.git, ["remote", "get-url", "origin"], cwd: project.path)
       let parsed = GitHubRepository.parse(remote: remote)
-      let isPublic =
-        parsed == nil
-        ? nil
-        : await GitHubService.repositoryIsPublic(
-          parsed!.slug, gh: AgentDetector.ghPath(model.snapshot.settings), cwd: project.path)
+      var isPublic: Bool?
+      if let parsed {
+        isPublic = await GitHubService.repositoryIsPublic(
+          parsed.slug, gh: AgentDetector.ghPath(model.snapshot.settings), cwd: project.path)
+      }
       throw ScreenClipError.message(
         ExternalScreenshotGate.refusal(optIn: false, repositoryIsPublic: isPublic)
           ?? "Turn on Allow sending screenshots to the external assistant in this project's settings before sending captures to Grok Bot."
@@ -75,7 +75,7 @@ extension AgentWorker {
       ?? ExternalAssistant.branchName(
         reportNumber: number, title: issue.title, workspaceID: issue.workspaceID)
     _ = try await CommandRunner.checked(
-      "/usr/bin/git", ["check-ref-format", "--branch", branch], cwd: project.path)
+      GitWorkspace.git, ["check-ref-format", "--branch", branch], cwd: project.path)
     let workspaceID = issue.workspaceID
     let workspace = try await serializedWorkspaceChange(project.id) { [model] in
       try await GitWorkspace.prepare(
@@ -214,7 +214,7 @@ extension AgentWorker {
   }
   private func githubRepo(_ project: Project) async throws -> String {
     let remote = try await CommandRunner.checked(
-      "/usr/bin/git", ["remote", "get-url", "origin"], cwd: project.path)
+      GitWorkspace.git, ["remote", "get-url", "origin"], cwd: project.path)
     guard let repo = GitHubRepository.parse(remote: remote) else {
       throw ScreenClipError.message(
         "This project's origin is not a GitHub repository. Grok Bot needs a GitHub repository to receive the screenshots."
@@ -246,14 +246,14 @@ extension AgentWorker {
     guard let branch = issue.branch else {
       throw ScreenClipError.message("The Grok Bot report has no evidence branch.")
     }
-    _ = try await CommandRunner.checked("/usr/bin/git", ["fetch", "origin", branch], cwd: path)
+    _ = try await CommandRunner.checked(GitWorkspace.git, ["fetch", "origin", branch], cwd: path)
     let remotePaths = try await GitHubService.listScreenclipPaths(revision: "FETCH_HEAD", cwd: path)
     if ExternalAssistant.containsScreenclipEvidence(remotePaths) {
       try noteScreenclipEvidence(id)
       return .blocked
     }
     try await GitHubService.fastForwardToFetchHead(cwd: path)
-    let head = try await CommandRunner.checked("/usr/bin/git", ["rev-parse", "HEAD"], cwd: path)
+    let head = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
     guard head == pullHead else {
       let summary = "The pull request head does not match the \(branch) branch ScreenClip is watching."
       try model.updateIssue(id) {
@@ -302,7 +302,7 @@ extension AgentWorker {
   /// every later refresh, so it is reported (with the error that caused the rollback) instead of ignored.
   func rollBackBase(_ path: String, to head: String, after cause: Error?) async throws {
     do {
-      _ = try await CommandRunner.checked("/usr/bin/git", ["reset", "--hard", head], cwd: path)
+      _ = try await CommandRunner.checked(GitWorkspace.git, ["reset", "--hard", head], cwd: path)
     } catch {
       let original = cause.map { "\n\nOriginal problem: \($0.localizedDescription)" } ?? ""
       throw ScreenClipError.message(
@@ -345,7 +345,7 @@ extension AgentWorker {
     try JSONEncoder().encode(validated).write(to: receiptURL(issue), options: .atomic)
     do {
       _ = try await CommandRunner.checked(
-        "/usr/bin/git", ["push", "origin", "HEAD:\(branch)"], cwd: path)
+        GitWorkspace.git, ["push", "origin", "HEAD:\(branch)"], cwd: path)
     } catch {
       // Without the rollback the local merge diverges from the PR and blocks every later refresh.
       try await rollBackBase(path, to: previousHead, after: error)

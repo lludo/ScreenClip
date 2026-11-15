@@ -1,6 +1,10 @@
 {
   "private": true,
   "type": "module",
+  "scripts": {
+    "build": "python3 build.py",
+    "test": "node test_locale.mjs"
+  },
   "dependencies": {
     "@vercel/functions": "3.11.3"
   },
