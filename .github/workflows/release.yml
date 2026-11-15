@@ -86,7 +86,12 @@ jobs:
         if: steps.gate.outputs.ready == 'true'
         env:
           SCREENCLIP_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        run: bash scripts/build.sh release CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO OTHER_CODE_SIGN_FLAGS=--timestamp
+        run: |
+          set -euo pipefail
+          # Xcode needs the team (the last "(...)" of the identity) and manual signing for every target,
+          # including the package's resource bundles.
+          team="$(printf '%s' "$SCREENCLIP_SIGNING_IDENTITY" | sed -E 's/.*\(([A-Z0-9]+)\)[[:space:]]*$/\1/')"
+          bash scripts/build.sh release DEVELOPMENT_TEAM="$team" CODE_SIGN_STYLE=Manual CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO OTHER_CODE_SIGN_FLAGS=--timestamp
 
       - name: Notarize, staple, and package the DMG
         if: steps.gate.outputs.ready == 'true'
