@@ -4,7 +4,7 @@
 
 [![Source-available under PolyForm Noncommercial 1.0.0, free for noncommercial use. Commercial licensing on request.](https://img.shields.io/badge/source--available-PolyForm%20Noncommercial%201.0.0-blue)](LICENSE.md)
 
-A native macOS menu bar app for the small things you notice: a clipped button, confusing copy, a missing detail, or an idea. Grab a screenshot, add a note if you want one, and keep going. ScreenClip keeps the image and the context together. Codex, Claude Code, or Grok Bot does the follow-up.
+A native macOS menu bar app for the small things you notice: a clipped button, confusing copy, a missing detail, or an idea. Use the default **⌘⇧2** (Command–Shift–2) shortcut to start a capture from anywhere while ScreenClip is running. Select a region, add a note if you want one, and keep going. ScreenClip keeps the image and the context together. Codex, Claude Code, or Grok Bot does the follow-up.
 
 <p align="center">
   <img src="docs/screenshots/app-queue.png" width="1000" alt="ScreenClip's report queue, showing projects, an annotated capture, and agent activity.">
@@ -13,6 +13,8 @@ A native macOS menu bar app for the small things you notice: a clipped button, c
 <p align="center"><em>Keep reports, captures, and agent conversations together.</em></p>
 
 ### Capture a report
+
+Use the global **⌘⇧2** shortcut or start a capture from the menu bar. You can change the shortcut in Settings, including if the default is already in use.
 
 <table>
   <tr>
@@ -49,7 +51,7 @@ Requires **macOS 14 or later**, a local Git repository, GitHub CLI, and one of C
 
 1. **Build and install** with Xcode, or `bash scripts/run.sh`. The shared scheme installs `/Applications/ScreenClip.app`. Signing setup and the first-run checklist are in [Getting started](docs/getting-started.md).
 2. **Add a project** (repository, base branch, routing, validation command) and **connect an agent** in Settings. For Grok Bot, copy **POST to** and **key** from the assistant's ScreenClip reports routine into **Connect Grok Bot**. Set **System default**, or a **Project default** when one project should use another provider.
-3. Press **⌘⇧2**, select a region, and submit. ScreenClip suggests a project. You can correct it before the report is sent.
+3. Press **⌘⇧2** (or your configured shortcut), select a region, and submit. ScreenClip suggests a project. You can correct it before the report is sent.
 
 Each report keeps its own agent conversation and an isolated Git worktree. ScreenClip opens a GitHub pull request. Automatic merge runs only when the project allows it and the checks pass. Merged fixes show up under **To retest**.
 
