@@ -66,8 +66,9 @@ struct WelcomeView: View {
         "welcome.pair", "\(names[0]) and \(names[1])", locale: locale,
         comment: "Two agent names joined in a sentence. Both %@ values stay untranslated.")
     default:
+      let last = names.last ?? ""
       list = Chrome.format(
-        "welcome.list", "\(names.dropLast().joined(separator: ", ")), and \(names.last!)",
+        "welcome.list", "\(names.dropLast().joined(separator: ", ")), and \(last)",
         locale: locale,
         comment: "Three or more agent names. Both %@ values stay untranslated.")
     }

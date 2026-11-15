@@ -24,18 +24,7 @@ The in-app tip buttons and `.github/FUNDING.yml` (`github: lludo`) point at `htt
 
 ### Release secrets
 
-The six Apple secrets named in [`.github/workflows/release.yml`](../.github/workflows/release.yml) are not configured:
-
-| Secret | What it is |
-| --- | --- |
-| `APPLE_DEVELOPER_ID_P12_BASE64` | Base64 of the Developer ID Application `.p12` |
-| `APPLE_DEVELOPER_ID_P12_PASSWORD` | Password for that `.p12` |
-| `APPLE_SIGNING_IDENTITY` | The certificate's common name, for example `Developer ID Application: Name (TEAMID)` |
-| `APPLE_NOTARY_KEY_P8_BASE64` | Base64 of the App Store Connect API `.p8` |
-| `APPLE_NOTARY_KEY_ID` | The Key ID |
-| `APPLE_NOTARY_ISSUER_ID` | The Issuer ID |
-
-A tag push still starts the Release workflow. When none of the secrets are set, the job stops immediately, posts a notice, and finishes green. Nothing is signed or uploaded. If some secrets are set and others are missing, the job fails. How to create the certificate and the notarization key is in [Direct distribution](release/direct-distribution.md#what-the-tag-does).
+The six Apple secrets named in [`.github/workflows/release.yml`](../.github/workflows/release.yml) are not configured. What each one is, and how the workflow behaves with none, some or all of them set, is in [Direct distribution](release/direct-distribution.md#maintainer-setup-one-time). Until they are set, a tag push finishes green without signing or uploading anything.
 
 ## Before the repository is public
 
