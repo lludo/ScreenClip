@@ -18,20 +18,52 @@ public enum CommandRunner {
     environment: [String: String]? = nil
   ) async throws -> CommandResult {
     // A dedicated thread, not the cooperative pool: commands can run for minutes.
-    try await withCheckedThrowingContinuation { continuation in
-      DispatchQueue.global(qos: .utility).async {
-        continuation.resume(
-          with: Result {
-            try runBlocking(
-              executable, arguments, cwd: cwd, timeout: timeout, environment: environment)
-          })
+    let handle = CancelHandle()
+    let result = try await withTaskCancellationHandler {
+      try await withCheckedThrowingContinuation { continuation in
+        DispatchQueue.global(qos: .utility).async {
+          continuation.resume(
+            with: Result {
+              try runBlocking(
+                executable, arguments, cwd: cwd, timeout: timeout, environment: environment,
+                handle: handle)
+            })
+        }
       }
+    } onCancel: {
+      handle.cancel()
+    }
+    // The process was killed on cancel; report that instead of a misleading exit status.
+    try Task.checkCancellation()
+    return result
+  }
+
+  /// Lets task cancellation reach the child process, whichever side gets there first.
+  private final class CancelHandle: @unchecked Sendable {
+    private let lock = NSLock()
+    private var pid: pid_t?
+    private var cancelled = false
+
+    func attach(_ pid: pid_t) {
+      lock.lock()
+      self.pid = pid
+      let kill = cancelled
+      lock.unlock()
+      if kill { CommandRunner.terminateTree(pid) }
+    }
+
+    func cancel() {
+      lock.lock()
+      cancelled = true
+      let pid = self.pid
+      lock.unlock()
+      if let pid { CommandRunner.terminateTree(pid) }
     }
   }
 
   private static func runBlocking(
     _ executable: String, _ arguments: [String], cwd: String?, timeout: TimeInterval,
-    environment custom: [String: String]?
+    environment custom: [String: String]?, handle: CancelHandle
   ) throws -> CommandResult {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: executable)
@@ -69,6 +101,7 @@ public enum CommandRunner {
       stderr.fileHandleForReading.readabilityHandler = nil
       throw error
     }
+    handle.attach(process.processIdentifier)
     if exited.wait(timeout: .now() + timeout) == .timedOut {
       terminateTree(process.processIdentifier)
       _ = exited.wait(timeout: .now() + 5)

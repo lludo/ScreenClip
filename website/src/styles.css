@@ -7,7 +7,7 @@
   --line: #e3dbd0;
   --orange: #f76826;
   --orange-ink: #b8430a;
-  --on-orange: #fff;
+  --on-orange: #1a120c;
   --stage: #efe8dc;
   --band: #2a211c;
   --band-text: #f6f1e8;
@@ -390,7 +390,7 @@ kbd {
 .prose p, .prose li { color: var(--muted); }
 .prose li { margin: 0.4rem 0; }
 .prose a { font-weight: 650; text-decoration: underline; text-underline-offset: 0.18em; }
-.prose code, .todo-token {
+.prose code {
   font-family: var(--mono);
   font-size: 0.9em;
   background: var(--stage);
@@ -399,15 +399,6 @@ kbd {
   overflow-wrap: anywhere;
 }
 .updated { font-size: 0.975rem; }
-.todo {
-  margin: 1rem 0 1.5rem;
-  padding: 1rem 1.05rem 0.2rem;
-  border: 2px solid var(--orange-ink);
-  border-radius: 14px;
-  background: var(--paper-2);
-}
-.todo p { color: var(--ink); }
-.todo-token { font-weight: 700; }
 .not-found .actions { margin-top: 1.5rem; }
 
 .lang-switcher {
@@ -464,7 +455,6 @@ kbd {
   .header-cta { order: 1; margin-left: auto; }
   .header-descriptor { order: 2; width: 100%; }
   .site-header nav { order: 3; width: 100%; margin-left: 0; }
-  .site-header nav a.nav-download { display: none; }
   .loop, .cards { grid-template-columns: 1fr; }
   .wrap, .prose { width: min(var(--wrap), calc(100% - 2rem)); }
   h1 { font-size: clamp(2.25rem, 10.5vw, 3rem); }
@@ -483,6 +473,6 @@ kbd {
 }
 
 @media (forced-colors: active) {
-  .button, .card, .band, .demo-figure, .todo { border: 1px solid ButtonText; }
+  .button, .card, .band, .demo-figure { border: 1px solid ButtonText; }
   .popup { filter: none; }
 }

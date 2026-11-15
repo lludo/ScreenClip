@@ -34,16 +34,33 @@ public enum AgentDetector {
     return candidates.first(where: { path in
       guard fileManager.isExecutableFile(atPath: path) else { return false }
       // An npm launcher can exist without its native dependency. Prefer the verified runtime in that case.
-      if path == "/opt/homebrew/bin/codex",
-        !fileManager.fileExists(
-          atPath:
-            "/opt/homebrew/lib/node_modules/@openai/codex/node_modules/@openai/codex-darwin-arm64/vendor/aarch64-apple-darwin/codex/codex"
-        )
-      {
+      if path == "/opt/homebrew/bin/codex", !hasNativeCodexRuntime(fileManager: fileManager) {
         return false
       }
       return true
     }) ?? ProcessEnvironment.executable(named: "codex") ?? ""
+  }
+
+  /// The npm package keeps its native binary under `@openai/codex-darwin-<arch>`; accept either architecture.
+  static func hasNativeCodexRuntime(fileManager: FileManager) -> Bool {
+    let scope = "/opt/homebrew/lib/node_modules/@openai/codex/node_modules/@openai"
+    let packages = (try? fileManager.contentsOfDirectory(atPath: scope)) ?? []
+    return packages.contains { package in
+      guard package.hasPrefix("codex-darwin-") else { return false }
+      let vendor = "\(scope)/\(package)/vendor"
+      let triples = (try? fileManager.contentsOfDirectory(atPath: vendor)) ?? []
+      return triples.contains { fileManager.fileExists(atPath: "\(vendor)/\($0)/codex/codex") }
+    }
+  }
+
+  /// The GitHub CLI to run. A saved path that no longer exists (a different Mac, a moved
+  /// Homebrew prefix, an Intel install) falls back to the usual locations, then PATH.
+  public static func ghPath(_ settings: AppSettings, fileManager: FileManager = .default) -> String {
+    let configured = settings.ghPath.trimmingCharacters(in: .whitespaces)
+    if !configured.isEmpty, fileManager.isExecutableFile(atPath: configured) { return configured }
+    let candidates = ["/opt/homebrew/bin/gh", "/usr/local/bin/gh", "/usr/bin/gh"]
+    return candidates.first { fileManager.isExecutableFile(atPath: $0) }
+      ?? ProcessEnvironment.executable(named: "gh") ?? configured
   }
 
   public static func defaultClaudePath(fileManager: FileManager = .default) -> String {

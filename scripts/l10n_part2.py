@@ -134,4 +134,3 @@ A("Orange", "橙色", "Naranja", "オレンジ", "Laranja", "Orange", "Orange", 
 A("Other sign-in options", "其他登录方式", "Otras formas de iniciar sesión", "その他のサインイン", "Outras opções de login", "Andere Anmeldeoptionen", "Autres options de connexion", "다른 로그인 방법", "Другие способы входа", "其他登入方式")
 A("PR open", "PR 已打开", "PR abierto", "PR オープン", "PR aberto", "PR offen", "PR ouverte", "PR 열림", "PR открыт", "PR 已開啟")
 A("PROJECTS", "项目", "PROYECTOS", "プロジェクト", "PROJETOS", "PROJEKTE", "PROJETS", "프로젝트", "ПРОЕКТЫ", "專案")
-print(len(T))

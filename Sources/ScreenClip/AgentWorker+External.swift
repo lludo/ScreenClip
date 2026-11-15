@@ -63,7 +63,7 @@ extension AgentWorker {
         parsed == nil
         ? nil
         : await GitHubService.repositoryIsPublic(
-          parsed!.slug, gh: model.snapshot.settings.ghPath, cwd: project.path)
+          parsed!.slug, gh: AgentDetector.ghPath(model.snapshot.settings), cwd: project.path)
       throw ScreenClipError.message(
         ExternalScreenshotGate.refusal(optIn: false, repositoryIsPublic: isPublic)
           ?? "Turn on Allow sending screenshots to the external assistant in this project's settings before sending captures to Grok Bot."
@@ -157,7 +157,7 @@ extension AgentWorker {
       commit: commit, branch: workspace.branch, cwd: workspace.path)
     if !alreadyPushed {
       _ = try await CommandRunner.checked(
-        model.snapshot.settings.ghPath, ["auth", "status"], cwd: workspace.path)
+        AgentDetector.ghPath(model.snapshot.settings), ["auth", "status"], cwd: workspace.path)
       try await GitHubService.pushBranch(workspace.branch, cwd: workspace.path)
     }
     try ensureExternalActive(id, token)
@@ -298,6 +298,18 @@ extension AgentWorker {
     }
     return .ready(true)
   }
+  /// Puts the worktree back on `head`. A failed reset leaves an unvalidated merge that blocks
+  /// every later refresh, so it is reported (with the error that caused the rollback) instead of ignored.
+  func rollBackBase(_ path: String, to head: String, after cause: Error?) async throws {
+    do {
+      _ = try await CommandRunner.checked("/usr/bin/git", ["reset", "--hard", head], cwd: path)
+    } catch {
+      let original = cause.map { "\n\nOriginal problem: \($0.localizedDescription)" } ?? ""
+      throw ScreenClipError.message(
+        "Could not restore the worktree to its previous state: \(error.localizedDescription)"
+          + original)
+    }
+  }
   func publishExternalBaseUpdate(
     _ id: UUID, project: Project, path: String, branch: String, previousHead: String
   ) async throws {
@@ -306,8 +318,7 @@ extension AgentWorker {
     }
     let paths = try await GitHubService.listScreenclipPaths(revision: "HEAD", cwd: path)
     if ExternalAssistant.containsScreenclipEvidence(paths) {
-      _ = try? await CommandRunner.checked(
-        "/usr/bin/git", ["reset", "--hard", previousHead], cwd: path)
+      try await rollBackBase(path, to: previousHead, after: nil)
       try noteScreenclipEvidence(id)
       return
     }
@@ -315,20 +326,18 @@ extension AgentWorker {
     do {
       validated = try await GitWorkspace.validate(project: project, path: path)
     } catch {
-      _ = try? await CommandRunner.checked(
-        "/usr/bin/git", ["reset", "--hard", previousHead], cwd: path)
+      try await rollBackBase(path, to: previousHead, after: error)
       throw error
     }
     guard validated.passed else {
-      _ = try? await CommandRunner.checked(
-        "/usr/bin/git", ["reset", "--hard", previousHead], cwd: path)
-      throw ScreenClipError.message(
+      let failure = ScreenClipError.message(
         "Project validation failed after updating the base branch.\n" + validated.output)
+      try await rollBackBase(path, to: previousHead, after: failure)
+      throw failure
     }
     let remaining = try await GitHubService.listScreenclipPaths(revision: "HEAD", cwd: path)
     if ExternalAssistant.containsScreenclipEvidence(remaining) {
-      _ = try? await CommandRunner.checked(
-        "/usr/bin/git", ["reset", "--hard", previousHead], cwd: path)
+      try await rollBackBase(path, to: previousHead, after: nil)
       try noteScreenclipEvidence(id)
       return
     }
@@ -339,8 +348,7 @@ extension AgentWorker {
         "/usr/bin/git", ["push", "origin", "HEAD:\(branch)"], cwd: path)
     } catch {
       // Without the rollback the local merge diverges from the PR and blocks every later refresh.
-      _ = try? await CommandRunner.checked(
-        "/usr/bin/git", ["reset", "--hard", previousHead], cwd: path)
+      try await rollBackBase(path, to: previousHead, after: error)
       throw error
     }
     try model.updateIssue(id) {
@@ -371,7 +379,7 @@ extension AgentWorker {
       do {
         let repo = await repositorySlug(for: issue)
         let candidates = try await GitHubService.pullRequests(
-          head: branch, gh: model.snapshot.settings.ghPath, cwd: path)
+          head: branch, gh: AgentDetector.ghPath(model.snapshot.settings), cwd: path)
         if let match = ExternalPullRequestFinder.match(
           reportNumber: number, issueID: issue.id, branch: branch, candidates: candidates, repo: repo)
         {
@@ -466,7 +474,7 @@ extension AgentWorker {
       let status: ExternalStatus?
       do {
         status = try await GitHubService.externalStatus(
-          repo: repo, commit: commit, gh: model.snapshot.settings.ghPath, cwd: path)
+          repo: repo, commit: commit, gh: AgentDetector.ghPath(model.snapshot.settings), cwd: path)
       } catch {
         continue
       }
