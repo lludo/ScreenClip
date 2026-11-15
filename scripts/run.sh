@@ -1,4 +1,6 @@
 #!/bin/bash
+# Builds, installs to /Applications, and opens the queue. Needs Config/LocalSigning.xcconfig
+# (copy the .example file); install.sh refuses ad-hoc builds.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 case "${1:-debug}" in

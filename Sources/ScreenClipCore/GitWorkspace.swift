@@ -4,7 +4,7 @@ import Foundation
 /// Local Git work for an issue: its isolated worktree, source fingerprint, validation,
 /// and base-branch updates. GitHub calls live in `GitHubService`.
 public enum GitWorkspace {
-  static let git = "/usr/bin/git"
+  public static let git = "/usr/bin/git"
   public static let branchPrefix = "screenclip/"
   /// Branch names created before the prefix became agent-neutral.
   static let legacyBranchPrefix = "codex/screenclip-"
@@ -155,8 +155,6 @@ public enum GitWorkspace {
       output: String((result.output + "\n" + result.error).suffix(8000)), fingerprint: after)
   }
 
-  /// Merges the latest remote base into the issue branch. Returns true when the base had
-  /// advanced. A conflicted merge is aborted so the worktree is never left mid-merge.
   /// Fetches a branch from origin. Worktrees of one repository share remote refs, so parallel
   /// reports can collide on git's ref lock; that transient error is retried.
   public static func fetch(_ branch: String, cwd: String, attempts: Int = 4) async throws {
@@ -172,6 +170,8 @@ public enum GitWorkspace {
     }
   }
 
+  /// Merges the latest remote base into the issue branch. Returns true when the base had
+  /// advanced. A conflicted merge is aborted so the worktree is never left mid-merge.
   public static func updateBaseIfNeeded(project: Project, path: String) async throws -> Bool {
     try await fetch(project.baseBranch, cwd: path)
     let ancestor = try await CommandRunner.run(

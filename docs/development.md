@@ -19,7 +19,7 @@ node website/test_locale.mjs
 
 `bash scripts/build.sh debug` and `bash scripts/build.sh release` build the Xcode scheme without installing. Release builds enable the hardened runtime. Debug builds do not. Products land in `build/DerivedData/Build/Products/`.
 
-`bash scripts/package.sh` creates `build/ScreenClip-macOS.zip` from the Release app. If `SCREENCLIP_NOTARY_PROFILE` is set, it also notarizes with that Keychain profile and requires `SCREENCLIP_SIGNING_IDENTITY`. The GitHub Release path does not use this script. It uses `scripts/release-dmg.sh`. See [Direct distribution](release/direct-distribution.md).
+`bash scripts/package.sh` creates `build/ScreenClip-macOS.zip` from the Release app. If `SCREENCLIP_NOTARY_PROFILE` is set, it also notarizes with that Keychain profile and requires `SCREENCLIP_SIGNING_IDENTITY`. Do not distribute that zip: the published download is the notarized DMG. The GitHub Release path does not use this script. It uses `scripts/release-dmg.sh`. See [Direct distribution](release/direct-distribution.md).
 
 Other local tools:
 
@@ -30,7 +30,7 @@ Other local tools:
 | `python3 scripts/probe_codex.py --codex /path/to/codex` | Read-only Codex handshake. Uses account quota. |
 | `python3 scripts/send_test_webhook.py` | Sends the Grok Bot test payload using `SCREENCLIP_WEBHOOK_URL` and `SCREENCLIP_AUTHORIZATION`. |
 | `bash scripts/sandbox-diagnostic.sh` | Builds a tiny sandboxed app and records whether `git` and `gh` can launch. CI runs this. |
-| `ScreenClipProbe` | Manual Codex smoke test: two model turns, a synthetic image, a disposable repository. |
+| `ScreenClipProbe` (run with `swift run ScreenClipProbe`; not a SwiftPM product) | Manual Codex smoke test: two model turns, a synthetic image, a disposable repository. |
 
 `scripts/create_integration_fixture.py` creates a private `OWNER/screenclip-integration-*` repository. `ScreenClip --integration-run` then performs real pull-request and merge operations in that fixture only. Do not point it at a repository you care about.
 

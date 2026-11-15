@@ -6,7 +6,6 @@ let package = Package(
   platforms: [.macOS(.v14)],
   products: [
     .executable(name: "ScreenClip", targets: ["ScreenClip"]),
-    .executable(name: "ScreenClipProbe", targets: ["ScreenClipProbe"]),
     .library(name: "ScreenClipCore", targets: ["ScreenClipCore"]),
   ],
   targets: [
