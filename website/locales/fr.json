@@ -38,7 +38,7 @@
   "hero": {
     "eyebrow": "Retours par capture pour les agents de code",
     "title": "Signalez les bugs au fil de l’eau, sans casser votre rythme.",
-    "lead": "Vous remarquez quelque chose pendant vos tests ? Capturez-le, ajoutez une note si vous le souhaitez et envoyez-le à Codex, Claude Code ou Grok Bot. ScreenClip réunit le signalement et le correctif pour vous permettre de reprendre vos tests."
+    "lead": "Vous remarquez quelque chose pendant vos tests ? Capturez-le, ajoutez une courte note et votre agent IA s’en occupe en arrière-plan pendant que vous continuez à tester (Codex, Claude Code ou Grok Bot). ScreenClip réunit vos signalements et leurs correctifs pour que vous sachiez ce qui est prêt à retester."
   },
   "demo": {
     "title": "La barre des menus",

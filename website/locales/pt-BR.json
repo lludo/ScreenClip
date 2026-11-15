@@ -38,7 +38,7 @@
   "hero": {
     "eyebrow": "Feedback por captura para agentes de código",
     "title": "Registre bugs no fluxo, sem interromper o ritmo.",
-    "lead": "Notou algo enquanto testava? Capture, adicione uma nota se quiser e envie para Codex, Claude Code ou Grok Bot. O ScreenClip mantém o relato e a correção juntos para você continuar testando."
+    "lead": "Notou algo enquanto testava? Capture, adicione uma nota rápida e seu agente de IA cuida disso em segundo plano enquanto você continua testando (Codex, Claude Code ou Grok Bot). O ScreenClip mantém seus relatos e correções juntos para você acompanhar o que está pronto para testar novamente."
   },
   "demo": {
     "title": "A barra de menus",

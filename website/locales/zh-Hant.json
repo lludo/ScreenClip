@@ -38,7 +38,7 @@
   "hero": {
     "eyebrow": "給 AI 程式代理的截圖回饋",
     "title": "邊用邊記問題，不打斷你的節奏。",
-    "lead": "測試時發現問題？擷取畫面，視需要加入備註，然後傳送給 Codex、Claude Code 或 Grok Bot。ScreenClip 將回報和修復放在一起，讓你繼續專心測試。"
+    "lead": "測試時發現問題？擷取畫面，快速加入備註，AI 代理（Codex、Claude Code 或 Grok Bot）就會在背景處理，你可以繼續測試。ScreenClip 將回報和修復放在一起，讓你隨時查看哪些已準備好重新測試。"
   },
   "demo": {
     "title": "選單列",
