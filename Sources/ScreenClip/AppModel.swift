@@ -460,14 +460,6 @@ struct GrokConnectionCheck: Equatable {
   func disconnectExternalAssistant() throws {
     try ExternalAssistantKeychain.save(.empty)
   }
-  func setProjectSendsScreenshots(_ id: UUID, allowed: Bool) throws {
-    guard var project = project(id) else {
-      throw ScreenClipError.message("That project is no longer available.")
-    }
-    guard project.sendsExternalScreenshots != allowed else { return }
-    project.allowExternalScreenshots = allowed
-    try saveProject(project)
-  }
   /// Checks the connection and stores it when the address and secret are usable.
   /// The result message never includes the secret or the response body, which can echo it.
   func checkGrokConnection(
@@ -509,12 +501,20 @@ struct GrokConnectionCheck: Equatable {
       let response = try await ExternalAssistantClient.post(
         url: endpoint, authorization: secret, body: try ExternalAssistant.testJSON())
       if response.succeeded {
-        try? ExternalAssistantKeychain.save(
-          ExternalAssistantConfiguration(
-            webhookURL: configuration.normalizedURL, authorization: secret, testSucceeded: true,
-            capabilities: kept))
+        var stored = true
+        do {
+          try ExternalAssistantKeychain.save(
+            ExternalAssistantConfiguration(
+              webhookURL: configuration.normalizedURL, authorization: secret, testSucceeded: true,
+              capabilities: kept))
+        } catch {
+          stored = false
+        }
         await refreshAgents()
-        return GrokConnectionCheck(connected: true, message: "Connected", host: host, stored: true)
+        return GrokConnectionCheck(
+          connected: true,
+          message: stored ? "Connected" : "Connected, but the result could not be saved to the Keychain.",
+          host: host, stored: stored)
       }
       await refreshAgents()
       let message =

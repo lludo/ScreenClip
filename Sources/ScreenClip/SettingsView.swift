@@ -445,7 +445,7 @@ struct SettingsView: View {
             Button {
               Task {
                 do {
-                  _ = try await CommandRunner.checked(settings.ghPath, ["auth", "status"])
+                  _ = try await CommandRunner.checked(AgentDetector.ghPath(settings), ["auth", "status"])
                   error = "GitHub sign-in is ready."
                 } catch { self.error = "GitHub needs setup: " + error.localizedDescription }
               }

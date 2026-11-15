@@ -49,19 +49,7 @@
   "loop": {
     "eyebrow": "使い方",
     "title": "キャプチャして、修正を出して、再テストする。",
-    "intro": "気づきから再テストまで、3つのステップ。",
-    "captureTitle": "キャプチャ",
-    "captureBody": "{kbd}を押して、WebサイトかMacアプリの範囲をドラッグします。ショートカットはSettingsで変更できます。",
-    "annotateTitle": "注釈",
-    "annotateBody": "メモ、矢印、図形、テキストを足せます。スクリーンショットだけでも十分です。墨消しは自分で描く矩形で、不透明な黒に平坦化されます。",
-    "agentTitle": "エージェント",
-    "agentBody": "CodexとClaude CodeはこのMac上で、それぞれ独立したGit worktreeで動きます。Grok Botはリモートで、webhookを保存し、そのプロジェクトをオプトインしたあとだけです。",
-    "prTitle": "プルリクエスト",
-    "prBody": "CodexとClaude Codeでは、ScreenClipが検証コマンドを実行してプルリクエストを開きます。Grok Botは、ScreenClipがpushしたブランチからプルリクエストを開きます。",
-    "mergedTitle": "マージ済み",
-    "mergedBody": "自動マージをオンにすると、検証、チェック、レビュールールを通過したあとでScreenClipがマージします。必須レビューは飛ばしません。マージはデプロイではありません。",
-    "retestTitle": "再テスト",
-    "retestBody": "マージ済みのレポートはTo retestに移ります。同じレポートへの新しいキャプチャはその作業の続きです。CodexまたはClaude Codeの実行中は、MacをスリープさせずScreenClipを起動したままにしてください。"
+    "intro": "気づきから再テストまで、3つのステップ。"
   },
   "agents": {
     "eyebrow": "コーディングエージェント",
@@ -86,7 +74,6 @@
     "donate": "プロジェクトを支援",
     "noteReady": "GitHub Releasesの公証済みディスクイメージです。バージョンタグを公開するとファイルが付きます。",
     "noteSoon": "Mac版のダウンロードは近日公開予定です。",
-    "sourceSoon": "ソースは近日公開です。",
     "macSoon": "Mac版のダウンロードは近日公開です。",
     "needsTitle": "必要なもの",
     "needOs": "macOS 14以降",
@@ -196,7 +183,6 @@
     "tips": "アプリは任意のチップウィンドウを表示でき、同じウィンドウはメニューとSettingsからも開けます。チップを選ぶとブラウザでGitHub Sponsorsが開きます。ScreenClipは支払いを処理せず、カードや入金の詳細を受け取りません。ウィンドウは閉じられ、表示もオフにできます。このWebサイトは支払いページへリンクしません。",
     "siteTitle": "このWebサイト",
     "site1": "{link:site}は静的なWebサイトです。このサイトのページは、第三者のスクリプト、フォント、解析を読み込みません。言語を選ぶと、その選択がscreenclip_langというcookieと、このデバイスのlocal storageに保存されます。cookieは、次回ホームページを開く言語を選ぶためだけに使います。広告や解析には使いません。サイトを配信するホストは、ページを届けるために、IPアドレスやユーザーエージェントなどの通常の接続データを受け取ります。",
-    "site2": "ダウンロードボタンは、MacアプリのGitHub Releaseへ移動します。リポジトリや、あとで設定される寄付リンクなど、その他のリンクはこのサイトを離れてその宛先へ移動します。",
     "contactTitle": "連絡先",
     "contact": "このポリシーについての質問は{link:support}から送ってください。",
     "changesTitle": "変更",

@@ -16,13 +16,6 @@ Engineering work that is not a release blocker (live Claude and Grok Bot runs, m
 
 The support page says public support is not available yet. Add a monitored address or another support channel before advertising one. `website/site.config.json` has no email field.
 
-### CONTRIBUTING and SECURITY
-
-Two related files are still absent:
-
-- A root `CONTRIBUTING.md`. The workflow people should follow is [Development → Contributing](development.md#contributing).
-- A root `SECURITY.md`. It should say that queue screenshots stay on the Mac, that the Grok Bot webhook address and header live in the Keychain (`com.screenclip.app.external-assistant`), and where to report a vulnerability.
-
 ### GitHub Sponsors and the donate URL
 
 The in-app tip buttons and `.github/FUNDING.yml` (`github: lludo`) point at `https://github.com/sponsors/lludo`. That Sponsors profile is not set up to receive payments.
@@ -47,7 +40,7 @@ A tag push still starts the Release workflow. When none of the secrets are set, 
 ## Before the repository is public
 
 1. Publish from a new repository or a single new commit, and have GitHub purge the pre-rewrite pull-request refs. The branch rewrite did not remove them. The path list is in the [open-source audit](release/open-source-audit.md#what-to-do-before-the-repository-is-public).
-2. Add root `CONTRIBUTING.md` and `SECURITY.md`, or accept that those files are still missing and that [Development](development.md#contributing) is the only contributing page.
+2. Root `CONTRIBUTING.md` and `SECURITY.md` exist. Add a support email to `SECURITY.md` if you want one besides GitHub private reporting.
 3. Add a monitored support channel if the public site should list one.
 4. Decide whether the Sponsors link and `donateUrl` should go live with the first public download.
 

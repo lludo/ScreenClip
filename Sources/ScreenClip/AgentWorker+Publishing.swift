@@ -88,7 +88,7 @@ extension AgentWorker {
       }
       let published = try await GitHubService.publish(
         project: project, issue: issue, summary: summary, receipt: receipt,
-        gh: model.snapshot.settings.ghPath,
+        gh: AgentDetector.ghPath(model.snapshot.settings),
         shouldContinue: { [weak self] in
           self?.model.issue(id)?.revision == issue.coveredRevision
             && self?.model.issue(id)?.status == .working
@@ -152,7 +152,7 @@ extension AgentWorker {
     defer { refreshing.remove(id) }
     do {
       let pr = try await GitHubService.state(
-        url: url, path: path, gh: model.snapshot.settings.ghPath)
+        url: url, path: path, gh: AgentDetector.ghPath(model.snapshot.settings))
       if pr.merged {
         try recordMerge(id, commit: pr.mergeCommit, coveredRevision: issue.coveredRevision)
         model.notify(issue, text: "Fix merged. Ready to rebuild and retest.")
@@ -293,9 +293,9 @@ extension AgentWorker {
       guard model.issue(id)?.revision == issue.coveredRevision && model.issue(id)?.status == .prOpen
       else { return }
       try await GitHubService.merge(
-        url: url, head: pr.head, path: path, gh: model.snapshot.settings.ghPath)
+        url: url, head: pr.head, path: path, gh: AgentDetector.ghPath(model.snapshot.settings))
       let confirmed = try await GitHubService.state(
-        url: url, path: path, gh: model.snapshot.settings.ghPath)
+        url: url, path: path, gh: AgentDetector.ghPath(model.snapshot.settings))
       if confirmed.merged {
         try recordMerge(id, commit: confirmed.mergeCommit, coveredRevision: issue.coveredRevision)
         model.notify(issue, text: "Fix merged. Ready to rebuild and retest.")

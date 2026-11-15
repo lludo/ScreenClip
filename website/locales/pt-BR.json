@@ -49,19 +49,7 @@
   "loop": {
     "eyebrow": "Como funciona",
     "title": "Capture, envie a correção e teste de novo.",
-    "intro": "Três passos entre a observação e o novo teste.",
-    "captureTitle": "Captura",
-    "captureBody": "Pressione {kbd} e arraste uma região de um site ou de um app de Mac. O atalho pode ser mudado em Settings.",
-    "annotateTitle": "Anote",
-    "annotateBody": "Adicione uma nota, uma seta, uma forma ou texto. Só a captura já basta. A redação é um retângulo que você desenha e que vira preto opaco.",
-    "agentTitle": "Agente",
-    "agentBody": "Codex e Claude Code trabalham neste Mac, cada um no próprio Git worktree. O Grok Bot é remoto, e só depois de você salvar um webhook e ativar esse projeto.",
-    "prTitle": "Pull request",
-    "prBody": "Para Codex e Claude Code, o ScreenClip roda o comando de validação e abre o pull request. O Grok Bot abre o dele a partir do branch que o ScreenClip enviou.",
-    "mergedTitle": "Merge feito",
-    "mergedBody": "Com o merge automático ligado, o ScreenClip faz o merge depois da validação, das verificações e das regras de review. Ele não pula reviews obrigatórios. Merge não é deploy.",
-    "retestTitle": "Testar de novo",
-    "retestBody": "Relatórios com merge vão para To retest. Uma nova captura no mesmo relatório continua esse trabalho. Enquanto Codex ou Claude Code trabalham, deixe o Mac acordado e o ScreenClip em execução."
+    "intro": "Três passos entre a observação e o novo teste."
   },
   "agents": {
     "eyebrow": "Agentes",
@@ -86,7 +74,6 @@
     "donate": "Apoiar o projeto",
     "noteReady": "Imagem de disco notarizada no GitHub Releases. O arquivo é anexado quando uma tag de versão é publicada.",
     "noteSoon": "Download para Mac em breve.",
-    "sourceSoon": "O código chega em breve.",
     "macSoon": "O download para Mac chega em breve.",
     "needsTitle": "O que você precisa",
     "needOs": "macOS 14 ou posterior",
@@ -196,7 +183,6 @@
     "tips": "O app pode mostrar uma janela opcional de gorjeta, e a mesma janela está no menu e em Settings. Escolher uma gorjeta abre o GitHub Sponsors no navegador. O ScreenClip não processa o pagamento e não recebe dados de cartão nem de repasse. Você pode fechar a janela ou desligar o aviso. Este site não aponta para uma página de pagamento.",
     "siteTitle": "Este site",
     "site1": "{link:site} é um site estático. As páginas não carregam scripts, fontes nem análise de terceiros. Escolher um idioma guarda essa escolha em um cookie chamado screenclip_lang e no armazenamento local do seu dispositivo. O cookie só escolhe o idioma da página inicial. Não é usado para publicidade nem análise. O host que entrega o site recebe dados comuns de conexão, como endereço IP e user agent, para servir a página.",
-    "site2": "O botão de download vai para um GitHub Release do app de Mac. Outros links, como o repositório e um link de doação se for configurado depois, saem deste site para esse destino.",
     "contactTitle": "Contato",
     "contact": "Perguntas sobre esta política vão pela {link:support}.",
     "changesTitle": "Alterações",

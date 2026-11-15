@@ -45,5 +45,5 @@ The [root README](../README.md) is the short introduction. This page is the map.
 ## Publishing
 
 - [Publishing checklist](open-source.md) — open items before the repository is public. The license is [PolyForm Noncommercial 1.0.0](../LICENSE.md).
-- [Secret-scan record](release/open-source-audit.md) — the November 14, 2026 scan. It stops at commit `a1c72c6`.
+- [Secret-scan record](release/open-source-audit.md) — the November 14, 2026 scan. The commit it covers is named on that page.
 - [Archived proposals](archive/README.md) — product questions that have since been decided.

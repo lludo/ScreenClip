@@ -49,19 +49,7 @@
   "loop": {
     "eyebrow": "Cómo funciona",
     "title": "Captúralo, envía el arreglo y pruébalo otra vez.",
-    "intro": "Tres pasos desde lo que observas hasta la nueva prueba.",
-    "captureTitle": "Captura",
-    "captureBody": "Pulsa {kbd} y arrastra una zona de un sitio o de una app de Mac. El atajo se puede cambiar en Settings.",
-    "annotateTitle": "Anota",
-    "annotateBody": "Añade una nota, una flecha, una forma o texto. Con la captura basta. El tachado es un rectángulo que dibujas y que queda en negro opaco.",
-    "agentTitle": "Agente",
-    "agentBody": "Codex y Claude Code trabajan en este Mac, cada uno en su Git worktree. Grok Bot es remoto, y solo después de guardar un webhook y activar ese proyecto.",
-    "prTitle": "Pull request",
-    "prBody": "Con Codex y Claude Code, ScreenClip ejecuta tu comando de validación y abre la pull request. Grok Bot la abre desde la rama que ScreenClip envió.",
-    "mergedTitle": "Fusionada",
-    "mergedBody": "Con la fusión automática activada, ScreenClip fusiona cuando pasan la validación, las comprobaciones y las reglas de revisión. No se salta las revisiones obligatorias. Fusionar no es desplegar.",
-    "retestTitle": "Nueva prueba",
-    "retestBody": "Los informes fusionados pasan a To retest. Una captura nueva del mismo informe continúa ese trabajo. Mientras Codex o Claude Code trabajan, deja el Mac despierto y ScreenClip en ejecución."
+    "intro": "Tres pasos desde lo que observas hasta la nueva prueba."
   },
   "agents": {
     "eyebrow": "Agentes",
@@ -86,7 +74,6 @@
     "donate": "Apoyar el proyecto",
     "noteReady": "Imagen de disco notarizada en GitHub Releases. El archivo se adjunta cuando se publica una etiqueta de versión.",
     "noteSoon": "La descarga para Mac estará disponible próximamente.",
-    "sourceSoon": "El código llegará pronto.",
     "macSoon": "La descarga para Mac llegará pronto.",
     "needsTitle": "Qué necesitas",
     "needOs": "macOS 14 o posterior",
@@ -196,7 +183,6 @@
     "tips": "La app puede mostrar una ventana opcional de propina, y la misma ventana está en el menú y en Settings. Elegir una propina abre GitHub Sponsors en el navegador. ScreenClip no procesa el pago y no recibe datos de tarjeta ni de cobro. Puedes cerrar la ventana o desactivar el aviso. Este sitio no enlaza a una página de pago.",
     "siteTitle": "Este sitio",
     "site1": "{link:site} es un sitio estático. Las páginas no cargan scripts, fuentes ni analítica de terceros. Elegir un idioma guarda esa elección en una cookie llamada screenclip_lang y en el almacenamiento local de tu dispositivo. La cookie solo elige el idioma de la página de inicio. No se usa para publicidad ni analítica. El servidor que entrega el sitio recibe datos de conexión ordinarios, como la dirección IP y el agente de usuario, para servir la página.",
-    "site2": "El botón de descarga va a una GitHub Release de la app de Mac. Otros enlaces, como el repositorio y un enlace de donación si se configura más adelante, salen de este sitio hacia ese destino.",
     "contactTitle": "Contacto",
     "contact": "Las preguntas sobre esta política van por la {link:support}.",
     "changesTitle": "Cambios",

@@ -22,13 +22,6 @@ ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 DIST = ROOT / "dist"
 
-HOME_TITLE = "ScreenClip — Screenshot feedback for AI coding agents"
-HOME_DESCRIPTION = (
-    "Free Mac menu bar app. Capture a screenshot, hand it to Codex, Claude Code, or Grok Bot, "
-    "and track the pull request through checks, merge, and retest."
-)
-
-
 @dataclass(frozen=True)
 class Config:
     site_url: str

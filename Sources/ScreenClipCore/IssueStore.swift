@@ -65,7 +65,16 @@ public final class IssueStore {
       sqlite3_prepare_v2(db, "SELECT payload FROM state WHERE id=1", -1, &stmt, nil) == SQLITE_OK
     else { throw ScreenClipError.message("Cannot read the queue.") }
     guard sqlite3_step(stmt) == SQLITE_ROW else { return StoreSnapshot() }
-    let data = Data(bytes: sqlite3_column_blob(stmt, 0), count: Int(sqlite3_column_bytes(stmt, 0)))
+    let length = Int(sqlite3_column_bytes(stmt, 0))
+    // A zero-length blob has a nil pointer; treat it as an empty queue instead of crashing.
+    guard length > 0, let bytes = sqlite3_column_blob(stmt, 0) else { return StoreSnapshot() }
+    let data = Data(bytes: bytes, count: length)
+    struct Header: Decodable { var version: Int }
+    // Check the format before decoding it, so a newer queue gets the friendly message.
+    if let header = try? JSONDecoder().decode(Header.self, from: data), header.version > 1 {
+      throw ScreenClipError.message(
+        "This queue was created by a newer ScreenClip. Update the app before opening it.")
+    }
     var snapshot = try JSONDecoder().decode(StoreSnapshot.self, from: data)
     guard snapshot.version == 1 else {
       throw ScreenClipError.message(
@@ -102,9 +111,10 @@ public final class IssueStore {
         -1, &stmt, nil) == SQLITE_OK
     else { throw ScreenClipError.message("Cannot prepare queue save.") }
     let transient = unsafeBitCast(-1, to: sqlite3_destructor_type.self)
-    _ = data.withUnsafeBytes {
+    let bound = data.withUnsafeBytes {
       sqlite3_bind_blob(stmt, 1, $0.baseAddress, Int32(data.count), transient)
     }
+    guard bound == SQLITE_OK else { throw ScreenClipError.message("Cannot prepare queue save.") }
     guard sqlite3_step(stmt) == SQLITE_DONE else {
       throw ScreenClipError.message(
         "Could not save the report: \(String(cString: sqlite3_errmsg(db)))")
@@ -134,7 +144,10 @@ public final class IssueStore {
         let source = URL(fileURLWithPath: exported.issues[i].captures[c].imagePath)
         let filename = source.lastPathComponent
         let destination = directory.appendingPathComponent(filename)
-        if !FileManager.default.fileExists(atPath: destination.path) {
+        // A capture whose image is gone should not abort the whole export.
+        if !FileManager.default.fileExists(atPath: destination.path),
+          FileManager.default.fileExists(atPath: source.path)
+        {
           try FileManager.default.copyItem(at: source, to: destination)
         }
         exported.issues[i].captures[c].imagePath = filename
@@ -147,6 +160,7 @@ public final class IssueStore {
       to: directory.appendingPathComponent("screenclip-export.json"), options: .atomic)
   }
   public func deleteAssets(for issue: Issue) throws {
+    var firstFailure: Error?
     for capture in issue.captures {
       for name in [capture.imagePath, capture.originalPath].compactMap({ $0 }) {
         let url = URL(fileURLWithPath: name).standardizedFileURL
@@ -155,9 +169,11 @@ public final class IssueStore {
             || url.path.hasPrefix(root.standardizedFileURL.path + "/originals/")
         else { continue }
         if FileManager.default.fileExists(atPath: url.path) {
-          try FileManager.default.removeItem(at: url)
+          // Keep going so one stuck file does not orphan the rest.
+          do { try FileManager.default.removeItem(at: url) } catch { firstFailure = firstFailure ?? error }
         }
       }
     }
+    if let firstFailure { throw firstFailure }
   }
 }

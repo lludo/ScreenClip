@@ -4,7 +4,7 @@ ScreenClip stays off the Mac App Store. The reason is [the sandbox study](app-st
 
 People who clone the repo can build it themselves. The DMG is for someone who wants a signed app without Xcode. The tip is optional.
 
-## What Ludo does once
+## Maintainer setup (one time)
 
 1. Enroll in the Apple Developer Program if the account behind team `D6826XDERA` is not already active. Create a **Developer ID Application** certificate (not Apple Development, and not Mac App Store). Export it from Keychain Access as a `.p12` with a password.
 2. In App Store Connect, create an **App Store Connect API** key with the Developer role. Download the `.p8` once. Note the Key ID and the Issuer ID. This key is only for notarization. It does not submit the app to the store.
@@ -20,14 +20,14 @@ People who clone the repo can build it themselves. The DMG is for someone who wa
    | `APPLE_NOTARY_ISSUER_ID` | The Issuer ID |
 
 4. Turn on [GitHub Sponsors](https://github.com/sponsors/lludo) for the `lludo` account and finish the payout and tax steps. `.github/FUNDING.yml` already names that account. The in-app buttons open `https://github.com/sponsors/lludo`. The profile is not ready, and the website `donateUrl` is empty. Status is in [Publishing checklist](../open-source.md#github-sponsors-and-the-donate-url).
-5. `LICENSE.md` is the PolyForm Noncommercial License 1.0.0. Root `CONTRIBUTING.md` and `SECURITY.md` are still missing. The contributing workflow is in [Development](../development.md#contributing). Review the [open-source audit](open-source-audit.md) and scan changes since its recorded commit before publishing. The checklist is in [Publishing checklist](../open-source.md).
+5. `LICENSE.md` is the PolyForm Noncommercial License 1.0.0. Root [`CONTRIBUTING.md`](../../CONTRIBUTING.md) and [`SECURITY.md`](../../SECURITY.md) exist; the contributing workflow is in [Development](../development.md#contributing). Review the [open-source audit](open-source-audit.md) and scan changes since its recorded commit before publishing. The checklist is in [Publishing checklist](../open-source.md).
 
 ## What the tag does
 
 Push a tag `v1.2.3` (three numbers). [`.github/workflows/release.yml`](../../.github/workflows/release.yml) then:
 
 1. Stops immediately, with a notice and a green job, if none of the Apple secrets are set. That is the current state: the secrets are not configured ([open TODOs](../open-source.md#release-secrets)). If some are set and some are missing, the job fails.
-2. Writes the tag into `CFBundleShortVersionString` and `CFBundleVersion` for that build only. The copy of `Resources/Info.plist` in git is not updated. Local builds keep the versions checked in there. `MARKETING_VERSION` in the Xcode project is unused while `GENERATE_INFOPLIST_FILE` is off.
+2. Writes the tag into `CFBundleShortVersionString` and `CFBundleVersion` for that build. Before tagging, bump `Resources/Info.plist` (and `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in the Xcode project) in a release commit so local builds match. The tag must match `X.Y.Z` (three numbers); `v1.0.0-rc1` fails.
 3. Imports the Developer ID certificate into a temporary keychain, builds the Release scheme with `scripts/build.sh`, and passes `--timestamp` plus `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO`.
 4. Runs `scripts/release-dmg.sh`. That script refuses an App Sandbox signature. It notarizes a zip of the app, staples the app, builds a UDZO disk image with an Applications shortcut, signs and notarizes the DMG, staples the DMG, and writes `SHA256SUMS`.
 5. Creates or updates the GitHub Release for that tag and uploads `ScreenClip.dmg` and `SHA256SUMS`.

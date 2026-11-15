@@ -20,9 +20,6 @@ extension IssueStatus {
 }
 
 extension AgentDetection {
-  /// Pickers show the provider name. Status uses the shared provider phrases.
-  public func localizedLabel(locale: Locale) -> String { kind.title }
-
   public func localizedDetail(locale: Locale) -> String {
     if let match = ProviderPhrase.localizedMatch(detail, locale: locale) { return match }
     let prefix = "\(kind.title) ready · "

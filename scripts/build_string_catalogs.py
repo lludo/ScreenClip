@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build ScreenClip String Catalogs from scripts/l10n_strings.json."""
+"""Build ScreenClip String Catalogs from the translation tables in scripts/l10n_part1.py, l10n_part2.py, l10n_part3.py and l10n_formats.py."""
 import json
 import pathlib
 import re

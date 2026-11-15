@@ -49,19 +49,7 @@
   "loop": {
     "eyebrow": "Fonctionnement",
     "title": "Capturez, livrez le correctif, retestez.",
-    "intro": "Trois étapes, de l’observation au nouveau test.",
-    "captureTitle": "Capturer",
-    "captureBody": "Appuyez sur {kbd} et faites glisser une zone d’un site ou d’une app Mac. Le raccourci se change dans Settings.",
-    "annotateTitle": "Annoter",
-    "annotateBody": "Ajoutez une note, une flèche, une forme ou du texte. La capture seule suffit. Le masquage est un rectangle que vous dessinez et qui devient noir opaque.",
-    "agentTitle": "Agent",
-    "agentBody": "Codex et Claude Code travaillent sur ce Mac, chacun dans son Git worktree. Grok Bot est distant, et seulement après que vous avez enregistré un webhook et activé ce projet.",
-    "prTitle": "Pull request",
-    "prBody": "Pour Codex et Claude Code, ScreenClip lance votre commande de validation et ouvre la pull request. Grok Bot l’ouvre depuis la branche que ScreenClip a poussée.",
-    "mergedTitle": "Fusionnée",
-    "mergedBody": "Avec la fusion automatique, ScreenClip fusionne une fois la validation, les checks et les règles de revue passés. Il ne saute pas les revues obligatoires. Une fusion n’est pas un déploiement.",
-    "retestTitle": "Retester",
-    "retestBody": "Les rapports fusionnés passent dans To retest. Une nouvelle capture du même rapport poursuit ce travail. Pendant que Codex ou Claude Code travaillent, laissez le Mac éveillé et ScreenClip lancé."
+    "intro": "Trois étapes, de l’observation au nouveau test."
   },
   "agents": {
     "eyebrow": "Agents",
@@ -86,7 +74,6 @@
     "donate": "Soutenir le projet",
     "noteReady": "Image disque notariée sur GitHub Releases. Le fichier est joint lorsqu’une étiquette de version est publiée.",
     "noteSoon": "Le téléchargement Mac arrive bientôt.",
-    "sourceSoon": "Le code source arrive bientôt.",
     "macSoon": "Le téléchargement Mac arrive bientôt.",
     "needsTitle": "Ce qu’il vous faut",
     "needOs": "macOS 14 ou plus récent",
@@ -196,7 +183,6 @@
     "tips": "L’app peut afficher une fenêtre de pourboire facultative, et la même fenêtre est disponible dans le menu et dans Settings. Choisir un pourboire ouvre GitHub Sponsors dans le navigateur. ScreenClip ne traite pas le paiement et ne reçoit ni données de carte ni détails de versement. Vous pouvez fermer la fenêtre ou désactiver l’invite. Ce site ne renvoie pas vers une page de paiement.",
     "siteTitle": "Ce site",
     "site1": "{link:site} est un site statique. Les pages ne chargent ni scripts, ni polices, ni analyse de tiers. Choisir une langue enregistre ce choix dans un cookie nommé screenclip_lang et dans le stockage local de votre appareil. Le cookie ne sert qu’à choisir la langue de la page d’accueil. Il n’est pas utilisé pour la publicité ni l’analyse. L’hôte qui sert le site reçoit des données de connexion ordinaires, comme l’adresse IP et l’agent utilisateur, afin de livrer la page.",
-    "site2": "Le bouton de téléchargement mène à une GitHub Release de l’app Mac. D’autres liens, comme le dépôt et un lien de don s’il est configuré plus tard, quittent ce site vers cette destination.",
     "contactTitle": "Contact",
     "contact": "Les questions sur cette politique passent par la {link:support}.",
     "changesTitle": "Modifications",
