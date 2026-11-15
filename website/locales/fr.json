@@ -38,12 +38,13 @@
   "hero": {
     "eyebrow": "Retours par capture pour les agents de code",
     "title": "Signalez les bugs au fil de l’eau, sans casser votre rythme.",
-    "lead": "Vous remarquez quelque chose pendant vos tests ? Capturez-le, ajoutez une courte note et votre agent IA s’en occupe en arrière-plan pendant que vous continuez à tester (Codex, Claude Code ou Grok Bot). ScreenClip réunit vos signalements et leurs correctifs pour que vous sachiez ce qui est prêt à retester."
+    "lead": "Vous remarquez quelque chose pendant vos tests ? Capturez-le, ajoutez une courte note et votre agent IA s’en occupe en arrière-plan pendant que vous continuez à tester (Codex, Claude Code ou Grok Bot). ScreenClip réunit vos signalements et leurs correctifs pour que vous sachiez ce qui est prêt à retester.",
+    "shortcut": "Capturez instantanément avec ⌘⇧2, ou définissez votre propre raccourci."
   },
   "demo": {
     "title": "La barre des menus",
     "alt": "Menu ScreenClip affichant de vrais signalements, dont certains demandent une intervention et un correctif fusionné.",
-    "caption": "Ouverts, à traiter et prêts à retester."
+    "caption": "Retrouvez tous vos screenclips et leur statut en un coup d’œil dans la barre des menus"
   },
   "loop": {
     "eyebrow": "Fonctionnement",

@@ -2,12 +2,20 @@
       <section class="hero" aria-labelledby="hero-title">
         <h1 id="hero-title">@@HERO_TITLE@@</h1>
         <p class="lead">{{hero.lead}}</p>
+        <p class="shortcut">{{hero.shortcut}}</p>
         @@ACTIONS@@
       </section>
 
       <section class="demo" id="demo" aria-labelledby="demo-title">
         <h2 id="demo-title">{{demo.title}}</h2>
         <figure class="demo-figure">
+          <div class="menu-bar-preview" aria-hidden="true">
+            <svg class="menu-bar-apple" viewBox="0 0 24 24" fill="currentColor"><path d="M15.7 2.2c.1 1.2-.5 2.4-1.2 3.2-.7.8-1.8 1.4-2.9 1.3-.1-1.1.4-2.3 1.1-3.1.8-.8 2-1.4 3-1.4ZM19.6 17.5c-.4 1-1 2-1.6 2.9-.7.9-1.4 1.7-2.5 1.7-1 0-1.4-.6-2.6-.6s-1.6.6-2.6.6c-1.1 0-1.9-.9-2.6-1.8-1.5-2-2.7-5.8-1.1-8.5.8-1.3 2.2-2.2 3.7-2.2 1.1 0 2.1.7 2.7.7s1.9-.9 3.3-.8c.6 0 2.3.2 3.4 1.8-3 1.8-2.5 5.7.9 7.2Z"/></svg>
+            <span class="menu-bar-lines"><span></span><span></span><span></span></span>
+            <span class="menu-bar-icons">◖))) &nbsp; ▰ &nbsp;</span>
+            <span class="menu-bar-app"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></span>
+          </div>
+          <div class="menu-bar-chevron" aria-hidden="true"></div>
           <picture>
             <source media="(prefers-color-scheme: dark)" type="image/png" srcset="@@POPUP_DARK_PNG@@">
             <img class="popup" src="@@POPUP_LIGHT_PNG@@" width="@@POPUP_W@@" height="@@POPUP_H@@" alt="{{demo.alt}}" fetchpriority="high">
@@ -23,9 +31,9 @@
         <h2 id="benefits-title">{{benefits.title}}</h2>
       </div>
       <div class="cards">
-        <article class="card"><h3>{{benefits.clearTitle}}</h3><p>{{benefits.clearBody}}</p></article>
         <article class="card"><h3>{{benefits.flowTitle}}</h3><p>{{benefits.flowBody}}</p></article>
         <article class="card"><h3>{{benefits.noticeTitle}}</h3><p>{{benefits.noticeBody}}</p></article>
+        <article class="card"><h3>{{benefits.clearTitle}}</h3><p>{{benefits.clearBody}}</p></article>
       </div>
     </section>
 

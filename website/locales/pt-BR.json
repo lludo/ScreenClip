@@ -38,12 +38,13 @@
   "hero": {
     "eyebrow": "Feedback por captura para agentes de código",
     "title": "Registre bugs no fluxo, sem interromper o ritmo.",
-    "lead": "Notou algo enquanto testava? Capture, adicione uma nota rápida e seu agente de IA cuida disso em segundo plano enquanto você continua testando (Codex, Claude Code ou Grok Bot). O ScreenClip mantém seus relatos e correções juntos para você acompanhar o que está pronto para testar novamente."
+    "lead": "Notou algo enquanto testava? Capture, adicione uma nota rápida e seu agente de IA cuida disso em segundo plano enquanto você continua testando (Codex, Claude Code ou Grok Bot). O ScreenClip mantém seus relatos e correções juntos para você acompanhar o que está pronto para testar novamente.",
+    "shortcut": "Capture instantaneamente com ⌘⇧2 ou configure seu próprio atalho."
   },
   "demo": {
     "title": "A barra de menus",
     "alt": "Menu do ScreenClip com relatos reais, incluindo relatos que precisam de atenção e uma alteração integrada.",
-    "caption": "Abertos, precisam de você e prontos para reteste."
+    "caption": "Veja todos os seus screenclips e seus status de relance na barra de menus"
   },
   "loop": {
     "eyebrow": "Como funciona",

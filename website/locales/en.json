@@ -38,12 +38,13 @@
   "hero": {
     "eyebrow": "Screenshot feedback for AI coding agents",
     "title": "File bugs as you go, without breaking your flow.",
-    "lead": "Spot something while testing? Capture it, add a quick note, and your AI agent takes care of it in the background while you continue testing (Codex, Claude Code, or Grok Bot). ScreenClip keeps your reports and fixes together, so you can track what’s ready to retest."
+    "lead": "Spot something while testing? Capture it, add a quick note, and your AI agent takes care of it in the background while you continue testing (Codex, Claude Code, or Grok Bot). ScreenClip keeps your reports and fixes together, so you can track what’s ready to retest.",
+    "shortcut": "Capture instantly with ⌘⇧2 — or set your own shortcut."
   },
   "demo": {
     "title": "The menu bar",
     "alt": "ScreenClip menu bar showing real ScreenClip reports, including reports that need attention and a merged report.",
-    "caption": "Open, needs you, and ready to retest."
+    "caption": "Glance at all your screenclips and their status right from the menu bar"
   },
   "loop": {
     "eyebrow": "How it works",
