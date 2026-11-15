@@ -38,12 +38,13 @@
   "hero": {
     "eyebrow": "Comentarios con captura para agentes de código",
     "title": "Registra fallos sobre la marcha, sin romper tu ritmo.",
-    "lead": "¿Detectas algo mientras pruebas? Captúralo, añade una nota rápida y tu agente de IA se encargará en segundo plano mientras sigues probando (Codex, Claude Code o Grok Bot). ScreenClip reúne tus informes y soluciones para que sepas qué está listo para volver a probar."
+    "lead": "¿Detectas algo mientras pruebas? Captúralo, añade una nota rápida y tu agente de IA se encargará en segundo plano mientras sigues probando (Codex, Claude Code o Grok Bot). ScreenClip reúne tus informes y soluciones para que sepas qué está listo para volver a probar.",
+    "shortcut": "Captura al instante con ⌘⇧2 o configura tu propio atajo."
   },
   "demo": {
     "title": "La barra de menús",
     "alt": "Menú de ScreenClip con informes reales, incluidos informes que necesitan atención y un cambio integrado.",
-    "caption": "Abiertos, te necesitan y listos para probar de nuevo."
+    "caption": "Consulta todos tus screenclips y su estado de un vistazo desde la barra de menús"
   },
   "loop": {
     "eyebrow": "Cómo funciona",
