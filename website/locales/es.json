@@ -38,7 +38,7 @@
   "hero": {
     "eyebrow": "Comentarios con captura para agentes de código",
     "title": "Registra fallos sobre la marcha, sin romper tu ritmo.",
-    "lead": "¿Detectas algo mientras pruebas? Captúralo, añade una nota si quieres y envíalo a Codex, Claude Code o Grok Bot. ScreenClip reúne el informe y la solución para que puedas seguir probando."
+    "lead": "¿Detectas algo mientras pruebas? Captúralo, añade una nota rápida y tu agente de IA se encargará en segundo plano mientras sigues probando (Codex, Claude Code o Grok Bot). ScreenClip reúne tus informes y soluciones para que sepas qué está listo para volver a probar."
   },
   "demo": {
     "title": "La barra de menús",

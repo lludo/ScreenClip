@@ -38,7 +38,7 @@
   "hero": {
     "eyebrow": "Screenshot-Feedback für Coding-Agenten",
     "title": "Melde Fehler im Vorbeigehen, ohne deinen Flow zu unterbrechen.",
-    "lead": "Beim Testen etwas entdeckt? Halte es fest, ergänze bei Bedarf eine Notiz und sende es an Codex, Claude Code oder Grok Bot. ScreenClip hält Meldung und Fix zusammen, damit du weitertesten kannst."
+    "lead": "Beim Testen etwas entdeckt? Halte es fest, füge eine kurze Notiz hinzu und dein KI-Agent kümmert sich im Hintergrund darum, während du weitertestest (Codex, Claude Code oder Grok Bot). ScreenClip hält deine Meldungen und Fixes zusammen, damit du siehst, was zum erneuten Test bereit ist."
   },
   "demo": {
     "title": "Die Menüleiste",

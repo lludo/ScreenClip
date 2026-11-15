@@ -38,7 +38,7 @@
   "hero": {
     "eyebrow": "Screenshot feedback for AI coding agents",
     "title": "File bugs as you go, without breaking your flow.",
-    "lead": "Spot something while testing? Capture it, add a note if you like, and send it to Codex, Claude Code, or Grok Bot. ScreenClip keeps the report and fix together, so you can get back to testing."
+    "lead": "Spot something while testing? Capture it, add a quick note, and your AI agent takes care of it in the background while you continue testing (Codex, Claude Code, or Grok Bot). ScreenClip keeps your reports and fixes together, so you can track what’s ready to retest."
   },
   "demo": {
     "title": "The menu bar",

@@ -38,7 +38,7 @@
   "hero": {
     "eyebrow": "面向 AI 编程代理的截图反馈",
     "title": "边用边记问题，不打断你的节奏。",
-    "lead": "测试时发现问题？截取画面，按需添加备注，然后发送给 Codex、Claude Code 或 Grok Bot。ScreenClip 将报告和修复放在一起，让你继续专心测试。"
+    "lead": "测试时发现问题？截取画面，快速添加备注，AI 代理（Codex、Claude Code 或 Grok Bot）就会在后台处理，你可以继续测试。ScreenClip 将报告和修复放在一起，让你随时查看哪些已准备好重新测试。"
   },
   "demo": {
     "title": "菜单栏",
