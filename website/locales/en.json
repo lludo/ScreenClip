@@ -49,19 +49,7 @@
   "loop": {
     "eyebrow": "How it works",
     "title": "Capture it, ship the fix, retest it.",
-    "intro": "Three steps from observation to retest.",
-    "captureTitle": "Capture",
-    "captureBody": "Press {kbd} and drag a region of a website or a Mac app. The shortcut can be changed in Settings.",
-    "annotateTitle": "Annotate",
-    "annotateBody": "Add a note, an arrow, a shape, or text. A screenshot alone is enough. Redaction is a box you draw, flattened to opaque black.",
-    "agentTitle": "Agent",
-    "agentBody": "Codex and Claude Code work on this Mac, in their own Git worktree. Grok Bot is remote, and only after you save a webhook and opt that project in.",
-    "prTitle": "Pull request",
-    "prBody": "For Codex and Claude Code, ScreenClip runs your validation command and opens the pull request. Grok Bot opens it from the branch ScreenClip pushed.",
-    "mergedTitle": "Merged",
-    "mergedBody": "With automatic merge on, ScreenClip merges after validation, checks, and review rules pass. It does not skip required reviews. A merge is not a deploy.",
-    "retestTitle": "Retest",
-    "retestBody": "Merged reports move to To retest. A new capture on the same report continues that work. Leave the Mac awake while Codex or Claude Code runs."
+    "intro": "Three steps from observation to retest."
   },
   "agents": {
     "eyebrow": "Coding agents",
@@ -86,7 +74,6 @@
     "donate": "Support the project",
     "noteReady": "Notarized disk image on GitHub Releases. The file is attached when a version tag is published.",
     "noteSoon": "Mac download coming soon.",
-    "sourceSoon": "Source coming soon.",
     "macSoon": "Mac download coming soon.",
     "needsTitle": "What you need",
     "needOs": "macOS 14 or later",
@@ -196,7 +183,6 @@
     "tips": "The app can show an optional tip window, and the same window is available from the menu and from Settings. Choosing a tip opens GitHub Sponsors in your browser. ScreenClip does not process the payment and does not receive card or payout details. You can dismiss the window or turn the prompt off. This website does not link to a payment page.",
     "siteTitle": "This website",
     "site1": "{link:site} is a static website. Pages on this site load no third-party scripts, fonts, or analytics. Choosing a language stores that choice in a cookie named screenclip_lang and in local storage on your device. The cookie only selects the language for the home page. It is not used for advertising or analytics. The host that serves the site receives ordinary connection data, such as IP address and user agent, in order to deliver the page.",
-    "site2": "The download button goes to a GitHub Release of the Mac app. Other links, such as the repository and a donation link if one is configured later, leave this site for that destination.",
     "contactTitle": "Contact",
     "contact": "Questions about this policy go through the {link:support}.",
     "changesTitle": "Changes",

@@ -65,7 +65,7 @@ A tag `vX.Y.Z` starts [`.github/workflows/release.yml`](../.github/workflows/rel
 
 ## Contributing
 
-There is no root `CONTRIBUTING.md` yet. That file is one of the [open TODOs](open-source.md#contributing-and-security). Until it exists, use this workflow.
+The root [CONTRIBUTING.md](../CONTRIBUTING.md) is the short version of this workflow.
 
 1. Branch from `main`. Use Xcode 16 or later on macOS 14 or later.
 2. Copy `Config/LocalSigning.xcconfig.example` to `Config/LocalSigning.xcconfig` only if you will install the app. Ad-hoc signing is enough for `scripts/build.sh` and `scripts/test.sh`. Do not commit the local signing file. It is gitignored.

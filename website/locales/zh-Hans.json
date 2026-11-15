@@ -49,19 +49,7 @@
   "loop": {
     "eyebrow": "如何使用",
     "title": "截下来，送出修复，再测一次。",
-    "intro": "从发现问题到重新测试，只需三步。",
-    "captureTitle": "截取",
-    "captureBody": "按下 {kbd}，拖选网站或 Mac 应用上的一块区域。快捷键可以在 Settings 里修改。",
-    "annotateTitle": "标注",
-    "annotateBody": "可以加备注、箭头、形状或文字。只有截图也行。遮盖是你画的矩形，会被压成不透明的黑色。",
-    "agentTitle": "代理",
-    "agentBody": "Codex 和 Claude Code 在这台 Mac 上工作，各自使用独立的 Git worktree。Grok Bot 在远端，只有在你保存 webhook 并让该项目加入之后才会开始。",
-    "prTitle": "拉取请求",
-    "prBody": "对 Codex 和 Claude Code，ScreenClip 会运行你的验证命令并打开拉取请求。Grok Bot 从 ScreenClip 推送的分支打开拉取请求。",
-    "mergedTitle": "已合并",
-    "mergedBody": "打开自动合并后，ScreenClip 会在验证、检查和审查规则都通过之后合并。它不会跳过必需的审查。合并不是部署。",
-    "retestTitle": "复测",
-    "retestBody": "已合并的报告会进入 To retest。对同一份报告再截一张，就是继续这项工作。Codex 或 Claude Code 运行时，请让 Mac 保持唤醒，并让 ScreenClip 继续运行。"
+    "intro": "从发现问题到重新测试，只需三步。"
   },
   "agents": {
     "eyebrow": "编程代理",
@@ -86,7 +74,6 @@
     "donate": "支持这个项目",
     "noteReady": "GitHub Releases 上的已公证磁盘映像。发布版本标签后才会附上文件。",
     "noteSoon": "Mac 版即将开放下载。",
-    "sourceSoon": "源码即将提供。",
     "macSoon": "Mac 版下载即将提供。",
     "needsTitle": "你需要",
     "needOs": "macOS 14 或更高版本",
@@ -196,7 +183,6 @@
     "tips": "应用可以显示一个可选的打赏窗口，菜单和 Settings 里也能打开同一个窗口。选择打赏会在浏览器中打开 GitHub Sponsors。ScreenClip 不处理付款，也不会收到银行卡或收款信息。你可以关掉窗口或关闭提示。本网站不链接到付款页面。",
     "siteTitle": "本网站",
     "site1": "{link:site} 是静态网站。本站页面不加载第三方脚本、字体或分析。选择语言会把该选择存在名为 screenclip_lang 的 cookie 和你设备的本地存储中。该 cookie 只用于下次打开首页时选择语言。它不用于广告或分析。提供网站的主机为了送达页面，会收到 IP 地址和用户代理等普通连接数据。",
-    "site2": "下载按钮前往 Mac 应用的 GitHub Release。其他链接，例如仓库以及日后若配置的捐赠链接，会离开本站前往该目的地。",
     "contactTitle": "联系",
     "contact": "关于本政策的问题请通过{link:support}提出。",
     "changesTitle": "变更",

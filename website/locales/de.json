@@ -49,19 +49,7 @@
   "loop": {
     "eyebrow": "So funktioniert’s",
     "title": "Erfassen, Fix liefern, erneut testen.",
-    "intro": "In drei Schritten von der Beobachtung zum erneuten Test.",
-    "captureTitle": "Erfassen",
-    "captureBody": "Drücke {kbd} und ziehe einen Bereich einer Website oder einer Mac-App auf. Das Kürzel lässt sich in Settings ändern.",
-    "annotateTitle": "Markieren",
-    "annotateBody": "Füge eine Notiz, einen Pfeil, eine Form oder Text hinzu. Ein Screenshot allein reicht. Schwärzen ist ein Rechteck, das du zeichnest und das deckend schwarz wird.",
-    "agentTitle": "Agent",
-    "agentBody": "Codex und Claude Code arbeiten auf diesem Mac, jedes in einem eigenen Git-Worktree. Grok Bot ist remote und erst, nachdem du einen Webhook speicherst und das Projekt freigibst.",
-    "prTitle": "Pull Request",
-    "prBody": "Bei Codex und Claude Code führt ScreenClip deinen Validierungsbefehl aus und öffnet den Pull Request. Grok Bot öffnet ihn aus dem Branch, den ScreenClip gepusht hat.",
-    "mergedTitle": "Gemergt",
-    "mergedBody": "Mit automatischem Merge mergt ScreenClip, nachdem Validierung, Checks und Review-Regeln bestanden sind. Pflicht-Reviews werden nicht übersprungen. Ein Merge ist kein Deploy.",
-    "retestTitle": "Erneut testen",
-    "retestBody": "Gemergte Berichte wandern nach To retest. Eine neue Aufnahme desselben Berichts setzt die Arbeit fort. Lass den Mac wach und ScreenClip laufen, während Codex oder Claude Code arbeiten."
+    "intro": "In drei Schritten von der Beobachtung zum erneuten Test."
   },
   "agents": {
     "eyebrow": "Agenten",
@@ -86,7 +74,6 @@
     "donate": "Projekt unterstützen",
     "noteReady": "Notarisiertes Disk-Image auf GitHub Releases. Die Datei hängt an, sobald ein Versions-Tag veröffentlicht ist.",
     "noteSoon": "Der Mac-Download kommt bald.",
-    "sourceSoon": "Der Quellcode kommt bald.",
     "macSoon": "Der Mac-Download kommt bald.",
     "needsTitle": "Was du brauchst",
     "needOs": "macOS 14 oder neuer",
@@ -196,7 +183,6 @@
     "tips": "Die App kann ein optionales Trinkgeld-Fenster zeigen; dasselbe Fenster gibt es im Menü und in Settings. Ein Trinkgeld öffnet GitHub Sponsors im Browser. ScreenClip verarbeitet die Zahlung nicht und erhält keine Karten- oder Auszahlungsdaten. Du kannst das Fenster schließen oder den Hinweis abschalten. Diese Website verlinkt keine Zahlungsseite.",
     "siteTitle": "Diese Website",
     "site1": "{link:site} ist eine statische Website. Die Seiten laden keine Skripte, Schriften oder Analyse von Dritten. Die Sprachwahl speichert diese Wahl in einem Cookie namens screenclip_lang und im lokalen Speicher deines Geräts. Das Cookie wählt nur die Sprache der Startseite. Es wird nicht für Werbung oder Analyse verwendet. Der Host, der die Website ausliefert, erhält gewöhnliche Verbindungsdaten wie IP-Adresse und User-Agent, um die Seite zuzustellen.",
-    "site2": "Die Download-Schaltfläche führt zu einem GitHub Release der Mac-App. Andere Links, etwa das Repository und ein Spendenlink, falls er später eingerichtet wird, verlassen diese Website zu diesem Ziel.",
     "contactTitle": "Kontakt",
     "contact": "Fragen zu dieser Erklärung gehen über die {link:support}.",
     "changesTitle": "Änderungen",
