@@ -240,26 +240,33 @@ struct SettingsView: View {
                 comment: "Empty projects explanation.")
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
           } else {
-            List(model.snapshot.projects) { project in
-              HStack {
-                HStack(alignment: .top) {
-                  Image(systemName: project.displaySymbol).foregroundStyle(.orange)
-                    .frame(width: 20)
-                  VStack(alignment: .leading, spacing: 5) {
-                    Text(project.name).fontWeight(.medium)
-                    Text(project.path).font(.caption).foregroundStyle(.secondary)
-                    Text((project.origins + project.bundleIDs).joined(separator: " · ")).font(
-                      .caption
-                    ).foregroundStyle(.tertiary)
+            ScrollView {
+              LazyVStack(spacing: 0) {
+                ForEach(Array(model.snapshot.projects.enumerated()), id: \.element.id) { index, project in
+                  if index > 0 { Divider() }
+                  HStack {
+                    HStack(alignment: .top) {
+                      Image(systemName: project.displaySymbol).foregroundStyle(.orange)
+                        .frame(width: 20)
+                      VStack(alignment: .leading, spacing: 5) {
+                        Text(project.name).fontWeight(.medium)
+                        Text(project.path).font(.caption).foregroundStyle(.secondary)
+                        Text((project.origins + project.bundleIDs).joined(separator: " · ")).font(
+                          .caption
+                        ).foregroundStyle(.tertiary)
+                      }
+                    }
+                    Spacer()
+                    Button { editProject = project } label: {
+                      Text(chrome: "Edit", comment: "Edits a project.")
+                    }.fixedSize()
                   }
+                  .frame(maxWidth: .infinity, alignment: .trailing)
+                  .padding(.vertical, 8)
                 }
-                Spacer()
-                Button { editProject = project } label: {
-                  Text(chrome: "Edit", comment: "Edits a project.")
-                }.fixedSize()
-              }.padding(.vertical, 8)
-                .listRowInsets(EdgeInsets())
+              }
             }
+            .scrollIndicators(.hidden)
           }
         }.padding(24)
   }
