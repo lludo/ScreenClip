@@ -73,12 +73,12 @@ public actor ClaudeCodeClient {
   private var timedOut = Set<String>()
   public init() { ProcessEnvironment.ignoreBrokenPipes() }
 
-  /// Bash runs inside Claude Code's sandbox: writes stay in the worktree and the
-  /// unsandboxed escape hatch is off, comparable to Codex's workspace-write mode.
+  /// Prefer sandboxed Bash. Auto mode reviews extra access (including unsandboxed
+  /// retries for builds and dependency tools) instead of denying every headless ask.
   public static let sandboxSettings: JSONValue = .object([
     "sandbox": .object([
       "enabled": .bool(true), "autoAllowBashIfSandboxed": .bool(true),
-      "allowUnsandboxedCommands": .bool(false),
+      "allowUnsandboxedCommands": .bool(true),
     ])
   ])
   public static let disallowedTools = ["Bash(git push:*)", "Bash(gh:*)"]
@@ -91,7 +91,7 @@ public actor ClaudeCodeClient {
       "--disallowedTools",
     ]
     arguments += disallowedTools
-    arguments += ["--permission-mode", "acceptEdits"]
+    arguments += ["--permission-mode", "auto"]
     arguments += request.resume ? ["--resume", request.sessionID] : ["--session-id", request.sessionID]
     if let name = request.name, !name.isEmpty { arguments += ["--name", name] }
     if let model = request.model, !model.isEmpty { arguments += ["--model", model] }

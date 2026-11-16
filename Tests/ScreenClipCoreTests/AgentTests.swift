@@ -89,12 +89,14 @@ final class AgentTests: XCTestCase {
       created[created.firstIndex(of: "--session-id")! + 1], "11111111-2222-3333-4444-555555555555")
     XCTAssertFalse(created.contains("--resume"))
     XCTAssertEqual(created[created.firstIndex(of: "--model")! + 1], "sonnet")
-    XCTAssertEqual(created[created.firstIndex(of: "--permission-mode")! + 1], "acceptEdits")
+    XCTAssertEqual(created[created.firstIndex(of: "--permission-mode")! + 1], "auto")
     let settings = try JSONDecoder().decode(
       JSONValue.self,
       from: Data(created[created.firstIndex(of: "--settings")! + 1].utf8))
     XCTAssertEqual(settings["sandbox"]["enabled"].bool, true)
-    XCTAssertEqual(settings["sandbox"]["allowUnsandboxedCommands"].bool, false)
+    XCTAssertEqual(settings["sandbox"]["autoAllowBashIfSandboxed"].bool, true)
+    XCTAssertEqual(settings["sandbox"]["allowUnsandboxedCommands"].bool, true)
+    XCTAssertFalse(created.contains("--dangerously-skip-permissions"))
     // The variadic tool list must be followed by another flag, not swallow the next value.
     let tools = created.firstIndex(of: "--disallowedTools")!
     XCTAssertEqual(Array(created[(tools + 1)...(tools + 2)]), ClaudeCodeClient.disallowedTools)
@@ -104,6 +106,9 @@ final class AgentTests: XCTestCase {
     XCTAssertEqual(
       resumed[resumed.firstIndex(of: "--resume")! + 1], "11111111-2222-3333-4444-555555555555")
     XCTAssertFalse(resumed.contains("--session-id"))
+    XCTAssertEqual(resumed[resumed.firstIndex(of: "--permission-mode")! + 1], "auto")
+    XCTAssertEqual(resumed[resumed.firstIndex(of: "--settings")! + 1],
+      created[created.firstIndex(of: "--settings")! + 1])
   }
 
   func testUserMessageCarriesPromptAndScreenshots() {

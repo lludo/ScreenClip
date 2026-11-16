@@ -3,7 +3,7 @@ import XCTest
 @testable import ScreenClipCore
 
 final class ExternalAssistantTests: XCTestCase {
-  func testScreenshotContractAndOptionalPromptAddOnReachEvidenceAndWebhook() throws {
+  func testAutonomyAndScreenshotContractAndOptionalPromptAddOnReachEvidenceAndWebhook() throws {
     let project = Project(name: "Demo", path: "/tmp/demo")
     let issue = Issue(
       projectID: project.id, title: "Clipped", capture: Capture(
@@ -18,7 +18,8 @@ final class ExternalAssistantTests: XCTestCase {
         let object = try jsonObject(ExternalAssistant.json(payload))
         XCTAssertEqual(
           object["promptAddOn"] as? String,
-          [ExternalAssistant.screenshotPublicationInstructions, settings.effectivePromptAddOn]
+          [ExternalAssistant.autonomyInstructions, ExternalAssistant.screenshotPublicationInstructions,
+            settings.effectivePromptAddOn]
             .filter { !$0.isEmpty }.joined(separator: "\n\n"))
         XCTAssertEqual(object["notes"] as? [String], ["Report evidence"])
       }
