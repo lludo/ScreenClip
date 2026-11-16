@@ -321,7 +321,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
     if settingsWindow == nil {
       settingsWindow = makeWindow(
-        title: Chrome.text("ScreenClip Settings", comment: "Settings window title. Keep ScreenClip."),
+        title: Chrome.text("Settings", comment: "Settings window title."),
         view: rooted(SettingsView(model: model) { [weak self] in
           self?.settingsWindow?.close()
         }),

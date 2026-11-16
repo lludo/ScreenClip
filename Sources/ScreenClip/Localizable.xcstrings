@@ -19669,72 +19669,6 @@
         }
       }
     },
-    "ScreenClip Settings": {
-      "comment": "Settings window title. Keep ScreenClip.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip Settings"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip 设置"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajustes de ScreenClip"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip 設定"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ajustes do ScreenClip"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip-Einstellungen"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réglages ScreenClip"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip 설정"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Настройки ScreenClip"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip 設定"
-          }
-        }
-      }
-    },
     "ScreenClip could not open its queue": {
       "comment": "Alert when the local queue cannot be opened.",
       "extractionState": "manual",
@@ -21188,7 +21122,7 @@
       }
     },
     "Settings": {
-      "comment": "Help for the button that opens Settings.",
+      "comment": "Settings window title.",
       "extractionState": "manual",
       "localizations": {
         "en": {
