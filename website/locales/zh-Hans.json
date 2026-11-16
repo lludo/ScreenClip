@@ -38,8 +38,9 @@
   "hero": {
     "eyebrow": "面向 AI 编程代理的截图反馈",
     "title": "边用边记问题，不打断你的节奏。",
-    "lead": "测试时发现问题？截取画面，快速添加备注，AI 代理（Codex、Claude Code 或 Grok Bot）就会在后台处理，你可以继续测试。ScreenClip 将报告和修复放在一起，让你随时查看哪些已准备好重新测试。",
-    "shortcut": "按 ⌘⇧2 即可快速截图，也可以自定义快捷键。"
+    "lead": "发现问题？截个图，写几个字，然后继续手头的事。AI 代理会在后台修复，ScreenClip 会在可以复测时通知你。",
+    "shortcut": "在 Mac 上随处可用。可在 Settings 中更改快捷键。",
+    "keysLabel": "Command Shift 2"
   },
   "demo": {
     "title": "菜单栏",
@@ -48,8 +49,7 @@
   },
   "loop": {
     "eyebrow": "如何使用",
-    "title": "截下来，送出修复，再测一次。",
-    "intro": "从发现问题到重新测试，只需三步。"
+    "title": "你只花几秒钟，其余都在后台完成。"
   },
   "agents": {
     "eyebrow": "编程代理",
@@ -230,13 +230,21 @@
     "retestTitle": "及时获知何时可以复测",
     "retestBody": "启用通知后，ScreenClip 会在修复合并时提醒你，让你专注于测试，并及时重新构建和复测。"
   },
-  "simple": {
-    "captureTitle": "截取",
-    "captureBody": "选择 Mac 应用或网站上的区域，按需添加备注或标记。",
-    "sendTitle": "发送",
-    "sendBody": "选择 Codex、Claude Code 或 Grok Bot，提交报告。",
-    "followTitle": "跟进修复",
-    "followBody": "在 ScreenClip 中跟踪拉取请求，然后重新测试。自动合并为可选项。"
+  "flow": {
+    "you": "你",
+    "agent": "你的代理",
+    "background": "后台进行",
+    "s1Title": "截取",
+    "s1Body": "按 ⌘⇧2，在任意 Mac 应用或网站上框选你注意到的地方。",
+    "s2Title": "写几个字",
+    "s2Body": "输入简短备注。需要的话可以添加标记或涂黑隐私内容，然后发送。",
+    "s3Title": "继续做你的事",
+    "s3Body": "AI 代理接手报告、完成修复并发起拉取请求。无需盯着。",
+    "s4Title": "复测",
+    "s4Body": "修复合并后，ScreenClip 会通知你。视觉修复的拉取请求会附上修复前后的截图。",
+    "chipWorking": "处理中",
+    "chipPr": "拉取请求",
+    "chipMerged": "已合并"
   },
   "queue": {
     "eyebrow": "查看工作进展",
