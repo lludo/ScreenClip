@@ -61,7 +61,7 @@ The upload is an unsigned CI product. It is not the notarized download.
 
 ### Release
 
-A tag `vX.Y.Z` starts [`.github/workflows/release.yml`](../.github/workflows/release.yml) on `macos-15`. Until the Apple secrets exist, that job exits green without publishing. The full path is in [Direct distribution](release/direct-distribution.md). The secrets are listed under [Open TODOs](open-source.md#release-secrets).
+A tag `vX.Y.Z` starts [`.github/workflows/release.yml`](../.github/workflows/release.yml) on `macos-15`. With none of the Apple secrets configured, that job exits green without publishing; a partial set fails its release gate. The full path is in [Direct distribution](release/direct-distribution.md). The secrets are listed under [Open TODOs](open-source.md#release-secrets).
 
 ## Contributing
 

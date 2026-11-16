@@ -230,20 +230,20 @@ extension AgentWorker {
     guard model.issue(id)?.activities.contains(where: { $0.text == text }) != true else { return }
     try model.updateIssue(id) { $0.record(text) }
   }
-  /// A stopped worker's permission dialog cannot be answered after relaunch. Reconcile
-  /// those chats and continue under the project mode, preserving genuine user questions.
-  func recoverCodexApprovalsAfterRestart() async {
+  /// Reconcile interrupted, acknowledged work and expired permission dialogs before
+  /// continuing under the project mode. Genuine user questions remain unanswered.
+  func recoverCodexAfterRestart() async {
     guard !model.snapshot.settings.paused else { return }
     let ids = model.snapshot.issues.filter { issue in
       let unanswered = issue.questions.filter { $0.reply == nil }
+      let interrupted = unanswered.isEmpty && model.restartedCodexIssues.contains(issue.id)
+      let permissionOnly = !unanswered.isEmpty && unanswered.allSatisfy {
+        $0.requestID != nil && CodexRequestKind(method: $0.requestMethod).isApproval
+      }
       return issue.resolvedAgent == .codex && issue.status == .needsYou && !issue.archived
         && !isActive(issue.id) && !issue.dispatchUncertain
         && model.project(issue.projectID)?.codexApprovalMode != .ask
-        && model.project(issue.projectID) != nil && !unanswered.isEmpty
-        && unanswered.allSatisfy {
-          $0.requestID != nil && ["item/commandExecution/requestApproval", "item/fileChange/requestApproval"]
-            .contains($0.requestMethod ?? "")
-        }
+        && model.project(issue.projectID) != nil && (interrupted || permissionOnly)
     }.map(\.id)
     for id in ids {
       guard !model.snapshot.settings.paused else { return }
@@ -268,8 +268,7 @@ extension AgentWorker {
       let question = issue.questions.first(where: { $0.id == questionID && $0.reply == nil }),
       let requestID = question.requestID,
       pendingRequests.contains(requestID.data.base64EncodedString()),
-      ["item/commandExecution/requestApproval", "item/fileChange/requestApproval"]
-        .contains(question.requestMethod ?? ""),
+      CodexRequestKind(method: question.requestMethod).isApproval,
       CodexApprovalOptions(method: question.requestMethod ?? "", params: question.questions ?? .null)
         .permits("accept"),
       model.project(issue.projectID) != nil
@@ -345,7 +344,7 @@ extension AgentWorker {
         return
       }
       pendingRequests.insert(message["id"].data.base64EncodedString())
-      let isQuestion = method.contains("requestUserInput")
+      let isQuestion = CodexRequestKind(method: method) == .userInput
       let title =
         isQuestion
         ? p["questions"].array.map { $0["question"].string ?? $0["header"].string ?? "Question" }

@@ -58,7 +58,7 @@ import ScreenClipCore
       await model.refreshAgents()
       // Only probe Codex sign-in when Codex is present, so a Claude-only Mac shows no Codex error.
       if model.detection(.codex)?.installed != false { await checkConnection() }
-      await recoverCodexApprovalsAfterRestart()
+      await recoverCodexAfterRestart()
       await recoverClaudeAfterRestart()
     }
     pump()
@@ -237,13 +237,14 @@ import ScreenClipCore
             "Reconnect and reconcile the chat; the original request may no longer be pending.")
         }
         let method = question.requestMethod ?? ""
-        if method.contains("requestUserInput") {
+        switch CodexRequestKind(method: method) {
+        case .userInput:
           try await client.respond(
             id: requestID,
             result: .object([
               "answers": .object(answers.mapValues { .object(["answers": .array([.string($0)])]) })
             ]))
-        } else if method.contains("requestApproval") && !method.contains("permissions") {
+        case .commandApproval, .fileApproval:
           let options = CodexApprovalOptions(method: method, params: question.questions ?? .null)
           let decision = approvalDecision ?? .string(allow == true ? "accept" : "decline")
           guard (decision.string.map { options.permits($0) } ?? (decision == options.ruleDecision)) else {
@@ -252,7 +253,7 @@ import ScreenClipCore
           try await client.respond(
             id: requestID,
             result: .object(["decision": decision]))
-        } else {
+        case .unsupported:
           try await client.reject(
             id: requestID, message: "Complete this permission or connection request in Codex.")
         }

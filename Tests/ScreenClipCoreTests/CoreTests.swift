@@ -3,6 +3,39 @@ import XCTest
 @testable import ScreenClipCore
 
 final class CoreTests: XCTestCase {
+  func testProtocolIntegersRejectFractionsAndOutOfRangeNumbers() throws {
+    for value in [Double.greatestFiniteMagnitude, -.infinity, .infinity, .nan, 1.5, Double(Int.max)] {
+      XCTAssertNil(JSONValue.number(value).int)
+    }
+    XCTAssertEqual(JSONValue.number(42).int, 42)
+    XCTAssertEqual(JSONValue.number(-42).int, -42)
+    let oversized = try JSONDecoder().decode(JSONValue.self, from: Data("1e100".utf8))
+    XCTAssertNil(oversized.int)
+  }
+  func testQueueReadErrorsAreNotTreatedAsAnEmptyQueue() async throws {
+    let store = try temporaryStore()
+    // Preparing this view succeeds; stepping it fails with SQLITE_TOOBIG, without
+    // allocating the requested blob. A read failure must never become an empty snapshot.
+    _ = try await CommandRunner.checked("/usr/bin/sqlite3", [
+      store.root.appendingPathComponent("screenclip.sqlite").path,
+      "DROP TABLE state; CREATE VIEW state AS SELECT 1 AS id, zeroblob(2147483647) AS payload;",
+    ])
+    let reader = try IssueStore(root: store.root, readOnly: true)
+    XCTAssertThrowsError(try reader.load()) { error in
+      XCTAssertTrue(error.localizedDescription.contains("Cannot read the queue"))
+    }
+  }
+  func testReadOnlyStoreCannotDeleteApprovedOrOriginalEvidence() throws {
+    let store = try temporaryStore()
+    let approved = try store.writeAsset(Data([1]))
+    let original = try store.writeAsset(Data([2]), original: true)
+    let issue = Issue(projectID: nil, title: "Test", capture: Capture(
+      note: "", imagePath: approved, originalPath: original, context: CaptureContext()))
+    let reader = try IssueStore(root: store.root, readOnly: true)
+    XCTAssertThrowsError(try reader.deleteAssets(for: issue))
+    XCTAssertEqual(try Data(contentsOf: URL(fileURLWithPath: approved)), Data([1]))
+    XCTAssertEqual(try Data(contentsOf: URL(fileURLWithPath: original)), Data([2]))
+  }
   func testPromptAddOnDefaultsForLegacySettingsAndPersistsCustomOrEmptyText() throws {
     let data = try JSONEncoder().encode(AppSettings())
     let legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])

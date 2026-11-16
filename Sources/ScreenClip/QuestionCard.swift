@@ -16,7 +16,7 @@ struct QuestionCard: View {
     (approvalOptions.commandRule ?? []).map { $0.debugDescription }.joined(separator: " ")
   }
   var queries: [JSONValue] {
-    question.requestMethod?.contains("requestUserInput") == true
+    CodexRequestKind(method: question.requestMethod) == .userInput
       ? (question.questions?.array ?? []) : []
   }
   var body: some View {
@@ -79,9 +79,7 @@ struct QuestionCard: View {
             || (queries.isEmpty
               ? (answers["reply"] ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
               : queries.contains { (answers[$0["id"].string ?? "reply"] ?? "").isEmpty }))
-      } else if ["item/commandExecution/requestApproval", "item/fileChange/requestApproval"]
-        .contains(question.requestMethod ?? "")
-      {
+      } else if CodexRequestKind(method: question.requestMethod).isApproval {
         if let host = question.questions?["networkApprovalContext"]["host"].string {
           Text(verbatim: Chrome.format(
             "question.network", "Network access: \(host)", locale: locale,

@@ -34,6 +34,17 @@ class PluginTests(unittest.TestCase):
         self.assertEqual(result["content"][1]["data"], "YXBwcm92ZWQ=")
         self.assertNotIn("original", result["content"][0]["text"])
         self.assertNotIn("secret", result["content"][0]["text"])
+    def test_images_require_an_explicit_boolean(self):
+        for value in ["false", "true", 0, 1, [], {}, None]:
+            with self.subTest(value=value), self.assertRaises(plugin.InvalidParams):
+                plugin.call("get_issue", {"issue_id": self.id, "include_images": value})
+        for arguments in [{"issue_id": self.id}, {"issue_id": self.id, "include_images": False}]:
+            result = plugin.call("get_issue", arguments)
+            self.assertTrue(all(item["type"] == "text" for item in result["content"]))
+    def test_empty_mistyped_arguments_are_not_silently_replaced(self):
+        for arguments in [False, 0, "", [], None]:
+            with self.subTest(arguments=arguments), self.assertRaises(plugin.InvalidParams):
+                plugin.handle({"method": "tools/call", "params": {"name": "list_issues", "arguments": arguments}})
     def test_refuses_outside_asset_path(self):
         self.issue["captures"][0]["imagePath"] = str(plugin.ROOT / "screenclip.sqlite")
         self.save()
