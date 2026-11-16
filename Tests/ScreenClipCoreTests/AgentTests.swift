@@ -13,6 +13,45 @@ final class CodexApprovalOptionsTests: XCTestCase {
       XCTAssertFalse(CodexRequestKind(method: method).isApproval)
     }
   }
+  func testMcpToolApprovalAnswersOnlyWithOfferedChoices() {
+    XCTAssertEqual(CodexRequestKind(method: "mcpServer/elicitation/request"), .mcpElicitation)
+    XCTAssertFalse(CodexRequestKind(method: "mcpServer/elicitation/request").isApproval)
+    func request(persist: JSONValue, properties: [String: JSONValue] = [:]) -> CodexMcpElicitation {
+      CodexMcpElicitation(params: .object([
+        "mode": .string("form"), "serverName": .string("cua_repl"),
+        "message": .string("Allow Computer Use to use \"WindowManager\"?"),
+        "requestedSchema": .object(["type": .string("object"), "properties": .object(properties)]),
+        "_meta": .object([
+          "codex_approval_kind": .string("mcp_tool_call"), "persist": persist,
+          "tool_name": .string("get_app_state"),
+          "tool_params_display": .array([.object([
+            "name": .string("app"), "display_name": .string("App"), "value": .string("WindowManager"),
+          ])]),
+        ]),
+      ]))
+    }
+    let approval = request(persist: .array([.string("session")]))
+    XCTAssertTrue(approval.isToolApproval)
+    XCTAssertEqual(approval.detail, "get_app_state · App: WindowManager")
+    XCTAssertEqual(
+      approval.response(allow: true),
+      .object(["action": .string("accept"), "content": .object([:])]))
+    XCTAssertEqual(
+      approval.response(allow: true, persist: "session"),
+      .object([
+        "action": .string("accept"), "content": .object([:]),
+        "_meta": .object(["persist": .string("session")]),
+      ]))
+    XCTAssertNil(approval.response(allow: true, persist: "always"))
+    XCTAssertEqual(approval.response(allow: false), .object(["action": .string("decline")]))
+    XCTAssertEqual(
+      approval.response(allow: false, cancel: true), .object(["action": .string("cancel")]))
+    // A form that needs real answers can be declined but never accepted with invented content.
+    let form = request(persist: .null, properties: ["name": .object(["type": .string("string")])])
+    XCTAssertFalse(form.isToolApproval)
+    XCTAssertNil(form.response(allow: true))
+    XCTAssertEqual(form.response(allow: false), .object(["action": .string("decline")]))
+  }
   func testOnlyOffersServerProposedCommandRule() {
     let rule: JSONValue = .object(["acceptWithExecpolicyAmendment": .object([
       "execpolicy_amendment": .array([.string("bash"), .string("scripts/build.sh")])
