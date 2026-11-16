@@ -60,7 +60,7 @@
     "claudeTitle": "Claude Code",
     "claudeBody": "On this Mac, in its own Git worktree. ScreenClip opens the pull request. Questions show up on the report, and you answer them there.",
     "grokTitle": "Grok Bot",
-    "grokBody": "Remote. Nothing is sent until you save a webhook and turn on sending for that project. Grok Bot opens the pull request from the branch ScreenClip pushed. Questions stay in Grok Bot’s chat."
+    "grokBody": "Remote. Nothing is sent until you save a webhook. Grok Bot opens the pull request from the branch ScreenClip pushed. Questions stay in Grok Bot’s chat."
   },
   "download": {
     "eyebrow": "Download",
@@ -99,7 +99,7 @@
       },
       {
         "q": "Which coding agents does it support?",
-        "a": "Codex, Claude Code, and Grok Bot. Codex and Claude Code run on your Mac, in an isolated Git worktree, and do not push or open the pull request themselves. Grok Bot is remote: you save a webhook, and each project has to opt in before screenshots are sent. Choose a default agent in Settings, or pick one for a new report. A follow-up capture stays with that report’s agent."
+        "a": "Codex, Claude Code, and Grok Bot. Codex and Claude Code run on your Mac, in an isolated Git worktree, and do not push or open the pull request themselves. Grok Bot is remote: you save a webhook, and ScreenClip pushes each report’s approved screenshots to a branch in the project’s GitHub repository for it. Choose a default agent in Settings, or pick one for a new report. A follow-up capture stays with that report’s agent."
       },
       {
         "q": "Is it only for bugs?",
@@ -111,7 +111,7 @@
       },
       {
         "q": "What leaves my Mac?",
-        "a": "ScreenClip does not upload Codex or Claude Code reports. It hands the approved screenshot and note to the agent on your Mac, and that agent may send them to the account you signed into. GitHub receives the branch and pull request opened with your GitHub CLI. Screenshots are not attached to that pull request by default. Grok Bot receives approved screenshots only after you save a webhook and turn on sending for that project. There is no ScreenClip analytics. The privacy policy has the full list."
+        "a": "ScreenClip has no server of its own. It hands the approved screenshot and note to Codex or Claude Code on your Mac, and that agent may send them to the account you signed into. GitHub receives the branch and pull request opened with your GitHub CLI. The flattened report screenshots, with your annotations and redactions, and the screenshots the agent captures after the fix are committed with the fix and embedded in that pull request, so anyone who can read the repository can see them. For Grok Bot, once you save a webhook, ScreenClip pushes the approved screenshots to a branch in the same repository. Unredacted originals are never published. There is no ScreenClip analytics. The privacy policy has the full list."
       },
       {
         "q": "How does redaction work?",
@@ -152,7 +152,7 @@
   "privacy": {
     "eyebrow": "Privacy policy",
     "title": "Privacy policy",
-    "updated": "Updated November 14, 2026.",
+    "updated": "Updated November 15, 2026.",
     "intro": "ScreenClip is a macOS menu bar app. You capture a region you select, optionally annotate it and add a note, and hand that report to a coding agent you configure. This policy describes what the app stores on your Mac, what can leave it, and what this website does.",
     "staysTitle": "What stays on your Mac",
     "stays1": "Reports, screenshots, notes, annotations, project settings, questions, and activity are stored on your Mac under {code:appSupport}. The queue is a SQLite database plus image files. Agent work runs in a Git worktree under that same folder. Your own project checkout is not the working directory.",
@@ -166,13 +166,13 @@
     "redact1": "Redaction is a rectangle you draw with the redact tool. ScreenClip flattens those rectangles to opaque black in the screenshot it saves. Arrows, pen strokes, shapes, and text do not hide the pixels underneath.",
     "redact2": "When a capture has a redaction, the unredacted crop is not kept. It is not passed to an agent, pushed to GitHub, or included in a webhook.",
     "localTitle": "Codex and Claude Code",
-    "local1": "Codex and Claude Code run on your Mac. ScreenClip passes the approved screenshot, your note, and the prompt to that local agent. ScreenClip does not upload those reports itself.",
+    "local1": "Codex and Claude Code run on your Mac. ScreenClip passes the approved screenshot, your note, and the prompt to that local agent. No ScreenClip server is involved. ScreenClip does publish the report’s screenshots to the project’s GitHub repository with the fix, as described under GitHub below.",
     "local2": "The agent uses the account you signed into: Codex through its app-server, Claude Code through its own login. That agent may send the prompt and images to its own provider under that account’s terms. ScreenClip starts these agents without GitHub tokens in their environment. ScreenClip, not the agent, pushes branches and opens pull requests for them.",
     "githubTitle": "GitHub",
     "github1": "Pull request automation uses the GitHub CLI you install and the GitHub account that CLI is logged into. ScreenClip pushes a {code:branch} branch, and for Codex and Claude Code it opens the pull request. It reads check status, and it merges only when automatic merge is enabled for that project and the checks and review rules pass.",
-    "github2": "The pull request body includes the agent’s summary, the project’s validation command with secret-like values redacted, and the report reference. The body states that screenshots and source context remain in ScreenClip. Screenshots are not attached to the pull request by default.",
+    "github2": "The pull request body includes the agent’s summary, the project’s validation command with secret-like values redacted, and the report reference. For Codex and Claude Code, ScreenClip also commits the report’s screenshots with the fix and embeds them in the pull request as a Before / After comparison: the flattened screenshots you approved, including your annotations and redactions, and the screenshots the agent captured when it retested the fix. There is no setting that turns this off. Anyone who can read the repository can see those images; in a public repository, that includes anyone on the internet. Removing the files in a later commit does not erase them from Git history. Only the flattened screenshots are published, never the unredacted crop.",
     "grokTitle": "Grok Bot",
-    "grok1": "Nothing is sent to Grok Bot until you save a webhook URL and Authorization header, and you turn on {ui:allowSend} for that project. The opt-in stays off until you enable it, including for private repositories.",
+    "grok1": "Nothing is sent to Grok Bot until you save a webhook URL and Authorization header. Once that connection is saved, every report you send to Grok Bot shares its approved screenshots. There is no separate sharing setting for a project, whether its repository is private or public.",
     "grok2": "ScreenClip then pushes the approved PNGs and a {code:reportJson} file to a {code:branch} branch in the project repository, and sends a small JSON webhook. The webhook does not contain image bytes. It includes the report number, issue id, revision, title, notes, later context notes, source app name, bundle ID, project name, repository, base branch, validation command, and the evidence branch, commit, and file paths. The browser URL and window title are included only when {ui:browserUrl} is on. The webhook also includes a workspace ID, previous pull request URLs, and delivery identifiers. A supported cancel request sends the issue ID, report number, revision, repository, and branch.",
     "grok3": "Anyone who can read the repository can access the evidence; in a public repository, that includes anyone on the internet. Removing files from a later commit does not erase them from Git history. Grok Bot opens the pull request from that branch. Cancel stops the local record and, if the connection supports cancellation, sends a best-effort request; the remote run may still finish. Grok Bot questions stay in its chat.",
     "grok4": "A redirect of the webhook to a different host does not include the Authorization header.",
@@ -200,7 +200,7 @@
     "needTitle": "What you need to run it",
     "needOs": "macOS 14 or later.",
     "needGit": "A local Git repository for the project you are testing. Add it in Settings, with the website addresses or Mac app bundle IDs that should route to it, and a validation command.",
-    "needAgent": "At least one agent: Codex CLI with {code:appServer}, Claude Code, or Grok Bot (a webhook URL and Authorization header). Grok Bot also needs {ui:allowSend} turned on for that project.",
+    "needAgent": "At least one agent: Codex CLI with {code:appServer}, Claude Code, or Grok Bot (a webhook URL and Authorization header).",
     "needGh": "GitHub CLI, logged into GitHub. ScreenClip uses it to open pull requests, and to push screenshots for Grok Bot.",
     "needRecord": "Screen Recording permission, so ScreenClip can capture the region you select.",
     "awake": "Leave ScreenClip running, and the Mac awake, while Codex or Claude Code works. Grok Bot keeps working if the Mac sleeps. ScreenClip updates that pull request the next time the app is running.",

@@ -29,7 +29,6 @@ CODES = {
 }
 UI = {
     "browserUrl": "Read the active browser URL for project matching",
-    "allowSend": "Allow sending screenshots to the external assistant",
     "checkAccess": "Check screen access",
     "checkAgain": "Check again",
     "reopen": "Reopen app",

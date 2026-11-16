@@ -60,7 +60,7 @@
     "claudeTitle": "Claude Code",
     "claudeBody": "在这台 Mac 上自己的 Git worktree 中工作。拉取请求由 ScreenClip 打开。问题出现在报告上，你在那里回答。",
     "grokTitle": "Grok Bot",
-    "grokBody": "在远端。在你保存 webhook 并为该项目打开发送之前，什么都不会送出。Grok Bot 从 ScreenClip 推送的分支打开拉取请求。问题留在 Grok Bot 的对话里。"
+    "grokBody": "在远端。在你保存 webhook 之前，什么都不会送出。Grok Bot 从 ScreenClip 推送的分支打开拉取请求。问题留在 Grok Bot 的对话里。"
   },
   "download": {
     "eyebrow": "下载",
@@ -99,7 +99,7 @@
       },
       {
         "q": "支持哪些编程代理？",
-        "a": "Codex、Claude Code 和 Grok Bot。Codex 和 Claude Code 在你的 Mac 上、隔离的 Git worktree 中运行，它们自己不会推送或打开拉取请求。Grok Bot 在远端：你要保存 webhook，并且每个项目都要先选择加入，才会发送截图。可以在 Settings 里选默认代理，也可以为新报告另选。后续截图仍使用该报告原来的代理。"
+        "a": "Codex、Claude Code 和 Grok Bot。Codex 和 Claude Code 在你的 Mac 上、隔离的 Git worktree 中运行，它们自己不会推送或打开拉取请求。Grok Bot 在远端：你保存 webhook 后，ScreenClip 会把每份报告已确认的截图推送到项目 GitHub 仓库的一个分支，供它读取。可以在 Settings 里选默认代理，也可以为新报告另选。后续截图仍使用该报告原来的代理。"
       },
       {
         "q": "只能用来报缺陷吗？",
@@ -111,7 +111,7 @@
       },
       {
         "q": "什么会离开这台 Mac？",
-        "a": "ScreenClip 不会自己上传 Codex 或 Claude Code 的报告。它把已确认的截图和备注交给 Mac 上的代理，该代理可能按你登录的账户把它们发给提供方。GitHub 会收到用你的 GitHub CLI 打开的分支和拉取请求。截图默认不会附在该拉取请求上。只有在你保存 webhook 并为该项目打开发送之后，Grok Bot 才会收到已确认的截图。ScreenClip 没有分析统计。完整列表在隐私政策里。"
+        "a": "ScreenClip 没有自己的服务器。它把已确认的截图和备注交给 Mac 上的 Codex 或 Claude Code，该代理可能按你登录的账户把它们发给提供方。GitHub 会收到用你的 GitHub CLI 打开的分支和拉取请求。报告的最终截图（含你的标注和遮盖）以及代理在修复后截取的截图，会随修复一起提交并嵌入该拉取请求，所以任何能读取该仓库的人都能看到。对 Grok Bot，你保存 webhook 后，ScreenClip 会把已确认的截图推送到同一仓库的分支。未遮盖的原图绝不会发布。ScreenClip 没有分析统计。完整列表在隐私政策里。"
       },
       {
         "q": "遮盖如何工作？",
@@ -152,7 +152,7 @@
   "privacy": {
     "eyebrow": "隐私政策",
     "title": "隐私政策",
-    "updated": "更新于 2026 年 11 月 14 日。",
+    "updated": "更新于 2026 年 11 月 15 日。",
     "intro": "ScreenClip 是 macOS 菜单栏应用。你截取选中的区域，可选地标注并加备注，然后把报告交给你配置的编程代理。本政策说明应用在 Mac 上保存什么、什么可能离开，以及这个网站做什么。",
     "staysTitle": "留在 Mac 上的内容",
     "stays1": "报告、截图、备注、标注、项目设置、问题和活动保存在 Mac 上的 {code:appSupport}。队列是 SQLite 数据库加上图像文件。代理的工作在同一文件夹下的 Git worktree 中进行。你自己的项目检出目录不是工作目录。",
@@ -166,13 +166,13 @@
     "redact1": "遮盖是你用 redact 工具画的矩形。ScreenClip 会在保存的截图里把这些矩形压成不透明的黑色。箭头、笔迹、形状和文字不会遮住下面的像素。",
     "redact2": "截图含有遮盖时，未遮盖的裁切不会保留。它不会交给代理、推送到 GitHub，或放进 webhook。",
     "localTitle": "Codex 和 Claude Code",
-    "local1": "Codex 和 Claude Code 在你的 Mac 上运行。ScreenClip 把已确认的截图、备注和提示交给该本地代理。ScreenClip 自己不会上传这些报告。",
+    "local1": "Codex 和 Claude Code 在你的 Mac 上运行。ScreenClip 把已确认的截图、备注和提示交给该本地代理。其中不涉及任何 ScreenClip 服务器。不过，ScreenClip 会把报告的截图随修复一起发布到项目的 GitHub 仓库，详见下文的 GitHub 部分。",
     "local2": "代理使用你登录的账户：Codex 通过 app-server，Claude Code 通过它自己的登录。该代理可能按该账户的条款把提示和图像发给自己的提供方。ScreenClip 启动这些代理时，环境里没有 GitHub 令牌。推送分支和打开拉取请求的是 ScreenClip，不是代理。",
     "githubTitle": "GitHub",
     "github1": "拉取请求自动化使用你安装的 GitHub CLI，以及该 CLI 登录的 GitHub 账户。ScreenClip 推送 {code:branch} 分支，并为 Codex 和 Claude Code 打开拉取请求。它读取检查状态，并且只在该项目启用自动合并、检查和审查规则都通过时才合并。",
-    "github2": "拉取请求正文包含代理的摘要、已涂掉疑似秘密值的项目验证命令，以及报告引用。正文说明截图和来源上下文仍留在 ScreenClip。截图默认不会附在拉取请求上。",
+    "github2": "拉取请求正文包含代理的摘要、已涂掉疑似秘密值的项目验证命令，以及报告引用。对 Codex 和 Claude Code，ScreenClip 还会把报告的截图随修复一起提交，并以 Before / After 对比的形式嵌入拉取请求：你已确认的最终截图（含你的标注和遮盖），以及代理重新测试修复时截取的截图。没有可以关闭这一行为的设置。任何能读取该仓库的人都能看到这些图片；在公开仓库中，这意味着互联网上的任何人。在后续提交中移除这些文件，并不会把它们从 Git 历史中抹去。发布的只有最终截图，绝不包括未遮盖的裁切。",
     "grokTitle": "Grok Bot",
-    "grok1": "在你保存 webhook URL 和 Authorization header，并为该项目打开 {ui:allowSend} 之前，不会向 Grok Bot 发送任何内容。包括私有仓库在内，这个选项在你启用之前保持关闭。",
+    "grok1": "在你保存 webhook URL 和 Authorization header 之前，不会向 Grok Bot 发送任何内容。保存该连接后，你发给 Grok Bot 的每份报告都会共享其已确认的截图。无论仓库是私有还是公开，都没有单独的项目共享设置。",
     "grok2": "然后 ScreenClip 会把已确认的 PNG 和 {code:reportJson} 推送到项目仓库的 {code:branch} 分支，并发送一个很小的 JSON webhook。webhook 不含图像字节。它包含报告编号、issue id、修订、标题、备注、后来的上下文备注、源应用名称、bundle ID、项目名称、仓库、基线分支、验证命令，以及证据分支、提交和文件路径。只有在 {ui:browserUrl} 打开时，才会包含浏览器 URL 和窗口标题。 webhook 还包含工作区 ID、以前的拉取请求 URL 和投递标识符。受支持的取消请求会发送问题 ID、报告编号、修订、仓库和分支。",
     "grok3": "能读取仓库的人都能访问证据；公开仓库则包括互联网上的任何人。在后续提交中删除文件不会将其从 Git 历史中抹去。Grok Bot 从该分支打开拉取请求。Cancel 会停止本地记录，并在连接支持时尝试发送取消请求；远程运行仍可能完成。问题留在 Grok Bot 的对话中。",
     "grok4": "webhook 被重定向到另一个主机时，不会带上 Authorization header。",
@@ -200,7 +200,7 @@
     "needTitle": "运行它需要什么",
     "needOs": "macOS 14 或更高版本。",
     "needGit": "正在测试的项目的本地 Git 仓库。在 Settings 里添加它，写上应路由到它的网站地址或 Mac 应用 bundle ID，以及验证命令。",
-    "needAgent": "至少一个代理：带 {code:appServer} 的 Codex CLI、Claude Code，或 Grok Bot（webhook URL 和 Authorization header）。Grok Bot 还需要为该项目打开 {ui:allowSend}。",
+    "needAgent": "至少一个代理：带 {code:appServer} 的 Codex CLI、Claude Code，或 Grok Bot（webhook URL 和 Authorization header）。",
     "needGh": "已登录 GitHub 的 GitHub CLI。ScreenClip 用它打开拉取请求，并为 Grok Bot 推送截图。",
     "needRecord": "屏幕录制权限，这样 ScreenClip 才能截取你选中的区域。",
     "awake": "Codex 或 Claude Code 工作时，请保持 ScreenClip 运行，并让 Mac 保持唤醒。Mac 睡眠时 Grok Bot 仍会继续。下次打开应用时，ScreenClip 会更新该拉取请求。",

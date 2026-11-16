@@ -60,7 +60,7 @@
     "claudeTitle": "Claude Code",
     "claudeBody": "このMac上の、専用のGit worktreeで動きます。プルリクエストはScreenClipが開きます。質問はレポートに表示され、そこで答えます。",
     "grokTitle": "Grok Bot",
-    "grokBody": "リモートです。webhookを保存し、そのプロジェクトで送信をオンにするまで何も送られません。Grok BotはScreenClipがpushしたブランチからプルリクエストを開きます。質問はGrok Botのチャットに残ります。"
+    "grokBody": "リモートです。webhookを保存するまで何も送られません。Grok BotはScreenClipがpushしたブランチからプルリクエストを開きます。質問はGrok Botのチャットに残ります。"
   },
   "download": {
     "eyebrow": "ダウンロード",
@@ -99,7 +99,7 @@
       },
       {
         "q": "どのコーディングエージェントに対応していますか？",
-        "a": "Codex、Claude Code、Grok Botです。CodexとClaude CodeはこのMac上の隔離されたGit worktreeで動き、自分ではpushもプルリクエストも開きません。Grok Botはリモートです。webhookを保存し、スクリーンショットを送る前にプロジェクトごとにオプトインが必要です。既定はSettingsで選び、新しいレポートでは別のエージェントも選べます。追記のキャプチャは、そのレポートのエージェントのままです。"
+        "a": "Codex、Claude Code、Grok Botです。CodexとClaude CodeはこのMac上の隔離されたGit worktreeで動き、自分ではpushもプルリクエストも開きません。Grok Botはリモートです。webhookを保存すると、ScreenClipは各レポートの承認したスクリーンショットを、プロジェクトのGitHubリポジトリのブランチにpushします。既定はSettingsで選び、新しいレポートでは別のエージェントも選べます。追記のキャプチャは、そのレポートのエージェントのままです。"
       },
       {
         "q": "バグ専用ですか？",
@@ -111,7 +111,7 @@
       },
       {
         "q": "Macから出るものは何ですか？",
-        "a": "ScreenClipはCodexとClaude Codeのレポートを自分ではアップロードしません。承認したスクリーンショットとメモをMac上のエージェントに渡し、そのエージェントがサインイン済みのアカウントへ送ることがあります。GitHubには、自分のGitHub CLIで開いたブランチとプルリクエストが届きます。スクリーンショットは、既定ではそのプルリクエストに添付されません。Grok Botは、webhookを保存し、そのプロジェクトで送信をオンにしたあとだけ、承認済みスクリーンショットを受け取ります。ScreenClipの解析送信はありません。一覧はプライバシーポリシーにあります。"
+        "a": "ScreenClipに独自のサーバーはありません。承認したスクリーンショットとメモをMac上のCodexまたはClaude Codeに渡し、そのエージェントがサインイン済みのアカウントへ送ることがあります。GitHubには、自分のGitHub CLIで開いたブランチとプルリクエストが届きます。注釈と墨消しを焼き込んだレポートのスクリーンショットと、修正後にエージェントが撮ったスクリーンショットは、修正と一緒にコミットされ、そのプルリクエストに埋め込まれます。リポジトリを読める人なら誰でも見られます。Grok Botでは、webhookを保存すると、ScreenClipが承認したスクリーンショットを同じリポジトリのブランチにpushします。墨消し前の元画像が公開されることはありません。ScreenClipの解析送信はありません。一覧はプライバシーポリシーにあります。"
       },
       {
         "q": "墨消しはどう動きますか？",
@@ -152,7 +152,7 @@
   "privacy": {
     "eyebrow": "プライバシーポリシー",
     "title": "プライバシーポリシー",
-    "updated": "2026年11月14日更新。",
+    "updated": "2026年11月15日更新。",
     "intro": "ScreenClipはmacOSのメニューバーアプリです。選んだ範囲をキャプチャし、必要なら注釈とメモを足して、設定したコーディングエージェントにそのレポートを渡します。このポリシーは、アプリがMacに保存するもの、外に出うるもの、そしてこのWebサイトがすることを説明します。",
     "staysTitle": "Macに残るもの",
     "stays1": "レポート、スクリーンショット、メモ、注釈、プロジェクト設定、質問、アクティビティは、Mac上の{code:appSupport}に保存されます。キューはSQLiteデータベースと画像ファイルです。エージェントの作業は、同じフォルダ内のGit worktreeで動きます。自分のプロジェクトのチェックアウトは作業ディレクトリではありません。",
@@ -166,13 +166,13 @@
     "redact1": "墨消しは、redactツールで描く矩形です。ScreenClipは保存するスクリーンショットの中で、その矩形を不透明な黒に平坦化します。矢印、ペン、図形、テキストは下のピクセルを隠しません。",
     "redact2": "キャプチャに墨消しがあると、墨消し前の切り抜きは残しません。エージェントにも渡さず、GitHubにもpushせず、webhookにも含めません。",
     "localTitle": "CodexとClaude Code",
-    "local1": "CodexとClaude CodeはこのMac上で動きます。ScreenClipは承認したスクリーンショット、メモ、プロンプトをそのローカルエージェントに渡します。ScreenClip自身はそれらのレポートをアップロードしません。",
+    "local1": "CodexとClaude CodeはこのMac上で動きます。ScreenClipは承認したスクリーンショット、メモ、プロンプトをそのローカルエージェントに渡します。ScreenClipのサーバーは介在しません。ただしScreenClipは、下の「GitHub」にあるとおり、レポートのスクリーンショットを修正と一緒にプロジェクトのGitHubリポジトリへ公開します。",
     "local2": "エージェントは、サインインしたアカウントを使います。Codexはapp-server経由、Claude Codeは自身のログインです。そのエージェントは、アカウントの条件に従ってプロンプトと画像を自分の提供者へ送ることがあります。ScreenClipは、環境にGitHubトークンを入れずにこれらのエージェントを起動します。ブランチのpushとプルリクエストを開くのはエージェントではなくScreenClipです。",
     "githubTitle": "GitHub",
     "github1": "プルリクエストの自動化には、インストールしたGitHub CLIと、そのCLIがログインしているGitHubアカウントを使います。ScreenClipは{code:branch}ブランチをpushし、CodexとClaude Codeについてはプルリクエストを開きます。チェック状態を読み、そのプロジェクトで自動マージが有効で、チェックとレビュールールを通過したときだけマージします。",
-    "github2": "プルリクエスト本文には、エージェントの要約、秘密らしい値を伏せたプロジェクトの検証コマンド、レポート参照が含まれます。本文には、スクリーンショットと取得時のコンテキストはScreenClipに残ると書かれます。スクリーンショットは既定ではプルリクエストに添付されません。",
+    "github2": "プルリクエスト本文には、エージェントの要約、秘密らしい値を伏せたプロジェクトの検証コマンド、レポート参照が含まれます。CodexとClaude Codeでは、ScreenClipはレポートのスクリーンショットも修正と一緒にコミットし、Before / Afterの比較としてプルリクエストに埋め込みます。対象は、注釈と墨消しを焼き込んだ承認済みのスクリーンショットと、エージェントが修正を再テストしたときに撮ったスクリーンショットです。これをオフにする設定はありません。リポジトリを読める人なら誰でもこれらの画像を見られます。公開リポジトリでは、インターネット上の誰でも見られます。あとのコミットでファイルを削除しても、Gitの履歴からは消えません。公開されるのは焼き込み済みのスクリーンショットだけで、墨消し前の切り抜きは公開されません。",
     "grokTitle": "Grok Bot",
-    "grok1": "webhook URLとAuthorization headerを保存し、そのプロジェクトで{ui:allowSend}をオンにするまで、Grok Botには何も送られません。オプトインは、プライベートリポジトリを含めて、自分で有効にするまでオフのままです。",
+    "grok1": "webhook URLとAuthorization headerを保存するまで、Grok Botには何も送られません。その接続を保存したあとは、Grok Botに送るすべてのレポートで、承認したスクリーンショットが共有されます。リポジトリがプライベートでも公開でも、プロジェクトごとの共有設定はありません。",
     "grok2": "その後ScreenClipは、承認したPNGと{code:reportJson}をプロジェクトリポジトリの{code:branch}ブランチにpushし、小さなJSON webhookを送ります。webhookに画像バイトは含まれません。含まれるのは、レポート番号、issue id、revision、タイトル、メモ、その後のコンテキストメモ、元アプリ名、bundle ID、プロジェクト名、リポジトリ、base branch、検証コマンド、証拠ブランチ、コミット、ファイルパスです。ブラウザのURLとウィンドウタイトルは、{ui:browserUrl}がオンのときだけ含まれます。 webhookにはワークスペースID、以前のプルリクエストURL、配信識別子も含まれます。対応するキャンセル要求では、issue ID、報告番号、リビジョン、リポジトリ、ブランチを送信します。",
     "grok3": "リポジトリを読める人は証拠にアクセスできます。公開リポジトリではインターネット上の誰もが対象です。後のコミットでファイルを削除してもGitの履歴からは消えません。Grok Botはそのブランチからプルリクエストを開きます。Cancelはローカルの記録を停止し、接続が対応していればキャンセルを試みますが、リモートの実行が完了する場合もあります。質問はGrok Botのチャットに残ります。",
     "grok4": "webhookが別のホストへリダイレクトされても、Authorization headerは付きません。",
@@ -200,7 +200,7 @@
     "needTitle": "実行に必要なもの",
     "needOs": "macOS 14以降。",
     "needGit": "テストするプロジェクトのローカルGitリポジトリ。Settingsで追加し、振り分け先になるWebサイトのアドレスかMacアプリのbundle ID、および検証コマンドを設定します。",
-    "needAgent": "エージェントが少なくとも1つ。Codex CLI（{code:appServer}）、Claude Code、またはGrok Bot（webhook URLとAuthorization header）です。Grok Botでは、そのプロジェクトで{ui:allowSend}もオンにする必要があります。",
+    "needAgent": "エージェントが少なくとも1つ。Codex CLI（{code:appServer}）、Claude Code、またはGrok Bot（webhook URLとAuthorization header）です。",
     "needGh": "GitHubにログインしたGitHub CLI。ScreenClipはこれでプルリクエストを開き、Grok Bot用にスクリーンショットをpushします。",
     "needRecord": "選んだ範囲をScreenClipがキャプチャするためのScreen Recording許可。",
     "awake": "CodexまたはClaude Codeの作業中は、ScreenClipを起動したまま、Macをスリープさせないでください。Grok BotはMacがスリープしても作業を続けます。次回アプリを起動したときに、そのプルリクエストの状態を更新します。",
