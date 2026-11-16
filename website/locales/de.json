@@ -245,5 +245,12 @@
     "open": "Screenshot der Berichtsliste in voller Größe öffnen",
     "alt": "ScreenClip-Berichtsliste mit Projekten, zusammengeführten Meldungen und Details einer ausgewählten Meldung.",
     "caption": "Eine echte Berichtsliste. Die App ist hier auf Englisch dargestellt."
+  },
+  "notifications": {
+    "title": "Ein Hinweis, wenn du erneut testen kannst",
+    "body": "Aktiviere Benachrichtigungen und ScreenClip informiert dich, sobald ein Fix gemergt ist. Baue deine App neu oder stelle sie bereit und kehre dann zum Bericht zurück, um erneut zu testen.",
+    "open": "Benachrichtigungen in voller Größe öffnen",
+    "alt": "Zwei macOS-Benachrichtigungen von ScreenClip melden, dass ein Fix gemergt wurde und neu gebaut und getestet werden kann.",
+    "caption": "Echte macOS-Benachrichtigungen. App-Oberfläche auf Englisch."
   }
 }
