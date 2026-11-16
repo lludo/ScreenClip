@@ -60,7 +60,7 @@
     "claudeTitle": "Claude Code",
     "claudeBody": "在這台 Mac 上自己的 Git worktree 中工作。拉取請求由 ScreenClip 開啟。問題出現在報告上，你在那裡回答。",
     "grokTitle": "Grok Bot",
-    "grokBody": "在遠端。在你儲存 webhook 並為該專案開啟傳送之前，什麼都不會送出。Grok Bot 從 ScreenClip 推送的分支開啟拉取請求。問題留在 Grok Bot 的對話裡。"
+    "grokBody": "在遠端。在你儲存 webhook 之前，什麼都不會送出。Grok Bot 從 ScreenClip 推送的分支開啟拉取請求。問題留在 Grok Bot 的對話裡。"
   },
   "download": {
     "eyebrow": "下載",
@@ -99,7 +99,7 @@
       },
       {
         "q": "支援哪些程式代理？",
-        "a": "Codex、Claude Code 和 Grok Bot。Codex 與 Claude Code 在你的 Mac 上、隔離的 Git worktree 中執行，它們自己不會推送或開啟拉取請求。Grok Bot 在遠端：你要儲存 webhook，而且每個專案都要先選擇加入，才會傳送截圖。可以在 Settings 裡選預設代理，也可以為新報告另選。後續截圖仍使用該報告原來的代理。"
+        "a": "Codex、Claude Code 和 Grok Bot。Codex 與 Claude Code 在你的 Mac 上、隔離的 Git worktree 中執行，它們自己不會推送或開啟拉取請求。Grok Bot 在遠端：你儲存 webhook 後，ScreenClip 會把每份報告已確認的截圖推送到專案 GitHub 儲存庫的一個分支，供它讀取。可以在 Settings 裡選預設代理，也可以為新報告另選。後續截圖仍使用該報告原來的代理。"
       },
       {
         "q": "只能用來回報缺陷嗎？",
@@ -111,7 +111,7 @@
       },
       {
         "q": "什麼會離開這台 Mac？",
-        "a": "ScreenClip 不會自己上傳 Codex 或 Claude Code 的報告。它把已確認的截圖和備註交給 Mac 上的代理，該代理可能依你登入的帳戶把它們傳給提供方。GitHub 會收到用你的 GitHub CLI 開啟的分支和拉取請求。截圖預設不會附在該拉取請求上。只有在你儲存 webhook 並為該專案開啟傳送之後，Grok Bot 才會收到已確認的截圖。ScreenClip 沒有分析統計。完整清單在隱私權政策裡。"
+        "a": "ScreenClip 沒有自己的伺服器。它把已確認的截圖和備註交給 Mac 上的 Codex 或 Claude Code，該代理可能依你登入的帳戶把它們傳給提供方。GitHub 會收到用你的 GitHub CLI 開啟的分支和拉取請求。報告的最終截圖（含你的標註和遮蓋）以及代理在修正後截取的截圖，會隨修正一起提交並嵌入該拉取請求，所以任何能讀取該儲存庫的人都能看到。對 Grok Bot，你儲存 webhook 後，ScreenClip 會把已確認的截圖推送到同一儲存庫的分支。未遮蓋的原圖絕不會發布。ScreenClip 沒有分析統計。完整清單在隱私權政策裡。"
       },
       {
         "q": "遮蓋如何運作？",
@@ -152,7 +152,7 @@
   "privacy": {
     "eyebrow": "隱私權政策",
     "title": "隱私權政策",
-    "updated": "更新於 2026 年 11 月 14 日。",
+    "updated": "更新於 2026 年 11 月 15 日。",
     "intro": "ScreenClip 是 macOS 選單列 App。你截取選取的區域，可選擇標註並加備註，然後把報告交給你設定的程式代理。本政策說明 App 在 Mac 上保存什麼、什麼可能離開，以及這個網站做什麼。",
     "staysTitle": "留在 Mac 上的內容",
     "stays1": "報告、截圖、備註、標註、專案設定、問題和活動保存在 Mac 上的 {code:appSupport}。佇列是 SQLite 資料庫加上影像檔。代理的工作在同一資料夾下的 Git worktree 中進行。你自己的專案檢出目錄不是工作目錄。",
@@ -166,13 +166,13 @@
     "redact1": "遮蓋是你用 redact 工具畫的矩形。ScreenClip 會在儲存的截圖裡把這些矩形壓成不透明的黑色。箭頭、筆跡、形狀和文字不會遮住下面的像素。",
     "redact2": "截圖含有遮蓋時，未遮蓋的裁切不會保留。它不會交給代理、推送到 GitHub，或放進 webhook。",
     "localTitle": "Codex 和 Claude Code",
-    "local1": "Codex 與 Claude Code 在你的 Mac 上執行。ScreenClip 把已確認的截圖、備註和提示交給該本機代理。ScreenClip 自己不會上傳這些報告。",
+    "local1": "Codex 與 Claude Code 在你的 Mac 上執行。ScreenClip 把已確認的截圖、備註和提示交給該本機代理。其中不涉及任何 ScreenClip 伺服器。不過，ScreenClip 會把報告的截圖隨修正一起發布到專案的 GitHub 儲存庫，詳見下文的 GitHub 部分。",
     "local2": "代理使用你登入的帳戶：Codex 透過 app-server，Claude Code 透過它自己的登入。該代理可能依該帳戶的條款把提示和影像傳給自己的提供方。ScreenClip 啟動這些代理時，環境裡沒有 GitHub 權杖。推送分支和開啟拉取請求的是 ScreenClip，不是代理。",
     "githubTitle": "GitHub",
     "github1": "拉取請求自動化使用你安裝的 GitHub CLI，以及該 CLI 登入的 GitHub 帳戶。ScreenClip 推送 {code:branch} 分支，並為 Codex 與 Claude Code 開啟拉取請求。它讀取檢查狀態，並且只在該專案啟用自動合併、檢查和審查規則都通過時才合併。",
-    "github2": "拉取請求正文包含代理的摘要、已塗掉疑似祕密值的專案驗證命令，以及報告引用。正文說明截圖和來源內容仍留在 ScreenClip。截圖預設不會附在拉取請求上。",
+    "github2": "拉取請求正文包含代理的摘要、已塗掉疑似祕密值的專案驗證命令，以及報告引用。對 Codex 與 Claude Code，ScreenClip 還會把報告的截圖隨修正一起提交，並以 Before / After 對比的形式嵌入拉取請求：你已確認的最終截圖（含你的標註和遮蓋），以及代理重新測試修正時截取的截圖。沒有可以關閉這項行為的設定。任何能讀取該儲存庫的人都能看到這些圖片；在公開儲存庫中，這表示網際網路上的任何人。在後續提交中移除這些檔案，並不會把它們從 Git 歷史中抹去。發布的只有最終截圖，絕不包括未遮蓋的裁切。",
     "grokTitle": "Grok Bot",
-    "grok1": "在你儲存 webhook URL 和 Authorization header，並為該專案打開 {ui:allowSend} 之前，不會向 Grok Bot 傳送任何內容。包括私有儲存庫在內，這個選項在你啟用之前保持關閉。",
+    "grok1": "在你儲存 webhook URL 和 Authorization header 之前，不會向 Grok Bot 傳送任何內容。儲存該連線後，你傳給 Grok Bot 的每份報告都會分享其已確認的截圖。無論儲存庫是私有還是公開，都沒有個別的專案分享設定。",
     "grok2": "然後 ScreenClip 會把已確認的 PNG 和 {code:reportJson} 推送到專案儲存庫的 {code:branch} 分支，並傳送一個很小的 JSON webhook。webhook 不含影像位元組。它包含報告編號、issue id、修訂、標題、備註、後來的內容備註、來源 App 名稱、bundle ID、專案名稱、儲存庫、基準分支、驗證命令，以及證據分支、提交和檔案路徑。只有在 {ui:browserUrl} 打開時，才會包含瀏覽器 URL 和視窗標題。 webhook 也包含工作區 ID、先前的提取請求 URL 和傳送識別碼。受支援的取消請求會傳送問題 ID、回報編號、修訂、儲存庫和分支。",
     "grok3": "能讀取儲存庫的人都能存取證據；公開儲存庫則包括網際網路上的任何人。在後續提交中刪除檔案不會將其從 Git 歷史中移除。Grok Bot 從該分支開啟提取請求。Cancel 會停止本機記錄，並在連線支援時嘗試傳送取消請求；遠端執行仍可能完成。問題留在 Grok Bot 的對話中。",
     "grok4": "webhook 被重新導向到另一個主機時，不會帶上 Authorization header。",
@@ -200,7 +200,7 @@
     "needTitle": "執行它需要什麼",
     "needOs": "macOS 14 或更新版本。",
     "needGit": "正在測試的專案的本機 Git 儲存庫。在 Settings 裡新增它，寫上應路由到它的網站位址或 Mac App bundle ID，以及驗證命令。",
-    "needAgent": "至少一個代理：帶 {code:appServer} 的 Codex CLI、Claude Code，或 Grok Bot（webhook URL 和 Authorization header）。Grok Bot 還需要為該專案打開 {ui:allowSend}。",
+    "needAgent": "至少一個代理：帶 {code:appServer} 的 Codex CLI、Claude Code，或 Grok Bot（webhook URL 和 Authorization header）。",
     "needGh": "已登入 GitHub 的 GitHub CLI。ScreenClip 用它開啟拉取請求，並為 Grok Bot 推送截圖。",
     "needRecord": "螢幕錄製權限，這樣 ScreenClip 才能截取你選取的區域。",
     "awake": "Codex 或 Claude Code 工作時，請保持 ScreenClip 執行，並讓 Mac 保持喚醒。Mac 睡眠時 Grok Bot 仍會繼續。下次打開 App 時，ScreenClip 會更新該拉取請求。",
