@@ -92,7 +92,7 @@ In **Settings → Connections**, the **AI agent** list shows Grok Bot like Codex
 
 The address and secret live in the Keychain (`com.screenclip.app.external-assistant`). They are not written to the SQLite queue, and ScreenClip does not write them to a log. Replacing a saved connection updates the Keychain item in place. The check ScreenClip runs asks Grok Bot to accept a small test message. `scripts/send_test_webhook.py` sends that same test from `SCREENCLIP_WEBHOOK_URL` and `SCREENCLIP_AUTHORIZATION`.
 
-Opening a `screenclip://connect` link fills the same two fields. The app registers the `screenclip` URL scheme in `Resources/Info.plist` (also used by `screenclip://issues/<uuid>`).
+Opening a `screenclip://connect` link fills the same two fields. The app registers the `screenclip` URL scheme in `Resources/Info.plist` (also used by `screenclip://issues/<uuid>` and its `/reconcile`, `/continue`, and `/resume` report actions).
 
 ## Webhook and key
 

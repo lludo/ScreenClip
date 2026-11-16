@@ -190,6 +190,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard model.issue(id) != nil else { continue }
         model.selectedIssueID = id
         showQueue()
+      case .issueAction(let id, let action):
+        Task { await model.runLinkedAction(action, on: id) }
       case .connect(let code):
         model.grokConnectRequest = GrokConnectRequest(code: code)
         showSettings()

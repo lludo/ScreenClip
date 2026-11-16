@@ -26,6 +26,8 @@ import ScreenClipCore
   var timer: Timer?
   /// A turn running longer than this, not counting time spent waiting for the tester, is stopped.
   var turnTimeLimit: TimeInterval = 45 * 60
+  /// A Codex request left unanswered this long is answered for an absent tester. 0 disables.
+  var questionTimeLimit: TimeInterval = 10 * 60
   /// How often agents holding queued reports are checked again.
   var heldRecheckInterval: TimeInterval = 60
   var lastCodexAuthCheck = Date.distantPast
@@ -50,6 +52,7 @@ import ScreenClipCore
     timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
       Task { @MainActor in
         self?.pump()
+        await self?.answerUnattendedQuestions()
         await self?.recheckHeldAgents()
         await self?.refreshPullRequests(discoverInterval: 60)
       }
@@ -82,15 +85,22 @@ import ScreenClipCore
     workspaceChanges[projectID] = Task { _ = try? await task.value }
     return try await task.value
   }
+  /// Reports per project that hold a run slot. One waiting for the tester's answer is not
+  /// doing anything, so it gives its slot to the next queued report. When the answer arrives
+  /// it carries on in its own worktree, briefly alongside whatever started meanwhile.
+  func occupiedSlots() -> [UUID: Int] {
+    model.snapshot.issues.filter { isActive($0.id) && $0.status != .needsYou }
+      .reduce(into: [UUID: Int]()) { counts, issue in
+        if let projectID = issue.projectID { counts[projectID, default: 0] += 1 }
+      }
+  }
   func pump() {
     guard !model.snapshot.settings.paused else { return }
     // Each report runs in its own worktree, so a project runs up to the configured number at once.
     let limit = model.snapshot.settings.parallelReportLimit
     // Count work ScreenClip is actually doing. A report left "working" without a job (after
     // an interrupted publish, for example) must not hold a slot forever.
-    var running = model.snapshot.issues.filter { isActive($0.id) }.reduce(into: [UUID: Int]()) { counts, issue in
-      if let projectID = issue.projectID { counts[projectID, default: 0] += 1 }
-    }
+    var running = occupiedSlots()
     for issue in model.snapshot.issues
     where issue.status == .queued && !issue.archived && !issue.dispatchUncertain
       && !jobs.contains(issue.id)
@@ -293,6 +303,64 @@ import ScreenClipCore
         }
         jobs.remove(issueID)
         pump()
+      }
+    } catch { model.banner = error.localizedDescription }
+  }
+  /// The tester has not answered a live Codex request for `questionTimeLimit`. Tell Codex to
+  /// carry on without the answer where the request allows that. Codex then finishes, or ends
+  /// the turn with a question that waits without holding the connection.
+  func answerUnattendedQuestions(now: Date = Date()) async {
+    guard questionTimeLimit > 0, connected else { return }
+    for issue in model.snapshot.issues
+    where issue.resolvedAgent == .codex && issue.status == .needsYou && jobs.contains(issue.id) {
+      for question in issue.questions where question.reply == nil {
+        guard let requestID = question.requestID, let askedAt = question.askedAt,
+          now.timeIntervalSince(askedAt) >= questionTimeLimit,
+          pendingRequests.contains(requestID.data.base64EncodedString())
+        else { continue }
+        await answerUnattended(issueID: issue.id, question: question, requestID: requestID)
+      }
+    }
+  }
+  static let unattendedAnswer =
+    "The tester is not available to answer right now. Continue without this answer if you reasonably can: choose the safest sensible default and state the assumption in your result. If you cannot proceed without it, finish with a question result instead of asking again."
+  private func answerUnattended(issueID: UUID, question: PendingQuestion, requestID: JSONValue) async {
+    let method = question.requestMethod ?? ""
+    let params = question.questions ?? .null
+    do {
+      switch CodexRequestKind(method: method) {
+      case .userInput:
+        let ids = params.array.compactMap { $0["id"].string }
+        try await client.respond(
+          id: requestID,
+          result: .object([
+            "answers": .object(
+              Dictionary(uniqueKeysWithValues: Set(ids).map {
+                ($0, JSONValue.object(["answers": .array([.string(Self.unattendedAnswer)])]))
+              }))
+          ]))
+      case .commandApproval, .fileApproval:
+        // Declining lets the turn continue another way. Cancel would stop the whole turn, so a
+        // request that offers only that keeps waiting; it no longer holds a queue slot.
+        guard CodexApprovalOptions(method: method, params: params).permits("decline") else { return }
+        try await client.respond(id: requestID, result: .object(["decision": .string("decline")]))
+      case .mcpElicitation:
+        guard let result = CodexMcpElicitation(params: params).response(allow: false) else { return }
+        try await client.respond(id: requestID, result: result)
+      case .unsupported:
+        try await client.reject(
+          id: requestID, message: "The tester is not available. Continue without this if you can.")
+      }
+      pendingRequests.remove(requestID.data.base64EncodedString())
+      let minutes = max(1, Int((questionTimeLimit / 60).rounded()))
+      try model.updateIssue(issueID) { issue in
+        if let i = issue.questions.firstIndex(where: { $0.id == question.id }) {
+          issue.questions[i].reply = "No answer; Codex was told to continue without it"
+        }
+        let waiting = issue.questions.contains { $0.requestID != nil && $0.reply == nil }
+        issue.record(
+          "No answer after \(minutes) minutes. Codex was told to continue without it.",
+          status: waiting ? .needsYou : .working)
       }
     } catch { model.banner = error.localizedDescription }
   }

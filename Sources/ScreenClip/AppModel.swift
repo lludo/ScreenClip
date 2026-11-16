@@ -413,6 +413,23 @@ struct GrokConnectionCheck: Equatable {
     }
     worker.pump()
   }
+  /// Reconcile chat and Continue for `screenclip://issues/<uuid>/<action>`, under the same
+  /// conditions as the buttons. Anything not currently offered in the window is ignored.
+  func runLinkedAction(_ action: ScreenClipURL.ReportAction, on id: UUID) async {
+    guard let issue = issue(id), !issue.archived else { return }
+    if action != .continue, issue.resolvedAgent != .external, issue.threadID != nil,
+      [.needsYou, .failed].contains(issue.status)
+    {
+      await worker.reconcile(id)
+    }
+    // Reconciling may recover a finished fix and start publishing instead.
+    if action != .reconcile, let current = self.issue(id), !current.archived,
+      [.needsYou, .failed].contains(current.status), !current.dispatchUncertain,
+      !worker.isActive(id), current.questions.allSatisfy({ $0.reply != nil })
+    {
+      retry(id)
+    }
+  }
   func retry(_ id: UUID) {
     perform {
       guard let issue = issue(id), !issue.dispatchUncertain else {

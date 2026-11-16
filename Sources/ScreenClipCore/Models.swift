@@ -262,11 +262,14 @@ public struct PendingQuestion: Codable, Identifiable, Equatable {
   public var requestID: JSONValue?
   public var questions: JSONValue?
   public var requestMethod: String?
+  /// When the agent asked. Optional so questions saved by earlier versions still decode.
+  public var askedAt: Date?
   public init(
     title: String, requestID: JSONValue? = nil, questions: JSONValue? = nil,
     requestMethod: String? = nil
   ) {
     id = UUID()
+    askedAt = Date()
     self.title = title
     self.requestID = requestID
     self.questions = questions

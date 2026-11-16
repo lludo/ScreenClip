@@ -27,6 +27,7 @@ Other local tools:
 | --- | --- |
 | `bash scripts/render-localizations.sh` | Writes locale screenshots under `build/localization-screenshots/`. See [Localization](localization.md). |
 | `python3 scripts/review_queue.py` | Read-only queue summary. Never dispatches or edits. |
+| `python3 scripts/report_action.py 45 resume` | Asks the running app to reconcile and continue report #45 (`reconcile`, `continue`, `resume`, or `open`). It opens `screenclip://issues/<uuid>/<action>`; the app applies the same conditions as the buttons and stays the only writer of the queue. |
 | `python3 scripts/probe_codex.py --codex /path/to/codex` | Read-only Codex handshake. Uses account quota. |
 | `python3 scripts/send_test_webhook.py` | Sends the Grok Bot test payload using `SCREENCLIP_WEBHOOK_URL` and `SCREENCLIP_AUTHORIZATION`. |
 | `bash scripts/sandbox-diagnostic.sh` | Builds a tiny sandboxed app and records whether `git` and `gh` can launch. CI runs this. |
