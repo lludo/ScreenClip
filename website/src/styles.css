@@ -326,6 +326,7 @@ kbd {
   gap: 1rem;
   align-items: stretch;
 }
+.benefits-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .card {
   margin: 0;
   padding: clamp(1.25rem, 2vw, 1.6rem);

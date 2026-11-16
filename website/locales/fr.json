@@ -226,7 +226,9 @@
     "flowTitle": "Gardez votre élan",
     "flowBody": "Signalez rapidement une observation sans passer d’une application à l’autre ni créer un fil manuellement dans votre outil d’IA.",
     "noticeTitle": "Ne laissez pas filer les détails",
-    "noticeBody": "Capturez les petits bugs, les détails gênants et les idées dès que vous les remarquez, pour ne pas les oublier pendant vos tests."
+    "noticeBody": "Capturez les petits bugs, les détails gênants et les idées dès que vous les remarquez, pour ne pas les oublier pendant vos tests.",
+    "retestTitle": "Sachez quand retester",
+    "retestBody": "Activez les notifications et ScreenClip vous prévient lorsqu’un correctif est fusionné, pour recompiler et retester sans perdre le fil de vos tests."
   },
   "simple": {
     "captureTitle": "Capturez",

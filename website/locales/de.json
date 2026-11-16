@@ -226,7 +226,9 @@
     "flowTitle": "Bleib im Arbeitsfluss",
     "flowBody": "Melde eine Beobachtung schnell, ohne ständig zu wechseln oder in deinem KI-Tool von Hand einen neuen Thread zu erstellen.",
     "noticeTitle": "Kleine Dinge festhalten",
-    "noticeBody": "Erfasse kleine Fehler, störende Details und Ideen, sobald sie dir auffallen, damit sie beim Testen nicht verloren gehen."
+    "noticeBody": "Erfasse kleine Fehler, störende Details und Ideen, sobald sie dir auffallen, damit sie beim Testen nicht verloren gehen.",
+    "retestTitle": "Wissen, wann du erneut testen kannst",
+    "retestBody": "Aktiviere Benachrichtigungen und ScreenClip informiert dich, sobald ein Fix gemergt ist. So kannst du neu bauen und erneut testen, ohne beim Testen den Faden zu verlieren."
   },
   "simple": {
     "captureTitle": "Aufnehmen",

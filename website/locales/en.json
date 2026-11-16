@@ -226,7 +226,9 @@
     "flowTitle": "Stay in your flow",
     "flowBody": "File an observation quickly without switching back and forth or manually starting a new thread in your AI tool.",
     "noticeTitle": "Catch the little things",
-    "noticeBody": "Capture small bugs, awkward details, and ideas as you notice them, so they don’t get lost while you test."
+    "noticeBody": "Capture small bugs, awkward details, and ideas as you notice them, so they don’t get lost while you test.",
+    "retestTitle": "Know when to retest",
+    "retestBody": "Enable notifications and ScreenClip lets you know when a fix merges, so you can rebuild and retest while keeping your focus on testing."
   },
   "simple": {
     "captureTitle": "Capture",
