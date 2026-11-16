@@ -219,6 +219,26 @@ final class AgentTests: XCTestCase {
     } catch is CancellationError {}
   }
 
+  func testClaudeWithoutAutoPermissionModeIsHeldForAnUpdate() async throws {
+    let root = try temporaryDirectory()
+    let old = try fakeClaude(
+      in: root,
+      body: """
+        if sys.argv[1:] == ['--version']: print('2.1.128 (Claude Code)')
+        elif sys.argv[1:] == ['--help']: print('  --permission-mode <mode>  Permission mode (choices: "acceptEdits",\\n    "bypassPermissions", "default", "plan")')
+        elif sys.argv[1:] == ['auth','status']: print(json.dumps({'loggedIn': True}))
+        """)
+    let found = await AgentDetector.detectClaude(path: old.path)
+    XCTAssertTrue(found.installed)
+    XCTAssertTrue(found.outdated)
+    XCTAssertFalse(found.usable)
+    XCTAssertEqual(found.detail, AgentDetector.claudeNeedsUpdate)
+    XCTAssertTrue(
+      AgentDetector.supportsAutoPermissionMode(
+        help: "--permission-mode <mode> (choices: \"acceptEdits\", \"auto\",\n \"plan\")"))
+    XCTAssertTrue(AgentDetector.supportsAutoPermissionMode(help: "usage: claude [options]"))
+  }
+
   func testDetectsClaudeVersionAndSignInState() async throws {
     let root = try temporaryDirectory()
     let script = try fakeClaude(
