@@ -323,6 +323,9 @@ extension AgentWorker {
     try model.updateIssue(id) { issue in
       issue.mergeCommit = commit
       issue.validationFeedback = nil
+      // Polling stops once the report is merged, so an error from an earlier refresh (a gh
+      // or GitHub failure) would otherwise stay on the merged report for good.
+      issue.lastError = nil
       issue.unread = true
       if issue.revision == coveredRevision {
         issue.record("Merged. Rebuild or deploy the app, then retest.", status: .merged)

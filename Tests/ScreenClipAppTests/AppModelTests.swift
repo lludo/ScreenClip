@@ -39,6 +39,24 @@ import XCTest
     XCTAssertFalse(model.shouldShowDonationPrompt())
   }
 
+  func testRecordingAMergeClearsAnErrorLeftByAnEarlierRefresh() throws {
+    let (model, _) = try makeModel()
+    try model.submit(
+      imageData: Data([1]), originalData: nil, annotations: [], note: "Clipped",
+      context: CaptureContext(), projectID: UUID(), existingID: nil, draft: false)
+    let id = try XCTUnwrap(model.snapshot.issues.last?.id)
+    try model.updateIssue(id) {
+      $0.record("PR open", status: .prOpen)
+      $0.lastError = "GraphQL: Something went wrong while executing your query"
+    }
+    let revision = try XCTUnwrap(model.issue(id)?.revision)
+    try model.worker.recordMerge(id, commit: "6d21a75", coveredRevision: revision)
+    let merged = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(merged.status, .merged)
+    XCTAssertEqual(merged.mergeCommit, "6d21a75")
+    XCTAssertNil(merged.lastError, "A merged report is no longer polled, so the error would stay")
+  }
+
   func testThreeMergedFixesShowTheDonationPromptBeforeTheFirstWeek() throws {
     let (model, _) = try makeModel()
     let launched = try XCTUnwrap(model.snapshot.settings.firstLaunchedAt)
