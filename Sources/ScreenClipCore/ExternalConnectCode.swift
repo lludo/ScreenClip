@@ -453,8 +453,9 @@ public enum ExternalConnectCode {
 }
 
 /// Links the app is registered to open. `screenclip://issues/<uuid>` opens a report.
-/// `screenclip://issues/<uuid>/<action>` runs a report action without opening a window, so a
-/// script or agent can recover a report; the unguessable id is what authorizes it.
+/// `screenclip://issues/<uuid>/<action>?token=<token>` runs a report action without opening a
+/// window, so a script or agent can recover a report. The report id is published in pull
+/// requests, so the token from this Mac's data folder is what authorizes it.
 /// `screenclip://connect?code=` opens the Grok Bot setup sheet with that code.
 public enum ScreenClipURL {
   /// The buttons a link may press: Reconcile chat, Continue, or both in that order.
@@ -463,7 +464,7 @@ public enum ScreenClipURL {
   }
   public enum Route: Equatable, Sendable {
     case issue(UUID)
-    case issueAction(UUID, ReportAction)
+    case issueAction(UUID, ReportAction, token: String)
     case connect(String)
   }
 
@@ -481,12 +482,30 @@ public enum ScreenClipURL {
       let parts = url.pathComponents.filter { $0 != "/" }
       guard let first = parts.first, let id = UUID(uuidString: first) else { return nil }
       if parts.count == 1 { return .issue(id) }
-      guard parts.count == 2, let action = ReportAction(rawValue: parts[1].lowercased())
+      guard parts.count == 2, let action = ReportAction(rawValue: parts[1].lowercased()),
+        let token = query(url, named: "token"), !token.isEmpty
       else { return nil }
-      return .issueAction(id, action)
+      return .issueAction(id, action, token: token)
     default:
       return nil
     }
+  }
+
+  /// The file in the data folder holding the token that action links must carry.
+  public static let linkTokenFile = "link-token"
+  /// Reads the token, creating it on first use. Readable only by this user.
+  public static func linkToken(dataFolder: URL) throws -> String {
+    let file = dataFolder.appendingPathComponent(linkTokenFile)
+    if let saved = try? String(contentsOf: file, encoding: .utf8)
+      .trimmingCharacters(in: .whitespacesAndNewlines), saved.count >= 32
+    {
+      return saved
+    }
+    let token = (UUID().uuidString + UUID().uuidString).replacingOccurrences(of: "-", with: "")
+      .lowercased()
+    try Data(token.utf8).write(to: file, options: .atomic)
+    try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: file.path)
+    return token
   }
 
   private static func query(_ url: URL, named name: String) -> String? {

@@ -140,6 +140,8 @@ extension AgentWorker {
       finishing.insert(id)
       await finish(id)
       finishing.remove(id)
+      // A report queued again during validation waits for this run to end.
+      pump()
     }
   }
   static let claudePermissionFailure = """

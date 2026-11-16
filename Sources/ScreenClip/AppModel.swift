@@ -56,6 +56,8 @@ struct GrokConnectionCheck: Equatable {
 
   init(root: URL, recoverInterruptedWork: Bool = true) throws {
     store = try IssueStore(root: root)
+    // Scripts read this to build report action links; see ScreenClipURL.
+    _ = try? ScreenClipURL.linkToken(dataFolder: root)
     let diagnostics = CaptureDiagnostics(root: root)
     captureDiagnostics = diagnostics
     let executable = Bundle.main.executableURL

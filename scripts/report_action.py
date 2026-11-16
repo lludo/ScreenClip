@@ -2,8 +2,9 @@
 """Ask the running ScreenClip app to reconcile or continue a report by its number.
 
 The app stays the only writer of the queue: this reads the queue read-only to find the report,
-then opens `screenclip://issues/<uuid>/<action>`. The app applies the same conditions as the
-Reconcile chat and Continue buttons, so an action that is not currently offered does nothing.
+then opens `screenclip://issues/<uuid>/<action>?token=<token>` with the token the app keeps in
+its data folder. The app applies the same conditions as the Reconcile chat and Continue
+buttons, so an action that is not currently offered does nothing.
 """
 import argparse
 import os
@@ -24,9 +25,9 @@ def find(snapshot, number):
     raise ValueError(f"No report #{number} in this queue")
 
 
-def link(issue, action):
+def link(issue, action, token=""):
     base = "screenclip://issues/" + issue["id"]
-    return base if action == "open" else base + "/" + action
+    return base if action == "open" else base + "/" + action + "?token=" + token
 
 
 def describe(issue):
@@ -49,10 +50,18 @@ def main(argv=None):
     except ValueError as error:
         print(error, file=sys.stderr)
         return 1
+    token = ""
+    if args.action != "open":
+        try:
+            token = (root / "link-token").read_text(encoding="utf-8").strip()
+        except OSError:
+            print("No link token in the data folder yet. Open ScreenClip once, then retry.",
+                  file=sys.stderr)
+            return 1
     print("before:", describe(issue))
     # -g: act in the background without bringing ScreenClip forward.
     flags = [] if args.action == "open" else ["-g"]
-    subprocess.run(["/usr/bin/open", *flags, link(issue, args.action)], check=True)
+    subprocess.run(["/usr/bin/open", *flags, link(issue, args.action, token)], check=True)
     if args.action != "open":
         time.sleep(max(0, args.wait))
         print("after: ", describe(find(review_queue.snapshot(root), args.number)))

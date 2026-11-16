@@ -153,6 +153,14 @@ enum AppChrome {
     "Saving queues this report with your added context.",
     "Not checked yet",
     "Project selected by tester",
+    "Unable to load image attachment.",
+    "Drafts cannot be added to a submitted issue. Submit the capture, or choose New issue.",
+    "This report already has agent work. Use Move to project in the report's menu to continue it under the correct project.",
+    "This report has a pull request in its current repository. Close or merge it before moving the report.",
+    "Connected, but the result could not be saved to the Keychain.",
+    "Cancel the active ScreenClip run before opening this session in Claude Desktop.",
+    "Opened in Claude Desktop. Continue there, and let it finish before ScreenClip runs again.",
+    ExternalAssistant.validationNeedsAutoMerge,
   ]
 }
 
@@ -250,8 +258,10 @@ enum ActivityPatterns {
     }
     if let groups = groups(#"^Moved from (.+?)( \(#\d+\))?$"#, text) {
       if groups.count > 1 && !groups[1].isEmpty {
+        // One value: the catalog format has a single %@, so a second one would be dropped.
+        let origin = groups[0] + groups[1]
         return Chrome.format(
-          "activity.movedFromRef", "Moved from \(groups[0])\(groups[1])", locale: locale,
+          "activity.movedFromRef", "Moved from \(origin)", locale: locale,
           comment: "Activity log. %@ is the previous project name plus an optional report reference.")
       }
       return Chrome.format(
@@ -461,6 +471,8 @@ extension MarkColor {
 struct FlowLayout: Layout {
   var spacing: CGFloat = 8
   var lineSpacing: CGFloat = 8
+  /// Centers each control vertically in its line, for rows that mix text with buttons.
+  var centered = false
 
   func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
     arrange(proposal: proposal, subviews: subviews).size
@@ -486,9 +498,22 @@ struct FlowLayout: Layout {
     var y: CGFloat = 0
     var rowHeight: CGFloat = 0
     var usedWidth: CGFloat = 0
+    var rowStart = 0
+    func centerRow() {
+      guard centered else { return }
+      for index in rowStart..<frames.count {
+        frames[index].origin.y += (rowHeight - frames[index].height) / 2
+      }
+    }
     for subview in subviews {
-      let size = subview.sizeThatFits(.unspecified)
+      var size = subview.sizeThatFits(.unspecified)
+      // A sentence wider than the row wraps inside it instead of running past the edge.
+      if size.width > maxWidth {
+        size = subview.sizeThatFits(ProposedViewSize(width: maxWidth, height: nil))
+      }
       if x > 0, x + size.width > maxWidth {
+        centerRow()
+        rowStart = frames.count
         x = 0
         y += rowHeight + lineSpacing
         rowHeight = 0
@@ -498,6 +523,7 @@ struct FlowLayout: Layout {
       x += size.width + spacing
       usedWidth = max(usedWidth, x - spacing)
     }
+    centerRow()
     return (CGSize(width: proposal.width ?? usedWidth, height: y + rowHeight), frames)
   }
 }

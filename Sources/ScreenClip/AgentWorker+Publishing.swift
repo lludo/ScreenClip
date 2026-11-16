@@ -79,6 +79,9 @@ extension AgentWorker {
         throw error
       }
       let receipt = try await GitWorkspace.validate(project: project, path: path)
+      // Canceled, or canceled and queued again, during validation: leave that decision alone.
+      // A queued report starts once this run has ended.
+      guard model.issue(id)?.status == .working else { return }
       guard receipt.passed else {
         let feedback = "Project validation failed:\n" + receipt.output
         if scheduleRepair(id, message: feedback) { return }

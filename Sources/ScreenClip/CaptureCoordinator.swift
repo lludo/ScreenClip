@@ -10,6 +10,8 @@ import ScreenClipCore
   private var activationObserver: NSObjectProtocol?
   private var permissionObservers: [NSObjectProtocol] = []
   private var recheckOnReturn = false
+  /// Called when a capture ends without opening the composer (cancelled or failed).
+  var onAbandon: (() -> Void)?
   init(model: AppModel) {
     self.model = model
     lastExternalApp = NSWorkspace.shared.frontmostApplication
@@ -116,6 +118,7 @@ import ScreenClipCore
           view.onCancel = { [weak self] in
             self?.model.captureDiagnostics.record("capture.cancelled")
             self?.end()
+            self?.onAbandon?()
             source?.activate(options: [])
           }
           view.onSelect = { [weak self] rect in
@@ -128,6 +131,7 @@ import ScreenClipCore
             guard let crop = image.cropping(to: cropRect) else {
               self.model.captureDiagnostics.record("capture.crop.failed")
               self.end()
+              self.onAbandon?()
               return
             }
             var captured = context
@@ -150,6 +154,7 @@ import ScreenClipCore
         NSApp.activate(ignoringOtherApps: true)
       } catch {
         end()
+        onAbandon?()
         model.banner = model.capturePermission.report(error)
         model.capturePermissionIssue = [.blocked, .needsRestart].contains(
           model.capturePermission.state)
@@ -199,6 +204,8 @@ private final class SelectionView: NSView {
   required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
   override var isFlipped: Bool { true }
   override var acceptsFirstResponder: Bool { true }
+  // One overlay per display, and only the last is key: take the first click on the others too.
+  override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
   override func resetCursorRects() { addCursorRect(bounds, cursor: .crosshair) }
   override func keyDown(with event: NSEvent) { if event.keyCode == 53 { onCancel?() } }
   override func mouseDown(with event: NSEvent) {
@@ -242,7 +249,9 @@ private final class SelectionView: NSView {
           .foregroundColor: NSColor.white,
         ])
     } else {
-      let text = "Drag to capture a region   ·   Esc to cancel"
+      let text = Chrome.text(
+        "Drag to capture a region   ·   Esc to cancel",
+        comment: "Hint on the screen-capture overlay. Keep Esc and the spacing around the dot.")
       let attrs: [NSAttributedString.Key: Any] = [
         .font: NSFont.systemFont(ofSize: 17, weight: .medium), .foregroundColor: NSColor.white,
       ]

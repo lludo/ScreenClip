@@ -271,6 +271,15 @@ extension AgentWorker {
       }
       return .blocked
     }
+    // The validation command runs the pull request's code on this Mac. Without automatic
+    // merge ScreenClip has nothing to decide, so it does not run it.
+    guard project.autoMerge else {
+      let summary = ExternalAssistant.validationNeedsAutoMerge
+      if model.issue(id)?.checkSummary != summary {
+        try model.updateIssue(id) { $0.checkSummary = summary }
+      }
+      return .blocked
+    }
     let validated: ValidationReceipt
     do {
       validated = try await GitWorkspace.validate(project: project, path: path)

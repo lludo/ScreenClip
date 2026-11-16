@@ -51,12 +51,14 @@ struct SettingsView: View {
       .toolbar {
         ToolbarItem(placement: .principal) {
           Picker(selection: $tab) {
-            ForEach(Array(["General", "Projects", "Connections"].enumerated()), id: \.offset) {
-              index, title in
-              Text(verbatim: Chrome.stored(title, locale: locale)).tag(index)
-            }
+            Text(verbatim: Chrome.text("General", locale: locale, comment: "Settings tab for app-wide options."))
+              .tag(0)
+            Text(verbatim: Chrome.text("Projects", locale: locale, comment: "Settings tab listing projects."))
+              .tag(1)
+            Text(verbatim: Chrome.text("Connections", locale: locale, comment: "Settings tab for agent connections."))
+              .tag(2)
           } label: {
-            Text(verbatim: Chrome.stored("Settings", locale: locale))
+            Text(verbatim: Chrome.text("Settings", locale: locale, comment: "Label for the Settings tab picker."))
           }
           .labelsHidden()
           .pickerStyle(.segmented)

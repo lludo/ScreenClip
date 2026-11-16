@@ -32,7 +32,7 @@ struct IssueDetailView: View {
         }
         Text(verbatim: issue.title).font(.system(size: 25, weight: .semibold)).textSelection(.enabled)
           .fixedSize(horizontal: false, vertical: true)
-        HStack(alignment: .firstTextBaseline, spacing: 12) {
+        FlowLayout(spacing: 12, centered: true) {
           AgentLabel(kind: issue.resolvedAgent).font(.caption)
             .foregroundStyle(.secondary)
             .help(Text(chrome: "Agent working on this issue", comment: "Help for the agent name on a report."))
@@ -138,6 +138,8 @@ struct IssueDetailView: View {
             } label: {
               Image(systemName: "ellipsis")
             }.menuStyle(.borderlessButton).menuIndicator(.hidden).fixedSize()
+              .help(Text(chrome: "More actions", comment: "Help for the report's “…” menu."))
+              .accessibilityLabel(Text(chrome: "More actions", comment: "Help for the report's “…” menu."))
           }
         }.controlSize(.small)
         if issue.projectID == nil {

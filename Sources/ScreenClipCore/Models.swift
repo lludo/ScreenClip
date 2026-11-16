@@ -297,6 +297,9 @@ public struct Issue: Codable, Identifiable, Equatable {
   public var questions: [PendingQuestion]
   public var threadID: String?
   public var turnID: String?
+  /// The Codex turn whose result was last taken. Reconcile must not recover it again for
+  /// newer evidence. Optional so queues from earlier versions decode.
+  public var consumedTurnID: String?
   public var worktreePath: String?
   public var branch: String?
   public var prURL: String?
@@ -454,6 +457,8 @@ public struct Issue: Codable, Identifiable, Equatable {
       handoffCommit = nil
       handoffRevision = nil
       handoffAttempts = nil
+      // The follow-up runs in a new worktree, so the agent gets the full prompt again.
+      deliveredContext = nil
     }
   }
   public mutating func record(_ text: String, status: IssueStatus? = nil, kind: String = "update") {

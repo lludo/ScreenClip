@@ -28,6 +28,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   var screenshotMode = false
   var screenshotLocale = Locale.current
   private var deferredOpenURLs: [URL] = []
+  /// Windows taken off screen for a capture; they come back when the capture flow ends.
+  private var hiddenForCapture: [NSWindow] = []
   func applicationDidFinishLaunching(_ notification: Notification) {
     // Child processes (agents, git, validation) can exit before reading what ScreenClip writes.
     ProcessEnvironment.ignoreBrokenPipes()
@@ -65,6 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       model = try AppModel(root: root, recoverInterruptedWork: !screenshotMode)
       if screenshotMode { ScreenshotFixture.configure(model) }
       capture = CaptureCoordinator(model: model)
+      capture.onAbandon = { [weak self] in self?.restoreHiddenWindows() }
       shortcut = GlobalShortcut()
       model.captureAction = { [weak self] in self?.startCapture() }
       model.queueAction = { [weak self] in self?.showQueue() }
@@ -153,7 +156,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   }
   func relaunch() {
     guard composerWindow == nil else {
+      // A banner alone is invisible when the queue window is closed.
       model.banner = "Save your capture as a draft before reopening ScreenClip."
+      composerBlocks(Chrome.text(
+        "Save your capture as a draft before reopening ScreenClip.",
+        comment: "Alert when reopening the app is refused because a capture is open. Keep ScreenClip."))
       return
     }
     guard !model.snapshot.issues.contains(where: { $0.status == .working }) else {
@@ -190,7 +197,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         guard model.issue(id) != nil else { continue }
         model.selectedIssueID = id
         showQueue()
-      case .issueAction(let id, let action):
+      case .issueAction(let id, let action, let token):
+        // Report ids are public in pull requests; only a link made on this Mac carries the token.
+        guard let expected = try? ScreenClipURL.linkToken(dataFolder: model.store.root),
+          token == expected
+        else { continue }
         Task { await model.runLinkedAction(action, on: id) }
       case .connect(let code):
         model.grokConnectRequest = GrokConnectRequest(code: code)
@@ -292,11 +303,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     let sourceOverride = !hideScreenClip && popover.isShown ? NSRunningApplication.current : nil
     if hideScreenClip {
       popover.performClose(nil)
-      queueWindow?.orderOut(nil)
-      settingsWindow?.orderOut(nil)
-      donationWindow?.orderOut(nil)
+      for window in [queueWindow, settingsWindow, donationWindow].compactMap({ $0 })
+      where window.isVisible {
+        window.orderOut(nil)
+        hiddenForCapture.append(window)
+      }
     }
     capture.begin(sourceOverride: sourceOverride)
+  }
+  /// Brings back what `startCapture` hid, without taking focus from the app being tested.
+  func restoreHiddenWindows() {
+    let windows = hiddenForCapture
+    hiddenForCapture = []
+    windows.forEach { $0.orderFront(nil) }
+  }
+  private func shownByUser(_ window: NSWindow?) {
+    hiddenForCapture.removeAll { $0 === window }
+  }
+  private func composerBlocks(_ message: String) {
+    guard let composerWindow else { return }
+    composerWindow.makeKeyAndOrderFront(nil)
+    NSApp.activate(ignoringOtherApps: true)
+    let alert = NSAlert()
+    alert.messageText = message
+    alert.beginSheetModal(for: composerWindow)
   }
   func showQueue() {
     popover.performClose(nil)
@@ -309,13 +339,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       window.setFrameAutosaveName("ScreenClipQueue")
       queueWindow = window
     }
+    shownByUser(queueWindow)
     queueWindow?.makeKeyAndOrderFront(nil)
     NSApp.activate(ignoringOtherApps: true)
   }
   func showSettings() {
     popover.performClose(nil)
-    // Reopening starts from the saved settings rather than a stale or abandoned form.
-    if let window = settingsWindow, !window.isVisible {
+    // Reopening starts from the saved settings rather than a stale or abandoned form. A window
+    // that was only hidden for a capture keeps its unsaved edits.
+    if let window = settingsWindow, !window.isVisible,
+      !hiddenForCapture.contains(where: { $0 === window })
+    {
       window.contentViewController = NSHostingController(
         rootView: rooted(SettingsView(model: model) { [weak self] in self?.settingsWindow?.close() }))
     }
@@ -328,6 +362,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         size: NSSize(width: 780, height: 720))
       settingsWindow?.toolbarStyle = .unified
     }
+    shownByUser(settingsWindow)
     settingsWindow?.makeKeyAndOrderFront(nil)
     NSApp.activate(ignoringOtherApps: true)
   }
@@ -358,6 +393,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       donationWindow = window
     }
     donationOptOutOnClose = false
+    shownByUser(donationWindow)
     donationWindow?.makeKeyAndOrderFront(nil)
     NSApp.activate(ignoringOtherApps: true)
     #endif
@@ -372,6 +408,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       guard let self else { return }
       self.composerWindow?.orderOut(nil)
       self.composerWindow = nil
+      self.restoreHiddenWindows()
       if !context.bundleID.isEmpty {
         NSRunningApplication.runningApplications(withBundleIdentifier: context.bundleID).first?
           .activate(options: [])
@@ -405,6 +442,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     alert.addButton(withTitle: Chrome.text("Discard", comment: "Closes the capture without saving."))
     if alert.runModal() == .alertSecondButtonReturn {
       composerWindow = nil
+      restoreHiddenWindows()
       return true
     }
     return false
@@ -440,9 +478,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   }
   func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
     if previewMode { return .terminateNow }
-    if let composerWindow {
-      composerWindow.makeKeyAndOrderFront(nil)
+    if composerWindow != nil {
+      // A banner alone is invisible when the queue window is closed.
       model.banner = "Save this capture as a draft or discard it before quitting ScreenClip."
+      composerBlocks(Chrome.text(
+        "Save this capture as a draft or discard it before quitting ScreenClip.",
+        comment: "Alert when quitting is refused because a capture is open. Keep ScreenClip."))
       return .terminateCancel
     }
     if model?.snapshot.issues.contains(where: { $0.status == .working }) == true {

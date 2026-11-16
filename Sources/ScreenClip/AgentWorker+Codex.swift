@@ -95,8 +95,15 @@ extension AgentWorker {
     } else {
       if let codexProjectID { threadParams["projectId"] = .string(codexProjectID) }
       try model.updateIssue(id) { $0.dispatchUncertain = true }
-      let created = try await client.request(
-        "thread/start", params: .object(threadParams), timeout: 60)
+      let created: JSONValue
+      do {
+        created = try await client.request(
+          "thread/start", params: .object(threadParams), timeout: 60)
+      } catch let error as ScreenClipError {
+        // An error reply is definite: no chat exists, so Continue may simply try again.
+        if case .refused = error { try? model.updateIssue(id) { $0.dispatchUncertain = false } }
+        throw error
+      }
       guard let threadID = created["thread"]["id"].string else {
         throw ScreenClipError.message("Codex did not return a chat ID.")
       }
@@ -150,6 +157,9 @@ extension AgentWorker {
       "turn/start",
       params: .object([
         "threadId": .string(issue.threadID!), "input": .array(input), "outputSchema": schema,
+        // A follow-up after a merge runs in a new worktree; an owned thread is not resumed,
+        // so the turn is what carries the current directory.
+        "cwd": .string(path),
         // Owned threads skip thread/resume. Reapply the project choice on every turn,
         // including a switch back from full access and a continuation after a question.
         "approvalPolicy": .string(mode.approvalPolicy),
@@ -307,6 +317,7 @@ extension AgentWorker {
       connected = false
       authentication.reset(message: "Codex disconnected. Check the connection to reconnect.")
       pendingRequests.removeAll()
+      requestOwners.removeAll()
       model.connection = ProviderPhrase.disconnected.english(.codex)
       // Work already in validation or publication no longer needs the Codex connection.
       for id in jobs
@@ -344,6 +355,7 @@ extension AgentWorker {
         return
       }
       pendingRequests.insert(message["id"].data.base64EncodedString())
+      requestOwners[message["id"].data.base64EncodedString()] = id
       let isQuestion = CodexRequestKind(method: method) == .userInput
       let title =
         isQuestion
@@ -355,6 +367,11 @@ extension AgentWorker {
         requestMethod: method)
       model.perform {
         try model.updateIssue(id) {
+          // A card left from an earlier Codex process can carry the same request id.
+          for i in $0.questions.indices
+          where $0.questions[i].requestID == message["id"] && $0.questions[i].reply == nil {
+            $0.questions[i].reply = "Expired request; continue the issue to ask again"
+          }
           $0.questions.append(question)
           $0.unread = true
           $0.record(title, status: .needsYou, kind: "question")
@@ -383,17 +400,28 @@ extension AgentWorker {
     case "turn/completed":
       guard jobs.contains(id) else { return }
       guard issue.turnID == nil || issue.turnID == p["turn"]["id"].string else { return }
+      // A canceled turn finishing late, after Continue queued the report again.
+      if let turn = p["turn"]["id"].string, canceledTurns.remove(turn) != nil,
+        issue.status != .canceled
+      {
+        return
+      }
       codexTurnWatchdogs.removeValue(forKey: id)?.cancel()
       let delivered = sentContext.removeValue(forKey: id)
       if p["turn"]["status"].string == "completed" {
         if let delivered, delivered.threadID == threadID {
           model.perform { try model.updateIssue(id) { $0.deliveredContext = delivered } }
         }
+        if let turn = p["turn"]["id"].string {
+          model.perform { try model.updateIssue(id) { $0.consumedTurnID = turn } }
+        }
         if !finishing.contains(id) {
           finishing.insert(id)
           Task {
             await finish(id)
             finishing.remove(id)
+            // A report queued again during validation waits for this run to end.
+            pump()
           }
         }
       } else {
@@ -506,6 +534,8 @@ extension AgentWorker {
       // Publishing still independently validates source, revision, and PR head.
       if linkingThread == nil, issue.revision == issue.coveredRevision,
         let turn = history["data"].array.first, turn["status"].string == "completed",
+        // Not a result already taken for earlier evidence, when a newer turn never started.
+        turn["id"].string == nil || turn["id"].string != issue.consumedTurnID,
         let final = turn["items"].array.last(where: {
           $0["type"].string == "agentMessage" && $0["phase"].string == "final_answer"
         })?["text"].string,
@@ -515,7 +545,10 @@ extension AgentWorker {
       {
         texts[id] = final
         jobs.insert(id)
-        try model.updateIssue(id) { $0.record("Recovering completed fix", status: .working) }
+        try model.updateIssue(id) {
+          $0.consumedTurnID = turn["id"].string
+          $0.record("Recovering completed fix", status: .working)
+        }
         await finish(id)
       }
     } catch { model.banner = error.localizedDescription }

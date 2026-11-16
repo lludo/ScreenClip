@@ -23,6 +23,11 @@ import ScreenClipCore
   var externalRuns: [UUID: UUID] = [:]
   var mergingProjects = Set<UUID>()
   var pendingRequests = Set<String>()
+  /// The report each pending request belongs to. Codex numbers requests per process, so an
+  /// id alone can match another report's request after a restart.
+  var requestOwners: [String: UUID] = [:]
+  /// Turns interrupted by Cancel. Their late completion must not fail a run started since.
+  var canceledTurns = Set<String>()
   var timer: Timer?
   /// A turn running longer than this, not counting time spent waiting for the tester, is stopped.
   var turnTimeLimit: TimeInterval = 45 * 60
@@ -105,8 +110,8 @@ import ScreenClipCore
     var running = occupiedSlots()
     for issue in model.snapshot.issues
     where issue.status == .queued && !issue.archived && !issue.dispatchUncertain
-      && !jobs.contains(issue.id)
-      && !dispatching.contains(issue.id)
+      // Not while an earlier run is still validating or publishing in the same worktree.
+      && !isActive(issue.id)
     {
       guard let project = model.project(issue.projectID), running[project.id, default: 0] < limit
       else { continue }
@@ -244,7 +249,10 @@ import ScreenClipCore
     else { return }
     do {
       if let requestID = question.requestID {
-        guard connected && pendingRequests.contains(requestID.data.base64EncodedString()) else {
+        let key = requestID.data.base64EncodedString()
+        guard connected, pendingRequests.contains(key), requestOwners[key] == issueID,
+          jobs.contains(issueID), question.reply == nil
+        else {
           throw ScreenClipError.message(
             "Reconnect and reconcile the chat; the original request may no longer be pending.")
         }
@@ -318,7 +326,8 @@ import ScreenClipCore
       for question in issue.questions where question.reply == nil {
         guard let requestID = question.requestID, let askedAt = question.askedAt,
           now.timeIntervalSince(askedAt) >= questionTimeLimit,
-          pendingRequests.contains(requestID.data.base64EncodedString())
+          pendingRequests.contains(requestID.data.base64EncodedString()),
+          requestOwners[requestID.data.base64EncodedString()] == issue.id
         else { continue }
         await answerUnattended(issueID: issue.id, question: question, requestID: requestID)
       }
@@ -396,6 +405,7 @@ import ScreenClipCore
     if issue.resolvedAgent == .claude, let session = issue.threadID {
       await claude.cancel(sessionID: session)
     } else if let thread = issue.threadID, let turn = issue.turnID {
+      canceledTurns.insert(turn)
       await interrupt(threadID: thread, turnID: turn)
     }
     codexTurnWatchdogs.removeValue(forKey: id)?.cancel()

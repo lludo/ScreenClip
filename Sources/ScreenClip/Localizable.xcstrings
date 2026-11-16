@@ -15577,6 +15577,666 @@
         }
       }
     },
+    "Drag to capture a region   ·   Esc to cancel": {
+      "comment": "Hint on the screen-capture overlay. Keep Esc and the spacing around the dot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drag to capture a region   ·   Esc to cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拖动以捕获区域   ·   按 Esc 取消"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrastra para capturar una zona   ·   Esc para cancelar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ドラッグして範囲をキャプチャ   ·   Esc でキャンセル"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arraste para capturar uma área   ·   Esc para cancelar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ziehen, um einen Bereich aufzunehmen   ·   Esc zum Abbrechen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Faites glisser pour capturer une zone   ·   Échap pour annuler"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "드래그해 영역 캡처   ·   Esc로 취소"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Перетащите, чтобы снять область   ·   Esc — отмена"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拖移以擷取區域   ·   按 Esc 取消"
+          }
+        }
+      }
+    },
+    "Undo": {
+      "comment": "Undoes the last annotation or text edit.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deshacer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取り消す"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desfazer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Widerrufen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실행 취소"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отменить"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "還原"
+          }
+        }
+      }
+    },
+    "Redo": {
+      "comment": "Redoes the last undone annotation or text edit.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重做"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rehacer"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "やり直す"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refazer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wiederholen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rétablir"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "실행 복귀"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Повторить"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重做"
+          }
+        }
+      }
+    },
+    "More actions": {
+      "comment": "Help for the report's “…” menu.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More actions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多操作"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más acciones"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その他の操作"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mais ações"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Weitere Aktionen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus d’actions"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "추가 작업"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Другие действия"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多動作"
+          }
+        }
+      }
+    },
+    "Drafts cannot be added to a submitted issue. Submit the capture, or choose New issue.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drafts cannot be added to a submitted issue. Submit the capture, or choose New issue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿不能添加到已提交的问题。请提交这次捕获，或选择“新问题”。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pueden añadir borradores a un informe ya enviado. Envía la captura o elige Nuevo informe."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "送信済みのレポートに下書きは追加できません。キャプチャを送信するか、「新しいレポート」を選んでください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não é possível adicionar rascunhos a um relatório já enviado. Envie a captura ou escolha Novo relatório."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entwürfe können nicht zu einem gesendeten Bericht hinzugefügt werden. Sende die Aufnahme oder wähle „Neuer Bericht“."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d’ajouter un brouillon à un rapport déjà envoyé. Envoyez la capture ou choisissez Nouveau rapport."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이미 제출한 리포트에는 초안을 추가할 수 없습니다. 캡처를 제출하거나 ‘새 리포트’를 선택하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Черновики нельзя добавлять в отправленный отчёт. Отправьте снимок или выберите «Новый отчёт»."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿無法加入已提交的問題。請提交這次擷取，或選擇「新問題」。"
+          }
+        }
+      }
+    },
+    "This report already has agent work. Use Move to project in the report's menu to continue it under the correct project.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This report already has agent work. Use Move to project in the report's menu to continue it under the correct project."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此报告已有代理的工作。请在报告菜单中使用“移到项目”，在正确的项目下继续。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este informe ya tiene trabajo del agente. Usa Mover a un proyecto en el menú del informe para continuarlo en el proyecto correcto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このレポートにはすでにエージェントの作業があります。レポートのメニューの「プロジェクトへ移動」で、正しいプロジェクトに移して続けてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este relatório já tem trabalho do agente. Use Mover para projeto no menu do relatório para continuá-lo no projeto correto."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für diesen Bericht gibt es bereits Agentenarbeit. Verwende „In Projekt verschieben“ im Menü des Berichts, um ihn im richtigen Projekt fortzusetzen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce rapport contient déjà du travail de l’agent. Utilisez Déplacer vers un projet dans le menu du rapport pour le poursuivre dans le bon projet."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 리포트에는 이미 에이전트 작업이 있습니다. 리포트 메뉴의 ‘프로젝트로 이동’을 사용해 올바른 프로젝트에서 계속하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "По этому отчёту агент уже работал. Выберите «Перенести в проект» в меню отчёта, чтобы продолжить в нужном проекте."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此報告已有代理的工作。請在報告選單中使用「移到專案」，在正確的專案下繼續。"
+          }
+        }
+      }
+    },
+    "This report has a pull request in its current repository. Close or merge it before moving the report.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This report has a pull request in its current repository. Close or merge it before moving the report."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此报告在当前仓库中有一个拉取请求。请先关闭或合并它，再移动报告。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este informe tiene una pull request en su repositorio actual. Ciérrala o fusiónala antes de mover el informe."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このレポートには現在のリポジトリにプルリクエストがあります。レポートを移す前に、クローズするかマージしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este relatório tem um pull request no repositório atual. Feche-o ou faça o merge antes de mover o relatório."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zu diesem Bericht gibt es einen Pull Request im aktuellen Repository. Schließe oder merge ihn, bevor du den Bericht verschiebst."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce rapport a une pull request dans son dépôt actuel. Fermez-la ou fusionnez-la avant de déplacer le rapport."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 리포트에는 현재 저장소에 pull request가 있습니다. 리포트를 옮기기 전에 닫거나 병합하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У этого отчёта есть pull request в текущем репозитории. Закройте или слейте его перед переносом отчёта."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此報告在目前的儲存庫中有一個拉取請求。請先關閉或合併它，再移動報告。"
+          }
+        }
+      }
+    },
+    "Connected, but the result could not be saved to the Keychain.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected, but the result could not be saved to the Keychain."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已连接，但结果无法保存到钥匙串。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado, pero el resultado no se pudo guardar en el Llavero."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接続しましたが、結果をキーチェーンに保存できませんでした。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conectado, mas não foi possível salvar o resultado nas Chaves."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verbunden, aber das Ergebnis konnte nicht im Schlüsselbund gesichert werden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connecté, mais le résultat n’a pas pu être enregistré dans le Trousseau."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "연결되었지만 결과를 키체인에 저장하지 못했습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подключено, но результат не удалось сохранить в Связке ключей."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已連線，但結果無法儲存到鑰匙圈。"
+          }
+        }
+      }
+    },
+    "Cancel the active ScreenClip run before opening this session in Claude Desktop.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel the active ScreenClip run before opening this session in Claude Desktop."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Claude 桌面版中打开此会话前，请先取消正在进行的 ScreenClip 运行。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancela la ejecución activa de ScreenClip antes de abrir esta sesión en Claude Desktop."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このセッションを Claude デスクトップで開く前に、実行中の ScreenClip の作業をキャンセルしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancele a execução ativa do ScreenClip antes de abrir esta sessão no Claude Desktop."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Brich den aktiven ScreenClip-Lauf ab, bevor du diese Sitzung in Claude Desktop öffnest."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulez l’exécution ScreenClip en cours avant d’ouvrir cette session dans Claude Desktop."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 세션을 Claude 데스크톱에서 열기 전에 진행 중인 ScreenClip 실행을 취소하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отмените активный запуск ScreenClip, прежде чем открывать эту сессию в Claude Desktop."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Claude 桌面版中開啟此工作階段前，請先取消進行中的 ScreenClip 執行。"
+          }
+        }
+      }
+    },
+    "Opened in Claude Desktop. Continue there, and let it finish before ScreenClip runs again.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opened in Claude Desktop. Continue there, and let it finish before ScreenClip runs again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在 Claude 桌面版中打开。请在那里继续，并等它完成后再让 ScreenClip 运行。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abierto en Claude Desktop. Continúa allí y deja que termine antes de que ScreenClip vuelva a ejecutarse."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude デスクトップで開きました。そちらで続け、完了してから ScreenClip を再び実行してください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aberto no Claude Desktop. Continue por lá e deixe terminar antes que o ScreenClip execute de novo."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In Claude Desktop geöffnet. Mach dort weiter und lass es fertig werden, bevor ScreenClip wieder läuft."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvert dans Claude Desktop. Continuez là-bas et laissez-le terminer avant que ScreenClip ne s’exécute à nouveau."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Claude 데스크톱에서 열었습니다. 거기서 계속하고, 끝난 뒤에 ScreenClip을 다시 실행하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Открыто в Claude Desktop. Продолжайте там и дождитесь завершения, прежде чем ScreenClip запустится снова."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在 Claude 桌面版中開啟。請在那裡繼續，並等它完成後再讓 ScreenClip 執行。"
+          }
+        }
+      }
+    },
     "Paste the Authorization header value from the Grok Bot routine panel.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
@@ -19274,7 +19934,7 @@
       }
     },
     "Save this capture as a draft or discard it before quitting ScreenClip.": {
-      "comment": "ScreenClip interface text.",
+      "comment": "Alert when quitting is refused because a capture is open. Keep ScreenClip.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -19340,7 +20000,7 @@
       }
     },
     "Save your capture as a draft before reopening ScreenClip.": {
-      "comment": "ScreenClip interface text.",
+      "comment": "Alert when reopening the app is refused because a capture is open. Keep ScreenClip.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -34845,6 +35505,72 @@
           "stringUnit": {
             "state": "translated",
             "value": "Codex 會被告知你不在：問題採用最穩妥的預設值，權限請求會被拒絕。"
+          }
+        }
+      }
+    },
+    "Not validated on this Mac: validation of Grok Bot pull requests runs only with automatic merge on.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not validated on this Mac: validation of Grok Bot pull requests runs only with automatic merge on."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未在此 Mac 上验证：仅当开启自动合并时才会验证 Grok Bot 的拉取请求。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No validado en este Mac: los pull requests de Grok Bot solo se validan con la fusión automática activada."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この Mac では未検証：Grok Bot のプルリクエストは自動マージがオンのときだけ検証されます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não validado neste Mac: os pull requests do Grok Bot só são validados com o merge automático ativado."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf diesem Mac nicht validiert: Pull Requests von Grok Bot werden nur bei aktiviertem automatischem Merge validiert."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non validé sur ce Mac : les pull requests de Grok Bot ne sont validées que si la fusion automatique est activée."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 Mac에서 검증되지 않음: Grok Bot 풀 리퀘스트는 자동 병합이 켜져 있을 때만 검증됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не проверено на этом Mac: пул-реквесты Grok Bot проверяются только при включённом автоматическом слиянии."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未在此 Mac 上驗證：僅在開啟自動合併時才會驗證 Grok Bot 的拉取請求。"
           }
         }
       }
