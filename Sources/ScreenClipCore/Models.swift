@@ -492,6 +492,14 @@ public struct AppSettings: Codable, Equatable {
       max(maxParallelReports ?? 3, Self.parallelReportRange.lowerBound),
       Self.parallelReportRange.upperBound)
   }
+  // Optional for compatibility with queues saved before this preference existed.
+  public var unattendedAnswerMinutes: Int?
+  /// Offered waits, in minutes, before a live Codex request is answered for an absent tester. 0 is never.
+  public static let unattendedAnswerChoices = [0, 5, 10, 30, 60]
+  public var unattendedAnswerDelay: Int {
+    let minutes = unattendedAnswerMinutes ?? 10
+    return Self.unattendedAnswerChoices.contains(minutes) ? minutes : 10
+  }
   public var browserContext = false
   // Optional for compatibility with queues saved before this preference existed.
   public var hideScreenClipDuringCapture: Bool?
