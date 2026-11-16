@@ -117,6 +117,14 @@ def hero_title(catalog, config):
     return title
 
 
+def hero_shortcut(catalog, config):
+    text = catalog.html("hero.shortcut", config)
+    for stop in (". ", "。"):
+        if stop in text:
+            return text.replace(stop, stop.rstrip() + "<br>", 1)
+    return text
+
+
 def header_cta(config, catalog):
     return link(catalog.page("home") + "#download", catalog.get("nav.download"), "button button-primary button-small")
 
@@ -711,6 +719,7 @@ def build():
             "QUEUE_PNG": queue_image,
             "NOTIFICATION_PNG": notification_image,
             "HERO_TITLE": hero_title(catalog, config),
+            "HERO_SHORTCUT": hero_shortcut(catalog, config),
             "DOWNLOAD_TITLE": catalog.html("download.title" if config.download_url else "download.titleSoon", config),
             "ACTIONS": render_actions(config, catalog, hero=True),
             "DOWNLOAD_ACTIONS": render_actions(config, catalog) if (config.download_url or config.github_url or config.donate_url) else "",
