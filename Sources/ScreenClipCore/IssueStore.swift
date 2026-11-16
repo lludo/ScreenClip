@@ -64,7 +64,11 @@ public final class IssueStore {
     guard
       sqlite3_prepare_v2(db, "SELECT payload FROM state WHERE id=1", -1, &stmt, nil) == SQLITE_OK
     else { throw ScreenClipError.message("Cannot read the queue.") }
-    guard sqlite3_step(stmt) == SQLITE_ROW else { return StoreSnapshot() }
+    let result = sqlite3_step(stmt)
+    guard result == SQLITE_ROW || result == SQLITE_DONE else {
+      throw ScreenClipError.message("Cannot read the queue.")
+    }
+    guard result == SQLITE_ROW else { return StoreSnapshot() }
     let length = Int(sqlite3_column_bytes(stmt, 0))
     // A zero-length blob has a nil pointer; treat it as an empty queue instead of crashing.
     guard length > 0, let bytes = sqlite3_column_blob(stmt, 0) else { return StoreSnapshot() }
@@ -160,6 +164,7 @@ public final class IssueStore {
       to: directory.appendingPathComponent("screenclip-export.json"), options: .atomic)
   }
   public func deleteAssets(for issue: Issue) throws {
+    guard !readOnly else { throw ScreenClipError.message("This queue connection is read-only.") }
     var firstFailure: Error?
     for capture in issue.captures {
       for name in [capture.imagePath, capture.originalPath].compactMap({ $0 }) {

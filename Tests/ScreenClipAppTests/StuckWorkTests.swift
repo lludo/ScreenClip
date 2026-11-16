@@ -170,6 +170,63 @@ import XCTest
     XCTAssertEqual(relaunched.issue(busy)?.activities.last?.text, AppModel.restartActivity)
   }
 
+  func testRestartReconcilesAcknowledgedCodexWorkWithoutReplayingUncertainOrManualWork() async throws {
+    let repo = root.appendingPathComponent("repo")
+    try FileManager.default.createDirectory(at: repo, withIntermediateDirectories: true)
+    let codex = try script("recover-codex", """
+      #!/usr/bin/python3
+      import sys,json,os
+      for line in sys.stdin:
+          m=json.loads(line)
+          if 'id' not in m: continue
+          result={}
+          if m.get('method')=='thread/read': result={'thread':{'cwd':os.path.join(os.path.dirname(__file__),'repo'),'status':{'type':'idle'}}}
+          if m.get('method')=='thread/turns/list': result={'data':[{'status':'interrupted'}]}
+          print(json.dumps({'id':m['id'],'result':result}),flush=True)
+      """)
+    let automatic = Project(name: "Automatic", path: repo.path)
+    var manual = Project(name: "Manual", path: repo.path)
+    manual.codexApprovalMode = .ask
+    func interrupted(_ projectID: UUID, thread: String) -> Issue {
+      var issue = Issue(projectID: projectID, title: "Interrupted", capture: Capture(
+        note: "", imagePath: "/unused", context: CaptureContext()), agent: .codex)
+      issue.status = .working
+      issue.threadID = thread
+      issue.turnID = "turn"
+      issue.worktreePath = repo.path
+      return issue
+    }
+    let acknowledged = interrupted(automatic.id, thread: "acknowledged")
+    var uncertain = interrupted(automatic.id, thread: "uncertain")
+    uncertain.dispatchUncertain = true
+    var question = interrupted(automatic.id, thread: "question")
+    question.questions = [PendingQuestion(title: "Which layout do you want?")]
+    let asks = interrupted(manual.id, thread: "manual")
+    let queue = root.appendingPathComponent("codex-queue")
+    do {
+      let store = try IssueStore(root: queue)
+      var snapshot = StoreSnapshot()
+      snapshot.projects = [automatic, manual]
+      snapshot.issues = [acknowledged, uncertain, question, asks]
+      snapshot.settings.codexPath = codex
+      snapshot.settings.paused = true
+      try store.save(snapshot)
+    }
+    let model = try AppModel(root: queue)
+    model.agents = [AgentDetection(kind: .codex, path: "/missing", version: nil, signedIn: nil, detail: "Missing")]
+    await model.worker.recoverCodexAfterRestart()
+    XCTAssertEqual(model.issue(acknowledged.id)?.status, .needsYou, "A paused queue stays paused")
+    try model.commit { $0.settings.paused = false }
+    await model.worker.recoverCodexAfterRestart()
+    XCTAssertEqual(model.issue(acknowledged.id)?.status, .queued)
+    for id in [uncertain.id, question.id, asks.id] {
+      XCTAssertEqual(model.issue(id)?.status, .needsYou)
+    }
+    XCTAssertTrue(model.issue(uncertain.id)?.dispatchUncertain == true)
+    XCTAssertNil(model.issue(question.id)?.questions.first?.reply)
+    await model.worker.resetConnection()
+  }
+
   func testStaleWorkingReportDoesNotHoldAParallelSlot() async throws {
     let model = try makeModel()
     try model.commit {

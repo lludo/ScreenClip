@@ -1,6 +1,18 @@
 import XCTest
 
+@testable import ScreenClipCore
+
 final class CodexApprovalOptionsTests: XCTestCase {
+  func testUnsupportedRequestsCannotUseCommandApprovalOrUserInputReplies() {
+    XCTAssertEqual(CodexRequestKind(method: "item/tool/requestUserInput"), .userInput)
+    for method in ["item/commandExecution/requestApproval", "item/fileChange/requestApproval"] {
+      XCTAssertTrue(CodexRequestKind(method: method).isApproval)
+    }
+    for method in [nil, "item/permissions/requestApproval", "plugin/requestApproval", "plugin/requestUserInput", ""] {
+      XCTAssertEqual(CodexRequestKind(method: method), .unsupported)
+      XCTAssertFalse(CodexRequestKind(method: method).isApproval)
+    }
+  }
   func testOnlyOffersServerProposedCommandRule() {
     let rule: JSONValue = .object(["acceptWithExecpolicyAmendment": .object([
       "execpolicy_amendment": .array([.string("bash"), .string("scripts/build.sh")])
@@ -24,8 +36,6 @@ final class CodexApprovalOptionsTests: XCTestCase {
     ])).ruleDecision)
   }
 }
-
-@testable import ScreenClipCore
 
 final class AgentTests: XCTestCase {
   private let schema: JSONValue = .object(["type": .string("object")])

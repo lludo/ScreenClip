@@ -38,13 +38,19 @@ Choose **Move to project** in the report's **…** menu.
 - After that, the old report is canceled and a copy with the same screenshots, notes, and agent is queued on the other project. The old chat and worktree belong to the other repository.
 - Cancel active work first. A report that already has a pull request cannot be moved until that pull request is closed or merged. Archived reports and reports with an uncertain dispatch are not movable.
 
+## Agent permissions
+
+**Project settings → Codex permissions** controls each project's Codex work. **Automatic review (recommended)** is the default, including for older projects: Codex reviews permission requests automatically while retaining the workspace sandbox. **Ask me** uses manual approvals. **Full access (no approval prompts)** lets commands access your Mac and network without sandbox restrictions or approval prompts; use it for projects you trust. Changes apply to the next turn in the same chat.
+
+For a live command or file approval, **Allow and automate this project** allows the displayed request once and switches later requests to automatic review. Other already running reports retain their current mode until their next turn. On relaunch, permission-only reports and acknowledged interrupted work without an unanswered question can reconcile and resume automatically in an automatic mode. Genuine questions, uncertain dispatches, and active chats in another client are retained. Managed policies and automatic risk review can still refuse an operation.
+
 ## Shared agent instructions
 
 Open **Settings → Connections → Agent instructions** to edit the **Default prompt add-on** for all projects. The default asks for original and retested screenshots labeled **Before / After** in visual-fix PRs, with a short retest result or an explanation of missing evidence. Choose **Save settings** to apply edits to the next agent request, leave the text empty to disable it, or use **Restore default prompt**. Screenshot capture and sharing still depend on the agent's capabilities and existing permissions. See [Coding agents](agents/README.md#default-prompt-add-on) for details.
 
 ## What each agent can see
 
-Codex and Claude Code see the approved screenshots only on this Mac, inside an isolated Git worktree. They do not get GitHub tokens. ScreenClip commits, pushes, opens the pull request, and merges.
+Codex and Claude Code run locally and receive the approved screenshots, notes, and prompt. The agent may send those inputs to its model provider under your signed-in account's terms. ScreenClip does not attach those screenshots to GitHub PRs. It removes inherited GitHub token variables from the agent's environment and handles commits, pushes, pull requests, and merges itself. The worktree is the edit directory; it is not a security boundary for a full-access agent.
 
 Grok Bot is remote. Approved PNGs, notes, and report fields are pushed to a `screenclip/<number>-<slug>-<workspace>` branch, then a small JSON webhook is sent. The webhook has no image bytes. The browser URL and window title are included only when **Read the active browser URL for project matching** is on. The Webhook URL and key stay in the Keychain, not in the queue database. Anyone who can read the GitHub repository can read those screenshot files. On a public repository that means anyone, which is why **Allow sending screenshots to the external assistant** stays off until you turn it on. Deleting `.screenclip/` later does not erase the files from Git history.
 

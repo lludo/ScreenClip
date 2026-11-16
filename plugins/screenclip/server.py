@@ -33,6 +33,12 @@ def snapshot():
 class InvalidParams(ValueError):
     """A tool call with missing or mistyped arguments."""
 
+def boolean(arguments, key, default=False):
+    value = arguments.get(key, default)
+    if not isinstance(value, bool):
+        raise InvalidParams(f"{key} must be a boolean")
+    return value
+
 def integer(arguments, key, default, minimum, maximum):
     value = arguments.get(key, default)
     if isinstance(value, bool) or not isinstance(value, int) or not minimum <= value <= maximum:
@@ -49,9 +55,7 @@ def call(name, arguments):
         raise InvalidParams("status must be a string")
     state = snapshot()
     if name == "list_issues":
-        include_closed = arguments.get("include_closed", False)
-        if not isinstance(include_closed, bool):
-            raise InvalidParams("include_closed must be a boolean")
+        include_closed = boolean(arguments, "include_closed")
         limit = integer(arguments, "limit", DEFAULT_LIST_LIMIT, 1, MAX_LIST_LIMIT)
         matching = [issue for issue in state["issues"] if not issue.get("archived") and (issue.get("status") == status if status else include_closed or issue.get("status") not in CLOSED_STATUSES)]
         matching.sort(key=lambda issue: issue.get("updatedAt") if isinstance(issue.get("updatedAt"), (int, float)) else 0, reverse=True)
@@ -60,6 +64,7 @@ def call(name, arguments):
         if len(matching) > limit:
             content.append({"type": "text", "text": f"Showing {limit} of {len(matching)} reports. Pass a larger limit or a status to see others."})
         return {"content": content}
+    include_images = boolean(arguments, "include_images")
     activity_limit = integer(arguments, "activity_limit", DEFAULT_ACTIVITY_LIMIT, 0, MAX_ACTIVITY_LIMIT)
     reference = arguments.get("issue_id")
     if not isinstance(reference, str) or not reference.strip():
@@ -87,7 +92,7 @@ def call(name, arguments):
     captures = issue.get("captures") or []
     public["captures"] = [{"id": c.get("id"), "note": c.get("note"), "context": c.get("context")} for c in captures]
     content = [{"type": "text", "text": json.dumps(public)}]
-    if arguments.get("include_images"):
+    if include_images:
         total = 0
         for capture in captures:
             path = Path(capture.get("imagePath") or "").resolve()
@@ -117,7 +122,7 @@ def handle(message):
         if not isinstance(name, str):
             raise InvalidParams("tools/call requires a tool name")
         try:
-            return call(name, params.get("arguments") or {})
+            return call(name, params.get("arguments", {}))
         except InvalidParams:
             raise
         except Exception as error:  # A bad record must not take down the connection.
