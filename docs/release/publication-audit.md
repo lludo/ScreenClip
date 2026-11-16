@@ -27,6 +27,6 @@ GitHub's required server-side procedure is documented in [Removing sensitive dat
 - Some current marketing screenshots contain real app reports and were intentionally approved for sharing by the owner. The history cleanup does not replace those current assets. Review new screenshots before committing them.
 - No signing credentials are committed. Local signing configuration and release outputs are ignored.
 - The latest Release app and DMG passed Developer ID signing, Apple notarization, ticket stapling, and Gatekeeper verification. Reusable notarization credentials are stored in the macOS Keychain.
-- Public source and download URLs remain disabled on the website until the repository is safe to publish and the notarized asset is available.
+- The website's source and download URLs are active. They return 404 for the public until the repository is public; the v1.0.0 release with the notarized asset is published.
 
 See [v1.0.0 readiness](v1.0.0-status.md) for the release state.

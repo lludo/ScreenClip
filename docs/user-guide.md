@@ -18,7 +18,7 @@ Captures are stored under `~/Library/Application Support/ScreenClip` before any 
 
 The menu bar shows the count of submitted, unresolved issues. **Merged** issues leave that count and appear under **To retest**. Drafts are separate. Adding a second screenshot to an existing issue does not add another count.
 
-A project runs up to three reports at once. The limit is 1–6, in **Settings → AI agent**. Keep ScreenClip running and the Mac awake while Codex or Claude Code works. Grok Bot keeps working in the cloud if the Mac sleeps; ScreenClip updates the pull request the next time it is running.
+A project runs up to three reports at once. The limit is 1–6, in **Settings → Connections → AI agent**. A report waiting for your answer does not count toward it, so the next report starts while one waits. Keep ScreenClip running and the Mac awake while Codex or Claude Code works. Grok Bot keeps working in the cloud if the Mac sleeps; ScreenClip updates the pull request the next time it is running.
 
 **Add context** saves a text note without another screenshot, including while a report is queued or working. Notes stay with the report and go out the next time the agent works. Adding context during a turn triggers follow-up work. A completed report reopens for a follow-up. A pending question still uses its reply controls.
 
@@ -43,6 +43,10 @@ Choose **Move to project** in the report's **…** menu.
 **Project settings → Codex permissions** controls each project's Codex work. **Automatic review (recommended)** is the default, including for older projects: Codex reviews permission requests automatically while retaining the workspace sandbox. **Ask me** uses manual approvals. **Full access (no approval prompts)** lets commands access your Mac and network without sandbox restrictions or approval prompts; use it for projects you trust. Changes apply to the next turn in the same chat.
 
 For a live command or file approval, **Allow and automate this project** allows the displayed request once and switches later requests to automatic review. Other already running reports retain their current mode until their next turn. On relaunch, permission-only reports and acknowledged interrupted work without an unanswered question can reconcile and resume automatically in an automatic mode. Genuine questions, uncertain dispatches, and active chats in another client are retained. Managed policies and automatic risk review can still refuse an operation.
+
+A permission from a Codex connector, such as Computer Use asking to control an app, is answered on the report with **Allow once**, **Allow for this chat**, **Always allow**, or **Decline**.
+
+**Settings → Connections → AI agent → Continue without my answer** sets how long a live Codex question or permission request waits for you: **Never**, or after 5, 10 (the default), 30, or 60 minutes. After that, Codex is told you are not available. A question gets the safest default, and a command, file, or connector permission is declined so Codex can continue another way. A request that can only be canceled keeps waiting.
 
 ## Shared agent instructions
 
