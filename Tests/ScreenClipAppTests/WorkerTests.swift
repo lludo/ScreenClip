@@ -135,6 +135,16 @@ import XCTest
       let asked = try XCTUnwrap(question.askedAt)
       await model.worker.answerUnattendedQuestions(now: asked.addingTimeInterval(599))
       XCTAssertNil(model.issue(issue.id)?.questions.first?.reply)
+      // A card whose request id now belongs to another report, as after a Codex restart,
+      // answers nothing.
+      let key = try XCTUnwrap(question.requestID).data.base64EncodedString()
+      XCTAssertEqual(model.worker.requestOwners[key], issue.id)
+      model.worker.requestOwners[key] = UUID()
+      await model.worker.reply(issueID: issue.id, questionID: question.id, answers: [:], allow: true)
+      XCTAssertNil(model.issue(issue.id)?.questions.first?.reply)
+      XCTAssertFalse((try? requests().contains { $0["id"].string == "pending-build" }) ?? false)
+      model.worker.requestOwners[key] = issue.id
+      model.banner = nil
       // The wait is a setting; Never leaves the request for the tester.
       try model.commit { $0.settings.unattendedAnswerMinutes = 0 }
       await model.worker.answerUnattendedQuestions(now: asked.addingTimeInterval(7200))

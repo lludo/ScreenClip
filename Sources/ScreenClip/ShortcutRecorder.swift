@@ -60,9 +60,25 @@ final class RecorderField: NSTextField {
       value |= 256
       label += "⌘"
     }
-    label += event.charactersIgnoringModifiers?.uppercased() ?? "Key \(event.keyCode)"
+    label += Self.keyLabel(keyCode: event.keyCode, characters: event.charactersIgnoringModifiers)
     record?(UInt32(event.keyCode), value, label)
     stringValue = label
     window?.makeFirstResponder(nil)
+  }
+  /// Keys that type nothing visible (Space, arrows, function keys) get a readable name.
+  static func keyLabel(keyCode: UInt16, characters: String?) -> String {
+    let named: [UInt16: String] = [
+      49: "Space", 36: "↩", 76: "⌅", 48: "⇥", 51: "⌫", 117: "⌦", 53: "⎋",
+      123: "←", 124: "→", 125: "↓", 126: "↑", 115: "↖", 119: "↘", 116: "⇞", 121: "⇟",
+      122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5", 97: "F6", 98: "F7", 100: "F8",
+      101: "F9", 109: "F10", 103: "F11", 111: "F12",
+    ]
+    if let name = named[keyCode] { return name }
+    let typed = (characters ?? "").uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
+    // Function-area keys report private-use characters that draw as blanks or boxes.
+    let printable = !typed.isEmpty && typed.unicodeScalars.allSatisfy {
+      !(0xF700...0xF8FF).contains($0.value) && !CharacterSet.controlCharacters.contains($0)
+    }
+    return printable ? typed : "Key \(keyCode)"
   }
 }

@@ -251,13 +251,30 @@ final class ExternalConnectCodeTests: XCTestCase {
     for action in ScreenClipURL.ReportAction.allCases {
       XCTAssertEqual(
         ScreenClipURL.route(
-          try XCTUnwrap(URL(string: "screenclip://issues/\(issue.uuidString)/\(action.rawValue)"))),
-        .issueAction(issue, action))
+          try XCTUnwrap(
+            URL(string: "screenclip://issues/\(issue.uuidString)/\(action.rawValue)?token=abc"))),
+        .issueAction(issue, action, token: "abc"))
     }
     XCTAssertEqual(
-      ScreenClipURL.route(try XCTUnwrap(URL(string: "screenclip://issues/\(issue.uuidString)/Resume"))),
-      .issueAction(issue, .resume))
-    for path in ["cancel", "archive", "continue/extra", "not-a-uuid/continue"] {
+      ScreenClipURL.route(
+        try XCTUnwrap(URL(string: "screenclip://issues/\(issue.uuidString)/Resume?token=abc"))),
+      .issueAction(issue, .resume, token: "abc"))
+    // The report id is published in pull requests, so an action link needs the local token.
+    for path in ["continue", "continue?token=", "resume?code=abc"] {
+      XCTAssertNil(
+        ScreenClipURL.route(
+          try XCTUnwrap(URL(string: "screenclip://issues/\(issue.uuidString)/\(path)"))), path)
+    }
+    let folder = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: folder) }
+    let token = try ScreenClipURL.linkToken(dataFolder: folder)
+    XCTAssertGreaterThanOrEqual(token.count, 32)
+    XCTAssertEqual(try ScreenClipURL.linkToken(dataFolder: folder), token)
+    let file = folder.appendingPathComponent(ScreenClipURL.linkTokenFile).path
+    XCTAssertEqual(
+      try FileManager.default.attributesOfItem(atPath: file)[.posixPermissions] as? Int, 0o600)
+    for path in ["cancel?token=abc", "archive?token=abc", "continue/extra?token=abc", "not-a-uuid/continue"] {
       XCTAssertNil(
         ScreenClipURL.route(
           try XCTUnwrap(URL(string: "screenclip://issues/\(issue.uuidString)/\(path)"))), path)

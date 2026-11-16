@@ -742,14 +742,28 @@ extension ExternalAssistant {
   }
 }
 
+extension ExternalAssistant {
+  /// Check summary for a Grok Bot pull request in a project that does not merge automatically.
+  public static let validationNeedsAutoMerge =
+    "Not validated on this Mac: validation of Grok Bot pull requests runs only with automatic merge on."
+}
+
 public enum ExternalEvidenceWriter {
   /// Writes `report.json` and the approved PNGs. Callers must pass the flattened derivative,
   /// never the unredacted original.
   public static func write(worktree: String, reportNumber: Int, report: Data, images: [Data]) throws
     -> [String]
   {
-    let directory = URL(fileURLWithPath: worktree, isDirectory: true).appendingPathComponent(
-      ExternalAssistant.evidenceDirectory(reportNumber: reportNumber), isDirectory: true)
+    var directory = URL(fileURLWithPath: worktree, isDirectory: true).standardizedFileURL
+      .resolvingSymlinksInPath()
+    // The branch can come from the remote; a committed symlink must not redirect the files.
+    for component in ExternalAssistant.evidenceDirectory(reportNumber: reportNumber).split(separator: "/") {
+      directory.appendPathComponent(String(component), isDirectory: true)
+      let attributes = try? FileManager.default.attributesOfItem(atPath: directory.path)
+      if attributes?[.type] as? FileAttributeType == .typeSymbolicLink {
+        throw ScreenClipError.message("Screenshot evidence folders must not contain symbolic links.")
+      }
+    }
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     var paths = ["\(ExternalAssistant.evidenceDirectory(reportNumber: reportNumber))/report.json"]
     try report.write(to: directory.appendingPathComponent("report.json"), options: .atomic)

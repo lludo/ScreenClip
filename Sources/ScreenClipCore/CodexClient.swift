@@ -156,7 +156,7 @@ public actor CodexClient {
       {
         if message["error"] != .null {
           callback.resume(
-            throwing: ScreenClipError.message(
+            throwing: ScreenClipError.refused(
               message["error"]["message"].string ?? "Codex request failed"))
         } else {
           callback.resume(returning: message["result"])

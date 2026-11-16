@@ -182,8 +182,14 @@ struct QuestionCard: View {
           }.disabled(sending)
         }
       } else {
-        Button { model.openCodex(issue) } label: {
-          Text(chrome: "Review request in Codex", comment: "Opens the Codex chat for a request ScreenClip cannot answer.")
+        FlowLayout {
+          Button { model.openCodex(issue) } label: {
+            Text(chrome: "Review request in Codex", comment: "Opens the Codex chat for a request ScreenClip cannot answer.")
+          }
+          // ScreenClip owns the chat, so declining here is the only way past an unknown request.
+          Button { decide(false) } label: {
+            Text(chrome: "Decline", comment: "Declines a Codex command.")
+          }.disabled(sending)
         }
       }
     }.padding(16).frame(maxWidth: .infinity, alignment: .leading).background(

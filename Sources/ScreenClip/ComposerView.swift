@@ -114,11 +114,15 @@ struct ComposerView: View {
         } label: {
           Image(systemName: "arrow.uturn.backward")
         }.disabled(document.marks.isEmpty).keyboardShortcut("z", modifiers: .command)
+          .help(Text(chrome: "Undo", comment: "Undoes the last annotation or text edit."))
+          .accessibilityLabel(Text(chrome: "Undo", comment: "Undoes the last annotation or text edit."))
         Button {
           if !Self.textUndo(redo: true) { document.redo() }
         } label: {
           Image(systemName: "arrow.uturn.forward")
         }.disabled(!document.canRedo).keyboardShortcut("z", modifiers: [.command, .shift])
+          .help(Text(chrome: "Redo", comment: "Redoes the last undone annotation or text edit."))
+          .accessibilityLabel(Text(chrome: "Redo", comment: "Redoes the last undone annotation or text edit."))
       }.padding(.horizontal, 20).padding(.vertical, 10)
       if document.tool == .text {
         TextField(
