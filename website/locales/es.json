@@ -245,5 +245,12 @@
     "open": "Abrir la captura de la cola a tamaño completo",
     "alt": "Cola de ScreenClip con proyectos, informes integrados y el detalle de un informe seleccionado.",
     "caption": "Una cola de informes real. Interfaz mostrada en inglés."
+  },
+  "notifications": {
+    "title": "Un aviso cuando toca volver a probar",
+    "body": "Activa las notificaciones y ScreenClip te avisará cuando se integre una corrección. Recompila o despliega tu app y vuelve al informe para probar de nuevo.",
+    "open": "Abrir la captura de las notificaciones a tamaño completo",
+    "alt": "Dos notificaciones de ScreenClip en macOS que indican que la corrección se ha integrado y está lista para recompilar y volver a probar.",
+    "caption": "Notificaciones reales de macOS. Interfaz de la app en inglés."
   }
 }

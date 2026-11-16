@@ -661,6 +661,7 @@ def build():
     shutil.copyfile(SRC / "assets" / "og.png", assets / "og.png")
     css_href = fingerprinted(SRC / "styles.css", hashed)
     queue_image = fingerprinted(SRC / "assets" / "report-queue-example.png", hashed)
+    notification_image = fingerprinted(SRC / "assets" / "retest-notifications.png", hashed)
     print("Drawing icons…")
     write_icons(assets)
 
@@ -701,6 +702,7 @@ def build():
         ]
         tokens = {
             "QUEUE_PNG": queue_image,
+            "NOTIFICATION_PNG": notification_image,
             "HERO_TITLE": catalog.html("hero.title", config).replace(", ", ",<br>", 1) if catalog.id == "en" else catalog.html("hero.title", config),
             "DOWNLOAD_TITLE": catalog.html("download.title" if config.download_url else "download.titleSoon", config),
             "ACTIONS": render_actions(config, catalog, hero=True),

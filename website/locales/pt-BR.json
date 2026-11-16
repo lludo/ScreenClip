@@ -245,5 +245,12 @@
     "open": "Abrir a captura da fila em tamanho completo",
     "alt": "Fila do ScreenClip com projetos, relatos integrados e detalhes de um relato selecionado.",
     "caption": "Uma fila de relatos real. Interface exibida em inglês."
+  },
+  "notifications": {
+    "title": "Um aviso na hora de testar novamente",
+    "body": "Ative as notificações e o ScreenClip avisa quando uma correção é integrada. Recompile ou implante seu app e volte ao relatório para testar novamente.",
+    "open": "Abrir a captura das notificações em tamanho real",
+    "alt": "Duas notificações do ScreenClip no macOS avisando que a correção foi integrada e está pronta para recompilar e testar novamente.",
+    "caption": "Notificações reais do macOS. Interface do app em inglês."
   }
 }
