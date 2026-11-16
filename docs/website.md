@@ -4,7 +4,7 @@ Static pages for [screenclipai.com](https://screenclipai.com). The copy describe
 
 `website/build.py` reads `website/site.config.json` and `website/src/`, then writes `website/dist/`. Python’s standard library is enough. `dist/` is generated and gitignored.
 
-Public support, the private repository, the first download, and the empty donate URL are tracked in [Publishing checklist](release/publishing-checklist.md#open-todos). This page describes how the site is built and deployed.
+The site is configured for the v1.0.0 release: it links the GitHub repository and the latest release download. What must be true before this configuration reaches production, plus public support and the empty donate URL, is tracked in [Publishing checklist](release/publishing-checklist.md#open-todos). This page describes how the site is built and deployed.
 
 ## Build and preview
 
@@ -41,15 +41,15 @@ Edit `website/site.config.json`, then rebuild. Every value is either an absolute
 Current values:
 
 - `siteUrl` is `https://screenclipai.com`.
-- `githubUrl` is empty while the repository is private. Set it to the public repository URL once it is accessible.
-- `downloadUrl` is empty because no public release exists yet. Set it to the actual download URL after the release is published. ScreenClip is not on the Mac App Store.
+- `githubUrl` is `https://github.com/lludo/ScreenClip`. The link works for visitors only once the repository is public.
+- `downloadUrl` is `https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg`, which tracks the newest published release. It returns 404 until the repository is public and the v1.0.0 release with `ScreenClip.dmg` is published. ScreenClip is not on the Mac App Store.
 - `donateUrl` is empty, so the site shows no tip link.
 
-The header **Free Download** button scrolls to the download section on every page, in every availability state. The localized v1.0.0 copy is ready; public links remain disabled until the [release gates](release/v1.0.0-status.md) are complete.
+The header **Free Download** button scrolls to the download section on every page, in every availability state. The localized v1.0.0 copy and the public links are in place. Production deploys from `main`, so merge this configuration only when the [release gates](release/v1.0.0-status.md) are complete.
 
 The structured data includes a zero-price offer and version 1.0.0 only when a download URL is configured. The site explains the noncommercial-use restriction.
 
-There is no monitored support inbox yet. The support page says public support is not available rather than showing an unusable address.
+There is no monitored support inbox yet. With `githubUrl` set, the support page sends people to GitHub issues; with it empty, the page says public support is not available rather than showing an unusable address.
 
 ## Languages
 
@@ -131,7 +131,7 @@ The build writes:
 
 CSS and the localized menu bar screenshots in `website/src/assets/localized-menu/` are fingerprinted under `/assets/h/`. Each home page picks its language’s light or dark PNG with `prefers-color-scheme`. These images were rendered from a filtered, isolated snapshot of real ScreenClip reports; report text remains in its original language. Review the visible content before replacing or publishing them. `website/vercel.json` gives those files a one-year immutable cache. HTML, `og.png`, and the stable icons stay revalidated. The queue section also shows `report-queue-example.png`, a real screenshot supplied by the owner; its interface is in English, and visitors can open it at full size. Below the queue, `retest-notifications.png` shows the owner-supplied macOS notification example, with localized explanatory copy. Visitors can open it at full size. The older capture-editor and queue PNGs in `website/src/assets/` (`composer-preview.png`, `queue-preview.png`) are not part of the page.
 
-On a Mac, `swift website/render-assets.swift` redraws `website/src/assets/og.png`. Update the availability line in that script when a public download launches.
+On a Mac, `swift website/render-assets.swift` redraws `website/src/assets/og.png`. Its availability line reads “Free download”; change it back if the download is ever withdrawn.
 
 `website/vercel.json` sends a Content-Security-Policy (script sources are `'self'` plus the hash of each locale’s home page JSON-LD), `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, and HSTS (`max-age=63072000; includeSubDomains; preload`). `build.py` fails if those hashes are not in that policy. The `preload` token does not by itself submit the domain to the HSTS preload list.
 

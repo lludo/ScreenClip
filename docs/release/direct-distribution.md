@@ -36,7 +36,7 @@ The asset name is always `ScreenClip.dmg`, so this URL tracks the newest tag:
 
 `https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg`
 
-Set `downloadUrl` in `website/site.config.json` to that URL when the notarized download is available. The current empty value renders the coming-soon state without a download link; it does not advertise a missing asset.
+`downloadUrl` in `website/site.config.json` is set to that URL. Publish the v1.0.0 release with `ScreenClip.dmg` before that configuration reaches production, or the button leads to a 404. An empty value renders the coming-soon state without a download link.
 
 Check a download with `shasum -a 256 -c SHA256SUMS`.
 
