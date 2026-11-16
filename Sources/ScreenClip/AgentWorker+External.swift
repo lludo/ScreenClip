@@ -8,6 +8,8 @@ import ScreenClipCore
 extension AgentWorker {
   enum ExternalInspection {
     case ready(Bool)
+    /// Not validated on this Mac (automatic merge is off). PR status is still shown.
+    case unvalidated
     case blocked
   }
   func runExternal(_ id: UUID, project: Project) async {
@@ -274,11 +276,9 @@ extension AgentWorker {
     // The validation command runs the pull request's code on this Mac. Without automatic
     // merge ScreenClip has nothing to decide, so it does not run it.
     guard project.autoMerge else {
-      let summary = ExternalAssistant.validationNeedsAutoMerge
-      if model.issue(id)?.checkSummary != summary {
-        try model.updateIssue(id) { $0.checkSummary = summary }
-      }
-      return .blocked
+      // Follow the head so the summary below describes this pull request, not a changed one.
+      if model.issue(id)?.prHead != head { try model.updateIssue(id) { $0.prHead = head } }
+      return .unvalidated
     }
     let validated: ValidationReceipt
     do {

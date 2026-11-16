@@ -790,6 +790,18 @@ import XCTest
     XCTAssertEqual(model.issue(id)?.reportNumber, 1)
   }
   func testReconcileRecoversCompletedFixWithoutAnotherModelTurn() async throws {
+    try await exerciseRecovery(consumed: nil, superseded: nil, recovers: true)
+  }
+  /// The usual restart: the result was taken, then validation or publication was interrupted.
+  func testReconcileRecoversAResultWhosePublicationWasInterrupted() async throws {
+    try await exerciseRecovery(consumed: "T1", superseded: nil, recovers: true)
+  }
+  /// A newer turn was requested for new evidence but never reached Codex: the older result
+  /// must not be published as if it covered that evidence.
+  func testReconcileDoesNotRecoverATurnSupersededByALaterDispatch() async throws {
+    try await exerciseRecovery(consumed: "T1", superseded: "T1", recovers: false)
+  }
+  private func exerciseRecovery(consumed: String?, superseded: String?, recovers: Bool) async throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-recover-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -809,7 +821,7 @@ import XCTest
           method=m.get('method'); result={}
           with open(os.path.join(os.path.dirname(__file__),'requests'),'a') as f: f.write(method+'\\n')
           if method=='thread/read': result={'thread':{'cwd':os.path.join(os.path.dirname(__file__),'repo'),'status':{'type':'idle'}}}
-          if method=='thread/turns/list': result={'data':[{'status':'completed','items':[{'type':'agentMessage','phase':'final_answer','text':json.dumps({'outcome':'implemented','summary':'Recovered fix','question':''})}]}]}
+          if method=='thread/turns/list': result={'data':[{'id':'T1','status':'completed','items':[{'type':'agentMessage','phase':'final_answer','text':json.dumps({'outcome':'implemented','summary':'Recovered fix','question':''})}]}]}
           print(json.dumps({'id':m['id'],'result':result}),flush=True)
       """.write(to: script, atomically: true, encoding: .utf8)
     try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
@@ -819,14 +831,134 @@ import XCTest
     try model.commit { $0.settings.paused = true; $0.settings.codexPath = script.path; $0.settings.ghPath = "/usr/bin/true" }
     try model.submit(imageData: Data([1]), originalData: nil, annotations: [], note: "Fix", context: CaptureContext(), projectID: project.id, existingID: nil, draft: false)
     let id = try XCTUnwrap(model.snapshot.issues.first?.id)
-    try model.updateIssue(id) { $0.threadID = "saved"; $0.worktreePath = repo.path; $0.branch = "main"; $0.coveredRevision = $0.revision; $0.status = .needsYou }
+    try model.updateIssue(id) {
+      $0.threadID = "saved"; $0.worktreePath = repo.path; $0.branch = "main"
+      $0.coveredRevision = $0.revision; $0.status = .needsYou
+      $0.consumedTurnID = consumed; $0.supersededTurnID = superseded
+    }
     await model.worker.reconcile(id)
+    guard recovers else {
+      XCTAssertNil(model.issue(id)?.resultSummary)
+      XCTAssertEqual(model.issue(id)?.status, .needsYou)
+      XCTAssertEqual(model.issue(id)?.activities.last?.text, "Chat reconciled. Continue when ready.")
+      await model.worker.resetConnection()
+      return
+    }
     XCTAssertEqual(model.issue(id)?.resultSummary, "Recovered fix")
     XCTAssertEqual(model.issue(id)?.status, .queued)
+    XCTAssertEqual(model.issue(id)?.consumedTurnID, "T1")
     XCTAssertTrue(model.issue(id)?.validationFeedback?.contains("Missing After screenshot") == true) // Recovery requests the missing retest evidence before publication.
     let requests = try String(contentsOf: root.appendingPathComponent("requests"), encoding: .utf8)
     XCTAssertFalse(requests.contains("turn/start"))
     await model.worker.resetConnection()
+  }
+  /// A report queued again while its previous run is still validating must wait for that run:
+  /// both would work in the same worktree.
+  func testQueuedReportWaitsWhileItsPreviousRunIsStillFinishing() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-gate-" + UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = try AppModel(root: root.appendingPathComponent("queue"))
+    let project = Project(name: "Test", path: try makeRepo(root), validationCommand: "true")
+    try model.saveProject(project)
+    try model.commit { $0.settings.paused = true; $0.settings.codexPath = "/usr/bin/true" }
+    try model.submit(imageData: Data([1]), originalData: nil, annotations: [], note: "Fix", context: CaptureContext(), projectID: project.id, existingID: nil, draft: false)
+    let id = try XCTUnwrap(model.snapshot.issues.first?.id)
+    try model.commit { $0.settings.paused = false }
+    for keyPath in [\AgentWorker.finishing, \AgentWorker.publishing] {
+      model.worker[keyPath: keyPath].insert(id)
+      model.worker.pump()
+      XCTAssertFalse(model.worker.jobs.contains(id))
+      XCTAssertEqual(model.issue(id)?.status, .queued)
+      model.worker[keyPath: keyPath].remove(id)
+    }
+    // Control: with nothing in the way the same report is dispatched.
+    model.worker.pump()
+    XCTAssertTrue(model.worker.jobs.contains(id))
+    try model.commit { $0.settings.paused = true }
+    await model.worker.cancel(id)
+    try await wait { !model.worker.isActive(id) }
+    await model.worker.resetConnection()
+  }
+  /// Cancel then Continue: the canceled turn's late completion must not fail the queued run.
+  func testLateCompletionOfACanceledTurnDoesNotFailTheNextRun() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-late-" + UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = try AppModel(root: root.appendingPathComponent("queue"))
+    let project = Project(name: "Test", path: try makeRepo(root), validationCommand: "true")
+    try model.saveProject(project)
+    try model.commit { $0.settings.paused = true }
+    try model.submit(imageData: Data([1]), originalData: nil, annotations: [], note: "Fix", context: CaptureContext(), projectID: project.id, existingID: nil, draft: false)
+    let id = try XCTUnwrap(model.snapshot.issues.first?.id)
+    try model.updateIssue(id) { $0.agent = .codex; $0.threadID = "thread"; $0.status = .queued }
+    func completed(_ turn: String) -> JSONValue {
+      .object([
+        "method": .string("turn/completed"),
+        "params": .object([
+          "threadId": .string("thread"),
+          "turn": .object(["id": .string(turn), "status": .string("interrupted")]),
+        ]),
+      ])
+    }
+    model.worker.jobs.insert(id)
+    model.worker.canceledTurns.insert("canceled-turn")
+    await model.worker.handle(completed("canceled-turn"))
+    XCTAssertEqual(model.issue(id)?.status, .queued)
+    XCTAssertTrue(model.worker.jobs.contains(id))
+    XCTAssertTrue(model.worker.canceledTurns.isEmpty)
+    // Control: an interruption of the running turn still fails the report.
+    await model.worker.handle(completed("running-turn"))
+    XCTAssertEqual(model.issue(id)?.status, .failed)
+    XCTAssertFalse(model.worker.jobs.contains(id))
+  }
+  /// The validation command runs the pull request's code on this Mac. For a Grok Bot pull
+  /// request that happens only when the project merges automatically; otherwise the report
+  /// still follows the pull request so its GitHub status is shown.
+  func testGrokBotPullRequestIsValidatedLocallyOnlyWithAutomaticMerge() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-grok-" + UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let git = "/usr/bin/git"
+    let identity = ["-c", "user.name=Test", "-c", "user.email=test@example.invalid"]
+    let origin = root.appendingPathComponent("origin.git")
+    _ = try await CommandRunner.checked(git, ["init", "--bare", "-b", "main", origin.path], cwd: root.path)
+    let repo = root.appendingPathComponent("repo").path
+    try FileManager.default.createDirectory(atPath: repo, withIntermediateDirectories: true)
+    _ = try await CommandRunner.checked(git, ["init", "-b", "main"], cwd: repo)
+    try Data("source".utf8).write(to: URL(fileURLWithPath: repo).appendingPathComponent("source.txt"))
+    _ = try await CommandRunner.checked(git, ["add", "source.txt"], cwd: repo)
+    _ = try await CommandRunner.checked(git, identity + ["commit", "-m", "initial"], cwd: repo)
+    let branch = "screenclip/1-report"
+    _ = try await CommandRunner.checked(git, ["remote", "add", "origin", origin.path], cwd: repo)
+    _ = try await CommandRunner.checked(git, ["checkout", "-b", branch], cwd: repo)
+    try Data("fix".utf8).write(to: URL(fileURLWithPath: repo).appendingPathComponent("fixed.txt"))
+    _ = try await CommandRunner.checked(git, ["add", "fixed.txt"], cwd: repo)
+    _ = try await CommandRunner.checked(git, identity + ["commit", "-m", "fix"], cwd: repo)
+    _ = try await CommandRunner.checked(git, ["push", "origin", branch], cwd: repo)
+    let head = try await CommandRunner.checked(git, ["rev-parse", "HEAD"], cwd: repo)
+    let marker = root.appendingPathComponent("validation-ran")
+    let model = try AppModel(root: root.appendingPathComponent("queue"))
+    var project = Project(name: "Test", path: repo, validationCommand: "touch '\(marker.path)'", autoMerge: false)
+    try model.saveProject(project)
+    try model.commit { $0.settings.paused = true }
+    try model.submit(imageData: Data([1]), originalData: nil, annotations: [], note: "Fix", context: CaptureContext(), projectID: project.id, existingID: nil, draft: false)
+    let id = try XCTUnwrap(model.snapshot.issues.first?.id)
+    try model.updateIssue(id) {
+      $0.agent = .external; $0.branch = branch; $0.worktreePath = repo; $0.status = .prOpen
+    }
+    let issue = try XCTUnwrap(model.issue(id))
+    let unattended = try await model.worker.inspectExternal(
+      id, issue: issue, project: project, path: repo, pullHead: head)
+    guard case .unvalidated = unattended else { return XCTFail("expected unvalidated, got \(unattended)") }
+    XCTAssertFalse(FileManager.default.fileExists(atPath: marker.path))
+    XCTAssertEqual(model.issue(id)?.prHead, head)
+    project.autoMerge = true
+    try model.saveProject(project)
+    let validated = try await model.worker.inspectExternal(
+      id, issue: issue, project: project, path: repo, pullHead: head)
+    guard case .ready(true) = validated else { return XCTFail("expected ready, got \(validated)") }
+    XCTAssertTrue(FileManager.default.fileExists(atPath: marker.path))
   }
   private func wait(_ condition: () -> Bool) async throws {
     let deadline = Date().addingTimeInterval(12)

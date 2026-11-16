@@ -291,6 +291,7 @@ import ScreenClipCore
             id: requestID, message: "Complete this permission or connection request in Codex.")
         }
         pendingRequests.remove(requestID.data.base64EncodedString())
+        requestOwners.removeValue(forKey: requestID.data.base64EncodedString())
         try model.updateIssue(issueID) { issue in
           if let i = issue.questions.firstIndex(where: { $0.id == questionID }) {
             issue.questions[i].reply =
@@ -363,6 +364,7 @@ import ScreenClipCore
           id: requestID, message: "The tester is not available. Continue without this if you can.")
       }
       pendingRequests.remove(requestID.data.base64EncodedString())
+      requestOwners.removeValue(forKey: requestID.data.base64EncodedString())
       let minutes = max(1, Int((questionTimeLimit / 60).rounded()))
       try model.updateIssue(issueID) { issue in
         if let i = issue.questions.firstIndex(where: { $0.id == question.id }) {

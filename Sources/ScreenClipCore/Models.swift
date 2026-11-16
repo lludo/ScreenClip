@@ -297,9 +297,12 @@ public struct Issue: Codable, Identifiable, Equatable {
   public var questions: [PendingQuestion]
   public var threadID: String?
   public var turnID: String?
-  /// The Codex turn whose result was last taken. Reconcile must not recover it again for
-  /// newer evidence. Optional so queues from earlier versions decode.
+  /// The Codex turn whose result was last taken. Optional so queues from earlier versions decode.
   public var consumedTurnID: String?
+  /// The turn that was the latest when a newer one was requested. If that request never
+  /// reached Codex, Reconcile must not recover this older result for the newer evidence.
+  /// A result whose validation or publication was interrupted is still recovered.
+  public var supersededTurnID: String?
   public var worktreePath: String?
   public var branch: String?
   public var prURL: String?

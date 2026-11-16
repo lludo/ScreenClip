@@ -117,10 +117,13 @@ public enum GitHubService {
     var result = text.replacingOccurrences(
       of: #"\b([A-Za-z_][A-Za-z0-9_]*)=("[^"]*"|'[^']*'|\S+)"#, with: "$1=…",
       options: .regularExpression)
-    result = result.replacingOccurrences(
+    return redactTokens(result)
+  }
+  /// Hides only token-shaped strings. For agent prompts, where `CI=1 npm test` must stay runnable.
+  public static func redactTokens(_ text: String) -> String {
+    text.replacingOccurrences(
       of: #"\b(gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{20,}|[A-Za-z0-9_-]{40,})\b"#,
       with: "…", options: .regularExpression)
-    return result
   }
   public static func repositoryIsPublic(_ repo: String, gh: String, cwd: String) async -> Bool? {
     guard
