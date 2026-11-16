@@ -14,7 +14,7 @@ Engineering work that is not a release blocker (live Claude and Grok Bot runs, m
 
 ### Support email
 
-The support page says public support is not available yet. Add a monitored address or another support channel before advertising one. `website/site.config.json` has no email field.
+The support page links to the repository's GitHub Issues, which only collaborators can open while the repository is private. Add a monitored address if you want a channel besides Issues. `website/site.config.json` has no email field.
 
 ### GitHub Sponsors and the donate URL
 
@@ -33,4 +33,4 @@ Configure the six Apple secrets named in [`.github/workflows/release.yml`](../..
 3. Add a monitored support channel if the public site should list one.
 4. Decide whether the Sponsors link and `donateUrl` should go live with the first public download.
 
-Publishing does not require the Apple secrets. The first DMG is signed and notarized locally. The site's download URL already points at the latest release asset, so publish that release before the website change reaches production. See [Direct distribution](direct-distribution.md).
+Publishing does not require the Apple secrets. The first DMG is signed and notarized locally. The site's download URL already points at the latest release asset, and the v1.0.0 release is published; the link works for the public once the repository is public. See [Direct distribution](direct-distribution.md).
