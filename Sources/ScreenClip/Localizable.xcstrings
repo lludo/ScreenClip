@@ -4688,7 +4688,7 @@
       }
     },
     "Choose…": {
-      "comment": "Picks a Codex executable.",
+      "comment": "Picks the Claude Code executable.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -16568,7 +16568,7 @@
       }
     },
     "Project settings": {
-      "comment": "Project editor title.",
+      "comment": "Opens settings for this project.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -26270,7 +26270,7 @@
       }
     },
     "Webhook URL": {
-      "comment": "Grok Bot webhook URL field. Keep URL.",
+      "comment": "Grok Bot address field.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -33591,6 +33591,666 @@
           "stringUnit": {
             "state": "translated",
             "value": "草稿 PR。自動合併會等到拉取請求被標為可合併。"
+          }
+        }
+      }
+    },
+    "Automatic review (recommended)": {
+      "comment": "Codex reviews permission requests automatically.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatic review (recommended)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动审核（推荐）"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisión automática (recomendada)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動レビュー（推奨）"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Revisão automática (recomendada)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatische Prüfung (empfohlen)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification automatique (recommandée)"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "자동 검토(권장)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматическая проверка (рекомендуется)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動審核（建議）"
+          }
+        }
+      }
+    },
+    "Ask me": {
+      "comment": "Codex permission mode with manual approval.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask me"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "询问我"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preguntarme"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "毎回確認"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perguntar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mich fragen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Me demander"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "직접 확인"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Спрашивать меня"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "詢問我"
+          }
+        }
+      }
+    },
+    "Full access (no approval prompts)": {
+      "comment": "Codex permission mode without sandbox or approval prompts.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full access (no approval prompts)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完全访问（无需批准提示）"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceso completo (sin solicitudes de aprobación)"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "フルアクセス（承認の確認なし）"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acesso completo (sem pedidos de aprovação)"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vollzugriff (ohne Genehmigungsabfragen)"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès complet (sans demandes d’autorisation)"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "전체 접근(승인 요청 없음)"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Полный доступ (без запросов разрешения)"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整存取（無需核准提示）"
+          }
+        }
+      }
+    },
+    "Codex permissions": {
+      "comment": "Project permission mode for Codex.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex permissions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 权限"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permisos de Codex"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex の権限"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permissões do Codex"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex-Berechtigungen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisations Codex"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 권한"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешения Codex"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 權限"
+          }
+        }
+      }
+    },
+    "Codex reviews permission requests automatically while keeping the workspace sandbox. Questions about the fix still come to you. Applies to the next turn.": {
+      "comment": "Explains automatic Codex approval review.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex reviews permission requests automatically while keeping the workspace sandbox. Questions about the fix still come to you. Applies to the next turn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 会自动审核权限请求，同时保留工作区沙盒。有关修复的问题仍会询问你。从下一轮开始生效。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex revisa automáticamente las solicitudes de permisos y mantiene el aislamiento del espacio de trabajo. Las preguntas sobre la corrección aún te llegarán. Se aplica al siguiente turno."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex がワークスペースのサンドボックスを維持しながら権限リクエストを自動でレビューします。修正内容の質問は引き続き表示されます。次のターンから適用されます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Codex revisa os pedidos de permissão automaticamente e mantém o sandbox do workspace. Dúvidas sobre a correção ainda chegam até você. Vale a partir do próximo turno."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex prüft Berechtigungsanfragen automatisch und behält die Workspace-Sandbox bei. Fragen zur Korrektur gehen weiterhin an dich. Gilt ab dem nächsten Durchgang."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex vérifie automatiquement les demandes d’autorisation en conservant le bac à sable de l’espace de travail. Les questions sur la correction vous sont toujours adressées. S’applique au prochain tour."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex가 작업 공간 샌드박스를 유지하면서 권한 요청을 자동으로 검토합니다. 수정 내용에 대한 질문은 계속 표시됩니다. 다음 턴부터 적용됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex автоматически проверяет запросы разрешений, сохраняя песочницу рабочей области. Вопросы об исправлении по-прежнему адресуются вам. Действует со следующего хода."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 會自動審核權限請求，同時保留工作區沙盒。有關修正的問題仍會詢問你。從下一輪開始生效。"
+          }
+        }
+      }
+    },
+    "Codex asks you when a command needs extra access. Applies to the next turn.": {
+      "comment": "Explains manual Codex approvals.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex asks you when a command needs extra access. Applies to the next turn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令需要额外访问权限时，Codex 会询问你。从下一轮开始生效。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex te pregunta cuando un comando necesita acceso adicional. Se aplica al siguiente turno."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コマンドに追加のアクセス権限が必要な場合、Codex が確認します。次のターンから適用されます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Codex pergunta quando um comando precisa de acesso extra. Vale a partir do próximo turno."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex fragt dich, wenn ein Befehl zusätzlichen Zugriff benötigt. Gilt ab dem nächsten Durchgang."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex vous demande lorsqu’une commande nécessite un accès supplémentaire. S’applique au prochain tour."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "명령에 추가 접근 권한이 필요하면 Codex가 확인을 요청합니다. 다음 턴부터 적용됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex спрашивает, когда команде нужен дополнительный доступ. Действует со следующего хода."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令需要額外存取權限時，Codex 會詢問你。從下一輪開始生效。"
+          }
+        }
+      }
+    },
+    "Commands can access your Mac and the network without approval prompts. Use only for projects you trust. Applies to the next turn.": {
+      "comment": "Explains full access for Codex.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Commands can access your Mac and the network without approval prompts. Use only for projects you trust. Applies to the next turn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令可访问你的 Mac 和网络，无需批准提示。仅用于你信任的项目。从下一轮开始生效。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los comandos pueden acceder a tu Mac y a la red sin pedir aprobación. Úsalo solo en proyectos de confianza. Se aplica al siguiente turno."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コマンドは承認の確認なしで Mac とネットワークにアクセスできます。信頼できるプロジェクトにのみ使用してください。次のターンから適用されます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os comandos podem acessar seu Mac e a rede sem pedir aprovação. Use apenas em projetos confiáveis. Vale a partir do próximo turno."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Befehle können ohne Genehmigungsabfragen auf deinen Mac und das Netzwerk zugreifen. Nur für vertrauenswürdige Projekte verwenden. Gilt ab dem nächsten Durchgang."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les commandes peuvent accéder à votre Mac et au réseau sans demander d’autorisation. À utiliser uniquement pour les projets de confiance. S’applique au prochain tour."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "명령이 승인 요청 없이 Mac과 네트워크에 접근할 수 있습니다. 신뢰하는 프로젝트에만 사용하세요. 다음 턴부터 적용됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Команды получают доступ к вашему Mac и сети без запросов разрешения. Используйте только для доверенных проектов. Действует со следующего хода."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "命令可存取你的 Mac 和網路，無需核准提示。僅用於你信任的專案。從下一輪開始生效。"
+          }
+        }
+      }
+    },
+    "Allow and automate this project": {
+      "comment": "Allows this request once and enables automatic Codex risk review for this project.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow and automate this project"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许并自动审核此项目"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir y automatizar este proyecto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "許可してこのプロジェクトを自動化"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir e automatizar este projeto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Erlauben und dieses Projekt automatisieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser et automatiser ce projet"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "허용하고 이 프로젝트 자동화"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Разрешить и автоматизировать этот проект"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允許並自動審核此專案"
+          }
+        }
+      }
+    },
+    "Codex did not enable automatic approval review. Update Codex or choose Ask me in project settings.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex did not enable automatic approval review. Update Codex or choose Ask me in project settings."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 未启用自动批准审核。请更新 Codex，或在项目设置中选择“询问我”。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex no activó la revisión automática de permisos. Actualiza Codex o elige Preguntarme en los ajustes del proyecto."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex で承認の自動レビューを有効にできませんでした。Codex を更新するか、プロジェクト設定で「毎回確認」を選択してください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Codex não ativou a revisão automática de permissões. Atualize o Codex ou escolha Perguntar nas configurações do projeto."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex hat die automatische Genehmigungsprüfung nicht aktiviert. Aktualisiere Codex oder wähle Mich fragen in den Projekteinstellungen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex n’a pas activé la vérification automatique des autorisations. Mettez Codex à jour ou choisissez Me demander dans les réglages du projet."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex에서 자동 승인 검토를 활성화하지 못했습니다. Codex를 업데이트하거나 프로젝트 설정에서 직접 확인을 선택하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex не включил автоматическую проверку разрешений. Обновите Codex или выберите «Спрашивать меня» в настройках проекта."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 未啟用自動核准審核。請更新 Codex，或在專案設定中選擇「詢問我」。"
+          }
+        }
+      }
+    },
+    "Codex could not update this turn. Reconcile the chat before continuing.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex could not update this turn. Reconcile the chat before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 无法更新此轮对话。请先核对聊天再继续。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex no pudo actualizar este turno. Reconcilia el chat antes de continuar."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex はこのターンを更新できませんでした。続行する前にチャットを照合してください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O Codex não conseguiu atualizar este turno. Reconcilie o chat antes de continuar."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex konnte diesen Durchgang nicht aktualisieren. Gleiche den Chat vor dem Fortfahren ab."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex n’a pas pu mettre à jour ce tour. Réconciliez le chat avant de continuer."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex가 이 턴을 업데이트하지 못했습니다. 계속하기 전에 채팅을 조정하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex не удалось обновить этот ход. Сверьте чат перед продолжением."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Codex 無法更新此輪對話。請先核對聊天再繼續。"
           }
         }
       }

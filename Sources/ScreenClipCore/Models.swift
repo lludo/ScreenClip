@@ -34,6 +34,18 @@ public enum AgentKind: String, Codable, CaseIterable, Identifiable, Sendable {
   }
 }
 
+/// The project owns this choice; screenshots and agent replies cannot change it.
+public enum CodexApprovalMode: String, Codable, CaseIterable, Identifiable, Sendable {
+  case automaticReview, ask, fullAccess
+  public var id: String { rawValue }
+  public var approvalPolicy: String { self == .fullAccess ? "never" : "on-request" }
+  public var reviewer: String { self == .automaticReview ? "auto_review" : "user" }
+  public var sandbox: String { self == .fullAccess ? "danger-full-access" : "workspace-write" }
+  public var sandboxPolicy: JSONValue {
+    .object(["type": .string(self == .fullAccess ? "dangerFullAccess" : "workspaceWrite")])
+  }
+}
+
 public struct Project: Codable, Identifiable, Equatable {
   public var id: UUID
   public var name: String
@@ -48,6 +60,7 @@ public struct Project: Codable, Identifiable, Equatable {
   public var sendsExternalScreenshots: Bool { allowExternalScreenshots ?? false }
   /// nil follows the system default. An explicit provider stays when the system default changes.
   public var defaultAgent: AgentKind? = nil
+  public var codexApprovalMode: CodexApprovalMode = .automaticReview
   /// SF Symbol shown next to the project name. Optional so projects saved earlier still decode.
   public var symbol: String? = nil
   public static let defaultSymbol = "folder"
@@ -72,7 +85,7 @@ public struct Project: Codable, Identifiable, Equatable {
 
   private enum CodingKeys: String, CodingKey {
     case id, name, path, baseBranch, origins, bundleIDs, validationCommand, autoMerge
-    case allowExternalScreenshots, symbol, defaultAgent
+    case allowExternalScreenshots, symbol, defaultAgent, codexApprovalMode
   }
 
   public init(from decoder: Decoder) throws {
@@ -87,6 +100,8 @@ public struct Project: Codable, Identifiable, Equatable {
     autoMerge = try container.decode(Bool.self, forKey: .autoMerge)
     allowExternalScreenshots = try container.decodeIfPresent(Bool.self, forKey: .allowExternalScreenshots)
     symbol = try container.decodeIfPresent(String.self, forKey: .symbol)
+    codexApprovalMode = try container.decodeIfPresent(CodexApprovalMode.self, forKey: .codexApprovalMode)
+      ?? .automaticReview
     // A missing key is an older project. Opting into Grok Bot screenshots meant that
     // project sent its work to Grok Bot, so that choice becomes an explicit default.
     // A present null is "use the system default" and must not be migrated again.
@@ -112,6 +127,7 @@ public struct Project: Codable, Identifiable, Equatable {
     try container.encodeIfPresent(allowExternalScreenshots, forKey: .allowExternalScreenshots)
     try container.encodeIfPresent(symbol, forKey: .symbol)
     try container.encode(defaultAgent, forKey: .defaultAgent)
+    try container.encode(codexApprovalMode, forKey: .codexApprovalMode)
   }
 }
 
