@@ -239,12 +239,13 @@ extension AgentWorker {
         checkSummary = ExternalAssistant.draftPullRequestSummary
       } else if currentIssue.prHead != pr.head {
         checkSummary = "The PR changed; run validation again before merging."
+      } else if pr.conflicting {
+        // Ahead of the checks: CI often does not start on a conflicting pull request.
+        checkSummary = "The base branch conflicts with this fix."
       } else if !pr.checksPassed {
         checkSummary = pr.details
       } else if !pr.reviewSatisfied {
         checkSummary = "Waiting for required review."
-      } else if pr.conflicting {
-        checkSummary = "The base branch conflicts with this fix."
       } else if !pr.mergeable {
         checkSummary = "Waiting for the PR to become mergeable."
       } else if !screenclipEvidenceCleared {
