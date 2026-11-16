@@ -716,8 +716,8 @@ import XCTest
     try model.updateIssue(id) { $0.threadID = "saved"; $0.worktreePath = repo.path; $0.branch = "main"; $0.coveredRevision = $0.revision; $0.status = .needsYou }
     await model.worker.reconcile(id)
     XCTAssertEqual(model.issue(id)?.resultSummary, "Recovered fix")
-    XCTAssertEqual(model.issue(id)?.status, .needsYou)
-    XCTAssertNotNil(model.issue(id)?.lastError) // No origin: validation cannot silently claim publication.
+    XCTAssertEqual(model.issue(id)?.status, .queued)
+    XCTAssertTrue(model.issue(id)?.validationFeedback?.contains("Missing After screenshot") == true) // Recovery requests the missing retest evidence before publication.
     let requests = try String(contentsOf: root.appendingPathComponent("requests"), encoding: .utf8)
     XCTAssertFalse(requests.contains("turn/start"))
     await model.worker.resetConnection()
