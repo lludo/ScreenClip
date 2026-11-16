@@ -118,6 +118,8 @@ enum AppChrome {
     "ScreenClip notices the sign-in within a minute. Click Detect agents to check now.",
     "Worker disconnected. Reconcile the chat before continuing.",
     "Base branch advanced; revalidating the updated fix",
+    "The base branch conflicts with this fix; resolving the conflict",
+    "The base branch conflicts with this fix.",
     "Merged. Rebuild or deploy the app, then retest.",
     "Updated the pull request onto the current base branch. Waiting for checks.",
     "Waiting for checks on the pull request after updating it onto the base branch.",

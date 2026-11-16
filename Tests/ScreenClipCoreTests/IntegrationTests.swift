@@ -36,6 +36,80 @@ final class IntegrationTests: XCTestCase {
       project: project, path: workspace.path)
     XCTAssertFalse(repeated)
   }
+  /// A conflicting base is left mid-merge for the agent, whose file edits alone let the next
+  /// commit conclude it; without `keepConflicts` the worktree is restored.
+  func testConflictingBaseIsKeptForTheAgentAndConcludedByTheNextCommit() async throws {
+    let git = "/usr/bin/git"
+    let source = try await repo()
+    let bare = source.appendingPathComponent("origin.git")
+    _ = try await CommandRunner.checked(git, ["init", "--bare", bare.path])
+    try Data("old\n".utf8).write(to: source.appendingPathComponent("removed.txt"))
+    for arguments in [
+      ["config", "user.name", "ScreenClip Test"], ["config", "user.email", "test@example.invalid"],
+      ["add", "removed.txt"], ["commit", "-m", "Add a file the base later removes"],
+      ["remote", "add", "origin", bare.path], ["push", "-u", "origin", "main"],
+    ] { _ = try await CommandRunner.checked(git, arguments, cwd: source.path) }
+    let root = source.appendingPathComponent("data")
+    try FileManager.default.createDirectory(
+      at: root.appendingPathComponent("worktrees"), withIntermediateDirectories: true)
+    let project = Project(name: "Test", path: source.path)
+    let workspace = try await GitWorkspace.prepare(project: project, issueID: UUID(), root: root)
+    let fixed = URL(fileURLWithPath: workspace.path).appendingPathComponent("source.txt")
+    try Data("fix\n".utf8).write(to: fixed)
+    _ = try await CommandRunner.checked(git, ["commit", "-am", "Fix"], cwd: workspace.path)
+    // The base also deletes one file and adds another, which a kept merge leaves staged.
+    try Data("base\n".utf8).write(to: source.appendingPathComponent("source.txt"))
+    try Data("new\n".utf8).write(to: source.appendingPathComponent("added.txt"))
+    _ = try await CommandRunner.checked(git, ["rm", "-q", "removed.txt"], cwd: source.path)
+    _ = try await CommandRunner.checked(git, ["add", "added.txt"], cwd: source.path)
+    _ = try await CommandRunner.checked(git, ["commit", "-am", "Advance base"], cwd: source.path)
+    _ = try await CommandRunner.checked(git, ["push", "origin", "main"], cwd: source.path)
+
+    do {
+      _ = try await GitWorkspace.updateBaseIfNeeded(project: project, path: workspace.path)
+      XCTFail("A conflicting base must not merge")
+    } catch let conflict as GitWorkspace.BaseConflict {
+      XCTAssertEqual(conflict.files, ["source.txt"])
+      XCTAssertFalse(conflict.kept)
+    }
+    let aborted = await GitWorkspace.mergeInProgress(path: workspace.path)
+    XCTAssertFalse(aborted)
+    XCTAssertEqual(try String(contentsOf: fixed, encoding: .utf8), "fix\n")
+
+    for _ in 1...2 {
+      // The second pass finds the merge still in progress and reports it again.
+      do {
+        _ = try await GitWorkspace.updateBaseIfNeeded(
+          project: project, path: workspace.path, keepConflicts: true)
+        XCTFail("A conflicting base must not merge")
+      } catch let conflict as GitWorkspace.BaseConflict {
+        XCTAssertEqual(conflict.files, ["source.txt"])
+        XCTAssertTrue(conflict.kept)
+        XCTAssertTrue(conflict.agentInstructions.contains("- source.txt"))
+      }
+    }
+    let unresolved = try await GitWorkspace.unresolvedConflicts(path: workspace.path)
+    XCTAssertEqual(unresolved, ["source.txt"])
+    // The agent only edits the file; ScreenClip's publish adds the paths and commits.
+    try Data("base and fix\n".utf8).write(to: fixed)
+    let resolved = try await GitWorkspace.unresolvedConflicts(path: workspace.path)
+    XCTAssertEqual(resolved, [])
+    try await GitHubService.stageChanges(cwd: workspace.path)
+    _ = try await CommandRunner.checked(git, ["commit", "-m", "Fix: merged"], cwd: workspace.path)
+    let clean = try await CommandRunner.checked(git, ["status", "--porcelain"], cwd: workspace.path)
+    XCTAssertEqual(clean, "")
+    let merged = URL(fileURLWithPath: workspace.path)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: merged.appendingPathComponent("removed.txt").path))
+    XCTAssertTrue(FileManager.default.fileExists(atPath: merged.appendingPathComponent("added.txt").path))
+    let concluded = await GitWorkspace.mergeInProgress(path: workspace.path)
+    XCTAssertFalse(concluded)
+    let parents = try await CommandRunner.checked(
+      git, ["rev-list", "--parents", "-n", "1", "HEAD"], cwd: workspace.path)
+    XCTAssertEqual(parents.split(separator: " ").count, 3)
+    let current = try await GitWorkspace.updateBaseIfNeeded(
+      project: project, path: workspace.path, keepConflicts: true)
+    XCTAssertFalse(current)
+  }
   func repo() async throws -> URL {
     let url = FileManager.default.temporaryDirectory.appendingPathComponent(
       "screenclip-git-" + UUID().uuidString)

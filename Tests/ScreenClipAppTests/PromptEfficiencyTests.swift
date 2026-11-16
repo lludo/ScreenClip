@@ -57,6 +57,17 @@ import XCTest
     XCTAssertTrue(disabled.text.contains("do not commit, push, open a PR"))
   }
 
+  /// A request to rebase, or a conflict, needs a permitted answer on every turn.
+  func testBaseIntegrationIsAllowedWithoutCommittingOnFirstAndResumedTurns() {
+    var issue = issue()
+    for thread in [nil, "thread"] as [String?] {
+      if let thread { issue.deliveredContext = AgentPrompt.delivered(issue, threadID: thread) }
+      let prompt = AgentPrompt.turn(for: issue, project: project, threadID: thread).text
+      XCTAssertTrue(prompt.contains("git merge --no-commit --no-ff FETCH_HEAD"))
+      XCTAssertTrue(prompt.contains("Leave the merge uncommitted, never rebase"))
+    }
+  }
+
   func testScreenshotContractReplacesPublicationBanOnFirstAndResumedTurns() {
     var issue = issue()
     for thread in [nil, "thread"] as [String?] {

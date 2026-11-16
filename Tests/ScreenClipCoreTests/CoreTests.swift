@@ -347,6 +347,10 @@ final class CoreTests: XCTestCase {
       try state("{\"statusCheckRollup\":[{\"conclusion\":\"SUCCESS\"},{\"state\":\"SUCCESS\"}]}")
         .checksPassed)
     XCTAssertTrue(try state("{\"statusCheckRollup\":[{\"conclusion\":\"FAILURE\"}]}").checksFailed)
+    // Only a reported conflict starts a base update; an unknown or blocked state keeps waiting.
+    XCTAssertTrue(try state("{\"mergeable\":\"CONFLICTING\",\"mergeStateStatus\":\"DIRTY\"}").conflicting)
+    XCTAssertFalse(try state("{\"mergeable\":\"UNKNOWN\",\"mergeStateStatus\":\"UNKNOWN\"}").conflicting)
+    XCTAssertFalse(try state("{\"mergeable\":\"MERGEABLE\",\"mergeStateStatus\":\"BLOCKED\"}").conflicting)
   }
   func testExportCopiesOnlyApprovedEvidence() throws {
     let store = try temporaryStore()

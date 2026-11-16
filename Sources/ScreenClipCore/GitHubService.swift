@@ -24,13 +24,7 @@ public enum GitHubService {
         "The source or issue changed after validation. Publication stopped.")
     }
     if !changes.isEmpty {
-      let files = try await CommandRunner.checked(
-        GitWorkspace.git, ["ls-files", "--modified", "--deleted", "--others", "--exclude-standard", "-z"], cwd: path)
-      let staged = try await CommandRunner.checked(
-        GitWorkspace.git, ["diff", "--cached", "--name-only", "-z"], cwd: path)
-      let paths = Array(Set((files + staged).split(separator: "\0").map(String.init))).sorted()
-      guard !paths.isEmpty else { throw ScreenClipError.message("No source paths to publish.") }
-      _ = try await CommandRunner.checked(GitWorkspace.git, ["add", "--"] + paths, cwd: path)
+      try await stageChanges(cwd: path)
       guard await shouldContinue() else { throw CancellationError() }
       _ = try await CommandRunner.checked(
         GitWorkspace.git, ["commit", "-m", "Fix: " + String(issue.title.prefix(120))], cwd: path)
@@ -80,6 +74,27 @@ public enum GitHubService {
         "Could not identify the created PR. Inspect the branch before retrying.")
     }
     return (url, head)
+  }
+  /// Stages every change for the fix commit. A deletion that is already staged has no path
+  /// left to add: a base merge left in progress stages the files the base deleted or renamed,
+  /// and naming them would make `git add` fail.
+  public static func stageChanges(cwd path: String) async throws {
+    func list(_ arguments: [String]) async throws -> Set<String> {
+      Set(
+        try await CommandRunner.checked(GitWorkspace.git, arguments, cwd: path)
+          .split(separator: "\0").map(String.init))
+    }
+    let unstaged = try await list(
+      ["ls-files", "--modified", "--deleted", "--others", "--exclude-standard", "-z"])
+    let staged = try await list(["diff", "--cached", "--name-only", "-z"])
+    let stagedDeletions = try await list(
+      ["diff", "--cached", "--name-only", "--diff-filter=D", "-z"])
+    guard !unstaged.isEmpty || !staged.isEmpty else {
+      throw ScreenClipError.message("No source paths to publish.")
+    }
+    let paths = unstaged.union(staged.subtracting(stagedDeletions)).sorted()
+    guard !paths.isEmpty else { return }
+    _ = try await CommandRunner.checked(GitWorkspace.git, ["add", "--"] + paths, cwd: path)
   }
   public static func state(url: String, path: String, gh: String) async throws -> PRState {
     guard URL(string: url)?.host == "github.com" else {
