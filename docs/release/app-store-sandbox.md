@@ -14,7 +14,7 @@ Every external command goes through `Process` in `CommandRunner`, `CodexClient`,
 | Claude Code | `claude` on Homebrew, `/usr/local/bin`, `~/.local/bin`, `~/.claude/local`, npm, or bun | `~/.claude`, a browser login, and the repo. Sign-in writes a `.command` file and opens it with `NSWorkspace` so Terminal can run `claude auth login` |
 | Git | Hard-coded `/usr/bin/git` | The chosen repo, its `.git`, remotes, and a worktree under Application Support. `git worktree add` writes into the repo's git dir |
 | GitHub CLI | `AppSettings.ghPath`, default `/opt/homebrew/bin/gh` | `gh auth status`, pull requests, merges, and `~/.config/gh` |
-| Validation | `/bin/zsh -c` with the project's command, 10 minute timeout | Whatever the user typed: `npm`, `python3`, `swift test`, and the files those tools read |
+| Validation | `/bin/zsh -c` with the project's command, one hour timeout | Whatever the user typed: `npm`, `python3`, `swift test`, and the files those tools read |
 | Grok Bot evidence | The same `/usr/bin/git` and `gh` path | A `screenclip/` branch, commit, fetch, and push, then one HTTPS POST |
 | Relaunch | `/bin/sh` waiting, then `/usr/bin/open` | The app bundle |
 

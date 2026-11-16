@@ -12,7 +12,7 @@ A native macOS menu bar app for the small things you notice: a clipped button, c
 
 <p align="center"><em>Keep reports, captures, and agent conversations together.</em></p>
 
-### Capture a report
+## Capture a report
 
 Use the global **⌘⇧2** shortcut or start a capture from the menu bar. You can change the shortcut in Settings, including if the default is already in use.
 
@@ -43,7 +43,7 @@ The public download is a notarized disk image on GitHub Releases:
 
 [Download for Mac](https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg)
 
-That file exists after a `vX.Y.Z` tag is published. Until then, build from source. The app is free. An optional tip is separate from the download. There is no Mac App Store build: the sandbox blocks `git` and `gh`, which the app has to run. Details are in [Release and distribution](docs/release/README.md).
+The first release is 1.0.0; see the [release notes](docs/release/v1.0.0.md). The link works once that release is published. Until then, build from source. The app is free. An optional tip is separate from the download. There is no Mac App Store build: the sandbox blocks `git` and `gh`, which the app has to run. Details are in [Release and distribution](docs/release/README.md).
 
 The downloadable build is for Apple Silicon Macs (arm64); Intel Macs should build from source. Requires **macOS 14 or later**, a local Git repository, GitHub CLI, and one of Codex, Claude Code, or Grok Bot.
 
@@ -59,13 +59,16 @@ Each report keeps its own agent conversation and an isolated Git worktree. Scree
 
 The full map is the [documentation index](docs/README.md).
 
-- [Getting started](docs/getting-started.md) — requirements, build, first capture
+- [Getting started](docs/getting-started.md) — requirements, install or build, first capture
 - [User guide](docs/user-guide.md) — the queue, moving a report, privacy, screen recording
 - [Coding agents](docs/agents/README.md) — Codex, Claude Code, and Grok Bot
+- [Architecture](docs/architecture.md) — the store, worktrees, and who owns merge
 - [Development](docs/development.md) — tests, CI, contributing
+- [Release and distribution](docs/release/README.md) — release notes, the notarized DMG, and the publishing checklist
+- [Roadmap](docs/roadmap.md) — what is still open
 - [Website](docs/website.md) — [screenclipai.com](https://screenclipai.com)
 
-Items still open before a public release (support email, Sponsors, release secrets) are listed in one place: [Publishing checklist](docs/open-source.md).
+To contribute, read [CONTRIBUTING.md](CONTRIBUTING.md). Report security problems privately, as described in [SECURITY.md](SECURITY.md).
 
 ## License
 

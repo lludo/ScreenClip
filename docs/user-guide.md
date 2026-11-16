@@ -63,11 +63,11 @@ Direct-download builds can show a small tip window. It is not a system sheet, be
 - It appears after 3 merged or verified fixes (archived ones count) or after the queue has existed for 7 days, whichever comes first.
 - **Not now**, or closing the window, hides it for 30 days. Closing it after opening it from the menu does the same.
 - **Don't ask again** stores an opt-out. The automatic prompt stops.
-- The window stays available from **Support ScreenClip…** in the menu and from **Settings → General → Support**.
+- The window stays available from **Support ScreenClip…** in the menu and from **Settings → General → Support**, including after you opt out.
 - The suggested amounts are $3, $5, and $10. Each button opens `https://github.com/sponsors/lludo`. GitHub does not offer a URL that pre-fills the amount.
 - Preview and integration launches do not show it. While ScreenClip hides itself for a capture, the window is ordered out so it is not in the screenshot.
 
-The website has no tip link until `donateUrl` is set. That, and the Sponsors profile, are tracked in [Publishing checklist](open-source.md#open-todos). The release mechanics are in [Direct distribution](release/direct-distribution.md#tip-window).
+The website has no tip link until `donateUrl` is set. That, and the Sponsors profile, are tracked in [Publishing checklist](release/publishing-checklist.md#open-todos). The release mechanics are in [Direct distribution](release/direct-distribution.md#tip-window).
 
 ## Screen Recording
 

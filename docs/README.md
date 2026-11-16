@@ -4,46 +4,44 @@ ScreenClip is a macOS menu bar app. You capture a region, optionally annotate it
 
 The [root README](../README.md) is the short introduction. This page is the map.
 
-## Getting started
+## Use ScreenClip
 
-- [Getting started](getting-started.md) — requirements, a local build, and the first capture.
-
-## User guide
-
-- [User guide](user-guide.md) — capture, the queue, moving a report, privacy, and screen-recording recovery.
-- [Product specification](product-spec.md) — the capture-first goal, screens, and status meanings.
-- [Roadmap](roadmap.md) — hands-on gates and the engineering backlog.
+- [Getting started](getting-started.md) — requirements, installing the release or building from source, and the first capture.
+- [User guide](user-guide.md) — capture, the queue, moving a report, agent permissions, what each agent can see, and screen-recording recovery.
+- [1.0.0 release notes](release/v1.0.0.md) — what the first release includes, and its limits.
 
 ## Agents
 
-- [Coding agents](agents/README.md) — how an agent is chosen, the shared local contract, and how to add one.
-  - [Codex](agents/codex.md) — `codex app-server`, threads, and desktop links.
-  - [Claude Code](agents/claude-code.md) — headless `claude -p` turns and the optional plugin.
+- [Coding agents](agents/README.md) — how an agent is chosen, the shared local contract, the Before / After screenshot contract, and how to add an agent.
+  - [Codex](agents/codex.md) — `codex app-server`, threads, permissions, and desktop links.
+  - [Claude Code](agents/claude-code.md) — headless `claude -p` turns, sessions, and the Claude Desktop hand-off.
   - [Grok Bot](agents/external-assistant.md) — the webhook, the `screenclip/<N>-<slug>-<workspace>` evidence branch, pull-request discovery (`ScreenClip: #N`), and Connect Grok Bot (**POST to** and **key**).
 - [Optional MCP plugin](../plugins/screenclip/README.md) — read-only queue access for Codex and Claude Code.
 
-## Architecture
+## How it works
 
-- [Architecture](architecture.md) — the app, the store, worktrees, and who owns merge.
+- [Product specification](product-spec.md) — the capture-first goal, screens, status meanings, and the product decisions.
+- [Architecture](architecture.md) — the app, the store, routing, worktrees, and who owns merge.
 - [Validation](validation.md) — what has been verified, and how to reproduce it.
 
-## Development
+## Develop
 
-- [Development](development.md) — local build and tests, the macOS GitHub Actions job, and the contributing workflow.
-- [Localization](localization.md) — ten languages, String Catalogs, the catalog check, pseudolocalization, and screenshot rendering.
+- [Development](development.md) — local build and tests, the macOS GitHub Actions job, and the contributing workflow. The short version is the root [CONTRIBUTING.md](../CONTRIBUTING.md).
+- [Localization](localization.md) — ten languages, String Catalogs, the catalog check, and screenshot rendering.
+- [Website](website.md) — build, preview, ten locales, browser language detection, SEO, screenshots, and the Vercel deploy.
 
 ## Release and distribution
 
-- [Release and distribution](release/README.md) — the tag, the notarized DMG, Homebrew, and why there is no Mac App Store build.
-- [Direct distribution](release/direct-distribution.md) — secrets, `scripts/release-dmg.sh`, `SHA256SUMS`, the tip window, and the cask.
+- [Release and distribution](release/README.md) — the index for this section, and why there is no Mac App Store build.
+- [v1.0.0 readiness](release/v1.0.0-status.md) — what is done for the first release and what is left before it is published.
+- [Direct distribution](release/direct-distribution.md) — the tag workflow, secrets, `scripts/release-dmg.sh`, `SHA256SUMS`, the Homebrew cask, and updates.
 - [Mac App Store sandbox](release/app-store-sandbox.md) — the sandbox blocks `git` and `gh`.
+- [Publishing checklist](release/publishing-checklist.md) — open items before the repository is public: support channel, Sponsors, and release secrets.
+- [Publication audit](release/publication-audit.md) — the November 15, 2026 history cleanup, and what GitHub still has to purge.
 
-## Website
+## Project
 
-- [Website](website.md) — build, preview, ten locales, browser language detection, SEO, screenshots, and the Vercel deploy.
-
-## Publishing
-
-- [Publishing checklist](open-source.md) — open items before the repository is public. The license is [PolyForm Noncommercial 1.0.0](../LICENSE.md).
-- [Secret-scan record](release/open-source-audit.md) — the November 14, 2026 scan. The commit it covers is named on that page.
-- [Archived proposals](archive/README.md) — product questions that have since been decided.
+- [Roadmap](roadmap.md) — open verification gates, the next feature, and the maintenance backlog.
+- [Security policy](../SECURITY.md) — reporting a vulnerability, and what ScreenClip stores and publishes.
+- [License](../LICENSE.md) — PolyForm Noncommercial 1.0.0.
+- [Archive](archive/README.md) — closed product questions and one-off hand-off prompts, kept for history.
