@@ -464,6 +464,13 @@ public struct Issue: Codable, Identifiable, Equatable {
       deliveredContext = nil
     }
   }
+  /// Sets a failure for the agent's next turn. A resumed turn only sends feedback that differs
+  /// from what the conversation last received, so the delivered copy is cleared: the same
+  /// failure happening again is news, and must reach the agent again.
+  public mutating func setValidationFeedback(_ feedback: String) {
+    validationFeedback = feedback
+    deliveredContext?.validationFeedback = nil
+  }
   public mutating func record(_ text: String, status: IssueStatus? = nil, kind: String = "update") {
     if let status { self.status = status }
     activities.append(Activity(text, kind: kind))

@@ -86,7 +86,7 @@ extension AgentWorker {
           + unresolved.joined(separator: ", ")
           + ". Resolve them in the files and rerun validation; do not abort or commit the merge."
         if scheduleRepair(id, message: feedback) { return }
-        try model.updateIssue(id) { $0.validationFeedback = feedback }
+        try model.updateIssue(id) { $0.setValidationFeedback(feedback) }
         throw ScreenClipError.message(
           "The base branch still conflicts with this fix in: " + unresolved.joined(separator: ", "))
       }
@@ -98,7 +98,7 @@ extension AgentWorker {
         let feedback = "Project validation failed:\n" + receipt.output
         if scheduleRepair(id, message: feedback) { return }
         // Continue after a manual look still hands the agent the failing output.
-        try model.updateIssue(id) { $0.validationFeedback = feedback }
+        try model.updateIssue(id) { $0.setValidationFeedback(feedback) }
         throw ScreenClipError.message(
           "Validation failed after two repair attempts.\n" + receipt.output)
       }
@@ -166,8 +166,10 @@ extension AgentWorker {
     for issue in model.snapshot.issues where issue.status == .prOpen { await refreshPR(issue.id) }
   }
   func refreshPR(_ id: UUID) async {
-    guard let issue = model.issue(id), let url = issue.prURL, let path = issue.worktreePath,
-      let project = model.project(issue.projectID)
+    // The caller's list is a snapshot from before earlier refreshes were awaited; this report
+    // may have been canceled or sent back to its agent since.
+    guard let issue = model.issue(id), issue.status == .prOpen, let url = issue.prURL,
+      let path = issue.worktreePath, let project = model.project(issue.projectID)
     else { return }
     guard !refreshing.contains(id), !mergingProjects.contains(project.id) else { return }
     refreshing.insert(id)
@@ -198,6 +200,15 @@ extension AgentWorker {
               $0.unread = true
               $0.record("GitHub checks failed. Grok Bot can push another commit to " + url + ".")
             }
+          }
+          return
+        }
+        // Checks reported for another head (one GitHub has not caught up from, or a commit
+        // someone else pushed) say nothing about the fix in this worktree.
+        guard pr.head == model.issue(id)?.prHead else {
+          let summary = "The PR changed; run validation again before merging."
+          if model.issue(id)?.checkSummary != summary {
+            try model.updateIssue(id) { $0.checkSummary = summary }
           }
           return
         }
@@ -275,7 +286,7 @@ extension AgentWorker {
       guard (mergesNow || resolvesConflict) && !model.snapshot.settings.paused else { return }
       // Re-check after the awaits above: parallel reports in one project must merge one at a
       // time, so each later merge revalidates against the base that already includes the earlier.
-      guard !mergingProjects.contains(project.id) else { return }
+      guard !mergingProjects.contains(project.id), model.issue(id)?.status == .prOpen else { return }
       mergingProjects.insert(project.id)
       defer { mergingProjects.remove(project.id) }
       let baseAdvanced: Bool
@@ -298,6 +309,14 @@ extension AgentWorker {
             $0.record("The base update needs attention in " + issue.resolvedAgent.title + ".", status: .needsYou)
           }
         }
+        return
+      } catch let error
+        where !(error is GitWorkspace.BaseMergeFailed) && !(error is GitWorkspace.BaseConflict)
+      {
+        // A failed fetch (network, SSH agent, GitHub) is not a problem in the worktree. The
+        // report stays open and the next refresh tries again. A merge that failed or
+        // conflicted does not clear by waiting, and is handled below.
+        try model.updateIssue(id) { $0.lastError = error.localizedDescription }
         return
       } catch {
         if issue.resolvedAgent == .external {
@@ -418,7 +437,7 @@ extension AgentWorker {
       try model.updateIssue(id) {
         $0.repairAttempts = ($0.repairAttempts ?? 0) + 1
         $0.lastError = message
-        $0.validationFeedback = message
+        $0.setValidationFeedback(message)
         $0.record(
           note ?? "Checks failed; starting repair attempt \($0.repairAttempts ?? 1) of 2",
           status: .queued)

@@ -1,6 +1,6 @@
 # ScreenClip validation
 
-Updated: November 15, 2026. Development host: macOS 27.0.1, Xcode 27.2, Swift 6.4.2, Apple Silicon.
+Updated: November 16, 2026. Development host: macOS 27.0.1, Xcode 27.2, Swift 6.4.2, Apple Silicon.
 
 This page records what is verified and how. What is still open is in the [roadmap](roadmap.md#open-gates). The macOS CI job that runs these checks is in [Development](development.md#ci).
 
@@ -31,6 +31,10 @@ Live verification on November 15 passed in a disposable synthetic fixture (delet
 ## Code and documentation review — November 15
 
 The review covered the queue/store, agent protocols and scheduling, publication and merge guards, capture/UI paths, plugin and build scripts, website build, and documentation links. Fixes reject fractional or out-of-range protocol integers, require a real boolean before the plugin includes screenshots, preserve SQLite read failures, and enforce the store's read-only mode for capture deletion. Codex request classification is shared by response handling, recovery, and the question UI. Relaunch also reconciles acknowledged interrupted Codex work in automatic mode, without replaying uncertain dispatches or answering genuine questions. Regressions cover these failure cases and retain the typed user-input answer format. Permission, recovery, routing, provider-data handling, and release documentation now reflect the owning code; the implemented per-project agent default was removed from the feature backlog. Local verification passed: 196 Swift tests with zero failures (two optional rendering tests skipped), 14 plugin tests, queue and webhook checks, website build and locale checks, localization catalogs, documentation link targets, and Xcode Debug and signed Release builds.
+
+## Final release check — November 16
+
+Three independent reviews (core library and plugin; worker, model, and publishing; interface, documentation, and release metadata) preceded the final v1.0.0 build. The fixes are listed in [v1.0.0 readiness](release/v1.0.0-status.md#final-check-november-16). New regressions: `PRRefreshTests` drives the pull-request refresh with a stand-in `gh` (failed checks for another head, a failed fetch, a report that left PR open); `testCancelExpiresUnansweredRequestCards`; `testGrokBotEvidenceIsCommittedDespiteIgnoreRules`; and repeated validation feedback in `PromptEfficiencyTests`. Local verification passed: 228 Swift tests (four optional live tests skipped), 14 plugin tests, five queue tests, webhook checks, localization catalogs, the website build, and Xcode Debug and signed Release builds. The published DMG was downloaded from the release and checked against `SHA256SUMS`, its stapled ticket, and Gatekeeper.
 
 ## Repository association review
 

@@ -210,7 +210,12 @@ import XCTest
       await recovering.value
       if cancelDuringRecovery {
         XCTAssertEqual(model.issue(issue.id)?.status, .canceled)
-        XCTAssertNil(model.issue(issue.id)?.questions.first?.reply)
+        // Cancel expires the request card itself; reconciliation must add nothing after it.
+        XCTAssertEqual(
+          model.issue(issue.id)?.questions.first?.reply,
+          "Expired request; continue the issue to ask again")
+        XCTAssertEqual(
+          model.issue(issue.id)?.activities.last?.text, "Canceled; existing workspace and PR retained")
         await model.worker.resetConnection()
         return
       }
@@ -881,6 +886,40 @@ import XCTest
     await model.worker.resetConnection()
   }
   /// Cancel then Continue: the canceled turn's late completion must not fail the queued run.
+  /// A request card cannot be answered after its turn is canceled. Left unanswered it hid
+  /// Continue and blocked Archive, leaving the canceled report with no way forward.
+  func testCancelExpiresUnansweredRequestCards() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-cancel-card-" + UUID().uuidString)
+    try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = try AppModel(root: root.appendingPathComponent("queue"))
+    let project = Project(name: "Test", path: try makeRepo(root), validationCommand: "true")
+    try model.saveProject(project)
+    try model.commit { $0.settings.paused = true }
+    try model.submit(imageData: Data([1]), originalData: nil, annotations: [], note: "Fix", context: CaptureContext(), projectID: project.id, existingID: nil, draft: false)
+    let id = try XCTUnwrap(model.snapshot.issues.first?.id)
+    try model.updateIssue(id) {
+      $0.agent = .codex
+      $0.status = .needsYou
+      $0.questions = [
+        PendingQuestion(title: "Allow?", requestID: .number(12)),
+        PendingQuestion(title: "Should the toolbar wrap?"),
+      ]
+    }
+    let key = JSONValue.number(12).data.base64EncodedString()
+    model.worker.pendingRequests.insert(key)
+    model.worker.requestOwners[key] = id
+    XCTAssertEqual(model.issue(id)?.canArchive, false)
+    await model.worker.cancel(id)
+    let canceled = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(canceled.status, .canceled)
+    XCTAssertNotNil(canceled.questions[0].reply)
+    // A question the agent asked in its result is still the tester's to answer.
+    XCTAssertNil(canceled.questions[1].reply)
+    XCTAssertTrue(canceled.canArchive)
+    XCTAssertTrue(model.worker.pendingRequests.isEmpty)
+    XCTAssertTrue(model.worker.requestOwners.isEmpty)
+  }
   func testLateCompletionOfACanceledTurnDoesNotFailTheNextRun() async throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-late-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

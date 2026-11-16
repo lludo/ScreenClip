@@ -148,12 +148,25 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
   }
   func registerShortcut() {
-    if !shortcut.register(
-      key: model.snapshot.settings.shortcutKey, modifiers: model.snapshot.settings.shortcutModifiers
-    ) {
-      model.banner = "That keyboard shortcut is already in use. Choose another in Settings."
+    let settings = model.snapshot.settings
+    if shortcut.register(key: settings.shortcutKey, modifiers: settings.shortcutModifiers) {
+      workingShortcut = (settings.shortcutKey, settings.shortcutModifiers, settings.shortcutDescription)
+      return
     }
+    // The previous shortcut is still registered. Put it back in Settings, so the shortcut shown
+    // is the one that works and the next launch does not start without one.
+    if let working = workingShortcut,
+      (working.key, working.modifiers) != (settings.shortcutKey, settings.shortcutModifiers)
+    {
+      var restored = settings
+      restored.shortcutKey = working.key
+      restored.shortcutModifiers = working.modifiers
+      restored.shortcutDescription = working.description
+      model.saveSettings(restored)
+    }
+    model.banner = "That keyboard shortcut is already in use. Choose another in Settings."
   }
+  private var workingShortcut: (key: UInt32, modifiers: UInt32, description: String)?
   func relaunch() {
     guard composerWindow == nil else {
       // A banner alone is invisible when the queue window is closed.

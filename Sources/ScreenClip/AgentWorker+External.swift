@@ -247,9 +247,11 @@ extension AgentWorker {
     guard head == pullHead else {
       let summary = "The pull request head does not match the \(branch) branch ScreenClip is watching."
       try model.updateIssue(id) {
-        if $0.checkSummary != summary { $0.record(summary) }
+        if $0.checkSummary != summary {
+          $0.record(summary)
+          $0.unread = true
+        }
         $0.checkSummary = summary
-        $0.unread = true
       }
       return .blocked
     }
@@ -267,9 +269,11 @@ extension AgentWorker {
       }
       let summary = "Project validation failed for this pull request head."
       try model.updateIssue(id) {
-        if $0.checkSummary != summary { $0.record(summary) }
+        if $0.checkSummary != summary {
+          $0.record(summary)
+          $0.unread = true
+        }
         $0.checkSummary = summary
-        $0.unread = true
       }
       return .blocked
     }

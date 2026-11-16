@@ -8,7 +8,7 @@ The default shortcut is **⌘⇧2**. Escape cancels the selection. The composer 
 
 ScreenClip suggests a project from the app or the browser context. Correct it before submitting. If the project is ambiguous, the report is saved as **Needs project** and no agent starts.
 
-**New issue** starts a report. **Add to issue…** appends the capture to an existing one. A follow-up keeps that issue's agent. You cannot switch a submitted issue to a different agent; cancel it and file a new report.
+In the composer's **Issue** menu, **New issue** starts a report, and choosing an existing issue appends the capture to it. A follow-up keeps that issue's agent. You cannot switch a submitted issue to a different agent; cancel it and file a new report.
 
 Redaction is only the black rectangles you draw with the redact tool. Those pixels are flattened to opaque black in the saved screenshot. Arrows, pen strokes, shapes, and text do not hide what is underneath. When a capture has a redaction, ScreenClip does not keep the unredacted crop.
 
@@ -22,7 +22,7 @@ A project runs up to three reports at once. The limit is 1–6, in **Settings �
 
 **Add context** saves a text note without another screenshot, including while a report is queued or working. Notes stay with the report and go out the next time the agent works. Adding context during a turn triggers follow-up work. A completed report reopens for a follow-up. A pending question still uses its reply controls.
 
-**Open in Codex** opens that issue's chat. Claude reports offer **Copy Claude resume command**. Grok Bot has no chat link: the report shows the pull request once ScreenClip finds it, and otherwise says the conversation is in Grok Bot's chat. Cancel stops the local record only. It does not stop Grok Bot. Cancel active work before using the same worktree in another coding client.
+**Open in Codex** opens that issue's chat. Claude reports offer **Copy Claude resume command**. A Grok Bot report shows **Open Grok Bot agent** once Grok Bot reports its agent link, and the pull request once ScreenClip finds it; until then it says the conversation is in Grok Bot's chat. Cancel stops the local record. When the connection supports it, ScreenClip also asks Grok Bot to stop; that request is best-effort, and Grok Bot may still finish work it already started. Cancel active work before using the same worktree in another coding client.
 
 Codex chats may show up in Recents instead of the desktop project you expect. That limit is written up in the [repository association review](validation.md#repository-association-review).
 

@@ -122,6 +122,12 @@ import XCTest
     issue.deliveredContext = AgentPrompt.delivered(issue, threadID: "thread")
     let after = AgentPrompt.turn(for: issue, project: project, threadID: "thread")
     XCTAssertFalse(after.text.contains("2 tests failed"))
+
+    // The same failure happening again is news: the repair that follows must carry it, even
+    // though the text matches what the conversation already received.
+    issue.setValidationFeedback("Project validation failed:\n2 tests failed")
+    let again = AgentPrompt.turn(for: issue, project: project, threadID: "thread")
+    XCTAssertTrue(again.text.contains("2 tests failed"))
   }
 
   func testProgressIsSavedWithinASecondOrWithTheNextStateChange() async throws {

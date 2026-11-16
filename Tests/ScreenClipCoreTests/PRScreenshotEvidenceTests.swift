@@ -18,6 +18,25 @@ final class PRScreenshotEvidenceTests: XCTestCase {
     return (root, issue)
   }
 
+  /// Grok Bot's webhook names every capture, so an ignore rule must not leave one out of the
+  /// evidence commit, and an ignored `.screenclip/` must not fail the hand-off.
+  func testGrokBotEvidenceIsCommittedDespiteIgnoreRules() async throws {
+    let (root, _) = try await fixture()
+    for (key, value) in ["user.name": "ScreenClip Test", "user.email": "test@example.invalid"] {
+      _ = try await CommandRunner.checked(GitWorkspace.git, ["config", key, value], cwd: root.path)
+    }
+    try ".screenclip/\n*.png\n".write(
+      to: root.appendingPathComponent(".gitignore"), atomically: true, encoding: .utf8)
+    let directory = root.appendingPathComponent(".screenclip/5")
+    try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+    try image.write(to: directory.appendingPathComponent("capture-1.png"))
+    try Data("{}".utf8).write(to: directory.appendingPathComponent("report.json"))
+    let head = try await GitHubService.commitEvidence(
+      directory: ".screenclip/5", message: "Evidence", cwd: root.path)
+    let committed = try await GitHubService.listScreenclipPaths(revision: head, cwd: root.path)
+    XCTAssertEqual(committed.sorted(), [".screenclip/5/capture-1.png", ".screenclip/5/report.json"])
+  }
+
   func testImagesAreStagedDespiteIgnoreRulesAndUseImmutableLinks() async throws {
     let (root, issue) = try await fixture()
     try ".screenclip/\n*.png\n".write(to: root.appendingPathComponent(".gitignore"), atomically: true, encoding: .utf8)
