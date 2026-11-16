@@ -1,3 +1,4 @@
+import AppKit
 import ScreenClipCore
 import XCTest
 
@@ -37,6 +38,81 @@ import XCTest
     var withLongActivity = saved
     for _ in 0..<501 { withLongActivity.record("Progress") }
     XCTAssertEqual(withLongActivity.contextNotes, saved.contextNotes)
+  }
+
+  func testContextImagePersistsAndIsDeliveredWithFollowUpEvidence() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = try AppModel(root: root)
+    var issue = Issue(
+      projectID: UUID(), title: "Report",
+      capture: Capture(note: "", imagePath: "/tmp/test.png", context: CaptureContext()))
+    issue.status = .working
+    issue.threadID = "existing-chat"
+    issue.deliveredContext = AgentPrompt.delivered(issue, threadID: "existing-chat")
+    try model.commit {
+      $0.settings.paused = true
+      $0.issues = [issue]
+    }
+    let bitmap = try XCTUnwrap(
+      NSBitmapImageRep(
+        bitmapDataPlanes: nil, pixelsWide: 2,
+        pixelsHigh: 2, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
+        isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+    let data = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+    try model.addContext(issue.id, text: "", images: [data])
+    let saved = try XCTUnwrap(model.issue(issue.id))
+    XCTAssertEqual(saved.status, .working)
+    XCTAssertEqual(saved.revision, issue.revision + 1)
+    XCTAssertEqual(saved.captures.count, 2)
+    let attachment = try XCTUnwrap(saved.captures.last)
+    XCTAssertNotNil(NSImage(contentsOfFile: attachment.imagePath))
+    XCTAssertEqual(attachment.context.selection, [0, 0, 2, 2])
+    XCTAssertEqual(try model.store.load().issues.first, saved)
+    let project = Project(name: "Test", path: root.path)
+    let turn = AgentPrompt.turn(for: saved, project: project, threadID: "existing-chat")
+    XCTAssertEqual(turn.captures.map(\.id), [attachment.id])
+
+    let assets = try FileManager.default.contentsOfDirectory(
+      atPath: root.appendingPathComponent("assets").path)
+    XCTAssertThrowsError(
+      try model.addContext(issue.id, text: "Bad", images: [data, Data("invalid".utf8)]))
+    XCTAssertThrowsError(try model.addContext(UUID(), text: "Missing", images: [data]))
+    XCTAssertEqual(model.issue(issue.id), saved)
+    XCTAssertEqual(
+      try FileManager.default.contentsOfDirectory(
+        atPath: root.appendingPathComponent("assets").path), assets)
+  }
+
+  func testDraftSubmissionKeepsContextAttachments() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = try AppModel(root: root)
+    let bitmap = try XCTUnwrap(
+      NSBitmapImageRep(
+        bitmapDataPlanes: nil, pixelsWide: 2,
+        pixelsHigh: 2, bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true,
+        isPlanar: false, colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0))
+    let data = try XCTUnwrap(bitmap.representation(using: .png, properties: [:]))
+    let original = try model.store.writeAsset(data)
+    let issue = Issue(
+      projectID: nil, title: "Draft",
+      capture: Capture(note: "", imagePath: original, context: CaptureContext()), draft: true)
+    try model.commit {
+      $0.settings.paused = true
+      $0.issues = [issue]
+    }
+    try model.addContext(issue.id, text: "", images: [data])
+    let attachment = try XCTUnwrap(model.issue(issue.id)?.captures.last)
+    XCTAssertEqual(model.issue(issue.id)?.status, .draft)
+    try model.submit(
+      imageData: data, originalData: nil, annotations: [], note: "Submit",
+      context: CaptureContext(), projectID: nil, existingID: issue.id, draft: false)
+    let saved = try XCTUnwrap(model.issue(issue.id))
+    XCTAssertEqual(saved.captures.count, 2)
+    XCTAssertEqual(saved.captures.last, attachment)
+    XCTAssertNotNil(NSImage(contentsOfFile: attachment.imagePath))
+    XCTAssertFalse(FileManager.default.fileExists(atPath: original))
   }
 
   func testContextRejectsEmptyTextAndMissingReportsWithoutChangingTheQueue() throws {
