@@ -4,9 +4,9 @@ ScreenClip is source-available under the [PolyForm Noncommercial License 1.0.0](
 
 The agent icons under `Sources/ScreenClip/Assets.xcassets` are from Lobe Icons and already carry an MIT notice in `Sources/ScreenClip/AgentIcons-LICENSE.txt`. That notice covers those icons. It is not a license for the app.
 
-The [secret-scan record](release/open-source-audit.md) was repeated on November 14, 2026 through `e32f81b`. Branch tips are synthetic. Pull-request refs 24, 25, 26, 28, 29, and 30 still point at the pre-rewrite commits, and the tip of pull request 25 still contains the real queue snapshot. Replace or purge that history before changing visibility.
+The [publication audit](release/open-source-audit.md) records the November 15, 2026 history cleanup. The private fixture database and flagged image blobs were removed from rewritten history, and every branch except `main` was deleted. GitHub still retains private data through read-only pull-request refs. GitHub must purge the retained private objects before this repository becomes public.
 
-The repository is private. These are the items that are still open. Other pages describe how a feature works today and link here instead of keeping a second checklist.
+The repository remains private. Release progress is in [v1.0.0 readiness](release/v1.0.0-status.md).
 
 Engineering work that is not a release blocker (live Claude and Grok Bot runs, multi-monitor capture, and the maintenance list) stays on the [roadmap](roadmap.md).
 
@@ -28,7 +28,7 @@ Configure the six Apple secrets named in [`.github/workflows/release.yml`](../.g
 
 ## Before the repository is public
 
-1. Publish from a new repository or a single new commit, and have GitHub purge the pre-rewrite pull-request refs. The branch rewrite did not remove them. The path list is in the [open-source audit](release/open-source-audit.md#what-to-do-before-the-repository-is-public).
+1. Have GitHub purge the retained pull-request refs and cached private objects. Rewriting main again cannot remove GitHub-owned refs.
 2. Root `CONTRIBUTING.md` and `SECURITY.md` exist. Add a support email to `SECURITY.md` if you want one besides GitHub private reporting.
 3. Add a monitored support channel if the public site should list one.
 4. Decide whether the Sponsors link and `donateUrl` should go live with the first public download.

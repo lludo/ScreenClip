@@ -6,9 +6,14 @@ cd "$(dirname "$0")/.."
 app="${1:-$PWD/build/DerivedData/Build/Products/Release/ScreenClip.app}"
 out="${2:-$PWD/build}"
 : "${APPLE_SIGNING_IDENTITY:?Set APPLE_SIGNING_IDENTITY to the Developer ID Application identity.}"
-: "${APPLE_NOTARY_KEY:?Set APPLE_NOTARY_KEY to the App Store Connect API .p8 path.}"
-: "${APPLE_NOTARY_KEY_ID:?Set APPLE_NOTARY_KEY_ID.}"
-: "${APPLE_NOTARY_ISSUER_ID:?Set APPLE_NOTARY_ISSUER_ID.}"
+if [[ -n "${SCREENCLIP_NOTARY_PROFILE:-}" ]]; then
+    notary_auth=(--keychain-profile "$SCREENCLIP_NOTARY_PROFILE")
+else
+    : "${APPLE_NOTARY_KEY:?Set APPLE_NOTARY_KEY or SCREENCLIP_NOTARY_PROFILE.}"
+    : "${APPLE_NOTARY_KEY_ID:?Set APPLE_NOTARY_KEY_ID.}"
+    : "${APPLE_NOTARY_ISSUER_ID:?Set APPLE_NOTARY_ISSUER_ID.}"
+    notary_auth=(--key "$APPLE_NOTARY_KEY" --key-id "$APPLE_NOTARY_KEY_ID" --issuer "$APPLE_NOTARY_ISSUER_ID")
+fi
 if [[ ! -d "$app" ]]; then
     printf '%s\n' "Built app not found: $app" >&2
     exit 1
@@ -24,30 +29,46 @@ if ! printf '%s\n' "$signature" | grep -q 'runtime'; then
     printf '%s\n' 'The Release app is missing the hardened runtime, which notarization requires.' >&2
     exit 1
 fi
+if ! printf '%s\n' "$signature" | grep -Fq "Authority=$APPLE_SIGNING_IDENTITY"; then
+    printf '%s\n' 'The app must be signed with the selected Developer ID Application identity.' >&2
+    exit 1
+fi
+if printf '%s\n' "$entitlements" | grep -A1 '<key>com.apple.security.get-task-allow</key>' | grep -q '<true/>'; then
+    printf '%s\n' 'Refusing to publish an app with the debugging entitlement enabled.' >&2
+    exit 1
+fi
 mkdir -p "$out"
+notarize() {
+    local target="$1" receipt="$2"
+    xcrun notarytool submit "$target" "${notary_auth[@]}" --wait --output-format json > "$receipt"
+    python3 - "$receipt" <<'PY'
+import json, sys
+result = json.load(open(sys.argv[1]))
+print(f"Notarization {result.get('id', 'unknown')}: {result.get('status', 'unknown')}")
+if result.get('status') != 'Accepted':
+    raise SystemExit('Apple did not accept this submission; see the notarization receipt.')
+PY
+}
 zip="$out/ScreenClip-notarize.zip"
 rm -f "$zip"
-ditto -c -k --sequesterRsrc --keepParent "$app" "$zip"
-xcrun notarytool submit "$zip" \
-    --key "$APPLE_NOTARY_KEY" \
-    --key-id "$APPLE_NOTARY_KEY_ID" \
-    --issuer "$APPLE_NOTARY_ISSUER_ID" \
-    --wait
-xcrun stapler staple "$app"
 stage=$(mktemp -d)
 trap 'rm -rf "$stage" "$zip"' EXIT
+ditto -c -k --sequesterRsrc --keepParent "$app" "$zip"
+notarize "$zip" "$out/ScreenClip-app-notarization.json"
+xcrun stapler staple "$app"
+xcrun stapler validate "$app"
+spctl --assess --type execute --verbose=2 "$app"
 cp -R "$app" "$stage/ScreenClip.app"
 ln -s /Applications "$stage/Applications"
 dmg="$out/ScreenClip.dmg"
 rm -f "$dmg"
 hdiutil create -volname ScreenClip -srcfolder "$stage" -ov -format UDZO "$dmg"
 codesign --sign "$APPLE_SIGNING_IDENTITY" --timestamp "$dmg"
-xcrun notarytool submit "$dmg" \
-    --key "$APPLE_NOTARY_KEY" \
-    --key-id "$APPLE_NOTARY_KEY_ID" \
-    --issuer "$APPLE_NOTARY_ISSUER_ID" \
-    --wait
+notarize "$dmg" "$out/ScreenClip-dmg-notarization.json"
 xcrun stapler staple "$dmg"
+xcrun stapler validate "$dmg"
+codesign --verify --strict "$dmg"
+spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg"
 (
     cd "$out"
     shasum -a 256 ScreenClip.dmg > SHA256SUMS

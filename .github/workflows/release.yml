@@ -111,20 +111,13 @@ jobs:
           set -euo pipefail
           tag="$GITHUB_REF_NAME"
           title="ScreenClip ${tag#v}"
-          notes="Notarized macOS download. Requires macOS 14 or later.
-
-          Verify the disk image:
-
-          \`\`\`
-          shasum -a 256 -c SHA256SUMS
-          \`\`\`
-
-          Open it and drag ScreenClip to Applications."
+          notes="../docs/release/$tag.md"
+          test -s "$notes"
           if gh release view "$tag" >/dev/null 2>&1; then
             gh release upload "$tag" ScreenClip.dmg SHA256SUMS --clobber
-            gh release edit "$tag" --title "$title" --notes "$notes"
+            gh release edit "$tag" --title "$title" --notes-file "$notes"
           else
-            gh release create "$tag" ScreenClip.dmg SHA256SUMS --title "$title" --notes "$notes"
+            gh release create "$tag" ScreenClip.dmg SHA256SUMS --verify-tag --title "$title" --notes-file "$notes"
           fi
 
       - name: Remove signing material
