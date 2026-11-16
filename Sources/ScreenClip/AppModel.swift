@@ -608,6 +608,7 @@ struct GrokConnectionCheck: Equatable {
     case .claude:
       guard let found = detection(.claude) else { return (ProviderPhrase.checking.english(.claude), false) }
       if !found.installed { return (ProviderPhrase.notFound.english(.claude), false) }
+      if found.outdated { return (AgentDetector.claudeNeedsUpdate, false) }
       if found.signedIn == false { return (ProviderPhrase.signInToStart.english(.claude), false) }
       return (ProviderPhrase.ready.english(.claude), true)
     case .external:

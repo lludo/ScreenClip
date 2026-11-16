@@ -81,6 +81,7 @@ import XCTest
       import sys,json,os
       here=os.path.dirname(os.path.abspath(__file__))
       if '--version' in sys.argv: print('9.9.9 (Claude Code)'); sys.exit(0)
+      if '--help' in sys.argv: sys.exit(0)
       if 'auth' in sys.argv: print(json.dumps({'loggedIn':True,'authMethod':'claude.ai'})); sys.exit(0)
       sys.stdin.readline()
       with open(os.path.join(here,'runs'),'a') as log: log.write('run\\n')
@@ -141,6 +142,7 @@ import XCTest
       #!/usr/bin/python3
       import sys,json
       if '--version' in sys.argv: print('9.9.9 (Claude Code)'); sys.exit(0)
+      if '--help' in sys.argv: sys.exit(0)
       if 'auth' in sys.argv: print(json.dumps({'loggedIn':True})); sys.exit(0)
       sys.stdin.readline()
       print(json.dumps({'type':'result','subtype':'success','is_error':False,'result':'','structured_output':{'outcome':'question','summary':'','question':'Ready?'}}),flush=True)

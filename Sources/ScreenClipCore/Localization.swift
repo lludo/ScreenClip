@@ -107,6 +107,7 @@ public enum CoreChrome {
     "This project's GitHub repository is public. Turn on Allow sending screenshots to the external assistant in the project settings before sending captures to Grok Bot. Approved screenshots would otherwise be pushed to a public branch.",
     "Turn on Allow sending screenshots to the external assistant in this project's settings before sending captures to Grok Bot.",
     "Choose a working Claude Code executable in Settings.",
+    "Update Claude Code to start work. This version has no automatic permission review.",
     "This Claude Code session already has a running turn.",
     "Choose a working Codex executable in Settings.",
     "Codex returned a repeated project-list cursor.",

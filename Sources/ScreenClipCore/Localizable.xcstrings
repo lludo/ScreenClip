@@ -3433,6 +3433,72 @@
         }
       }
     },
+    "Update Claude Code to start work. This version has no automatic permission review.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update Claude Code to start work. This version has no automatic permission review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请更新 Claude Code 以开始工作。此版本没有自动权限审核。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualiza Claude Code para empezar. Esta versión no tiene revisión automática de permisos."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作業を始めるには Claude Code をアップデートしてください。このバージョンには自動の権限レビューがありません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualize o Claude Code para começar. Esta versão não tem revisão automática de permissões."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisiere Claude Code, um loszulegen. Diese Version hat keine automatische Berechtigungsprüfung."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettez à jour Claude Code pour commencer. Cette version n’a pas de vérification automatique des autorisations."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "작업을 시작하려면 Claude Code를 업데이트하세요. 이 버전에는 자동 권한 검토가 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновите Claude Code, чтобы начать работу. В этой версии нет автоматической проверки разрешений."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請更新 Claude Code 以開始工作。此版本沒有自動權限審核。"
+          }
+        }
+      }
+    },
     "Grok Bot — not connected": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",

@@ -10,8 +10,10 @@ public struct AgentDetection: Identifiable, Equatable, Sendable {
   public var signedIn: Bool?
   public var detail: String
   public var id: AgentKind { kind }
+  /// The CLI runs but lacks something ScreenClip requires (Claude Code without `auto` permission mode).
+  public var outdated = false
   public var installed: Bool { version != nil }
-  public var usable: Bool { installed && signedIn != false }
+  public var usable: Bool { installed && signedIn != false && !outdated }
   public init(
     kind: AgentKind, path: String, version: String?, signedIn: Bool?, detail: String
   ) {
@@ -141,6 +143,15 @@ public enum AgentDetector {
         kind: .claude, path: path, version: nil, signedIn: nil,
         detail: ProviderPhrase.noResponse(kind: .claude, path: path))
     }
+    // Every turn passes `--permission-mode auto`. A CLI that lists its modes without it would
+    // fail each report, so hold the work and ask for an update instead.
+    let help = try? await CommandRunner.run(path, ["--help"], timeout: 15)
+    if let help, !supportsAutoPermissionMode(help: help.output) {
+      var found = AgentDetection(
+        kind: .claude, path: path, version: version, signedIn: nil, detail: claudeNeedsUpdate)
+      found.outdated = true
+      return found
+    }
     let status = try? await CommandRunner.run(path, ["auth", "status"], timeout: 15)
     let auth = status.flatMap { try? JSONDecoder().decode(JSONValue.self, from: Data($0.output.utf8)) }
     let signedIn = auth?["loggedIn"].bool
@@ -151,6 +162,20 @@ public enum AgentDetector {
     }
     return AgentDetection(
       kind: .claude, path: path, version: version, signedIn: signedIn, detail: detail)
+  }
+
+  public static let claudeNeedsUpdate =
+    "Update Claude Code to start work. This version has no automatic permission review."
+
+  /// False only when the help text lists permission modes and `auto` is not among them.
+  /// Unreadable or differently worded help is treated as supported, so detection never
+  /// blocks a CLI it cannot classify.
+  static func supportsAutoPermissionMode(help: String) -> Bool {
+    guard let flag = help.range(of: "--permission-mode") else { return true }
+    let tail = help[flag.upperBound...]
+    guard let open = tail.range(of: "(choices:"), let close = tail[open.upperBound...].firstIndex(of: ")")
+    else { return true }
+    return tail[open.upperBound..<close].contains("\"auto\"")
   }
 
   /// Whether an agent's error means it is signed out rather than that the work failed.

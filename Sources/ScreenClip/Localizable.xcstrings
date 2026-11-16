@@ -30361,68 +30361,134 @@
         }
       }
     },
-    "Reports go to the ScreenClip reports routine through a webhook. Grok Bot opens the pull request. Screenshots are sent only when the project allows it.": {
+    "Reports go to the ScreenClip reports routine through a webhook. Grok Bot opens the pull request. Approved screenshots are pushed to a screenclip/ branch in the project's repository.": {
       "comment": "Explains Grok Bot. Keep ScreenClip, Grok Bot, and the routine name ScreenClip reports.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reports go to the ScreenClip reports routine through a webhook. Grok Bot opens the pull request. Screenshots are sent only when the project allows it."
+            "value": "Reports go to the ScreenClip reports routine through a webhook. Grok Bot opens the pull request. Approved screenshots are pushed to a screenclip/ branch in the project's repository."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "报告通过 webhook 发到 ScreenClip reports 例程。Grok Bot 会打开拉取请求。只有项目允许时才会发送截图。"
+            "value": "报告通过 webhook 发到 ScreenClip reports 例程。Grok Bot 会打开拉取请求。已确认的截图会推送到项目仓库的 screenclip/ 分支。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Los informes van a la rutina ScreenClip reports por un webhook. Grok Bot abre la pull request. Las capturas se envían solo cuando el proyecto lo permite."
+            "value": "Los informes van a la rutina ScreenClip reports por un webhook. Grok Bot abre la pull request. Las capturas aprobadas se envían a una rama screenclip/ del repositorio del proyecto."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "レポートは webhook 経由で ScreenClip reports ルーチンに送られます。Grok Bot が pull request を開きます。スクリーンショットが送られるのは、プロジェクトが許可しているときだけです。"
+            "value": "レポートは webhook 経由で ScreenClip reports ルーチンに送られます。Grok Bot が pull request を開きます。承認済みのスクリーンショットは、プロジェクトのリポジトリの screenclip/ ブランチにプッシュされます。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Os relatórios vão para a rotina ScreenClip reports por um webhook. O Grok Bot abre o pull request. Capturas são enviadas só quando o projeto permite."
+            "value": "Os relatórios vão para a rotina ScreenClip reports por um webhook. O Grok Bot abre o pull request. As capturas aprovadas são enviadas para um branch screenclip/ no repositório do projeto."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Berichte gehen per Webhook an die Routine ScreenClip reports. Grok Bot öffnet den Pull Request. Screenshots werden nur gesendet, wenn das Projekt es erlaubt."
+            "value": "Berichte gehen per Webhook an die Routine ScreenClip reports. Grok Bot öffnet den Pull Request. Freigegebene Screenshots werden auf einen screenclip/-Branch im Repository des Projekts gepusht."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Les rapports partent vers la routine ScreenClip reports par un webhook. Grok Bot ouvre la pull request. Les captures ne partent que si le projet l’autorise."
+            "value": "Les rapports partent vers la routine ScreenClip reports par un webhook. Grok Bot ouvre la pull request. Les captures approuvées sont poussées vers une branche screenclip/ du dépôt du projet."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "리포트는 webhook으로 ScreenClip reports 루틴에 갑니다. Grok Bot이 pull request를 엽니다. 스크린샷은 프로젝트가 허용할 때만 보냅니다."
+            "value": "리포트는 webhook으로 ScreenClip reports 루틴에 갑니다. Grok Bot이 pull request를 엽니다. 승인된 스크린샷은 프로젝트 저장소의 screenclip/ 브랜치로 푸시됩니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Отчёты уходят в процедуру ScreenClip reports через webhook. Grok Bot открывает pull request. Снимки отправляются только если проект это разрешает."
+            "value": "Отчёты уходят в процедуру ScreenClip reports через webhook. Grok Bot открывает pull request. Одобренные снимки отправляются в ветку screenclip/ в репозитории проекта."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "報告透過 webhook 發到 ScreenClip reports 例程。Grok Bot 會開啟拉取請求。只有專案允許時才會傳送截圖。"
+            "value": "報告透過 webhook 發到 ScreenClip reports 例程。Grok Bot 會開啟拉取請求。已確認的截圖會推送到專案儲存庫的 screenclip/ 分支。"
+          }
+        }
+      }
+    },
+    "Update Claude Code to start work. This version has no automatic permission review.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update Claude Code to start work. This version has no automatic permission review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请更新 Claude Code 以开始工作。此版本没有自动权限审核。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualiza Claude Code para empezar. Esta versión no tiene revisión automática de permisos."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作業を始めるには Claude Code をアップデートしてください。このバージョンには自動の権限レビューがありません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualize o Claude Code para começar. Esta versão não tem revisão automática de permissões."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktualisiere Claude Code, um loszulegen. Diese Version hat keine automatische Berechtigungsprüfung."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettez à jour Claude Code pour commencer. Cette version n’a pas de vérification automatique des autorisations."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "작업을 시작하려면 Claude Code를 업데이트하세요. 이 버전에는 자동 권한 검토가 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновите Claude Code, чтобы начать работу. В этой версии нет автоматической проверки разрешений."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "請更新 Claude Code 以開始工作。此版本沒有自動權限審核。"
           }
         }
       }

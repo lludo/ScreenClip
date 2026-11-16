@@ -459,7 +459,7 @@ struct SettingsView: View {
             }
             Text(
               chrome:
-                "Reports go to the ScreenClip reports routine through a webhook. Grok Bot opens the pull request. Screenshots are sent only when the project allows it.",
+                "Reports go to the ScreenClip reports routine through a webhook. Grok Bot opens the pull request. Approved screenshots are pushed to a screenclip/ branch in the project's repository.",
               comment: "Explains Grok Bot. Keep ScreenClip, Grok Bot, and the routine name ScreenClip reports."
             ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
           } header: {

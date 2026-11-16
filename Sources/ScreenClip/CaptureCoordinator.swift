@@ -106,6 +106,9 @@ import ScreenClipCore
           let window = SelectionWindow(
             contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false,
             screen: screen)
+          // With `screen:`, AppKit offsets the content rect by that screen's origin. Place the
+          // overlay by its global frame so a secondary display is covered, not shifted off-screen.
+          window.setFrame(screen.frame, display: false)
           window.level = .screenSaver
           window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
           window.isReleasedWhenClosed = false
