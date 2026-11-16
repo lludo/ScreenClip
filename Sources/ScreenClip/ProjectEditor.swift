@@ -104,6 +104,27 @@ struct ProjectEditor: View {
             .font(.caption).foregroundStyle(.orange)
             .fixedSize(horizontal: false, vertical: true)
         }
+        Picker(selection: $project.codexApprovalMode) {
+          Text(chrome: "Automatic review (recommended)", comment: "Codex reviews permission requests automatically.")
+            .tag(CodexApprovalMode.automaticReview)
+          Text(chrome: "Ask me", comment: "Codex permission mode with manual approval.")
+            .tag(CodexApprovalMode.ask)
+          Text(chrome: "Full access (no approval prompts)", comment: "Codex permission mode without sandbox or approval prompts.")
+            .tag(CodexApprovalMode.fullAccess)
+        } label: {
+          Text(chrome: "Codex permissions", comment: "Project permission mode for Codex.")
+        }
+        Group {
+          switch project.codexApprovalMode {
+          case .automaticReview:
+            Text(chrome: "Codex reviews permission requests automatically while keeping the workspace sandbox. Questions about the fix still come to you. Applies to the next turn.", comment: "Explains automatic Codex approval review.")
+          case .ask:
+            Text(chrome: "Codex asks you when a command needs extra access. Applies to the next turn.", comment: "Explains manual Codex approvals.")
+          case .fullAccess:
+            Text(chrome: "Commands can access your Mac and the network without approval prompts. Use only for projects you trust. Applies to the next turn.", comment: "Explains full access for Codex.")
+          }
+        }.font(.caption).foregroundStyle(project.codexApprovalMode == .fullAccess ? .orange : .secondary)
+          .fixedSize(horizontal: false, vertical: true)
         Toggle(isOn: $project.autoMerge) {
           Text(
             chrome: "Merge fixes automatically after checks pass",

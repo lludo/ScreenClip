@@ -10,6 +10,34 @@ import XCTest
     "en", "zh-Hans", "es", "ja", "pt-BR", "de", "fr", "ko", "ru", "zh-Hant",
   ]
 
+  func testRenderCodexPermissionSettings() throws {
+    guard ProcessInfo.processInfo.environment["SCREENCLIP_RENDER_PERMISSIONS"] == "1" else {
+      throw XCTSkip("Set SCREENCLIP_RENDER_PERMISSIONS=1 to render the Codex permission controls.")
+    }
+    _ = NSApplication.shared
+    let root = try ScreenshotFixture.materialize()
+    let model = try AppModel(root: root, recoverInterruptedWork: false)
+    ScreenshotFixture.configure(model)
+    let output = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
+      .deletingLastPathComponent().deletingLastPathComponent().appendingPathComponent("build/permission-screenshots")
+    try FileManager.default.createDirectory(at: output, withIntermediateDirectories: true)
+    for mode in CodexApprovalMode.allCases {
+      var project = try XCTUnwrap(model.snapshot.projects.first)
+      project.codexApprovalMode = mode
+      _ = try render(ProjectEditor(model: model, project: project), name: mode.rawValue,
+        size: NSSize(width: 780, height: 960), locale: "en", appearance: .aqua, output: output)
+    }
+    var issue = try XCTUnwrap(model.snapshot.issues.first)
+    issue.turnID = "preview-turn"
+    model.worker.jobs.insert(issue.id)
+    defer { model.worker.jobs.remove(issue.id) }
+    let question = PendingQuestion(title: "Run the local Mac app tests?", requestID: .string("preview-approval"),
+      questions: .object(["command": .string("xcodebuild test -scheme Demo"), "availableDecisions": .array([.string("accept"), .string("decline"), .string("cancel")])]),
+      requestMethod: "item/commandExecution/requestApproval")
+    _ = try render(QuestionCard(model: model, issue: issue, question: question).padding(), name: "pending-approval",
+      size: NSSize(width: 700, height: 280), locale: "en", appearance: .aqua, output: output)
+  }
+
   func testRenderLocalizationScreenshots() async throws {
     guard ProcessInfo.processInfo.environment["SCREENCLIP_RENDER_LOCALIZATIONS"] == "1" else {
       throw XCTSkip("Set SCREENCLIP_RENDER_LOCALIZATIONS=1 to write locale screenshots.")
