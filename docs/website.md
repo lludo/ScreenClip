@@ -45,7 +45,9 @@ Current values:
 - `downloadUrl` is empty because no public release exists yet. Set it to the actual download URL after the release is published. ScreenClip is not on the Mac App Store.
 - `donateUrl` is empty, so the site shows no tip link.
 
-The structured data includes a zero-price offer only when a download URL is configured. The site explains the noncommercial-use restriction.
+The header **Free Download** button scrolls to the download section on every page, in every availability state. The localized v1.0.0 copy is ready; public links remain disabled until the [release gates](release/v1.0.0-status.md) are complete.
+
+The structured data includes a zero-price offer and version 1.0.0 only when a download URL is configured. The site explains the noncommercial-use restriction.
 
 There is no monitored support inbox yet. The support page says public support is not available rather than showing an unusable address.
 

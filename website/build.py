@@ -109,9 +109,7 @@ def render_actions(config, catalog=None, *, hero=False):
 
 
 def header_cta(config, catalog):
-    if not config.download_url:
-        return link(catalog.page("home") + "#download", catalog.get("nav.download"), "button button-primary button-small")
-    return link(config.download_url, catalog.get("download.headerButton"), "button button-primary button-small")
+    return link(catalog.page("home") + "#download", catalog.get("nav.download"), "button button-primary button-small")
 
 
 def source_line(config, catalog):
@@ -198,6 +196,7 @@ def structured_data(config, catalog=None):
         app["offers"] = offers
         app["isAccessibleForFree"] = True
         app["downloadUrl"] = config.download_url
+        app["softwareVersion"] = "1.0.0"
     faq = {
         "@type": "FAQPage",
         "inLanguage": catalog.html_lang,

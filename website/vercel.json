@@ -9,13 +9,23 @@
   "redirects": [
     {
       "source": "/",
-      "has": [{ "type": "host", "value": "www.screenclipai.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "www.screenclipai.com"
+        }
+      ],
       "destination": "https://screenclipai.com/",
       "permanent": true
     },
     {
       "source": "/:path*",
-      "has": [{ "type": "host", "value": "www.screenclipai.com" }],
+      "has": [
+        {
+          "type": "host",
+          "value": "www.screenclipai.com"
+        }
+      ],
       "destination": "https://screenclipai.com/:path*",
       "permanent": true
     }
@@ -26,18 +36,33 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'sha256-0vVUFBFrPEu26YLa8ussRWjV/H702yG6MvAg+ICWcv0=' 'sha256-U4sh3lgKCDvcoxGP0bRbXSZblQ3ivL6AQ2GzyYHr2SI=' 'sha256-h6ruzvrZXcMHZuBcTbRI/5tXZT0lOjuQVCol1MQkjwU=' 'sha256-vfm3ek+VnFWL0vgMK4S7Y452mtfV+O/VF96KEQKilOo=' 'sha256-MPZxedVdXwZxcnZ2ZqPwZpPOc8SGmB7nsPLF0iYNizI=' 'sha256-nqgLxusP17AayAyUUPZR6x1sbX19hw8DReJsBszMLZY=' 'sha256-o/hg6YmUT64uzWOc3zIyZF2Eu9TASD+Y+hGUOma2wcI=' 'sha256-FQ586XUZ8IRVxBPHtvYq4vqiBZMY/pAW9SifArqst4M=' 'sha256-t5P3a9waYjQUgS2s5Utlx3kH+WGnTWNOowMgnCjMzhE=' 'sha256-QWNPeWPFBDanSI0b0Shi/lAHU8ywTfpwKZ650k/nKZk='; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'sha256-ntuQqR0Bq0VmW1/m08FMsH+2AeYXbqW7UhPBMPlAYz4=' 'sha256-RqXClg2PPZmAaU5FZ7gO7q4RuM/jfgAuyxodF7/3P5s=' 'sha256-1U0E3hecd037V74UvLOAybn1WLJfYwiD7vlPgIr+5fo=' 'sha256-oEiiLWHvfm6bN0LdxmBw+0iRAQRNcdMVZgG4h2DltcQ=' 'sha256-MomGQJceFCWBTxjC+WaZfMsNDH+8Mx5hkm/cQbnaWCg=' 'sha256-BZAKNlneNsz/fhuIKVMEPx4oiRb+d58Yxb0w59CER7k=' 'sha256-6LvuiDP6QYCI/oFvUKndr0e3rtQ8z6XFnDMTDp+93Wk=' 'sha256-myWz+XZKAiuR1pQgIoNmbr0QXNf6+cJCLFprko333Jk=' 'sha256-HX98zfLi4gOSWGJT/o9YdoN6+8H9doyFYP564VE5Upk=' 'sha256-YeE9VxTsySfCT5X2fqH/7UMXc3vDCc06s0mxv+cDRNM='; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
         },
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=(), payment=()" },
-        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), payment=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        }
       ]
     },
     {
       "source": "/assets/h/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     }
   ]
