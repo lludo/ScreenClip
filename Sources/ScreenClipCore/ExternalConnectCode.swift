@@ -453,10 +453,17 @@ public enum ExternalConnectCode {
 }
 
 /// Links the app is registered to open. `screenclip://issues/<uuid>` opens a report.
+/// `screenclip://issues/<uuid>/<action>` runs a report action without opening a window, so a
+/// script or agent can recover a report; the unguessable id is what authorizes it.
 /// `screenclip://connect?code=` opens the Grok Bot setup sheet with that code.
 public enum ScreenClipURL {
+  /// The buttons a link may press: Reconcile chat, Continue, or both in that order.
+  public enum ReportAction: String, Equatable, Sendable, CaseIterable {
+    case reconcile, `continue`, resume
+  }
   public enum Route: Equatable, Sendable {
     case issue(UUID)
+    case issueAction(UUID, ReportAction)
     case connect(String)
   }
 
@@ -471,8 +478,12 @@ public enum ScreenClipURL {
       else { return nil }
       return .connect(code)
     case "issues":
-      guard let id = UUID(uuidString: url.lastPathComponent) else { return nil }
-      return .issue(id)
+      let parts = url.pathComponents.filter { $0 != "/" }
+      guard let first = parts.first, let id = UUID(uuidString: first) else { return nil }
+      if parts.count == 1 { return .issue(id) }
+      guard parts.count == 2, let action = ReportAction(rawValue: parts[1].lowercased())
+      else { return nil }
+      return .issueAction(id, action)
     default:
       return nil
     }

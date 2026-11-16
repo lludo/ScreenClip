@@ -42,6 +42,15 @@ import XCTest
   func testTypedCodexUserInputRetainsItsAnswerResponseFormat() async throws {
     try await exerciseApprovalAutomation(userInput: true)
   }
+  func testUnansweredQuestionIsAnsweredForAnAbsentTesterAndFreesItsSlot() async throws {
+    try await exerciseApprovalAutomation(userInput: true, unattended: true)
+  }
+  func testUnansweredApprovalIsDeclinedForAnAbsentTester() async throws {
+    try await exerciseApprovalAutomation(unattended: true)
+  }
+  func testApprovalThatCanOnlyBeCanceledKeepsWaitingWithoutASlot() async throws {
+    try await exerciseApprovalAutomation(unattended: true, declineOffered: false)
+  }
   func testOlderRuntimeCannotSilentlyFallBackToManualReviewOnRetry() async throws {
     try await exerciseWorker(projectLookupSupported: true, reviewerSupported: false)
   }
@@ -61,7 +70,7 @@ import XCTest
   private func exerciseApprovalAutomation(
     unsupported: Bool = false, recovery: CodexApprovalMode? = nil,
     genuineQuestion: Bool = false, activeChat: Bool = false, cancelDuringRecovery: Bool = false,
-    userInput: Bool = false
+    userInput: Bool = false, unattended: Bool = false, declineOffered: Bool = true
   ) async throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-approvals-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: root.appendingPathComponent("repo/.git"), withIntermediateDirectories: true)
@@ -106,7 +115,7 @@ import XCTest
       "params": .object([
         "threadId": .string("approval-thread"), "turnId": .string("approval-turn"),
         "reason": .string("Run local tests"), "command": .string("xcodebuild test"),
-        "availableDecisions": .array([.string("accept"), .string("decline")]),
+        "availableDecisions": .array([.string("accept"), .string(declineOffered ? "decline" : "cancel")]),
         "questions": .array([.object([
           "id": .string("layout"), "question": .string("Which layout?"),
         ])]),
@@ -119,6 +128,38 @@ import XCTest
     func requests() throws -> [JSONValue] {
       try String(contentsOf: root.appendingPathComponent("requests.jsonl"), encoding: .utf8)
         .split(separator: "\n").map { try JSONDecoder().decode(JSONValue.self, from: Data($0.utf8)) }
+    }
+    if unattended {
+      // Waiting for the tester does not hold the project's run slot.
+      XCTAssertNil(model.worker.occupiedSlots()[project.id])
+      let asked = try XCTUnwrap(question.askedAt)
+      await model.worker.answerUnattendedQuestions(now: asked.addingTimeInterval(599))
+      XCTAssertNil(model.issue(issue.id)?.questions.first?.reply)
+      await model.worker.answerUnattendedQuestions(now: asked.addingTimeInterval(601))
+      if declineOffered {
+        try await wait { (try? requests().contains { $0["id"].string == "pending-build" }) == true }
+        let response = try XCTUnwrap(requests().first { $0["id"].string == "pending-build" })
+        if userInput {
+          XCTAssertEqual(
+            response["result"]["answers"]["layout"]["answers"],
+            .array([.string(AgentWorker.unattendedAnswer)]))
+        } else {
+          XCTAssertEqual(response["result"]["decision"], .string("decline"))
+        }
+        XCTAssertEqual(model.issue(issue.id)?.status, .working)
+        XCTAssertEqual(model.worker.occupiedSlots()[project.id], 1)
+        XCTAssertNotNil(model.issue(issue.id)?.questions.first?.reply)
+        // The consumed request is never answered twice.
+        await model.worker.answerUnattendedQuestions(now: asked.addingTimeInterval(1200))
+        XCTAssertEqual(try requests().filter { $0["id"].string == "pending-build" }.count, 1)
+      } else {
+        XCTAssertEqual(model.issue(issue.id)?.status, .needsYou)
+        XCTAssertNil(model.issue(issue.id)?.questions.first?.reply)
+        XCTAssertFalse(try requests().contains { $0["id"].string == "pending-build" })
+      }
+      model.worker.jobs.remove(issue.id)
+      await model.worker.resetConnection()
+      return
     }
     if userInput {
       await model.worker.reply(issueID: issue.id, questionID: question.id, answers: ["layout": "Compact"])

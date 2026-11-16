@@ -248,6 +248,20 @@ final class ExternalConnectCodeTests: XCTestCase {
       ScreenClipURL.route(try XCTUnwrap(URL(string: "screenclip://Issues/\(issue.uuidString.lowercased())"))),
       .issue(issue))
     XCTAssertNil(ScreenClipURL.route(try XCTUnwrap(URL(string: "screenclip://issues/not-a-uuid"))))
+    for action in ScreenClipURL.ReportAction.allCases {
+      XCTAssertEqual(
+        ScreenClipURL.route(
+          try XCTUnwrap(URL(string: "screenclip://issues/\(issue.uuidString)/\(action.rawValue)"))),
+        .issueAction(issue, action))
+    }
+    XCTAssertEqual(
+      ScreenClipURL.route(try XCTUnwrap(URL(string: "screenclip://issues/\(issue.uuidString)/Resume"))),
+      .issueAction(issue, .resume))
+    for path in ["cancel", "archive", "continue/extra", "not-a-uuid/continue"] {
+      XCTAssertNil(
+        ScreenClipURL.route(
+          try XCTUnwrap(URL(string: "screenclip://issues/\(issue.uuidString)/\(path)"))), path)
+    }
     if case .success = ExternalConnectCode.parse("screenclip://issues/\(issue.uuidString)") {
       XCTFail("An issue link is not a setup code")
     }

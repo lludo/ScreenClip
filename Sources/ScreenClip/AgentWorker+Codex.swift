@@ -361,6 +361,8 @@ extension AgentWorker {
         }
       }
       model.notify(issue, text: title)
+      // A report waiting for the tester gives its slot to the next queued one.
+      pump()
       return
     }
     switch method {
