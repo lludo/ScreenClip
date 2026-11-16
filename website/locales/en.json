@@ -250,7 +250,6 @@
     "title": "A nudge when it’s time to retest",
     "body": "Enable notifications and ScreenClip lets you know when a fix merges. Rebuild or deploy your app, then come back to the report to retest.",
     "open": "Open the full-size notification screenshot",
-    "alt": "Two ScreenClip macOS notifications saying: Fix merged. Ready to rebuild and retest.",
-    "caption": "Real macOS notifications. App interface shown in English."
+    "alt": "Two ScreenClip macOS notifications saying: Fix merged. Ready to rebuild and retest."
   }
 }

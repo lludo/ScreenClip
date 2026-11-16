@@ -250,7 +250,6 @@
     "title": "Un rappel au moment de retester",
     "body": "Activez les notifications et ScreenClip vous prévient lorsqu’un correctif est fusionné. Recompilez ou déployez votre app, puis revenez au signalement pour retester.",
     "open": "Ouvrir la capture des notifications en taille réelle",
-    "alt": "Deux notifications macOS de ScreenClip annonçant qu’un correctif est fusionné et prêt à être recompilé et retesté.",
-    "caption": "Vraies notifications macOS. Interface de l’app en anglais."
+    "alt": "Deux notifications macOS de ScreenClip annonçant qu’un correctif est fusionné et prêt à être recompilé et retesté."
   }
 }
