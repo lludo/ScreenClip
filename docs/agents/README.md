@@ -49,6 +49,7 @@ Codex and Claude Code follow the same contract, so the rest of ScreenClip stays 
 - The approved screenshots only (annotated, with redactions flattened), never unredacted originals.
 - A JSON Schema for the result (`AgentPrompt.resultSchema`).
 - An environment without GitHub tokens or git redirect variables (`ProcessEnvironment.agent`). Agents cannot push or open PRs with ScreenClip's credentials.
+- Instructions to work autonomously: make reasonable implementation choices, investigate failures, and run checks without conversational permission requests. Questions are reserved for a missing decision that materially affects the intended result and cannot be resolved from the repository or evidence. Runtime permissions still follow the configured agent mode; see [Codex permissions](codex.md#at-a-glance).
 
 **The agent returns** one structured result per turn:
 

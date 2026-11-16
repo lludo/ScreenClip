@@ -32,7 +32,7 @@ import XCTest
           with open(os.path.join(here,'requests.jsonl'),'a') as log: log.write(line)
           method=m.get('method'); result={}
           if method=='project/list': result={'data':[],'nextCursor':None}
-          if method=='thread/start': result={'thread':{'id':'stalled-thread','status':{'type':'idle'}}}
+          if method=='thread/start': result={'thread':{'id':'stalled-thread','status':{'type':'idle'}},'approvalsReviewer':m['params'].get('approvalsReviewer','user')}
           if method=='turn/start': result={'turn':{'id':'turn-1'}}
           send({'id':m['id'],'result':result})
           # turn/completed never arrives.

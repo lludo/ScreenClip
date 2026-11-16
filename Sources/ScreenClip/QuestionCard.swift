@@ -102,6 +102,17 @@ struct QuestionCard: View {
         }
         FlowLayout {
           if approvalOptions.permits("accept") {
+            if issue.turnID != nil && model.worker.jobs.contains(issue.id) {
+              Button {
+                sending = true
+                Task {
+                  await model.worker.allowAndAutomate(issueID: issue.id, questionID: question.id)
+                  sending = false
+                }
+              } label: {
+                Text(chrome: "Allow and automate this project", comment: "Allows this request once and enables automatic Codex risk review for this project.")
+              }.disabled(sending)
+            }
             Button { decide(true) } label: {
               Text(chrome: "Allow once", comment: "Approves one Codex command.")
             }.disabled(sending)
