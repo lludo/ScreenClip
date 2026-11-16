@@ -99,11 +99,7 @@ struct ProjectEditor: View {
           Text(chrome: "Project default", comment: "Picker for this project's default provider.")
             .fixedSize(horizontal: false, vertical: true)
         }
-        if showsGrokOptInNote {
-          Text(verbatim: Chrome.stored(AgentSelection.grokOptInNote, locale: locale))
-            .font(.caption).foregroundStyle(.orange)
-            .fixedSize(horizontal: false, vertical: true)
-        }
+
         Picker(selection: $project.codexApprovalMode) {
           Text(chrome: "Automatic review (recommended)", comment: "Codex reviews permission requests automatically.")
             .tag(CodexApprovalMode.automaticReview)
@@ -131,20 +127,6 @@ struct ProjectEditor: View {
             comment: "Enables automatic merge."
           ).fixedSize(horizontal: false, vertical: true)
         }
-        Toggle(
-          isOn: Binding(
-            get: { project.sendsExternalScreenshots },
-            set: { project.allowExternalScreenshots = $0 })) {
-          Text(
-            chrome: "Allow sending screenshots to the external assistant",
-            comment: "Project opt-in for sending screenshots to Grok Bot."
-          ).fixedSize(horizontal: false, vertical: true)
-        }
-        Text(
-          chrome:
-            "Grok Bot receives approved screenshots as files on a screenclip/ branch in this repository. Leave this off unless that is acceptable. Public repositories need this too, because those files would be readable by anyone who can see the repository, and pushed files stay in GitHub history even after the branch is deleted. The toggle is off until you turn it on.",
-          comment: "Explains the screenshot opt-in. Keep Grok Bot, screenclip/, and GitHub."
-        ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
       }.textFieldStyle(.roundedBorder)
       if let error {
         Text(verbatim: Chrome.stored(error, locale: locale)).font(.caption).foregroundStyle(.red)
@@ -202,10 +184,6 @@ struct ProjectEditor: View {
     let connected = AgentKind.allCases.filter { model.detection($0)?.usable == true }
     guard let chosen = project.defaultAgent, !connected.contains(chosen) else { return connected }
     return connected + [chosen]
-  }
-  private var showsGrokOptInNote: Bool {
-    AgentSelection.projectDefault(project, system: model.snapshot.settings.preferredAgent) == .external
-      && !project.sendsExternalScreenshots
   }
   private var isExisting: Bool { model.snapshot.projects.contains(where: { $0.id == project.id }) }
   private func load(_ value: Project) {

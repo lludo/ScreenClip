@@ -1,6 +1,6 @@
 # ScreenClip validation
 
-Updated: November 14, 2026. Development host: macOS 27.0.1, Xcode 27.2, Swift 6.4.2, Apple Silicon.
+Updated: November 15, 2026. Development host: macOS 27.0.1, Xcode 27.2, Swift 6.4.2, Apple Silicon.
 
 This page records what is verified and how. What is still open is in the [roadmap](roadmap.md#open-gates). The macOS CI job that runs these checks is in [Development](development.md#ci).
 
@@ -15,10 +15,18 @@ The checks below describe the coverage and the live verification completed on th
 | Routing | Ambiguity, URL boundaries, most-specific website rule, case-insensitive schemes | — | Browser URL permission prompts |
 | Codex | JSON-RPC correlation and timeouts, questions and replies in one thread, cancellation during project lookup and before turn acknowledgement, authentication (nine regressions) | A synthetic fix through validation, GitHub CI, PR, and confirmed merge in a private fixture; restart and resume in the same chat | Desktop sidebar grouping fails; see below |
 | Claude Code | Fake-CLI client and worker tests: arguments, evidence input, progress, structured and fenced results, usage, failures, cancellation, missing sessions, timeouts are wired, detection, holding work while signed out | The installed CLI (2.1.128) has every flag and sandbox setting used; plugin manifests pass `claude plugin validate` | A live fix through PR and merge; permanent plugin installation; an interactive plugin fix |
-| Grok Bot | `ExternalAssistantTests`: payload encoding, slug and branch names, opt-in, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, the Authorization header on a test POST (line breaks rejected, removed on a cross-host redirect), Keychain update in place. `ExternalAssistantAppTests`: stays in the agent list, submit refused until configured and the project opts in, a restart during the POST stays retryable | — | A live webhook, an evidence push to a real repository, pull-request discovery, and auto-merge while `.screenclip/` is still present; see [Grok Bot](agents/external-assistant.md#verification-status) |
+| Grok Bot | `ExternalAssistantTests`: payload encoding, slug and branch names, always-enabled screenshot sharing, idempotent retry, pull-request matching, the `.screenclip/` merge guard, detection, the Authorization header on a test POST (line breaks rejected, removed on a cross-host redirect), Keychain update in place. `ExternalAssistantAppTests`: stays in the agent list, submit refused until configured, a restart during the POST stays retryable | — | A live webhook, an evidence push to a real repository, pull-request discovery, and auto-merge while `.screenclip/` is still present; see [Grok Bot](agents/external-assistant.md#verification-status) |
 | Git and GitHub safety | Changed-source rejection, stale head and revision merge rejection, worktree from `origin/<base>` excludes unpushed commits, worktree cleanup, GitHub remote parsing, PR body redaction | Fixes published and merged through GitHub PRs | — |
 | Process handling | A background grandchild holding the pipe cannot hang a command; a timeout terminates the whole process tree; agents get no GitHub tokens | — | — |
 | Plugin and scripts | MCP server: approved images only, private fields excluded, invalid arguments and malformed requests answered with errors; queue review: read-only access, searches, archive eligibility | — | Public directory submission |
+
+## Before / After PR evidence
+
+`PRScreenshotEvidenceTests` covers flattened Before image copying, ignored PNG staging, immutable commit URLs and URL encoding, missing/invalid After rejection, revision isolation, and symbolic-link rejection. `PRScreenshotPublishingTests` verifies missing evidence schedules a repair before publication. `PromptEfficiencyTests` checks that first and resumed prompts carry the authorized screenshot contract.
+
+The opt-in live test invokes the native worker's completed-result, validation, publish, follow-up, and auto-merge paths against a dedicated private repository. It renders a real native purchase-button view at 80px and 240px without accessing the screen, verifies Before/After bytes through GitHub's contents API, checks that a follow-up refreshes the same PR's description, and verifies evidence remains accessible after merge. No LLM is called by this test. Run with `SCREENCLIP_SCREENSHOT_LIVE_REPO=/path/to/screenclip-integration-* bash scripts/test.sh --filter PRScreenshotPublishingTests.testLiveWorkerPublishesUpdatesAndMergesScreenshots`. The fixture must have an initial commit and GitHub origin; it must not contain real user data. `SCREENCLIP_SETTINGS_SNAPSHOT=/absolute/output.png` enables the separate project-settings render for visual review.
+
+Live verification on November 15 passed in [synthetic fixture PR #2](https://github.com/lludo/screenclip-integration-screenshots-20261115/pull/2): original and follow-up evidence uploaded, exact hosted bytes matched, the native worker auto-merged, and both images rendered in Safari after branch deletion. GitHub's status recorded the successful local checks; no paid Actions workflow was needed. Final local checks passed: 203 native tests (three optional tests skipped), 14 plugin tests, five queue tests, webhook checks, localization catalogs, and Debug/Release builds with signature verification. The project-settings comparison uses synthetic data: [Before](screenshots/pr-screenshots-settings-before.png) / [After](screenshots/pr-screenshots-settings-after.png).
 
 ## Code and documentation review — November 15
 

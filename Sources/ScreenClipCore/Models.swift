@@ -55,9 +55,9 @@ public struct Project: Codable, Identifiable, Equatable {
   public var bundleIDs: [String]
   public var validationCommand: String
   public var autoMerge: Bool
-  /// Off until a project explicitly allows approved screenshots to leave the Mac for Grok Bot.
+  /// Legacy persisted preference, retained for decoding older queues. Sharing is always enabled.
   public var allowExternalScreenshots: Bool? = nil
-  public var sendsExternalScreenshots: Bool { allowExternalScreenshots ?? false }
+  public var sendsExternalScreenshots: Bool { true }
   /// nil follows the system default. An explicit provider stays when the system default changes.
   public var defaultAgent: AgentKind? = nil
   public var codexApprovalMode: CodexApprovalMode = .automaticReview
@@ -471,7 +471,7 @@ public struct AppSettings: Codable, Equatable {
   /// Missing in older queues uses the default; an explicitly empty value disables the add-on.
   public var defaultPromptAddOn: String?
   public static let defaultPromptAddOnText = """
-    When preparing a pull request for a visual fix, include a clearly labeled Before / After comparison in the PR description: the original issue screenshot and a new screenshot of the fixed version after rebuilding and retesting the reported scenario. Use the same view, state, and scale where practical so the change is easy to compare at a glance. Briefly describe the retest and its result. Only include images approved for sharing. If either screenshot or the retest is unavailable, explain what is missing and why; do not invent evidence or claim a retest you did not perform.
+    When preparing a pull request for a visual fix, include a clearly labeled Before / After comparison in the PR description: the original issue screenshot and a new screenshot of the fixed version after rebuilding and retesting the reported scenario. Use the same view, state, and scale where practical so the change is easy to compare at a glance. Briefly describe the retest and its result. ScreenClip publishes the report screenshots and retested images to the project repository. If either screenshot or the retest is unavailable, explain what is missing and why; do not invent evidence or claim a retest you did not perform.
     """
   public var effectivePromptAddOn: String {
     (defaultPromptAddOn ?? Self.defaultPromptAddOnText)

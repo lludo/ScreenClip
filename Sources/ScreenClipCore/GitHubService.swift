@@ -26,7 +26,9 @@ public enum GitHubService {
     if !changes.isEmpty {
       let files = try await CommandRunner.checked(
         GitWorkspace.git, ["ls-files", "--modified", "--deleted", "--others", "--exclude-standard", "-z"], cwd: path)
-      let paths = Array(Set(files.split(separator: "\0").map(String.init))).sorted()
+      let staged = try await CommandRunner.checked(
+        GitWorkspace.git, ["diff", "--cached", "--name-only", "-z"], cwd: path)
+      let paths = Array(Set((files + staged).split(separator: "\0").map(String.init))).sorted()
       guard !paths.isEmpty else { throw ScreenClipError.message("No source paths to publish.") }
       _ = try await CommandRunner.checked(GitWorkspace.git, ["add", "--"] + paths, cwd: path)
       guard await shouldContinue() else { throw CancellationError() }
@@ -46,6 +48,7 @@ public enum GitHubService {
     else {
       throw ScreenClipError.message("The source or issue changed before push. Publication stopped.")
     }
+    let screenshots = try PRScreenshotEvidence.markdown(issue: issue, worktree: path, remote: remote, head: head)
     _ = try await CommandRunner.checked(
       GitWorkspace.git, ["push", "-u", "origin", branch], cwd: path)
     let existing = try await CommandRunner.checked(
@@ -53,19 +56,19 @@ public enum GitHubService {
       cwd: path)
     let list = try JSONDecoder().decode(JSONValue.self, from: Data(existing.utf8)).array
     guard await shouldContinue() else { throw CancellationError() }
-    if let pr = list.first {
-      guard pr["baseRefName"].string == project.baseBranch, let url = pr["url"].string else {
-        throw ScreenClipError.message("The existing PR targets a different base branch.")
-      }
-      return (url, head)
-    }
-    // Preserve newlines and avoid shell interpolation in PR content.
     let body =
-      "\(summary)\n\nValidation: `\(redactSecrets(project.validationCommand))`\n\nScreenClip report: \(issue.reportReference ?? issue.id.uuidString)\nIssue ID: \(issue.id.uuidString)\nInput revision: \(issue.revision)\n\nScreenshots and source context remain in ScreenClip."
+      "\(summary)\n\n\(screenshots)\n\nValidation: `\(redactSecrets(project.validationCommand))`\n\nScreenClip report: \(issue.reportReference ?? issue.id.uuidString)\nIssue ID: \(issue.id.uuidString)\nInput revision: \(issue.revision)"
     let file = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(
       "screenclip-pr-\(UUID().uuidString).md")
     try body.write(to: file, atomically: true, encoding: .utf8)
     defer { try? FileManager.default.removeItem(at: file) }
+    if let pr = list.first {
+      guard pr["baseRefName"].string == project.baseBranch, let url = pr["url"].string else {
+        throw ScreenClipError.message("The existing PR targets a different base branch.")
+      }
+      _ = try await CommandRunner.checked(gh, ["pr", "edit", url, "--body-file", file.path], cwd: path)
+      return (url, head)
+    }
     let url = try await CommandRunner.checked(
       gh,
       [

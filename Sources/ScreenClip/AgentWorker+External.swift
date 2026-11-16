@@ -55,20 +55,6 @@ extension AgentWorker {
         AgentPicker.externalAvailability(configured: false, hasProject: true, projectOptIn: true).hint
           ?? "Grok Bot is not connected.")
     }
-    if !project.sendsExternalScreenshots {
-      let remote = try await CommandRunner.checked(
-        GitWorkspace.git, ["remote", "get-url", "origin"], cwd: project.path)
-      let parsed = GitHubRepository.parse(remote: remote)
-      var isPublic: Bool?
-      if let parsed {
-        isPublic = await GitHubService.repositoryIsPublic(
-          parsed.slug, gh: AgentDetector.ghPath(model.snapshot.settings), cwd: project.path)
-      }
-      throw ScreenClipError.message(
-        ExternalScreenshotGate.refusal(optIn: false, repositoryIsPublic: isPublic)
-          ?? "Turn on Allow sending screenshots to the external assistant in this project's settings before sending captures to Grok Bot."
-      )
-    }
     let repo = try await githubRepo(project)
     let branch =
       issue.branch

@@ -72,6 +72,12 @@ extension AgentWorker {
         $0.resultSummary = summary
         $0.record("Running project validation", status: .working)
       }
+      do {
+        try await PRScreenshotEvidence.prepare(issue: issue, worktree: path)
+      } catch {
+        if scheduleRepair(id, message: error.localizedDescription) { return }
+        throw error
+      }
       let receipt = try await GitWorkspace.validate(project: project, path: path)
       guard receipt.passed else {
         let feedback = "Project validation failed:\n" + receipt.output
