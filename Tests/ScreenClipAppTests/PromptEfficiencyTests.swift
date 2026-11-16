@@ -57,6 +57,18 @@ import XCTest
     XCTAssertTrue(disabled.text.contains("do not commit, push, open a PR"))
   }
 
+  func testScreenshotContractReplacesPublicationBanOnFirstAndResumedTurns() {
+    var issue = issue()
+    for thread in [nil, "thread"] as [String?] {
+      if let thread { issue.deliveredContext = AgentPrompt.delivered(issue, threadID: thread) }
+      let prompt = AgentPrompt.turn(for: issue, project: project, threadID: thread).text
+      XCTAssertTrue(prompt.contains(PRScreenshotEvidence.directory(for: issue) + "/after/"))
+      XCTAssertTrue(prompt.contains("Screenshot publication is authorized"))
+      XCTAssertFalse(prompt.contains("merge, publish screenshots"))
+      XCTAssertFalse(prompt.contains("does not authorize publishing screenshots"))
+    }
+  }
+
   func testResumedTurnSendsOnlyNewEvidence() {
     var issue = issue()
     issue.questions = [PendingQuestion(title: "Wrap it?")]

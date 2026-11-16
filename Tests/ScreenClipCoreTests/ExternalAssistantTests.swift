@@ -3,7 +3,7 @@ import XCTest
 @testable import ScreenClipCore
 
 final class ExternalAssistantTests: XCTestCase {
-  func testPromptAddOnIsIncludedInEvidenceAndWebhookAndCanBeDisabled() throws {
+  func testScreenshotContractAndOptionalPromptAddOnReachEvidenceAndWebhook() throws {
     let project = Project(name: "Demo", path: "/tmp/demo")
     let issue = Issue(
       projectID: project.id, title: "Clipped", capture: Capture(
@@ -18,7 +18,8 @@ final class ExternalAssistantTests: XCTestCase {
         let object = try jsonObject(ExternalAssistant.json(payload))
         XCTAssertEqual(
           object["promptAddOn"] as? String,
-          settings.effectivePromptAddOn.isEmpty ? nil : settings.effectivePromptAddOn)
+          [ExternalAssistant.screenshotPublicationInstructions, settings.effectivePromptAddOn]
+            .filter { !$0.isEmpty }.joined(separator: "\n\n"))
         XCTAssertEqual(object["notes"] as? [String], ["Report evidence"])
       }
     }
@@ -162,23 +163,13 @@ final class ExternalAssistantTests: XCTestCase {
     XCTAssertNil(GitHubRepository.parse(remote: "https://notgithub.com/lludo/ScreenClip"))
   }
 
-  func testOptInIsRequiredForPublicAndPrivateRepositories() {
-    let publicRefusal = ExternalScreenshotGate.refusal(optIn: false, repositoryIsPublic: true)
-    let privateRefusal = ExternalScreenshotGate.refusal(optIn: false, repositoryIsPublic: false)
-    let unknownRefusal = ExternalScreenshotGate.refusal(optIn: false, repositoryIsPublic: nil)
-    XCTAssertTrue(publicRefusal?.contains("public") == true)
-    XCTAssertTrue(privateRefusal?.contains("Allow sending screenshots") == true)
-    XCTAssertFalse(privateRefusal?.contains("public") == true)
-    XCTAssertEqual(privateRefusal, unknownRefusal)
-    XCTAssertNil(ExternalScreenshotGate.refusal(optIn: true, repositoryIsPublic: true))
-    XCTAssertNil(ExternalScreenshotGate.refusal(optIn: true, repositoryIsPublic: false))
-    let older: [String: Any] = [
-      "id": UUID().uuidString, "name": "P", "path": "/p", "baseBranch": "main", "origins": [String](),
-      "bundleIDs": [String](), "validationCommand": "", "autoMerge": true,
-    ]
-    let decoded = try? JSONDecoder().decode(
-      Project.self, from: JSONSerialization.data(withJSONObject: older))
-    XCTAssertEqual(decoded?.sendsExternalScreenshots, false)
+  func testScreenshotSharingIsAlwaysEnabledForOlderAndOptedOutProjects() throws {
+    var project = Project(name: "P", path: "/p")
+    for preference: Bool? in [nil, false, true] {
+      project.allowExternalScreenshots = preference
+      let decoded = try JSONDecoder().decode(Project.self, from: JSONEncoder().encode(project))
+      XCTAssertTrue(decoded.sendsExternalScreenshots)
+    }
   }
 
   func testGrokDetectionAndPickerAvailability() {
@@ -239,7 +230,7 @@ final class ExternalAssistantTests: XCTestCase {
     let optedOut = AgentPicker.externalAvailability(
       configured: true, hasProject: true, projectOptIn: false)
     XCTAssertTrue(optedOut.enabled)
-    XCTAssertEqual(optedOut.hint, AgentSelection.grokOptInNote)
+    XCTAssertNil(optedOut.hint)
     let available = AgentPicker.externalAvailability(
       configured: true, hasProject: true, projectOptIn: true)
     XCTAssertTrue(available.enabled)

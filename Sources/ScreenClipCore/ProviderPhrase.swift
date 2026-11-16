@@ -132,10 +132,6 @@ public enum ProviderPhrase: String, CaseIterable, Sendable {
 
 /// System default, then project default, then the capture's own choice.
 public enum AgentSelection {
-  /// Shown when Grok Bot is chosen and the project has not allowed screenshot sharing.
-  public static let grokOptInNote =
-    "Grok Bot is selected, but Allow sending screenshots to the external assistant is off. Turn it on before screenshots can be sent."
-
   public static func systemDefault(_ settings: AppSettings) -> AgentKind {
     settings.preferredAgent
   }

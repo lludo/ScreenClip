@@ -29,7 +29,7 @@ import XCTest
     XCTAssertEqual(model.detection(.external)?.label, "Grok Bot")
   }
 
-  func testSubmitRefusesGrokUntilConfiguredAndTheProjectOptsIn() throws {
+  func testSubmitRequiresConnectionButNoScreenshotOptIn() throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       "screenclip-grok-submit-" + UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: root) }
@@ -54,17 +54,6 @@ import XCTest
         webhookURL: "https://assistant.example/hook", authorization: "Bearer secret",
         testSucceeded: false)
     }
-    XCTAssertThrowsError(
-      try model.submit(
-        imageData: Data([1]), originalData: nil, annotations: [], note: "Clipped",
-        context: CaptureContext(), projectID: project.id, existingID: nil, draft: false,
-        agent: .external)
-    ) { error in
-      XCTAssertTrue(error.localizedDescription.contains("screenshots"))
-    }
-    var opted = project
-    opted.allowExternalScreenshots = true
-    try model.saveProject(opted)
     try model.submit(
       imageData: Data([1]), originalData: nil, annotations: [], note: "Clipped",
       context: CaptureContext(), projectID: project.id, existingID: nil, draft: false,

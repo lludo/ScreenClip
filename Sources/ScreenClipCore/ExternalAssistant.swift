@@ -131,6 +131,10 @@ public enum ExternalAssistant {
     return paths
   }
 
+  public static let screenshotPublicationInstructions = """
+    Screenshot publication to this repository is authorized for this report; no separate sharing approval is required. For a visual fix, rebuild and retest, capture real After PNGs, and embed a clearly labeled Before / After comparison in the PR description. The original capture PNGs are in evidence.paths at evidence.commit; link them using immutable GitHub commit URLs. Commit the new retest images outside .screenclip/ before deleting the temporary handoff directory, and link those images at their immutable commit too, so removing .screenclip/ and deleting the branch do not break the comparison. Update the comparison on follow-up revisions. Do not substitute mockups or claim unavailable evidence; report a concrete capture blocker instead of a completed visual fix without images.
+    """
+
   /// The file committed to GitHub cannot contain its own commit id. `commit` is null in that
   /// file and the webhook sends the id of the commit that contains it.
   public static func makePayload(
@@ -168,7 +172,8 @@ public enum ExternalAssistant {
         paths: evidencePaths(reportNumber: number, captureCount: issue.captures.count)),
       delivery: delivery, workspaceID: issue.workspaceID.uuidString,
       previousPullRequests: history,
-      promptAddOn: settings.effectivePromptAddOn.isEmpty ? nil : settings.effectivePromptAddOn)
+      promptAddOn: [screenshotPublicationInstructions, settings.effectivePromptAddOn]
+        .filter { !$0.isEmpty }.joined(separator: "\n\n"))
   }
 
   public static func makeCancelPayload(
@@ -446,20 +451,6 @@ public struct GitHubRepository: Equatable, Sendable {
   }
 }
 
-public enum ExternalScreenshotGate {
-  /// Opt-in is required for every repository. A public repository gets a more specific refusal
-  /// until that per-project toggle is on.
-  public static func refusal(optIn: Bool, repositoryIsPublic: Bool?) -> String? {
-    guard !optIn else { return nil }
-    if repositoryIsPublic == true {
-      return
-        "This project's GitHub repository is public. Turn on Allow sending screenshots to the external assistant in the project settings before sending captures to Grok Bot. Approved screenshots would otherwise be pushed to a public branch."
-    }
-    return
-      "Turn on Allow sending screenshots to the external assistant in this project's settings before sending captures to Grok Bot."
-  }
-}
-
 public struct ExternalAgentAvailability: Equatable {
   public var enabled: Bool
   public var hint: String?
@@ -490,9 +481,6 @@ public enum AgentPicker {
     if !hasProject {
       return ExternalAgentAvailability(
         enabled: false, hint: "Choose a project that can share screenshots with Grok Bot.")
-    }
-    if !projectOptIn {
-      return ExternalAgentAvailability(enabled: true, hint: AgentSelection.grokOptInNote)
     }
     return ExternalAgentAvailability(enabled: true, hint: nil)
   }
