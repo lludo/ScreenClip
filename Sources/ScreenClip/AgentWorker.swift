@@ -401,8 +401,18 @@ import ScreenClipCore
       try model.updateIssue(id) {
         $0.turnID = nil
         $0.dispatchUncertain = false
+        // A request card cannot be answered once its turn is canceled. Left unanswered it
+        // would hide Continue and block Archive on the canceled report.
+        for i in $0.questions.indices
+        where $0.questions[i].requestID != nil && $0.questions[i].reply == nil {
+          $0.questions[i].reply = "Expired request; continue the issue to ask again"
+        }
         $0.record("Canceled; existing workspace and PR retained", status: .canceled)
       }
+    }
+    for (key, owner) in requestOwners where owner == id {
+      pendingRequests.remove(key)
+      requestOwners.removeValue(forKey: key)
     }
     if issue.resolvedAgent == .claude, let session = issue.threadID {
       await claude.cancel(sessionID: session)

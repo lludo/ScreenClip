@@ -46,7 +46,7 @@ public enum GitHubService {
     _ = try await CommandRunner.checked(
       GitWorkspace.git, ["push", "-u", "origin", branch], cwd: path)
     let existing = try await CommandRunner.checked(
-      gh, ["pr", "list", "--head", branch, "--state", "open", "--json", "url,baseRefName"],
+      gh, ["pr", "list", "--head", branch, "--state", "open", "--json", "url,baseRefName,isCrossRepository"],
       cwd: path)
     let list = try JSONDecoder().decode(JSONValue.self, from: Data(existing.utf8)).array
     guard await shouldContinue() else { throw CancellationError() }
@@ -56,7 +56,8 @@ public enum GitHubService {
       "screenclip-pr-\(UUID().uuidString).md")
     try body.write(to: file, atomically: true, encoding: .utf8)
     defer { try? FileManager.default.removeItem(at: file) }
-    if let pr = list.first {
+    // A fork can open a pull request from a branch with the same name; that one is not ours.
+    if let pr = list.first(where: { $0["isCrossRepository"].bool != true }) {
       guard pr["baseRefName"].string == project.baseBranch, let url = pr["url"].string else {
         throw ScreenClipError.message("The existing PR targets a different base branch.")
       }
@@ -201,7 +202,9 @@ public enum GitHubService {
   public static func commitEvidence(directory: String, message: String, cwd: String) async throws
     -> String
   {
-    _ = try await CommandRunner.checked(GitWorkspace.git, ["add", "--", directory], cwd: cwd)
+    // Forced, like the Before / After evidence: an ignore rule such as `*.png` would otherwise
+    // leave the screenshots out of a commit whose webhook still names them.
+    _ = try await CommandRunner.checked(GitWorkspace.git, ["add", "--force", "--", directory], cwd: cwd)
     let status = try await CommandRunner.checked(
       GitWorkspace.git, ["status", "--porcelain", "--", directory], cwd: cwd)
     if !status.isEmpty {

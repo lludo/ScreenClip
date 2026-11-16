@@ -16,6 +16,7 @@ struct ShortcutRecorder: NSViewRepresentable {
   }
   func updateNSView(_ field: RecorderField, context: Context) {
     field.stringValue = settings.shortcutDescription
+    field.saved = settings.shortcutDescription
     field.record = { key, modifiers, label in
       settings.shortcutKey = key
       settings.shortcutModifiers = modifiers
@@ -25,6 +26,8 @@ struct ShortcutRecorder: NSViewRepresentable {
 }
 final class RecorderField: NSTextField {
   var record: ((UInt32, UInt32, String) -> Void)?
+  /// The shortcut to show again when recording is abandoned.
+  var saved = ""
   override var acceptsFirstResponder: Bool { true }
   override func mouseDown(with event: NSEvent) {
     window?.makeFirstResponder(self)
@@ -33,6 +36,7 @@ final class RecorderField: NSTextField {
   }
   override func keyDown(with event: NSEvent) {
     if event.keyCode == 53 {
+      stringValue = saved
       window?.makeFirstResponder(nil)
       return
     }
@@ -63,12 +67,13 @@ final class RecorderField: NSTextField {
     label += Self.keyLabel(keyCode: event.keyCode, characters: event.charactersIgnoringModifiers)
     record?(UInt32(event.keyCode), value, label)
     stringValue = label
+    saved = label
     window?.makeFirstResponder(nil)
   }
   /// Keys that type nothing visible (Space, arrows, function keys) get a readable name.
   static func keyLabel(keyCode: UInt16, characters: String?) -> String {
     let named: [UInt16: String] = [
-      49: "Space", 36: "↩", 76: "⌅", 48: "⇥", 51: "⌫", 117: "⌦", 53: "⎋",
+      49: Chrome.text("Space", comment: "Name of the Space key in a keyboard shortcut."), 36: "↩", 76: "⌅", 48: "⇥", 51: "⌫", 117: "⌦", 53: "⎋",
       123: "←", 124: "→", 125: "↓", 126: "↑", 115: "↖", 119: "↘", 116: "⇞", 121: "⇟",
       122: "F1", 120: "F2", 99: "F3", 118: "F4", 96: "F5", 97: "F6", 98: "F7", 100: "F8",
       101: "F9", 109: "F10", 103: "F11", 111: "F12",

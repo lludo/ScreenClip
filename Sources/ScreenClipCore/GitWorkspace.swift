@@ -192,6 +192,15 @@ public enum GitWorkspace {
     }
   }
 
+  /// `git merge` of the base failed without leaving conflicted files. Unlike a failed fetch,
+  /// waiting does not clear it.
+  public struct BaseMergeFailed: LocalizedError, Equatable {
+    public var detail: String
+    public var errorDescription: String? {
+      "Could not merge the base branch into this fix: " + detail
+    }
+  }
+
   public static func mergeInProgress(path: String) async -> Bool {
     (try? await CommandRunner.run(
       git, ["rev-parse", "--verify", "--quiet", "MERGE_HEAD"], cwd: path))?.status == 0
@@ -248,9 +257,8 @@ public enum GitWorkspace {
       let files = (try? await unmergedFiles(path: path)) ?? []
       if files.isEmpty || !keepConflicts { await abortMerge(path: path) }
       guard !files.isEmpty else {
-        throw ScreenClipError.message(
-          "Could not merge the base branch into this fix: "
-            + String((merge.error.isEmpty ? merge.output : merge.error).suffix(2000)))
+        throw BaseMergeFailed(
+          detail: String((merge.error.isEmpty ? merge.output : merge.error).suffix(2000)))
       }
       throw BaseConflict(base: project.baseBranch, files: files, kept: keepConflicts)
     }

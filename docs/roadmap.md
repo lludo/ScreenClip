@@ -1,6 +1,6 @@
 # ScreenClip roadmap
 
-Updated: November 15, 2026. The local app is working: capture, markup, the queue, Codex and Claude Code dispatch, the Grok Bot hand-off, validation, PRs, and guarded merges. This page lists engineering work that is still open. What has been verified is in [validation](validation.md). Release and publishing items that are not done are only listed in [Publishing checklist](release/publishing-checklist.md). Product choices that used to be open are in [Decisions](product-spec.md#decisions).
+Updated: November 16, 2026. The local app is working: capture, markup, the queue, Codex and Claude Code dispatch, the Grok Bot hand-off, validation, PRs, and guarded merges. This page lists engineering work that is still open. What has been verified is in [validation](validation.md). Release and publishing items that are not done are only listed in [Publishing checklist](release/publishing-checklist.md). Product choices that used to be open are in [Decisions](product-spec.md#decisions).
 
 ## Open gates
 
@@ -32,6 +32,13 @@ Updated: November 15, 2026. The local app is working: capture, markup, the queue
 - **Naming.** `AppSettings.model` is the Codex model (`claudeModel` is Claude's). Rename with a decoding migration.
 - **Retention.** Screenshots and notes stay until the report is deleted. There is no expiry setting.
 - **Probe.** `ScreenClipProbe` exercises only Codex and is a manual smoke test.
+- **PR branch changed on GitHub.** When someone updates a Codex or Claude Code pull request's branch on GitHub (Update branch, a committed review suggestion), the report says the PR changed and the next push is rejected as non-fast-forward. Fetch the branch before publishing, fast-forward when only the remote moved, and validate again.
+- **GitHub sign-in check.** `gh auth status` is run without a host, so a stale login for another host or account can block publishing even when github.com is signed in.
+- **Login-shell PATH.** The PATH is read from the login shell once per launch with a five-second limit. A slow shell start leaves agents installed under nvm or Volta undetected until relaunch.
+- **Claude Code result after the time limit.** A result the CLI printed is discarded if the process then lingers until the watchdog stops it.
+- **Closed pull requests.** A pull request closed without merging stays **PR open** until the report is canceled.
+- **Untranslated.** The signed-out detail under Settings → Connections is English in every language.
+- **Add project from a report.** **Add project…** on a Needs-project report opens Settings on General instead of Projects.
 
 Agent progress lines already go through `AppModel.updateIssueSoon`, which updates memory immediately and saves within a second. State changes still save at once.
 

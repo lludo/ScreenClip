@@ -43,7 +43,7 @@ The public download is a notarized disk image on GitHub Releases:
 
 [Download for Mac](https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg)
 
-The first release is 1.0.0; see the [release notes](docs/release/v1.0.0.md). The link works once that release is published. Until then, build from source. The app is free. An optional tip is separate from the download. There is no Mac App Store build: the sandbox blocks `git` and `gh`, which the app has to run. Details are in [Release and distribution](docs/release/README.md).
+The first release is 1.0.0; see the [release notes](docs/release/v1.0.0.md). The link works for people who can see the repository; while the repository is private, everyone else gets a 404. The app is free. An optional tip is separate from the download. There is no Mac App Store build: the sandbox blocks `git` and `gh`, which the app has to run. Details are in [Release and distribution](docs/release/README.md).
 
 The downloadable build is for Apple Silicon Macs (arm64); Intel Macs should build from source. Requires **macOS 14 or later**, a local Git repository, GitHub CLI, and one of Codex, Claude Code, or Grok Bot.
 
