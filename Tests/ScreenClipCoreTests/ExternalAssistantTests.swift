@@ -3,6 +3,26 @@ import XCTest
 @testable import ScreenClipCore
 
 final class ExternalAssistantTests: XCTestCase {
+  func testPromptAddOnIsIncludedInEvidenceAndWebhookAndCanBeDisabled() throws {
+    let project = Project(name: "Demo", path: "/tmp/demo")
+    let issue = Issue(
+      projectID: project.id, title: "Clipped", capture: Capture(
+        note: "Report evidence", imagePath: "/tmp/approved.png", context: CaptureContext()))
+    for commit in [nil, "abc123"] as [String?] {
+      for value in [nil, "Include accessibility checks.", "", " \n "] as [String?] {
+        var settings = AppSettings()
+        settings.defaultPromptAddOn = value
+        let payload = ExternalAssistant.makePayload(
+          issue: issue, project: project, repo: "owner/demo", branch: "screenclip/1",
+          includePageContext: false, commit: commit, settings: settings)
+        let object = try jsonObject(ExternalAssistant.json(payload))
+        XCTAssertEqual(
+          object["promptAddOn"] as? String,
+          settings.effectivePromptAddOn.isEmpty ? nil : settings.effectivePromptAddOn)
+        XCTAssertEqual(object["notes"] as? [String], ["Report evidence"])
+      }
+    }
+  }
   func testFilingChoicesIncludeOnlyUsableAgentsForTheProject() {
     let detections = [
       AgentDetection(kind: .codex, path: "/codex", version: "1", signedIn: nil, detail: ""),

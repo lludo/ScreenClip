@@ -40,7 +40,9 @@ extension AgentWorker {
     issue = current
     texts[id] = nil
     // A resumed session already holds earlier evidence; send only what is new.
-    let turn = AgentPrompt.turn(for: issue, project: project, threadID: resume ? sessionID : nil)
+    let turn = AgentPrompt.turn(
+      for: issue, project: project, threadID: resume ? sessionID : nil,
+      settings: model.snapshot.settings)
     var request = ClaudeTurnRequest(
       executable: executable, cwd: path, sessionID: sessionID, resume: resume,
       name: "ScreenClip: " + issue.referencedTitle,
@@ -76,7 +78,8 @@ extension AgentWorker {
         request.sessionID = fresh
         request.resume = false
         // The new session has seen nothing yet.
-        let full = AgentPrompt.turn(for: issue, project: project, threadID: nil)
+        let full = AgentPrompt.turn(
+          for: issue, project: project, threadID: nil, settings: model.snapshot.settings)
         request.prompt = full.text
         request.images = full.captures.compactMap { allImages[$0.id] }
         result = try await claude.run(request, progress: progress)

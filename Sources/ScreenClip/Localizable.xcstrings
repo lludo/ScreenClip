@@ -4688,7 +4688,7 @@
       }
     },
     "Choose…": {
-      "comment": "Picks a Codex executable.",
+      "comment": "Picks the Claude Code executable.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -16568,7 +16568,7 @@
       }
     },
     "Project settings": {
-      "comment": "Project editor title.",
+      "comment": "Opens settings for this project.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -26270,7 +26270,7 @@
       }
     },
     "Webhook URL": {
-      "comment": "Grok Bot webhook URL field. Keep URL.",
+      "comment": "Grok Bot address field.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -33591,6 +33591,270 @@
           "stringUnit": {
             "state": "translated",
             "value": "草稿 PR。自動合併會等到拉取請求被標為可合併。"
+          }
+        }
+      }
+    },
+    "Agent instructions": {
+      "comment": "Settings section for shared prompt instructions.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agent instructions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "代理指令"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instrucciones del agente"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エージェントへの指示"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instruções do agente"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agentenanweisungen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instructions de l’agent"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "에이전트 지침"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Инструкции агента"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "代理指示"
+          }
+        }
+      }
+    },
+    "Default prompt add-on": {
+      "comment": "Label for shared agent instructions.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Default prompt add-on"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认提示词补充"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instrucciones adicionales predeterminadas"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既定のプロンプト追記"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complemento padrão do prompt"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard-Prompt-Zusatz"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complément de prompt par défaut"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기본 프롬프트 추가 지침"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дополнение к запросу по умолчанию"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "預設提示詞補充"
+          }
+        }
+      }
+    },
+    "Added to every agent request for all projects. Leave empty to disable.": {
+      "comment": "Explains shared prompt instructions and how to disable them.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Added to every agent request for all projects. Leave empty to disable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加到所有项目的每次代理请求中。留空可禁用。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se añade a cada solicitud del agente en todos los proyectos. Déjalo vacío para desactivarlo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "すべてのプロジェクトで、エージェントへの各リクエストに追加されます。無効にするには空欄にします。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicionado a cada solicitação do agente em todos os projetos. Deixe vazio para desativar."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird jeder Agentenanfrage für alle Projekte hinzugefügt. Zum Deaktivieren leer lassen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajouté à chaque demande à l’agent pour tous les projets. Laissez vide pour désactiver."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "모든 프로젝트의 에이전트 요청마다 추가됩니다. 비워 두면 비활성화됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавляется к каждому запросу агента во всех проектах. Оставьте пустым, чтобы отключить."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加入所有專案的每次代理請求中。留空可停用。"
+          }
+        }
+      }
+    },
+    "Restore default prompt": {
+      "comment": "Restores the built-in prompt add-on.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restore default prompt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复默认提示词"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar instrucciones predeterminadas"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "既定のプロンプトに戻す"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Restaurar prompt padrão"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Standard-Prompt wiederherstellen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rétablir le prompt par défaut"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기본 프롬프트 복원"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Восстановить запрос по умолчанию"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "還原預設提示詞"
           }
         }
       }
