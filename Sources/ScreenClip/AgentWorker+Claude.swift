@@ -112,17 +112,21 @@ extension AgentWorker {
       let text = result.text.isEmpty ? "Claude Code reported an error." : result.text
       throw ScreenClipError.message(String(text.prefix(3000)))
     }
-    if var json = result.outputJSON {
-      // Surface blocked tools so a "blocked" outcome says what needs approval.
+    if let json = result.outputJSON {
       if !result.permissionDenials.isEmpty,
-        var report = try? JSONDecoder().decode(JSONValue.self, from: Data(json.utf8)),
-        report["outcome"].string != "implemented", case .object(var fields) = report
+        let report = try? JSONDecoder().decode(JSONValue.self, from: Data(json.utf8)),
+        report["outcome"].string != "implemented"
       {
-        let blocked = "Blocked tools: " + result.permissionDenials.prefix(5).joined(separator: "; ")
-        let question = fields["question"]?.string ?? ""
-        fields["question"] = .string(question.isEmpty ? blocked : question + "\n" + blocked)
-        report = .object(fields)
-        json = String(decoding: report.data, as: UTF8.self)
+        model.perform {
+          try model.updateIssue(id) {
+            $0.record("Blocked tools: " + result.permissionDenials.joined(separator: "\n"),
+              kind: "permission-denial")
+          }
+        }
+        let question = report["question"].string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if report["outcome"].string == "blocked" || question.isEmpty {
+          throw ScreenClipError.message(Self.claudePermissionFailure)
+        }
       }
       texts[id] = json
     }
@@ -132,10 +136,37 @@ extension AgentWorker {
       finishing.remove(id)
     }
   }
+  static let claudePermissionFailure = """
+    Claude Code could not run a required tool because access was denied. No text reply can grant that access. Choose Continue to retry with automatic permission review. If it is denied again, open the Claude chat to inspect the restriction. Technical details are in Activity.
+    """
+
+  /// Older versions put raw permission denials in a reply box. Restore a usable
+  /// Continue action without inventing a user reply or discarding real questions.
+  func recoverClaudePermissionQuestions() {
+    for issue in model.snapshot.issues where issue.resolvedAgent == .claude
+      && issue.status == .needsYou && !issue.archived && !isActive(issue.id)
+      && issue.turnID == nil && !issue.dispatchUncertain
+    {
+      let pending = issue.questions.filter { $0.reply == nil }
+      guard !pending.isEmpty, pending.allSatisfy({
+        $0.requestID == nil && $0.title.hasPrefix("Blocked tools: ")
+      }) else { continue }
+      let ids = Set(pending.map(\.id))
+      model.perform {
+        try model.updateIssue(issue.id) {
+          for question in pending { $0.record(question.title, kind: "permission-denial") }
+          $0.questions.removeAll { ids.contains($0.id) }
+          $0.lastError = Self.claudePermissionFailure
+          $0.record(Self.claudePermissionFailure, status: .failed, kind: "error")
+        }
+      }
+    }
+  }
   /// A Claude turn cannot survive a ScreenClip restart: the process belonged to the old app.
   /// When no process for the session is still running, continue the same session instead of
   /// waiting for a manual reconcile. A session still running elsewhere keeps waiting.
   func recoverClaudeAfterRestart() async {
+    recoverClaudePermissionQuestions()
     for id in model.takeRestartedClaudeIssues() {
       guard let issue = model.issue(id), issue.status == .needsYou, !issue.archived,
         issue.resolvedAgent == .claude, !isActive(id),

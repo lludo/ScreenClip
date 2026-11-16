@@ -412,8 +412,39 @@ import XCTest
   func testCodexDisconnectDoesNotInterruptClaudeWork() async throws {
     try await exerciseClaudeWorker(disconnectCodex: true)
   }
+  func testClaudePermissionFailureDoesNotAskForATextReply() async throws {
+    try await exerciseClaudeWorker(permissionFailure: true)
+  }
+  func testClaudeEmptyQuestionWithPermissionDenialsDoesNotAskForATextReply() async throws {
+    try await exerciseClaudeWorker(permissionFailure: true, emptyQuestion: true)
+  }
+  func testLegacyClaudePermissionQuestionBecomesRetryableWithoutChangingRealQuestions() throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let model = try AppModel(root: root)
+    try model.commit { $0.settings.paused = true }
+    for title in ["Blocked tools: Bash: xcodebuild", "Which width?"] {
+      try model.submit(imageData: Data([1]), originalData: nil, annotations: [], note: title,
+        context: CaptureContext(), projectID: nil, existingID: nil, draft: true, agent: .claude)
+      let id = try XCTUnwrap(model.snapshot.issues.first { $0.title == title }?.id)
+      try model.updateIssue(id) {
+        $0.status = .needsYou
+        $0.questions = [PendingQuestion(title: title)]
+      }
+    }
+    model.worker.recoverClaudePermissionQuestions()
+    let repaired = try XCTUnwrap(model.snapshot.issues.first { $0.title.hasPrefix("Blocked tools:") })
+    XCTAssertEqual(repaired.status, .failed)
+    XCTAssertTrue(repaired.questions.isEmpty)
+    XCTAssertEqual(repaired.lastError, AgentWorker.claudePermissionFailure)
+    XCTAssertTrue(repaired.activities.contains { $0.kind == "permission-denial" })
+    let genuine = try XCTUnwrap(model.snapshot.issues.first { $0.title == "Which width?" })
+    XCTAssertEqual(genuine.status, .needsYou)
+    XCTAssertEqual(genuine.questions.first?.title, "Which width?")
+  }
   private func exerciseClaudeWorker(
-    missingSession: Bool = false, disconnectCodex: Bool = false
+    missingSession: Bool = false, disconnectCodex: Bool = false,
+    permissionFailure: Bool = false, emptyQuestion: Bool = false
   ) async throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent(
       "screenclip-claude-worker-" + UUID().uuidString)
@@ -448,7 +479,11 @@ import XCTest
       send({'type':'system','subtype':'init','session_id':'x'})
       send({'type':'assistant','message':{'content':[{'type':'text','text':'Inspecting the screenshot'}]}})
       report={'outcome':'question','summary':'','question':'Should this label wrap?' if runs==1 else 'Which width?'}
-      send({'type':'result','subtype':'success','is_error':False,'result':'','usage':{'input_tokens':1,'output_tokens':2},'total_cost_usd':0.01,'structured_output':report})
+      denials=[]
+      if \(permissionFailure ? "True" : "False"):
+          report={'outcome':'question' if \(emptyQuestion ? "True" : "False") else 'blocked','summary':'Build blocked','question':''}
+          denials=[{'tool_name':'Bash','tool_input':{'command':'xcodebuild build-for-testing'}}]
+      send({'type':'result','subtype':'success','is_error':False,'result':'','usage':{'input_tokens':1,'output_tokens':2},'total_cost_usd':0.01,'structured_output':report,'permission_denials':denials})
       """.write(to: script, atomically: true, encoding: .utf8)
     try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
     let model = try AppModel(root: root.appendingPathComponent("queue"))
@@ -467,6 +502,18 @@ import XCTest
       draft: false, agent: .claude)
     let id = try XCTUnwrap(model.snapshot.issues.first?.id)
     XCTAssertEqual(model.issue(id)?.agent, .claude)
+    if permissionFailure {
+      try await wait { model.issue(id)?.status == .failed }
+      let failed = try XCTUnwrap(model.issue(id))
+      XCTAssertTrue(failed.questions.isEmpty)
+      XCTAssertEqual(failed.lastError, AgentWorker.claudePermissionFailure)
+      XCTAssertTrue(failed.activities.contains {
+        $0.kind == "permission-denial" && $0.text.contains("xcodebuild build-for-testing")
+      })
+      XCTAssertNil(failed.turnID)
+      XCTAssertFalse(failed.dispatchUncertain)
+      return
+    }
     if disconnectCodex {
       try await wait { FileManager.default.fileExists(atPath: root.appendingPathComponent("runs.jsonl").path) }
       let codex = root.appendingPathComponent("fake-codex")
