@@ -135,6 +135,14 @@ import XCTest
       let asked = try XCTUnwrap(question.askedAt)
       await model.worker.answerUnattendedQuestions(now: asked.addingTimeInterval(599))
       XCTAssertNil(model.issue(issue.id)?.questions.first?.reply)
+      // The wait is a setting; Never leaves the request for the tester.
+      try model.commit { $0.settings.unattendedAnswerMinutes = 0 }
+      await model.worker.answerUnattendedQuestions(now: asked.addingTimeInterval(7200))
+      XCTAssertNil(model.issue(issue.id)?.questions.first?.reply)
+      try model.commit { $0.settings.unattendedAnswerMinutes = 30 }
+      await model.worker.answerUnattendedQuestions(now: asked.addingTimeInterval(1799))
+      XCTAssertNil(model.issue(issue.id)?.questions.first?.reply)
+      try model.commit { $0.settings.unattendedAnswerMinutes = nil }
       await model.worker.answerUnattendedQuestions(now: asked.addingTimeInterval(601))
       if declineOffered {
         try await wait { (try? requests().contains { $0["id"].string == "pending-build" }) == true }

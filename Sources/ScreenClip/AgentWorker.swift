@@ -27,7 +27,9 @@ import ScreenClipCore
   /// A turn running longer than this, not counting time spent waiting for the tester, is stopped.
   var turnTimeLimit: TimeInterval = 45 * 60
   /// A Codex request left unanswered this long is answered for an absent tester. 0 disables.
-  var questionTimeLimit: TimeInterval = 10 * 60
+  var questionTimeLimit: TimeInterval {
+    TimeInterval(model.snapshot.settings.unattendedAnswerDelay * 60)
+  }
   /// How often agents holding queued reports are checked again.
   var heldRecheckInterval: TimeInterval = 60
   var lastCodexAuthCheck = Date.distantPast

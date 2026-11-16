@@ -311,6 +311,21 @@ struct SettingsView: View {
                 comment: "Parallel report limit. %lld is the number of reports."))
                 .fixedSize(horizontal: false, vertical: true)
             }
+            Picker(selection: Binding(
+              get: { settings.unattendedAnswerDelay }, set: { settings.unattendedAnswerMinutes = $0 })
+            ) {
+              Text(chrome: "Never", comment: "Unanswered Codex requests wait for the tester indefinitely.").tag(0)
+              Text(chrome: "After 5 minutes", comment: "Wait before an unanswered Codex request is answered automatically.").tag(5)
+              Text(chrome: "After 10 minutes", comment: "Wait before an unanswered Codex request is answered automatically.").tag(10)
+              Text(chrome: "After 30 minutes", comment: "Wait before an unanswered Codex request is answered automatically.").tag(30)
+              Text(chrome: "After 1 hour", comment: "Wait before an unanswered Codex request is answered automatically.").tag(60)
+            } label: {
+              Text(chrome: "Continue without my answer", comment: "Setting: when Codex is told to carry on because the tester did not answer.")
+              Text(
+                chrome: "Codex is told you are not available: questions get the safest default and permissions are declined.",
+                comment: "Explains the setting for unanswered Codex requests."
+              ).fixedSize(horizontal: false, vertical: true)
+            }
             Text(
               chrome:
                 "The system default applies until a project sets its own. A capture starts from the project default, and you can pick another provider for that report. Connect each provider in its section.",
