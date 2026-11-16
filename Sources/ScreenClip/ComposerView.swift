@@ -1,6 +1,21 @@
 import ScreenClipCore
 import SwiftUI
 
+extension ComposerView {
+  /// The Undo and Redo buttons own ⌘Z window-wide. While a text field is being edited, the
+  /// keystroke belongs to that text: undoing a mark instead could silently drop a redaction.
+  /// A mouse click on the buttons always edits the marks.
+  static func textUndo(redo: Bool) -> Bool {
+    guard NSApp.currentEvent?.type == .keyDown,
+      let text = NSApp.keyWindow?.firstResponder as? NSTextView
+    else { return false }
+    if let manager = text.undoManager {
+      if redo { if manager.canRedo { manager.redo() } } else if manager.canUndo { manager.undo() }
+    }
+    return true
+  }
+}
+
 struct ComposerView: View {
   @ObservedObject var model: AppModel
   let image: NSImage
@@ -95,12 +110,12 @@ struct ComposerView: View {
         .disabled(document.tool == .redact || document.tool == .text)
         Spacer()
         Button {
-          document.undo()
+          if !Self.textUndo(redo: false) { document.undo() }
         } label: {
           Image(systemName: "arrow.uturn.backward")
         }.disabled(document.marks.isEmpty).keyboardShortcut("z", modifiers: .command)
         Button {
-          document.redo()
+          if !Self.textUndo(redo: true) { document.redo() }
         } label: {
           Image(systemName: "arrow.uturn.forward")
         }.disabled(!document.canRedo).keyboardShortcut("z", modifiers: [.command, .shift])

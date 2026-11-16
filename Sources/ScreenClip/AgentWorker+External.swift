@@ -271,7 +271,19 @@ extension AgentWorker {
       }
       return .blocked
     }
-    let validated = try await GitWorkspace.validate(project: project, path: path)
+    let validated: ValidationReceipt
+    do {
+      validated = try await GitWorkspace.validate(project: project, path: path)
+    } catch is CancellationError {
+      throw CancellationError()
+    } catch {
+      // A timeout or a changed tree must not rerun an hour-long validation on every refresh.
+      // Record it as a failed check of this head; a new head is validated again.
+      validated = ValidationReceipt(
+        head: head, command: project.validationCommand, passed: false, date: Date(),
+        output: error.localizedDescription, fingerprint: "")
+      try model.updateIssue(id) { $0.lastError = error.localizedDescription }
+    }
     receipts[id] = validated
     try JSONEncoder().encode(validated).write(to: receiptURL(issue), options: .atomic)
     try model.updateIssue(id) { $0.prHead = validated.head }

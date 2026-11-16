@@ -516,6 +516,11 @@ public struct AppSettings: Codable, Equatable {
 
 public struct StoreSnapshot: Codable {
   public var version = 1
+  /// The oldest reader that can open and resave this queue without losing data. A later
+  /// build that adds a field or an enum case writes a higher number, and this build then
+  /// refuses the queue instead of dropping what it cannot decode.
+  public var minimumReaderVersion: Int?
+  public static let readerVersion = 1
   public var projects: [Project] = []
   public var issues: [Issue] = []
   public var settings = AppSettings()

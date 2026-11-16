@@ -73,9 +73,14 @@ public final class IssueStore {
     // A zero-length blob has a nil pointer; treat it as an empty queue instead of crashing.
     guard length > 0, let bytes = sqlite3_column_blob(stmt, 0) else { return StoreSnapshot() }
     let data = Data(bytes: bytes, count: length)
-    struct Header: Decodable { var version: Int }
+    struct Header: Decodable {
+      var version: Int
+      var minimumReaderVersion: Int?
+    }
     // Check the format before decoding it, so a newer queue gets the friendly message.
-    if let header = try? JSONDecoder().decode(Header.self, from: data), header.version > 1 {
+    if let header = try? JSONDecoder().decode(Header.self, from: data),
+      header.version > 1 || (header.minimumReaderVersion ?? 1) > StoreSnapshot.readerVersion
+    {
       throw ScreenClipError.message(
         "This queue was created by a newer ScreenClip. Update the app before opening it.")
     }

@@ -125,6 +125,12 @@ extension AgentWorker {
         }
         let question = report["question"].string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if report["outcome"].string == "blocked" || question.isEmpty {
+          // Keep the agent's own explanation: the generic message replaces the result.
+          let summary =
+            report["summary"].string?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+          if !summary.isEmpty {
+            model.perform { try model.updateIssue(id) { $0.record(String(summary.prefix(3000))) } }
+          }
           throw ScreenClipError.message(Self.claudePermissionFailure)
         }
       }

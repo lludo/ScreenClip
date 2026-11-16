@@ -35,6 +35,16 @@ final class ExternalAssistantTests: XCTestCase {
     XCTAssertEqual(AgentPicker.filingChoices(detections: detections, externalAvailable: false), [.codex])
     XCTAssertEqual(AgentPicker.filingChoices(detections: detections, externalAvailable: true), [.codex, .external])
   }
+  func testPayloadRedactsSecretsInTheValidationCommand() throws {
+    let project = Project(
+      name: "ScreenClip", path: "/repo", validationCommand: "API_TOKEN=abc123 bash scripts/test.sh")
+    let payload = ExternalAssistant.makePayload(
+      issue: sampleIssue(), project: project, repo: "lludo/ScreenClip",
+      branch: "screenclip/234-clipped-button", includePageContext: false, commit: nil)
+    let json = String(decoding: try JSONEncoder().encode(payload), as: UTF8.self)
+    XCTAssertFalse(json.contains("abc123"))
+    XCTAssertTrue(json.contains("bash scripts"))
+  }
   func testPayloadOmitsPageContextAndImageBytesUntilContextIsAllowed() throws {
     let issue = sampleIssue()
     let project = Project(

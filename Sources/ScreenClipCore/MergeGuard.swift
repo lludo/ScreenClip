@@ -51,6 +51,16 @@ public struct ValidationReceipt: Codable {
   public var date: Date
   public var output: String
   public var fingerprint: String
+  public init(
+    head: String, command: String, passed: Bool, date: Date, output: String, fingerprint: String
+  ) {
+    self.head = head
+    self.command = command
+    self.passed = passed
+    self.date = date
+    self.output = output
+    self.fingerprint = fingerprint
+  }
 }
 
 public struct MergeEvidence: Equatable {

@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 /// One headless Claude Code turn for an issue.
 public struct ClaudeTurnRequest: Sendable {
@@ -163,8 +164,11 @@ public actor ClaudeCodeClient {
       for await chunk in errorOutput.chunks { errors.append(chunk) }
     }
     processes[request.sessionID] = process
+    let pid = process.processIdentifier
+    Self.live.withLock { $0.insert(pid) }
     defer {
       processes.removeValue(forKey: request.sessionID)
+      Self.live.withLock { _ = $0.remove(pid) }
     }
     var line = Self.userMessage(for: request).data
     line.append(10)
@@ -270,6 +274,22 @@ public actor ClaudeCodeClient {
     guard let process = processes[sessionID] else { return }
     canceled.insert(sessionID)
     Self.stop(process)
+  }
+
+  private static let live = OSAllocatedUnfairLock(initialState: Set<pid_t>())
+
+  /// Stops every running turn before the app exits. A turn cannot report to a quit app, and
+  /// an orphan would keep editing the worktree and block the session after relaunch.
+  public static func terminateAllForQuit(grace: TimeInterval = 2) {
+    let pids = live.withLock { $0 }
+    guard !pids.isEmpty else { return }
+    let group = DispatchGroup()
+    for pid in pids {
+      DispatchQueue.global(qos: .userInitiated).async(group: group) {
+        CommandRunner.terminateTree(pid, grace: grace)
+      }
+    }
+    group.wait()
   }
 
   /// SIGTERM Claude and everything it started, then SIGKILL whatever ignores it.
