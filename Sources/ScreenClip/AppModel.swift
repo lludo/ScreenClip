@@ -35,6 +35,8 @@ struct GrokConnectionCheck: Equatable {
   static let signInRetryInterval: TimeInterval = 10 * 60
   /// Claude reports a crash survived only through its session; these are checked after launch.
   private(set) var restartedClaudeIssues: [UUID] = []
+  /// Acknowledged Codex work interrupted by this launch, eligible for safe reconciliation.
+  private(set) var restartedCodexIssues = Set<UUID>()
   let store: IssueStore
   let captureDiagnostics: CaptureDiagnostics
   let capturePermission: ScreenCapturePermission
@@ -94,6 +96,11 @@ struct GrokConnectionCheck: Equatable {
       } else {
         if snapshot.issues[i].resolvedAgent == .claude && snapshot.issues[i].status == .working {
           restartedClaudeIssues.append(snapshot.issues[i].id)
+        }
+        if snapshot.issues[i].resolvedAgent == .codex && snapshot.issues[i].status == .working
+          && !snapshot.issues[i].dispatchUncertain
+        {
+          restartedCodexIssues.insert(snapshot.issues[i].id)
         }
         snapshot.issues[i].record(Self.restartActivity, status: .needsYou)
       }

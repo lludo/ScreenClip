@@ -39,6 +39,9 @@ import XCTest
   func testUnsupportedAutomaticReviewKeepsTheApprovalPending() async throws {
     try await exerciseApprovalAutomation(unsupported: true)
   }
+  func testTypedCodexUserInputRetainsItsAnswerResponseFormat() async throws {
+    try await exerciseApprovalAutomation(userInput: true)
+  }
   func testOlderRuntimeCannotSilentlyFallBackToManualReviewOnRetry() async throws {
     try await exerciseWorker(projectLookupSupported: true, reviewerSupported: false)
   }
@@ -57,7 +60,8 @@ import XCTest
   }
   private func exerciseApprovalAutomation(
     unsupported: Bool = false, recovery: CodexApprovalMode? = nil,
-    genuineQuestion: Bool = false, activeChat: Bool = false, cancelDuringRecovery: Bool = false
+    genuineQuestion: Bool = false, activeChat: Bool = false, cancelDuringRecovery: Bool = false,
+    userInput: Bool = false
   ) async throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-approvals-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: root.appendingPathComponent("repo/.git"), withIntermediateDirectories: true)
@@ -97,11 +101,15 @@ import XCTest
     try await model.worker.connect()
     model.worker.jobs.insert(issue.id)
     let request: JSONValue = .object([
-      "id": .string("pending-build"), "method": .string("item/commandExecution/requestApproval"),
+      "id": .string("pending-build"),
+      "method": .string(userInput ? "item/tool/requestUserInput" : "item/commandExecution/requestApproval"),
       "params": .object([
         "threadId": .string("approval-thread"), "turnId": .string("approval-turn"),
         "reason": .string("Run local tests"), "command": .string("xcodebuild test"),
         "availableDecisions": .array([.string("accept"), .string("decline")]),
+        "questions": .array([.object([
+          "id": .string("layout"), "question": .string("Which layout?"),
+        ])]),
       ]),
     ])
     await model.worker.handle(request)
@@ -111,6 +119,18 @@ import XCTest
     func requests() throws -> [JSONValue] {
       try String(contentsOf: root.appendingPathComponent("requests.jsonl"), encoding: .utf8)
         .split(separator: "\n").map { try JSONDecoder().decode(JSONValue.self, from: Data($0.utf8)) }
+    }
+    if userInput {
+      await model.worker.reply(issueID: issue.id, questionID: question.id, answers: ["layout": "Compact"])
+      try await wait { (try? requests().contains { $0["id"].string == "pending-build" }) == true }
+      let response = try XCTUnwrap(requests().first { $0["id"].string == "pending-build" })
+      XCTAssertEqual(response["result"]["answers"]["layout"]["answers"], .array([.string("Compact")]))
+      XCTAssertEqual(model.issue(issue.id)?.status, .working)
+      XCTAssertEqual(model.issue(issue.id)?.questions.first?.reply, "Compact")
+      XCTAssertEqual(model.project(project.id)?.codexApprovalMode, .ask)
+      model.worker.jobs.remove(issue.id)
+      await model.worker.resetConnection()
+      return
     }
     if let recovery {
       project.codexApprovalMode = recovery
@@ -123,7 +143,7 @@ import XCTest
       }
       model.worker.pendingRequests.removeAll()
       model.worker.jobs.remove(issue.id)
-      let recovering = Task { await model.worker.recoverCodexApprovalsAfterRestart() }
+      let recovering = Task { await model.worker.recoverCodexAfterRestart() }
       if cancelDuringRecovery {
         try await wait { (try? requests().contains { $0["method"].string == "thread/turns/list" }) == true }
         await model.worker.cancel(issue.id)

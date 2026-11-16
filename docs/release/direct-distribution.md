@@ -26,7 +26,7 @@ People who clone the repo can build it themselves. The DMG is for someone who wa
 
 Push a tag `v1.2.3` (three numbers). [`.github/workflows/release.yml`](../../.github/workflows/release.yml) then:
 
-1. Stops immediately, with a notice and a green job, if none of the Apple secrets are set. That is the current state: the secrets are not configured ([open TODOs](../open-source.md#release-secrets)). If some are set and some are missing, the job fails.
+1. Stops immediately, with a notice and a green job, if none of the Apple secrets are set. If some are set and some are missing, the job fails. The gate checks the configured secrets at runtime; required values are listed under [Release secrets](../open-source.md#release-secrets).
 2. Writes the tag into `CFBundleShortVersionString` and `CFBundleVersion` for that build. Before tagging, bump `Resources/Info.plist` (and `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in the Xcode project) in a release commit so local builds match. The tag must match `X.Y.Z` (three numbers); `v1.0.0-rc1` fails.
 3. Imports the Developer ID certificate into a temporary keychain, builds the Release scheme with `scripts/build.sh`, and passes `--timestamp` plus `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO`.
 4. Runs `scripts/release-dmg.sh`. That script refuses an App Sandbox signature. It notarizes a zip of the app, staples the app, builds a UDZO disk image with an Applications shortcut, signs and notarizes the DMG, staples the DMG, and writes `SHA256SUMS`.
@@ -36,7 +36,7 @@ The asset name is always `ScreenClip.dmg`, so this URL tracks the newest tag:
 
 `https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg`
 
-The website uses that URL (`website/site.config.json`). Until the first tag exists, the link has no file. The page says so.
+Set `downloadUrl` in `website/site.config.json` to that URL when the notarized download is available. The current empty value renders the coming-soon state without a download link; it does not advertise a missing asset.
 
 Check a download with `shasum -a 256 -c SHA256SUMS`.
 

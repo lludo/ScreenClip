@@ -52,7 +52,7 @@ public indirect enum JSONValue: Codable, Equatable, Sendable {
     return nil
   }
   public var int: Int? {
-    if case .number(let v) = self { return Int(v) }
+    if case .number(let v) = self { return Int(exactly: v) }
     return nil
   }
   public var object: [String: JSONValue] {
@@ -61,6 +61,20 @@ public indirect enum JSONValue: Codable, Equatable, Sendable {
   }
   public static func text(_ value: String) -> JSONValue { .string(value) }
   public var data: Data { (try? JSONEncoder().encode(self)) ?? Data() }
+}
+
+/// Only these app-server requests have a reply UI and response format in ScreenClip.
+public enum CodexRequestKind: Equatable, Sendable {
+  case userInput, commandApproval, fileApproval, unsupported
+  public init(method: String?) {
+    switch method {
+    case "item/tool/requestUserInput": self = .userInput
+    case "item/commandExecution/requestApproval": self = .commandApproval
+    case "item/fileChange/requestApproval": self = .fileApproval
+    default: self = .unsupported
+    }
+  }
+  public var isApproval: Bool { self == .commandApproval || self == .fileApproval }
 }
 
 /// Decisions offered by Codex for one approval request. Never invent a command rule.
@@ -76,7 +90,7 @@ public struct CodexApprovalOptions {
     return offered == .null || offered.array.contains(.string(decision))
   }
   public var commandRule: [String]? {
-    guard method == "item/commandExecution/requestApproval",
+    guard CodexRequestKind(method: method) == .commandApproval,
       params["networkApprovalContext"] == .null else { return nil }
     let proposed = params["proposedExecpolicyAmendment"].array
     guard !proposed.isEmpty, proposed.allSatisfy({ $0.string != nil }) else { return nil }

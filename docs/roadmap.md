@@ -1,6 +1,6 @@
 # ScreenClip roadmap
 
-Updated: November 14, 2026. The local app is working: capture, markup, the queue, Codex and Claude Code dispatch, the Grok Bot hand-off, validation, PRs, and guarded merges. This page lists engineering work that is still open. What has been verified is in [validation](validation.md). Release and publishing items that are not done are only listed in [Publishing checklist](open-source.md). Product choices that used to be open are in [Decisions](product-spec.md#decisions).
+Updated: November 15, 2026. The local app is working: capture, markup, the queue, Codex and Claude Code dispatch, the Grok Bot hand-off, validation, PRs, and guarded merges. This page lists engineering work that is still open. What has been verified is in [validation](validation.md). Release and publishing items that are not done are only listed in [Publishing checklist](open-source.md). Product choices that used to be open are in [Decisions](product-spec.md#decisions).
 
 ## Open gates
 
@@ -17,10 +17,10 @@ Updated: November 14, 2026. The local app is working: capture, markup, the queue
 ## Next features
 
 - **Usage per agent.** Claude Code turns already log tokens and cost as `usage` activities. Record Codex usage too, then aggregate by agent and project so you can see which agent to use.
-- **Per-project default agent.** Today the default is global with a per-report override. A per-project default is likely more natural.
 
 ## Maintenance backlog
 
+- **Codex client handoff.** A chat owned by another live Codex client can prevent ScreenClip from resuming after a restart. Reports can remain **Needs you**, or fail with an active-writer error. Add an automatic waiting/reconciliation path that preserves the other client's work and adopts its completed result; never force a second writer.
 - **Routing memory.** Learned app identifiers are stored like hand-entered ones, so a later pick of a different project cannot replace a learned mapping, and moving a report does not unlearn it. Edit the project's bundle IDs in Settings to correct one. Store learned identifiers separately.
 - **Grok Bot recovery.** Restart recovery reads activity wording to decide whether the current revision was delivered. Persist the delivered revision instead.
 - **Sidebar counts with search.** Counts follow the selected project but ignore search text.

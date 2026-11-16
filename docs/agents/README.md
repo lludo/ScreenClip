@@ -1,6 +1,6 @@
 # Coding agents
 
-Updated: November 14, 2026.
+Updated: November 15, 2026.
 
 ScreenClip captures an observation and hands it to a coding agent. Codex and Claude Code investigate and fix it in an isolated Git worktree. Grok Bot is a remote assistant: ScreenClip pushes the approved screenshots to GitHub and wakes the assistant with a webhook, then tracks the pull request. The agent is pluggable.
 
@@ -48,7 +48,7 @@ Codex and Claude Code follow the same contract, so the rest of ScreenClip stays 
 - One prompt per turn (`AgentPrompt.turn`). The first turn of a conversation gets the full prompt (`AgentPrompt.text`): the issue, project, worktree, branch, validation command, capture context, user replies, and the latest validation or CI failure (`Issue.validationFeedback`, never unrelated errors). A resumed conversation that completed a turn gets a short follow-up with only the captures, notes, replies, and validation feedback it has not seen, and only the new screenshots; `Issue.deliveredContext` records what it has seen. A new or relinked conversation gets everything again. Notes, screenshot contents, titles, and URLs are labeled as untrusted evidence.
 - The approved screenshots only (annotated, with redactions flattened), never unredacted originals.
 - A JSON Schema for the result (`AgentPrompt.resultSchema`).
-- An environment without GitHub tokens or git redirect variables (`ProcessEnvironment.agent`). Agents cannot push or open PRs with ScreenClip's credentials.
+- An environment with inherited GitHub token variables and git redirect variables removed (`ProcessEnvironment.agent`). The prompt reserves publication for ScreenClip. Environment cleanup does not isolate credentials available elsewhere on the Mac; full-access Codex commands are unsandboxed.
 - Instructions to work autonomously: make reasonable implementation choices, investigate failures, and run checks without conversational permission requests. Questions are reserved for a missing decision that materially affects the intended result and cannot be resolved from the repository or evidence. Runtime permissions still follow the configured agent mode; see [Codex permissions](codex.md#at-a-glance).
 
 **The agent returns** one structured result per turn:

@@ -18,6 +18,8 @@ The default data folder is `~/Library/Application Support/ScreenClip`. For a dev
 - `list_issues(status?, include_closed=false, limit=50)`: open, non-archived reports with report numbers, agents, and statuses, most recently updated first. Merged, verified, and canceled reports are left out unless `include_closed` is true or `status` names them. The `agent` value is `codex`, `claude`, or `external` (Grok Bot). Older issues with no agent field are reported as Codex.
 - `get_issue(issue_id, include_images=false, activity_limit=20)`: issue context, the most recent activity entries (with `activityCount` for the total), and optional approved images. Accepts a UUID or report number such as `#234` or `234`, including archived reports. Original captures and private settings are excluded.
 
+Image inclusion requires the JSON boolean `true`. Strings such as `"false"`, numeric flags, and other mistyped arguments return a parameter error; they never opt a request into screenshot delivery.
+
 The documentation index is [docs/README.md](../../docs/README.md). Grok Bot setup, including the webhook paste, is in [Grok Bot](../../docs/agents/external-assistant.md).
 
 Example: “Use ScreenClip to show the observations that need my input.” Do not manually start another fix for an issue already marked Working.

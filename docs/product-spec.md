@@ -1,6 +1,6 @@
 # ScreenClip product specification
 
-Updated: November 14, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md). Closed product questions are under [Decisions](#decisions). The older open-question table is in the [archive](archive/remaining-decisions.md).
+Updated: November 15, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md). Closed product questions are under [Decisions](#decisions). The older open-question table is in the [archive](archive/remaining-decisions.md).
 
 ## Problem and intended outcome
 
@@ -126,7 +126,7 @@ A completed agent turn does not prove that a fix works or that a PR merged. “M
 2. Investigate and reproduce where practical. Ask a focused question if the intended behavior is unclear; do not invent it.
 3. Work in an isolated Git worktree and branch; preserve the tester's checkout and local changes.
 4. Implement and run the repository's relevant validation, including a visual check when the issue is visual and the environment supports it.
-5. Open a PR with a concise explanation and evidence. Codex and Claude Code screenshots stay on the Mac. Grok Bot pushes the approved screenshots to a `screenclip/` branch in the project repository; that push is a separate opt-in. See [Grok Bot](agents/external-assistant.md).
+5. Open a PR with a concise explanation and evidence. Codex and Claude Code receive approved screenshots, which their model provider may process; ScreenClip does not publish those screenshots to GitHub. Grok Bot pushes the approved screenshots to a `screenclip/` branch in the project repository; that push is a separate opt-in. See [Grok Bot](agents/external-assistant.md).
 6. Repair failing checks where possible. Merge automatically once configured verification passes and hosting-service policies allow it. Do not bypass required checks or reviews.
 7. Return a concise result: what changed, tests run, PR/merge reference, and how to retest. Show deployment/build status only when independently known.
 
