@@ -42,6 +42,19 @@ final class SafetyTests: XCTestCase {
     XCTAssertEqual(GitHubService.redactSecrets("swift test"), "swift test")
   }
 
+  /// The agent must be able to run the command it is shown, so prompts hide tokens only.
+  func testValidationCommandStaysRunnableInAgentPrompts() {
+    for command in [
+      "CI=1 npm test", "xcodebuild test CODE_SIGNING_ALLOWED=NO -destination 'platform=macOS'",
+      "swift test --filter=Core",
+    ] {
+      XCTAssertEqual(GitHubService.redactTokens(command), command)
+    }
+    XCTAssertEqual(
+      GitHubService.redactTokens("TOKEN=ghp_" + String(repeating: "a", count: 36) + " make test"),
+      "TOKEN=… make test")
+  }
+
   func testDeleteIsRefusedWhileAnAgentMayUseTheEvidence() {
     var issue = Issue(
       projectID: UUID(), title: "T",

@@ -41,6 +41,7 @@ extension AgentWorker {
     await client.stop()
     authentication.reset()
     pendingRequests.removeAll()
+    requestOwners.removeAll()
     connected = false
     model.connection = ProviderPhrase.notConnected.english(.codex)
   }
@@ -148,6 +149,7 @@ extension AgentWorker {
     let schema = AgentPrompt.resultSchema
     try model.updateIssue(id) {
       $0.dispatchUncertain = true
+      $0.supersededTurnID = $0.consumedTurnID
       $0.coveredRevision = issue.revision
       $0.record("Investigating capture revision \(issue.revision)", status: .working)
     }
@@ -176,6 +178,7 @@ extension AgentWorker {
     // Cancellation can arrive while turn/start is awaiting its acknowledgement,
     // before cancel() knows which turn to interrupt.
     if !jobs.contains(id) || model.issue(id)?.status == .canceled {
+      canceledTurns.insert(turnID)
       await interrupt(threadID: issue.threadID!, turnID: turnID)
       return
     }
@@ -231,6 +234,7 @@ extension AgentWorker {
       }
     }
     if let issue = model.issue(id) { model.notify(issue, text: message) }
+    canceledTurns.insert(turnID)
     await interrupt(threadID: threadID, turnID: turnID)
     pump()
   }
@@ -402,7 +406,7 @@ extension AgentWorker {
       guard issue.turnID == nil || issue.turnID == p["turn"]["id"].string else { return }
       // A canceled turn finishing late, after Continue queued the report again.
       if let turn = p["turn"]["id"].string, canceledTurns.remove(turn) != nil,
-        issue.status != .canceled
+        ![.canceled, .failed].contains(issue.status)
       {
         return
       }
@@ -450,6 +454,7 @@ extension AgentWorker {
       }
     case "serverRequest/resolved":
       pendingRequests.remove(p["requestId"].data.base64EncodedString())
+      requestOwners.removeValue(forKey: p["requestId"].data.base64EncodedString())
       model.perform {
         try model.updateIssue(id) { issue in
           for i in issue.questions.indices
@@ -534,8 +539,8 @@ extension AgentWorker {
       // Publishing still independently validates source, revision, and PR head.
       if linkingThread == nil, issue.revision == issue.coveredRevision,
         let turn = history["data"].array.first, turn["status"].string == "completed",
-        // Not a result already taken for earlier evidence, when a newer turn never started.
-        turn["id"].string == nil || turn["id"].string != issue.consumedTurnID,
+        // Not the older result a later dispatch superseded, when that newer turn never started.
+        turn["id"].string == nil || turn["id"].string != issue.supersededTurnID,
         let final = turn["items"].array.last(where: {
           $0["type"].string == "agentMessage" && $0["phase"].string == "final_answer"
         })?["text"].string,

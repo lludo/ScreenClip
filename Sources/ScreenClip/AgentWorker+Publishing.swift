@@ -115,8 +115,8 @@ extension AgentWorker {
         current.validationFeedback = nil
         current.record(
           "PR opened: " + published.url,
-          status: current.status == .canceled
-            ? .canceled : (current.revision == issue.coveredRevision ? .prOpen : .queued))
+          status: [.canceled, .queued].contains(current.status)
+            ? current.status : (current.revision == issue.coveredRevision ? .prOpen : .queued))
       }
     } catch {
       if let current = model.issue(id), current.status != .canceled,
@@ -136,9 +136,10 @@ extension AgentWorker {
         try model.updateIssue(id) {
           $0.lastError = error.localizedDescription
           $0.unread = true
+          // Canceled, or canceled and queued again, while publishing: keep that decision.
           $0.record(
-            error.localizedDescription, status: $0.status == .canceled ? .canceled : .needsYou,
-            kind: "error")
+            error.localizedDescription,
+            status: [.canceled, .queued].contains($0.status) ? $0.status : .needsYou, kind: "error")
         }
       }
     }
@@ -168,10 +169,12 @@ extension AgentWorker {
         return
       }
       var screenclipEvidenceCleared = true
+      var validatedHere = true
       if issue.resolvedAgent == .external {
         switch try await inspectExternal(id, issue: issue, project: project, path: path, pullHead: pr.head)
         {
         case .blocked: return
+        case .unvalidated: validatedHere = false
         case .ready(let cleared): screenclipEvidenceCleared = cleared
         }
       }
@@ -232,6 +235,8 @@ extension AgentWorker {
         checkSummary = "Waiting for the PR to become mergeable."
       } else if !screenclipEvidenceCleared {
         checkSummary = ExternalAssistant.evidenceStillPresentSummary
+      } else if !validatedHere {
+        checkSummary = ExternalAssistant.validationNeedsAutoMerge
       } else if !project.autoMerge {
         checkSummary = "Checks passed. Automatic merge is disabled for this project."
       } else if model.snapshot.settings.paused {
@@ -337,6 +342,7 @@ extension AgentWorker {
           "Previous revision merged; continuing with newly submitted evidence. PR: \(issue.prURL ?? "")",
           status: .queued)
         issue.workspaceID = UUID()
+        issue.deliveredContext = nil
         issue.worktreePath = nil
         issue.branch = nil
         issue.prURL = nil
