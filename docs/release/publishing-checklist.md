@@ -33,4 +33,4 @@ Configure the six Apple secrets named in [`.github/workflows/release.yml`](../..
 3. Add a monitored support channel if the public site should list one.
 4. Decide whether the Sponsors link and `donateUrl` should go live with the first public download.
 
-Publishing does not require the Apple secrets. Without them there is still no notarized DMG, so the site leaves its download URL empty. See [Direct distribution](direct-distribution.md).
+Publishing does not require the Apple secrets. The first DMG is signed and notarized locally. The site's download URL already points at the latest release asset, so publish that release before the website change reaches production. See [Direct distribution](direct-distribution.md).
