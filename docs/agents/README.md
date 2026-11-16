@@ -26,6 +26,8 @@ For agent-specific investigation and handoff prompts, see the archived [Claude C
 
 **Settings → Connections → Agent instructions → Default prompt add-on** stores instructions shared by all projects and agents. Edit the multiline text and choose **Save settings**. Leave it empty to disable it, or choose **Restore default prompt** to restore the built-in text. Older queues use the built-in default automatically.
 
+The original synthetic [Before](../screenshots/default-prompt-before.png) / [After](../screenshots/default-prompt-after.png) comparison for PR #47 is retained here so its evidence does not depend on a temporary branch. These are historical feature-introduction captures, not the current Settings layout.
+
 The default asks for a labeled **Before / After** comparison in a visual fix's PR description: the original issue screenshot, a new screenshot after rebuilding and retesting, comparable views, and a brief retest result. It requires an explanation when either image or the retest is unavailable. This is an agent instruction, not an automatic screenshot capture or upload feature.
 
 Codex and Claude Code receive the current add-on on every turn, including resumed conversations and repair turns. Changes apply to the next request; they do not alter a turn already running. Their result summary carries PR-ready text into the description ScreenClip creates. Existing screenshot-sharing permissions still apply: local agents cannot publish queue screenshots, so they must explain missing images unless permitted image links are already available. Grok Bot receives `promptAddOn` in both the evidence JSON and the webhook; its routine must read that field. The add-on does not grant extra permissions or change the result format.
