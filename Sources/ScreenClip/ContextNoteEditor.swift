@@ -1,7 +1,9 @@
+import AppKit
 import ScreenClipCore
 import SwiftUI
+import UniformTypeIdentifiers
 
-/// Adds a text note to a report after it was filed.
+/// Adds text and image evidence to a report after it was filed.
 struct ContextNoteEditor: View {
   @ObservedObject var model: AppModel
   let issueID: UUID
@@ -11,6 +13,10 @@ struct ContextNoteEditor: View {
   @Environment(\.dismiss) private var dismiss
   @Environment(\.locale) private var locale
   @State private var text = ""
+  @State private var attachments: [ContextImageAttachment] = []
+  @State private var loading = false
+  @State private var dropTargeted = false
+  @State private var choosingImages = false
   @State private var error: String?
   @FocusState private var focused: Bool
   private var title: String {
@@ -48,7 +54,10 @@ struct ContextNoteEditor: View {
         .padding(6).frame(height: 150)
         .overlay(RoundedRectangle(cornerRadius: 6).stroke(.secondary.opacity(0.3)))
         .accessibilityLabel(
-          Text(chrome: "Additional context", comment: "Accessibility label for the context note field."))
+          Text(
+            chrome: "Additional context", comment: "Accessibility label for the context note field."
+          ))
+      attachmentEditor
       Text(verbatim: Chrome.stored(contextHint, locale: locale)).font(.caption)
         .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
       if let error {
@@ -57,25 +66,132 @@ struct ContextNoteEditor: View {
       }
       HStack {
         Spacer()
-        Button(role: .cancel) { dismiss() } label: {
+        Button(role: .cancel) {
+          dismiss()
+        } label: {
           Text(chrome: "Cancel", comment: "Closes the context note editor without saving.")
         }.keyboardShortcut(.cancelAction)
         Button {
           do {
-            try model.addContext(issueID, text: text, followUp: followUp)
+            try model.addContext(
+              issueID, text: text, images: attachments.map(\.data), followUp: followUp)
             dismiss()
           } catch { self.error = error.localizedDescription }
         } label: {
           if followUp {
-            Text(chrome: "Request follow-up", comment: "Saves a follow-up note and starts another fix.")
+            Text(
+              chrome: "Request follow-up", comment: "Saves a follow-up note and starts another fix."
+            )
           } else {
             Text(chrome: "Save context", comment: "Saves additional context on the report.")
           }
         }.buttonStyle(.borderedProminent).keyboardShortcut(.return, modifiers: .command)
-          .disabled(text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+          .disabled(
+            loading
+              || (text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+                && attachments.isEmpty)
+          )
       }
     }.padding(24).frame(minWidth: 460, idealWidth: 520)
       .onAppear { focused = true }
+  }
+  private var attachmentEditor: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Button {
+        choosingImages = true
+      } label: {
+        Label {
+          Text(chrome: "Drop images here or choose images…", comment: "Context image drop area.")
+        } icon: {
+          Image(systemName: "photo.badge.plus")
+        }
+        .frame(maxWidth: .infinity).padding(12)
+      }.buttonStyle(.plain)
+        .background(
+          dropTargeted ? Color.accentColor.opacity(0.15) : Color.secondary.opacity(0.08),
+          in: RoundedRectangle(cornerRadius: 6))
+      if loading { ProgressView().controlSize(.small) }
+      if !attachments.isEmpty {
+        ScrollView(.horizontal) {
+          HStack(spacing: 12) {
+            ForEach(attachments) { attachment in
+              VStack(spacing: 4) {
+                Image(nsImage: attachment.image).resizable().scaledToFit()
+                  .frame(width: 120, height: 90)
+                Button {
+                  attachments.removeAll { $0.id == attachment.id }
+                } label: {
+                  Label {
+                    Text(chrome: "Remove image", comment: "Removes a pending image attachment.")
+                  } icon: {
+                    Image(systemName: "xmark.circle")
+                  }
+                }.buttonStyle(.borderless)
+              }
+            }
+          }
+        }.frame(height: 120)
+      }
+    }
+    .onDrop(of: [UTType.fileURL, UTType.image], isTargeted: $dropTargeted) { providers in
+      guard !loading else { return false }
+      loading = true
+      Task { @MainActor in
+        defer { loading = false }
+        for provider in providers {
+          do {
+            let data: Data
+            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+              let urlData = try await load(provider, type: UTType.fileURL.identifier)
+              guard let url = URL(dataRepresentation: urlData, relativeTo: nil), url.isFileURL
+              else {
+                throw ScreenClipError.message("Unable to load image attachment.")
+              }
+              let accessing = url.startAccessingSecurityScopedResource()
+              defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+              data = try Data(contentsOf: url)
+            } else if let type = provider.registeredTypeIdentifiers.first(where: {
+              UTType($0)?.conforms(to: .image) == true
+            }) {
+              data = try await load(provider, type: type)
+            } else {
+              throw ScreenClipError.message("Unable to load image attachment.")
+            }
+            try appendImage(data)
+          } catch { self.error = error.localizedDescription }
+        }
+      }
+      return true
+    }
+    .fileImporter(
+      isPresented: $choosingImages, allowedContentTypes: [.image], allowsMultipleSelection: true
+    ) { result in
+      do {
+        for url in try result.get() {
+          let accessing = url.startAccessingSecurityScopedResource()
+          defer { if accessing { url.stopAccessingSecurityScopedResource() } }
+          try appendImage(Data(contentsOf: url))
+        }
+      } catch { self.error = error.localizedDescription }
+    }
+  }
+  private func appendImage(_ data: Data) throws {
+    guard let image = NSImage(data: data), NSBitmapImageRep(data: data) != nil else {
+      throw ScreenClipError.message("Unable to load image attachment.")
+    }
+    attachments.append(ContextImageAttachment(data: data, image: image))
+  }
+  private func load(_ provider: NSItemProvider, type: String) async throws -> Data {
+    try await withCheckedThrowingContinuation { continuation in
+      provider.loadDataRepresentation(forTypeIdentifier: type) { data, error in
+        if let data {
+          continuation.resume(returning: data)
+        } else {
+          continuation.resume(
+            throwing: error ?? ScreenClipError.message("Unable to load image attachment."))
+        }
+      }
+    }
   }
   private var contextHint: String {
     guard let issue = model.issue(issueID) else { return "" }
@@ -93,4 +209,10 @@ struct ContextNoteEditor: View {
     default: return "Saving queues this report with your added context."
     }
   }
+}
+
+private struct ContextImageAttachment: Identifiable {
+  let id = UUID()
+  let data: Data
+  let image: NSImage
 }
