@@ -461,5 +461,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
   func applicationWillTerminate(_ notification: Notification) {
     // Agent progress is saved within a second; save the last of it before quitting.
     model?.flushPendingSave()
+    if !previewMode { ClaudeCodeClient.terminateAllForQuit() }
   }
 }

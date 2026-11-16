@@ -28,7 +28,7 @@ Updated: November 15, 2026. The local app is working: capture, markup, the queue
 - **Capture timing.** Browser URL lookup (AppleScript, up to 2 seconds) runs before the screen freezes. Freeze first, then look up the URL in the background.
 - **Annotation scale.** Minimum text size and the legacy stroke minimum are in canvas points on screen but pixels in the exported PNG, so small crops export relatively larger labels.
 - **Thumbnails.** Queue rows decode full-size PNGs on the main thread. Add a thumbnail cache.
-- **Store versioning.** New fields are added as optionals while the snapshot version stays at 1, so an older build can drop newer fields on save. Bump a minimum-reader version when fields are added.
+- **Store versioning.** 1.0 refuses a queue whose `minimumReaderVersion` is above 1, so a later build can protect new fields by raising it. New fields are added as optionals while the snapshot version stays at 1, so an older build can drop newer fields on save. Bump a minimum-reader version when fields are added.
 - **Naming.** `AppSettings.model` is the Codex model (`claudeModel` is Claude's). Rename with a decoding migration.
 - **Retention.** Screenshots and notes stay until the report is deleted. There is no expiry setting.
 - **Probe.** `ScreenClipProbe` exercises only Codex and is a manual smoke test.

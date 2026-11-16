@@ -170,7 +170,8 @@ public enum ExternalAssistant {
       contextNotes: (issue.contextNotes ?? []).map(\.text), context: context,
       project: ExternalWebhookProject(
         name: project.name, repo: repo, baseBranch: project.baseBranch,
-        validationCommand: project.validationCommand),
+        // This is committed to the evidence branch and sent to the webhook.
+        validationCommand: GitHubService.redactSecrets(project.validationCommand)),
       evidence: ExternalWebhookEvidence(
         branch: branch, commit: commit,
         paths: evidencePaths(reportNumber: number, captureCount: issue.captures.count)),

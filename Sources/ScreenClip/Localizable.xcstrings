@@ -30163,6 +30163,72 @@
         }
       }
     },
+    "These values came from a link. Connecting sends your Grok Bot reports to this address and replaces any connection you saved. Continue only if you trust the link.": {
+      "comment": "Warning when a screenclip:// link pre-filled the Grok Bot connection. Keep Grok Bot.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These values came from a link. Connecting sends your Grok Bot reports to this address and replaces any connection you saved. Continue only if you trust the link."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些值来自一个链接。连接后，你的 Grok Bot 报告会发到这个地址，并替换你已保存的连接。只有在信任该链接时才继续。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estos valores vienen de un enlace. Al conectar, tus informes de Grok Bot se envían a esta dirección y se reemplaza cualquier conexión guardada. Continúa solo si confías en el enlace."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "これらの値はリンクから入力されました。接続すると、Grok Bot へのレポートはこのアドレスに送られ、保存済みの接続は置き換えられます。リンクを信頼できる場合だけ続けてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estes valores vieram de um link. Ao conectar, seus relatórios do Grok Bot vão para este endereço e qualquer conexão salva é substituída. Continue só se você confia no link."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Werte stammen aus einem Link. Beim Verbinden gehen deine Grok Bot-Berichte an diese Adresse, und eine gespeicherte Verbindung wird ersetzt. Fahre nur fort, wenn du dem Link vertraust."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ces valeurs proviennent d’un lien. En vous connectant, vos rapports Grok Bot partent vers cette adresse et toute connexion enregistrée est remplacée. Continuez seulement si vous faites confiance au lien."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 값은 링크에서 채워졌습니다. 연결하면 Grok Bot 리포트가 이 주소로 가고 저장된 연결이 대체됩니다. 링크를 신뢰할 때만 계속하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Эти значения получены из ссылки. После подключения ваши отчёты Grok Bot будут уходить на этот адрес, а сохранённое подключение будет заменено. Продолжайте, только если доверяете ссылке."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "這些值來自一個連結。連接後，你的 Grok Bot 報告會發到這個位址，並取代你已儲存的連線。只有在信任該連結時才繼續。"
+          }
+        }
+      }
+    },
     "Copy 'key' (or 'header').": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",

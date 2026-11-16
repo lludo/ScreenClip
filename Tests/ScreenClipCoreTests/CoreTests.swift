@@ -3,6 +3,20 @@ import XCTest
 @testable import ScreenClipCore
 
 final class CoreTests: XCTestCase {
+  func testQueueNeedingANewerReaderIsRefusedInsteadOfLosingFields() throws {
+    let store = try temporaryStore()
+    var snapshot = StoreSnapshot()
+    snapshot.minimumReaderVersion = StoreSnapshot.readerVersion
+    try store.save(snapshot)
+    let reader = try IssueStore(root: store.root, readOnly: true)
+    XCTAssertEqual(try reader.load().minimumReaderVersion, StoreSnapshot.readerVersion)
+    snapshot.minimumReaderVersion = StoreSnapshot.readerVersion + 1
+    try store.save(snapshot)
+    XCTAssertThrowsError(try IssueStore(root: store.root, readOnly: true).load()) {
+      XCTAssertTrue($0.localizedDescription.contains("newer ScreenClip"))
+    }
+  }
+
   func testProtocolIntegersRejectFractionsAndOutOfRangeNumbers() throws {
     for value in [Double.greatestFiniteMagnitude, -.infinity, .infinity, .nan, 1.5, Double(Int.max)] {
       XCTAssertNil(JSONValue.number(value).int)

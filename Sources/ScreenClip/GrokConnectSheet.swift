@@ -20,6 +20,7 @@ struct GrokConnectSheet: View {
   @State private var outcome: GrokConnectionCheck?
   @State private var applyingPaste = false
   @State private var pastedCapabilities: [String]?
+  @State private var filledFromLink = false
   private let placeholder = "https://api2.cursor.sh/automations/webhook/…"
 
   var body: some View {
@@ -51,11 +52,19 @@ struct GrokConnectSheet: View {
         }
         .textFieldStyle(.roundedBorder)
       }
+      if filledFromLink {
+        Text(
+          chrome:
+            "These values came from a link. Connecting sends your Grok Bot reports to this address and replaces any connection you saved. Continue only if you trust the link.",
+          comment: "Warning when a screenclip:// link pre-filled the Grok Bot connection. Keep Grok Bot."
+        ).font(.callout).foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true)
+      }
       HStack(spacing: 12) {
         Button(action: connect) {
           Text(verbatim: ProviderPhrase.connect.localized(.external, locale: locale))
         }
-        .keyboardShortcut(.defaultAction)
+        // Return must not accept values the user did not enter.
+        .keyboardShortcut(filledFromLink ? nil : KeyboardShortcut.defaultAction)
         .disabled(checking)
         if checking {
           ProgressView().controlSize(.small)
@@ -122,6 +131,7 @@ struct GrokConnectSheet: View {
     key = credentials.authorization
     pastedCapabilities = credentials.capabilities
     applyingPaste = false
+    filledFromLink = true
   }
 
   private func connect() {

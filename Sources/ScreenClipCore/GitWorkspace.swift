@@ -143,7 +143,9 @@ public enum GitWorkspace {
     }
     let before = try await fingerprint(path: path)
     let result = try await CommandRunner.run(
-      "/bin/zsh", ["-c", project.validationCommand], cwd: path, timeout: 3600)
+      "/bin/zsh", ["-c", project.validationCommand], cwd: path, timeout: 3600,
+      // The command runs agent-written code, so it gets the agent environment: no GitHub tokens.
+      environment: ProcessEnvironment.agent())
     let after = try await fingerprint(path: path)
     guard before == after else {
       throw ScreenClipError.message(
