@@ -226,7 +226,9 @@
     "flowTitle": "Mantenha o ritmo",
     "flowBody": "Registre uma observação rapidamente, sem alternar entre aplicativos nem criar uma nova conversa manualmente na sua ferramenta de IA.",
     "noticeTitle": "Não deixe os detalhes passarem",
-    "noticeBody": "Capture pequenos erros, detalhes incômodos e ideias assim que notar, para não esquecê-los durante os testes."
+    "noticeBody": "Capture pequenos erros, detalhes incômodos e ideias assim que notar, para não esquecê-los durante os testes.",
+    "retestTitle": "Saiba quando testar novamente",
+    "retestBody": "Ative as notificações e o ScreenClip avisa quando uma correção é integrada, para você recompilar e testar novamente sem perder o foco nos testes."
   },
   "simple": {
     "captureTitle": "Capture",
