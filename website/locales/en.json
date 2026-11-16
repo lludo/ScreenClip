@@ -38,8 +38,9 @@
   "hero": {
     "eyebrow": "Screenshot feedback for AI coding agents",
     "title": "File bugs as you go, without breaking your flow.",
-    "lead": "Spot something while testing? Capture it, add a quick note, and your AI agent takes care of it in the background while you continue testing (Codex, Claude Code, or Grok Bot). ScreenClip keeps your reports and fixes together, so you can track what’s ready to retest.",
-    "shortcut": "Capture instantly with ⌘⇧2 — or set your own shortcut."
+    "lead": "Notice something? Capture it, add a few words, and keep going. Your coding agent fixes it in the background, and ScreenClip tells you when to retest.",
+    "shortcut": "From anywhere on your Mac. Change the shortcut in Settings.",
+    "keysLabel": "Command Shift 2"
   },
   "demo": {
     "title": "The menu bar",
@@ -48,8 +49,7 @@
   },
   "loop": {
     "eyebrow": "How it works",
-    "title": "Capture it, ship the fix, retest it.",
-    "intro": "Three steps from observation to retest."
+    "title": "A few seconds from you. The rest runs in the background."
   },
   "agents": {
     "eyebrow": "Coding agents",
@@ -230,13 +230,21 @@
     "retestTitle": "Know when to retest",
     "retestBody": "Enable notifications and ScreenClip lets you know when a fix merges, so you can rebuild and retest while keeping your focus on testing."
   },
-  "simple": {
-    "captureTitle": "Capture",
-    "captureBody": "Select an area of a Mac app or website. Add a note or markup if you want.",
-    "sendTitle": "Send",
-    "sendBody": "Choose Codex, Claude Code, or Grok Bot and submit your report.",
-    "followTitle": "Follow the fix",
-    "followBody": "Track the pull request in ScreenClip, then retest. Automatic merge is optional."
+  "flow": {
+    "you": "You",
+    "agent": "Your agent",
+    "background": "In the background",
+    "s1Title": "Capture",
+    "s1Body": "Press ⌘⇧2 and drag over what you noticed, in any Mac app or website.",
+    "s2Title": "Add a few words",
+    "s2Body": "Type a quick note. Mark it up or black out anything private if you want, then send.",
+    "s3Title": "Keep going",
+    "s3Body": "Your coding agent picks up the report, makes the fix, and opens a pull request. Nothing to watch.",
+    "s4Title": "Retest",
+    "s4Body": "ScreenClip notifies you when the fix merges. Pull requests for visual fixes include before and after screenshots.",
+    "chipWorking": "Working",
+    "chipPr": "Pull request",
+    "chipMerged": "Merged"
   },
   "queue": {
     "eyebrow": "See the work in progress",

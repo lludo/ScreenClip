@@ -108,6 +108,23 @@ def render_actions(config, catalog=None, *, hero=False):
     return '<div class="actions">' + "".join(parts) + "</div>"
 
 
+def hero_title(catalog, config):
+    """The headline breaks after its first comma, in whichever script the language uses."""
+    title = catalog.html("hero.title", config)
+    for comma in (", ", "、", "，"):
+        if comma in title:
+            return title.replace(comma, comma.rstrip() + "<br>", 1)
+    return title
+
+
+def hero_shortcut(catalog, config):
+    text = catalog.html("hero.shortcut", config)
+    for stop in (". ", "。"):
+        if stop in text:
+            return text.replace(stop, stop.rstrip() + "<br>", 1)
+    return text
+
+
 def header_cta(config, catalog):
     return link(catalog.page("home") + "#download", catalog.get("nav.download"), "button button-primary button-small")
 
@@ -357,7 +374,6 @@ def layout(config, catalogs, catalog, *, slug, robots, body, json_ld, css_href, 
   <header class="site-header">
     <div class="wrap header-bar">
       <a class="brand" href="{esc(home)}"><img src="/assets/icon.svg" width="32" height="32" alt=""><span>ScreenClip</span></a>
-      <p class="header-descriptor">{esc(catalog.get("hero.eyebrow"))}</p>
       <nav aria-label="{esc(catalog.get("nav.primary"))}">{nav(catalog, slug)}</nav>
       <div class="header-cta">{header_cta(config, catalog)}</div>
     </div>
@@ -702,7 +718,8 @@ def build():
         tokens = {
             "QUEUE_PNG": queue_image,
             "NOTIFICATION_PNG": notification_image,
-            "HERO_TITLE": catalog.html("hero.title", config).replace(", ", ",<br>", 1) if catalog.id == "en" else catalog.html("hero.title", config),
+            "HERO_TITLE": hero_title(catalog, config),
+            "HERO_SHORTCUT": hero_shortcut(catalog, config),
             "DOWNLOAD_TITLE": catalog.html("download.title" if config.download_url else "download.titleSoon", config),
             "ACTIONS": render_actions(config, catalog, hero=True),
             "DOWNLOAD_ACTIONS": render_actions(config, catalog) if (config.download_url or config.github_url or config.donate_url) else "",

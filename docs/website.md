@@ -1,6 +1,6 @@
 # Website
 
-Static pages for [screenclipai.com](https://screenclipai.com). The copy describes the Mac app as it works today: capture a region, annotate or redact it, hand it to Codex, Claude Code, or Grok Bot, then track the GitHub pull request through an optional merge and retest. Plain HTML and CSS, plus one small script for the language choice. No framework, no third-party fonts, and no analytics. The page follows the system light and dark setting, and the menu bar demo uses the matching screenshot.
+Static pages for [screenclipai.com](https://screenclipai.com). The copy describes the Mac app as it works today: capture a region, annotate or redact it, hand it to Codex, Claude Code, or Grok Bot, then track the GitHub pull request through an optional merge and retest. The home page leads with the headline, the ⌘⇧2 keycaps, and a four-step **How it works** strip (`flow.*` strings) that marks which steps are yours and which one the agent does in the background. Type is the system font stack. Plain HTML and CSS, plus one small script for the language choice. No framework, no third-party fonts, and no analytics. The page follows the system light and dark setting, and the menu bar demo uses the matching screenshot.
 
 `website/build.py` reads `website/site.config.json` and `website/src/`, then writes `website/dist/`. Python’s standard library is enough. `dist/` is generated and gitignored.
 
@@ -68,7 +68,7 @@ There is no monitored support inbox yet. The support page says public support is
 | Russian | `/ru/` |
 | Chinese Traditional | `/zh-hant/` |
 
-`hero.title` is the whole headline. `[[this part]]` is the optional accent; the brackets are not shown. The English headline breaks after its first comma; other languages wrap naturally. Replace that one key when the tagline changes. Product names, `Cmd` / `Shift` / `2`, setting labels, and `{code:…}` paths stay as written.
+`hero.title` is the whole headline. `[[this part]]` is the optional accent; the brackets are not shown. The headline breaks after its first comma in every language (`,`, `、`, or `，`); a headline without one wraps naturally. Replace that one key when the tagline changes. Product names, `Cmd` / `Shift` / `2`, setting labels, and `{code:…}` paths stay as written.
 
 The footer lists every language as a normal link. Choosing one stores `screenclip_lang` in a cookie and in local storage.
 

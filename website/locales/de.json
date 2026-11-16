@@ -38,8 +38,9 @@
   "hero": {
     "eyebrow": "Screenshot-Feedback für Coding-Agenten",
     "title": "Melde Fehler im Vorbeigehen, ohne deinen Flow zu unterbrechen.",
-    "lead": "Beim Testen etwas entdeckt? Halte es fest, füge eine kurze Notiz hinzu und dein KI-Agent kümmert sich im Hintergrund darum, während du weitertestest (Codex, Claude Code oder Grok Bot). ScreenClip hält deine Meldungen und Fixes zusammen, damit du siehst, was zum erneuten Test bereit ist.",
-    "shortcut": "Mit ⌘⇧2 sofort aufnehmen oder ein eigenes Tastenkürzel festlegen."
+    "lead": "Etwas entdeckt? Halte es fest, schreib ein paar Worte dazu und mach weiter. Dein Coding-Agent behebt es im Hintergrund, und ScreenClip meldet sich, wenn du erneut testen kannst.",
+    "shortcut": "Überall auf deinem Mac. Das Kürzel lässt sich in Settings ändern.",
+    "keysLabel": "Befehl Umschalt 2"
   },
   "demo": {
     "title": "Die Menüleiste",
@@ -48,8 +49,7 @@
   },
   "loop": {
     "eyebrow": "So funktioniert’s",
-    "title": "Erfassen, Fix liefern, erneut testen.",
-    "intro": "In drei Schritten von der Beobachtung zum erneuten Test."
+    "title": "Ein paar Sekunden von dir. Der Rest läuft im Hintergrund."
   },
   "agents": {
     "eyebrow": "Agenten",
@@ -230,13 +230,21 @@
     "retestTitle": "Wissen, wann du erneut testen kannst",
     "retestBody": "Aktiviere Benachrichtigungen und ScreenClip informiert dich, sobald ein Fix gemergt ist. So kannst du neu bauen und erneut testen, ohne beim Testen den Faden zu verlieren."
   },
-  "simple": {
-    "captureTitle": "Aufnehmen",
-    "captureBody": "Wähle einen Bereich einer Mac-App oder Website. Ergänze bei Bedarf eine Notiz oder Markierung.",
-    "sendTitle": "Senden",
-    "sendBody": "Wähle Codex, Claude Code oder Grok Bot und sende deine Meldung.",
-    "followTitle": "Fix verfolgen",
-    "followBody": "Verfolge den Pull Request in ScreenClip und teste erneut. Das automatische Zusammenführen ist optional."
+  "flow": {
+    "you": "Du",
+    "agent": "Dein Agent",
+    "background": "Im Hintergrund",
+    "s1Title": "Aufnehmen",
+    "s1Body": "Drücke ⌘⇧2 und ziehe einen Rahmen um das, was dir aufgefallen ist, in jeder Mac-App oder Website.",
+    "s2Title": "Ein paar Worte dazu",
+    "s2Body": "Tippe eine kurze Notiz. Wenn du magst, markiere etwas oder schwärze Privates, dann senden.",
+    "s3Title": "Mach weiter",
+    "s3Body": "Dein Coding-Agent übernimmt die Meldung, behebt das Problem und öffnet einen Pull Request. Du musst nicht zusehen.",
+    "s4Title": "Erneut testen",
+    "s4Body": "ScreenClip benachrichtigt dich, sobald der Fix gemergt ist. Pull Requests für visuelle Fixes enthalten Vorher-Nachher-Screenshots.",
+    "chipWorking": "In Arbeit",
+    "chipPr": "Pull Request",
+    "chipMerged": "Gemergt"
   },
   "queue": {
     "eyebrow": "Arbeit im Blick",

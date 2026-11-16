@@ -38,8 +38,9 @@
   "hero": {
     "eyebrow": "Feedback por captura para agentes de código",
     "title": "Registre bugs no fluxo, sem interromper o ritmo.",
-    "lead": "Notou algo enquanto testava? Capture, adicione uma nota rápida e seu agente de IA cuida disso em segundo plano enquanto você continua testando (Codex, Claude Code ou Grok Bot). O ScreenClip mantém seus relatos e correções juntos para você acompanhar o que está pronto para testar novamente.",
-    "shortcut": "Capture instantaneamente com ⌘⇧2 ou configure seu próprio atalho."
+    "lead": "Notou algo? Capture, escreva algumas palavras e siga em frente. Seu agente de programação corrige em segundo plano, e o ScreenClip avisa quando for hora de testar de novo.",
+    "shortcut": "De qualquer lugar do seu Mac. Altere o atalho em Settings.",
+    "keysLabel": "Command Shift 2"
   },
   "demo": {
     "title": "A barra de menus",
@@ -48,8 +49,7 @@
   },
   "loop": {
     "eyebrow": "Como funciona",
-    "title": "Capture, envie a correção e teste de novo.",
-    "intro": "Três passos entre a observação e o novo teste."
+    "title": "Alguns segundos do seu tempo. O resto acontece em segundo plano."
   },
   "agents": {
     "eyebrow": "Agentes",
@@ -230,13 +230,21 @@
     "retestTitle": "Saiba quando testar novamente",
     "retestBody": "Ative as notificações e o ScreenClip avisa quando uma correção é integrada, para você recompilar e testar novamente sem perder o foco nos testes."
   },
-  "simple": {
-    "captureTitle": "Capture",
-    "captureBody": "Selecione uma área de um app Mac ou site. Adicione uma nota ou marcação se quiser.",
-    "sendTitle": "Envie",
-    "sendBody": "Escolha Codex, Claude Code ou Grok Bot e envie seu relato.",
-    "followTitle": "Acompanhe a correção",
-    "followBody": "Acompanhe a pull request no ScreenClip e teste novamente. A integração automática é opcional."
+  "flow": {
+    "you": "Você",
+    "agent": "Seu agente",
+    "background": "Em segundo plano",
+    "s1Title": "Capture",
+    "s1Body": "Pressione ⌘⇧2 e arraste sobre o que você notou, em qualquer app Mac ou site.",
+    "s2Title": "Escreva algumas palavras",
+    "s2Body": "Digite uma nota rápida. Se quiser, faça marcações ou cubra o que for privado, e envie.",
+    "s3Title": "Siga em frente",
+    "s3Body": "Seu agente de programação pega o relato, faz a correção e abre uma pull request. Não precisa acompanhar.",
+    "s4Title": "Teste de novo",
+    "s4Body": "O ScreenClip avisa quando a correção é integrada. As pull requests de correções visuais incluem capturas de antes e depois.",
+    "chipWorking": "Em andamento",
+    "chipPr": "Pull request",
+    "chipMerged": "Integrada"
   },
   "queue": {
     "eyebrow": "Acompanhe o trabalho",

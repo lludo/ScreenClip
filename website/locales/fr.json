@@ -38,8 +38,9 @@
   "hero": {
     "eyebrow": "Retours par capture pour les agents de code",
     "title": "Signalez les bugs au fil de l’eau, sans casser votre rythme.",
-    "lead": "Vous remarquez quelque chose pendant vos tests ? Capturez-le, ajoutez une courte note et votre agent IA s’en occupe en arrière-plan pendant que vous continuez à tester (Codex, Claude Code ou Grok Bot). ScreenClip réunit vos signalements et leurs correctifs pour que vous sachiez ce qui est prêt à retester.",
-    "shortcut": "Capturez instantanément avec ⌘⇧2, ou définissez votre propre raccourci."
+    "lead": "Vous remarquez quelque chose ? Capturez-le, ajoutez quelques mots et continuez. Votre agent de code le corrige en arrière-plan, et ScreenClip vous prévient quand c’est prêt à retester.",
+    "shortcut": "Depuis n’importe où sur votre Mac. Modifiez le raccourci dans Settings.",
+    "keysLabel": "Commande Majuscule 2"
   },
   "demo": {
     "title": "La barre des menus",
@@ -48,8 +49,7 @@
   },
   "loop": {
     "eyebrow": "Fonctionnement",
-    "title": "Capturez, livrez le correctif, retestez.",
-    "intro": "Trois étapes, de l’observation au nouveau test."
+    "title": "Quelques secondes de votre temps. Le reste se passe en arrière-plan."
   },
   "agents": {
     "eyebrow": "Agents",
@@ -230,13 +230,21 @@
     "retestTitle": "Sachez quand retester",
     "retestBody": "Activez les notifications et ScreenClip vous prévient lorsqu’un correctif est fusionné, pour recompiler et retester sans perdre le fil de vos tests."
   },
-  "simple": {
-    "captureTitle": "Capturez",
-    "captureBody": "Sélectionnez une zone d’une app Mac ou d’un site. Ajoutez une note ou une annotation si vous le souhaitez.",
-    "sendTitle": "Envoyez",
-    "sendBody": "Choisissez Codex, Claude Code ou Grok Bot et envoyez votre signalement.",
-    "followTitle": "Suivez le correctif",
-    "followBody": "Suivez la pull request dans ScreenClip, puis retestez. La fusion automatique est facultative."
+  "flow": {
+    "you": "Vous",
+    "agent": "Votre agent",
+    "background": "En arrière-plan",
+    "s1Title": "Capturez",
+    "s1Body": "Appuyez sur ⌘⇧2 et encadrez ce que vous avez remarqué, dans n’importe quelle app Mac ou site web.",
+    "s2Title": "Ajoutez quelques mots",
+    "s2Body": "Tapez une courte note. Annotez ou masquez ce qui est privé si vous le souhaitez, puis envoyez.",
+    "s3Title": "Continuez",
+    "s3Body": "Votre agent de code prend le signalement, fait le correctif et ouvre une pull request. Rien à surveiller.",
+    "s4Title": "Retestez",
+    "s4Body": "ScreenClip vous prévient lorsque le correctif est fusionné. Les pull requests de correctifs visuels incluent des captures avant et après.",
+    "chipWorking": "En cours",
+    "chipPr": "Pull request",
+    "chipMerged": "Fusionné"
   },
   "queue": {
     "eyebrow": "Suivez le travail en cours",
