@@ -78,6 +78,18 @@ extension AgentWorker {
         if scheduleRepair(id, message: error.localizedDescription) { return }
         throw error
       }
+      // A base merge handed to the agent must come back resolved before it is validated.
+      let unresolved = try await GitWorkspace.unresolvedConflicts(path: path)
+      if !unresolved.isEmpty {
+        let feedback =
+          "The base-branch merge in this worktree still has conflict markers in: "
+          + unresolved.joined(separator: ", ")
+          + ". Resolve them in the files and rerun validation; do not abort or commit the merge."
+        if scheduleRepair(id, message: feedback) { return }
+        try model.updateIssue(id) { $0.validationFeedback = feedback }
+        throw ScreenClipError.message(
+          "The base branch still conflicts with this fix in: " + unresolved.joined(separator: ", "))
+      }
       let receipt = try await GitWorkspace.validate(project: project, path: path)
       // Canceled, or canceled and queued again, during validation: leave that decision alone.
       // A queued report starts once this run has ended.
@@ -231,6 +243,8 @@ extension AgentWorker {
         checkSummary = pr.details
       } else if !pr.reviewSatisfied {
         checkSummary = "Waiting for required review."
+      } else if pr.conflicting {
+        checkSummary = "The base branch conflicts with this fix."
       } else if !pr.mergeable {
         checkSummary = "Waiting for the PR to become mergeable."
       } else if !screenclipEvidenceCleared {
@@ -247,9 +261,17 @@ extension AgentWorker {
       if model.issue(id)?.checkSummary != checkSummary {
         try model.updateIssue(id) { $0.checkSummary = checkSummary }
       }
-      guard project.autoMerge && evidence.canMerge && !model.snapshot.settings.paused else {
-        return
-      }
+      // A conflict never clears by waiting, and it blocks a manual merge too, so the base is
+      // integrated whether or not automatic merge is on.
+      let resolvesConflict =
+        pr.conflicting && !pr.draft && pr.base == project.baseBranch
+        && currentIssue.prHead == pr.head && currentIssue.revision == currentIssue.coveredRevision
+        && !evidence.unresolvedQuestions
+        // A Grok Bot pull request is only validated, and so only updated, on this Mac with
+        // automatic merge on.
+        && (issue.resolvedAgent != .external || project.autoMerge)
+      let mergesNow = project.autoMerge && evidence.canMerge
+      guard (mergesNow || resolvesConflict) && !model.snapshot.settings.paused else { return }
       // Re-check after the awaits above: parallel reports in one project must merge one at a
       // time, so each later merge revalidates against the base that already includes the earlier.
       guard !mergingProjects.contains(project.id) else { return }
@@ -257,7 +279,25 @@ extension AgentWorker {
       defer { mergingProjects.remove(project.id) }
       let baseAdvanced: Bool
       do {
-        baseAdvanced = try await GitWorkspace.updateBaseIfNeeded(project: project, path: path)
+        baseAdvanced = try await GitWorkspace.updateBaseIfNeeded(
+          project: project, path: path, keepConflicts: issue.resolvedAgent != .external)
+      } catch let conflict as GitWorkspace.BaseConflict where conflict.kept {
+        // The merge stays in progress with its conflict markers. The agent resolves them in
+        // the files; the next publish commits, which concludes the merge, and pushes.
+        if scheduleRepair(
+          id, message: conflict.agentInstructions,
+          note: "The base branch conflicts with this fix; resolving the conflict")
+        {
+          pump()
+        } else {
+          await GitWorkspace.abortMerge(path: path)
+          try model.updateIssue(id) {
+            $0.lastError = conflict.localizedDescription
+            $0.unread = true
+            $0.record("The base update needs attention in " + issue.resolvedAgent.title + ".", status: .needsYou)
+          }
+        }
+        return
       } catch {
         if issue.resolvedAgent == .external {
           try model.updateIssue(id) {
@@ -304,7 +344,7 @@ extension AgentWorker {
         return
       }
       // Recheck local revision immediately before submitting a guarded merge.
-      guard model.issue(id)?.revision == issue.coveredRevision && model.issue(id)?.status == .prOpen
+      guard mergesNow, model.issue(id)?.revision == issue.coveredRevision && model.issue(id)?.status == .prOpen
       else { return }
       try await GitHubService.merge(
         url: url, head: pr.head, path: path, gh: AgentDetector.ghPath(model.snapshot.settings))
@@ -367,7 +407,8 @@ extension AgentWorker {
       }
     }
   }
-  func scheduleRepair(_ id: UUID, message: String) -> Bool {
+  /// `note` replaces the timeline entry when the repair is not about failed checks.
+  func scheduleRepair(_ id: UUID, message: String, note: String? = nil) -> Bool {
     guard model.issue(id)?.resolvedAgent != .external else { return false }
     guard let issue = model.issue(id), issue.status != .canceled,
       issue.revision == issue.coveredRevision, (issue.repairAttempts ?? 0) < 2
@@ -378,7 +419,8 @@ extension AgentWorker {
         $0.lastError = message
         $0.validationFeedback = message
         $0.record(
-          "Checks failed; starting repair attempt \($0.repairAttempts ?? 1) of 2", status: .queued)
+          note ?? "Checks failed; starting repair attempt \($0.repairAttempts ?? 1) of 2",
+          status: .queued)
       }
       return true
     } catch {

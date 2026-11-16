@@ -11,6 +11,9 @@ public struct PRState {
   public var checksPassed: Bool
   public var checksFailed: Bool
   public var mergeable: Bool
+  /// GitHub reports that the head no longer merges into the base. Nothing but integrating the
+  /// base into the issue branch clears it, so ScreenClip does that instead of waiting.
+  public var conflicting = false
   public var reviewSatisfied: Bool
   /// A draft is never ready to merge. Missing `isDraft` stays false so older responses still parse.
   public var draft: Bool
@@ -34,6 +37,7 @@ public struct PRState {
       mergeCommit: value["mergeCommit"]["oid"].string, checksPassed: passed, checksFailed: failed,
       mergeable: value["mergeStateStatus"].string == "CLEAN"
         && value["mergeable"].string == "MERGEABLE",
+      conflicting: value["mergeable"].string == "CONFLICTING",
       reviewSatisfied: !["REVIEW_REQUIRED", "CHANGES_REQUESTED"].contains(
         value["reviewDecision"].string ?? ""),
       draft: value["isDraft"].bool == true,

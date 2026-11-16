@@ -41628,6 +41628,138 @@
           }
         }
       }
+    },
+    "The base branch conflicts with this fix; resolving the conflict": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The base branch conflicts with this fix; resolving the conflict"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基线分支与此修复冲突；正在解决冲突"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La rama base entra en conflicto con esta corrección; se resuelve el conflicto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ベースブランチがこの修正と競合しています。競合を解決しています"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O branch base conflita com esta correção; resolvendo o conflito"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Basis-Branch steht im Konflikt mit diesem Fix; der Konflikt wird aufgelöst"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La branche de base est en conflit avec ce correctif ; résolution du conflit"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기준 브랜치가 이 수정과 충돌합니다. 충돌을 해결하는 중"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Базовая ветка конфликтует с этим исправлением; конфликт устраняется"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基準分支與此修正衝突；正在解決衝突"
+          }
+        }
+      }
+    },
+    "The base branch conflicts with this fix.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The base branch conflicts with this fix."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基线分支与此修复冲突。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La rama base entra en conflicto con esta corrección."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ベースブランチがこの修正と競合しています。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O branch base conflita com esta correção."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Basis-Branch steht im Konflikt mit diesem Fix."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La branche de base est en conflit avec ce correctif."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기준 브랜치가 이 수정과 충돌합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Базовая ветка конфликтует с этим исправлением."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基準分支與此修正衝突。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

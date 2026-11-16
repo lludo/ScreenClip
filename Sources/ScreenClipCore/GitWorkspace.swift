@@ -172,9 +172,72 @@ public enum GitWorkspace {
     }
   }
 
+  /// The base branch could not be merged into the issue branch without conflicts. When
+  /// `kept` is true the merge is still in progress in the worktree, with conflict markers in
+  /// `files`, for the agent to resolve and ScreenClip to conclude with its next commit.
+  public struct BaseConflict: LocalizedError, Equatable {
+    public var base: String
+    public var files: [String]
+    public var kept: Bool
+    public var errorDescription: String? {
+      "The base branch conflicts with this fix in: " + files.joined(separator: ", ")
+    }
+    /// What the agent is told. It may only edit files: committing stays with ScreenClip.
+    public var agentInstructions: String {
+      """
+      The base branch (origin/\(base)) now conflicts with this fix, so the pull request cannot merge. ScreenClip started merging the base into this worktree and left that merge in progress. Files with conflict markers:
+      \(files.map { "- " + $0 }.joined(separator: "\n"))
+      Edit these files to resolve every conflict, keeping the base branch's changes together with this fix's behavior, and remove all conflict markers. Then rebuild and rerun the validation. Do not abort, commit, or otherwise conclude the merge, and do not rebase or work in another worktree or branch: ScreenClip commits the merge and pushes it once validation passes.
+      """
+    }
+  }
+
+  public static func mergeInProgress(path: String) async -> Bool {
+    (try? await CommandRunner.run(
+      git, ["rev-parse", "--verify", "--quiet", "MERGE_HEAD"], cwd: path))?.status == 0
+  }
+
+  public static func abortMerge(path: String) async {
+    _ = try? await CommandRunner.run(git, ["merge", "--abort"], cwd: path)
+  }
+
+  private static func unmergedFiles(path: String) async throws -> [String] {
+    try await CommandRunner.checked(
+      git, ["diff", "--name-only", "--diff-filter=U", "-z"], cwd: path
+    ).split(separator: "\0").map(String.init).sorted()
+  }
+
+  /// Files of an in-progress merge that still contain conflict markers. Empty when no merge
+  /// is in progress, so a file that legitimately contains such lines is never reported.
+  public static func unresolvedConflicts(path: String) async throws -> [String] {
+    guard await mergeInProgress(path: path) else { return [] }
+    // Exit status 1 means no match. Binary files are skipped.
+    let marked = try await CommandRunner.run(
+      git, ["grep", "-I", "-l", "-z", "-E", "^(<<<<<<<|>>>>>>>)( |$)"], cwd: path)
+    guard marked.status == 0 else { return [] }
+    let changed = Set(
+      try await CommandRunner.checked(git, ["diff", "--name-only", "-z", "HEAD"], cwd: path)
+        .split(separator: "\0").map(String.init))
+    return marked.output.split(separator: "\0").map(String.init).filter(changed.contains).sorted()
+  }
+
   /// Merges the latest remote base into the issue branch. Returns true when the base had
-  /// advanced. A conflicted merge is aborted so the worktree is never left mid-merge.
-  public static func updateBaseIfNeeded(project: Project, path: String) async throws -> Bool {
+  /// advanced. A conflicted merge throws `BaseConflict`; it is aborted unless `keepConflicts`
+  /// is set, in which case it stays in progress for the agent to resolve. A merge already in
+  /// progress is reported the same way instead of being started again.
+  public static func updateBaseIfNeeded(
+    project: Project, path: String, keepConflicts: Bool = false
+  ) async throws -> Bool {
+    if await mergeInProgress(path: path) {
+      var files = try await unmergedFiles(path: path)
+      if files.isEmpty { files = try await unresolvedConflicts(path: path) }
+      if !keepConflicts || files.isEmpty {
+        // Nothing left to resolve, or nobody to resolve it: start over from a clean branch.
+        await abortMerge(path: path)
+      } else {
+        throw BaseConflict(base: project.baseBranch, files: files, kept: true)
+      }
+    }
     try await fetch(project.baseBranch, cwd: path)
     let ancestor = try await CommandRunner.run(
       git, ["merge-base", "--is-ancestor", "FETCH_HEAD", "HEAD"], cwd: path)
@@ -182,10 +245,14 @@ public enum GitWorkspace {
     guard ancestor.status == 1 else { throw ScreenClipError.message(ancestor.error) }
     let merge = try await CommandRunner.run(git, ["merge", "--no-edit", "FETCH_HEAD"], cwd: path)
     guard merge.status == 0 else {
-      _ = try? await CommandRunner.run(git, ["merge", "--abort"], cwd: path)
-      throw ScreenClipError.message(
-        "The base branch conflicts with this fix: "
-          + String((merge.error.isEmpty ? merge.output : merge.error).suffix(2000)))
+      let files = (try? await unmergedFiles(path: path)) ?? []
+      if files.isEmpty || !keepConflicts { await abortMerge(path: path) }
+      guard !files.isEmpty else {
+        throw ScreenClipError.message(
+          "Could not merge the base branch into this fix: "
+            + String((merge.error.isEmpty ? merge.output : merge.error).suffix(2000)))
+      }
+      throw BaseConflict(base: project.baseBranch, files: files, kept: keepConflicts)
     }
     return true
   }
