@@ -3,6 +3,21 @@ import XCTest
 @testable import ScreenClipCore
 
 final class AgentSelectionTests: XCTestCase {
+  func testOlderProjectsUseAutomaticReviewAndExplicitPermissionChoicesSurviveSaving() throws {
+    let project = Project(name: "Demo", path: "/demo")
+    var object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(project)) as? [String: Any])
+    object.removeValue(forKey: "codexApprovalMode")
+    let legacy = try JSONDecoder().decode(Project.self, from: JSONSerialization.data(withJSONObject: object))
+    XCTAssertEqual(legacy.codexApprovalMode, .automaticReview)
+    for mode in CodexApprovalMode.allCases {
+      var explicit = legacy
+      explicit.codexApprovalMode = mode
+      let saved = try JSONDecoder().decode(Project.self, from: JSONEncoder().encode(explicit))
+      XCTAssertEqual(saved.codexApprovalMode, mode)
+    }
+    XCTAssertEqual(legacy.codexApprovalMode.sandbox, "workspace-write")
+    XCTAssertEqual(legacy.codexApprovalMode.approvalPolicy, "on-request")
+  }
   func testProviderPhrasesUseOneTemplate() {
     for phrase in ProviderPhrase.allCases {
       let patterns = AgentKind.allCases.map { kind in

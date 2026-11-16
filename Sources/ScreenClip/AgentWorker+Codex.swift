@@ -51,9 +51,10 @@ extension AgentWorker {
       jobs.remove(id)
       return
     }
+    let mode = project.codexApprovalMode
     var threadParams: [String: JSONValue] = [
-      "cwd": .string(path), "approvalPolicy": .string("on-request"),
-      "sandbox": .string("workspace-write"),
+      "cwd": .string(path), "approvalPolicy": .string(mode.approvalPolicy),
+      "approvalsReviewer": .string(mode.reviewer), "sandbox": .string(mode.sandbox),
     ]
     if !model.snapshot.settings.model.isEmpty {
       threadParams["model"] = .string(model.snapshot.settings.model)
@@ -103,6 +104,11 @@ extension AgentWorker {
         $0.threadID = threadID
         $0.dispatchUncertain = false
       }
+      // Older runtimes can ignore unknown fields. Do not present manual approvals as automation.
+      if mode == .automaticReview, created["approvalsReviewer"].string != "auto_review" {
+        throw ScreenClipError.message(
+          "Codex did not enable automatic approval review. Update Codex or choose Ask me in project settings.")
+      }
       _ = try? await client.request(
         "thread/name/set",
         params: .object([
@@ -114,6 +120,12 @@ extension AgentWorker {
       return
     }
     issue = current
+    if mode == .automaticReview,
+      !(await client.supportsAutomaticReview(threadID: issue.threadID!))
+    {
+      throw ScreenClipError.message(
+        "Codex did not enable automatic approval review. Update Codex or choose Ask me in project settings.")
+    }
     // A resumed chat already holds earlier evidence; send only what is new.
     let turn = AgentPrompt.turn(
       for: issue, project: project, threadID: issue.threadID, settings: model.snapshot.settings)
@@ -138,6 +150,10 @@ extension AgentWorker {
       "turn/start",
       params: .object([
         "threadId": .string(issue.threadID!), "input": .array(input), "outputSchema": schema,
+        // Owned threads skip thread/resume. Reapply the project choice on every turn,
+        // including a switch back from full access and a continuation after a question.
+        "approvalPolicy": .string(mode.approvalPolicy),
+        "approvalsReviewer": .string(mode.reviewer), "sandboxPolicy": mode.sandboxPolicy,
       ]), timeout: 60)
     guard let turnID = result["turn"]["id"].string else {
       throw ScreenClipError.message("Codex did not acknowledge the turn.")
@@ -213,6 +229,74 @@ extension AgentWorker {
       "Codex project link unavailable: \(message). Repository context is included in the prompt."
     guard model.issue(id)?.activities.contains(where: { $0.text == text }) != true else { return }
     try model.updateIssue(id) { $0.record(text) }
+  }
+  /// A stopped worker's permission dialog cannot be answered after relaunch. Reconcile
+  /// those chats and continue under the project mode, preserving genuine user questions.
+  func recoverCodexApprovalsAfterRestart() async {
+    guard !model.snapshot.settings.paused else { return }
+    let ids = model.snapshot.issues.filter { issue in
+      let unanswered = issue.questions.filter { $0.reply == nil }
+      return issue.resolvedAgent == .codex && issue.status == .needsYou && !issue.archived
+        && !isActive(issue.id) && !issue.dispatchUncertain
+        && model.project(issue.projectID)?.codexApprovalMode != .ask
+        && model.project(issue.projectID) != nil && !unanswered.isEmpty
+        && unanswered.allSatisfy {
+          $0.requestID != nil && ["item/commandExecution/requestApproval", "item/fileChange/requestApproval"]
+            .contains($0.requestMethod ?? "")
+        }
+    }.map(\.id)
+    for id in ids {
+      guard !model.snapshot.settings.paused else { return }
+      guard let issue = model.issue(id),
+        model.project(issue.projectID)?.codexApprovalMode != .ask else { continue }
+      await reconcile(id)
+      // Reconcile refuses an active or mismatched chat, retaining its unanswered requests.
+      // It may also recover an implemented result and start publication instead.
+      if let issue = model.issue(id), issue.status == .needsYou, !issue.dispatchUncertain,
+        !isActive(id), model.project(issue.projectID)?.codexApprovalMode != .ask,
+        issue.questions.allSatisfy({ $0.reply != nil })
+      {
+        model.retry(id)
+      }
+    }
+  }
+  /// Approve this exact pending request once, then let Codex review later requests.
+  /// Never save a command-prefix rule or infer consent from capture evidence.
+  func allowAndAutomate(issueID: UUID, questionID: UUID) async {
+    guard let issue = model.issue(issueID), issue.resolvedAgent == .codex,
+      jobs.contains(issueID), let threadID = issue.threadID, let turnID = issue.turnID,
+      let question = issue.questions.first(where: { $0.id == questionID && $0.reply == nil }),
+      let requestID = question.requestID,
+      pendingRequests.contains(requestID.data.base64EncodedString()),
+      ["item/commandExecution/requestApproval", "item/fileChange/requestApproval"]
+        .contains(question.requestMethod ?? ""),
+      CodexApprovalOptions(method: question.requestMethod ?? "", params: question.questions ?? .null)
+        .permits("accept"),
+      model.project(issue.projectID) != nil
+    else { return }
+    do {
+      // Changing a turn does not reroute its already pending request. The button explicitly
+      // approves that request; subsequent steps use automatic review, in the same sandbox.
+      let updated = try await client.request("turn/settings/update", params: .object([
+        "threadId": .string(threadID), "turnId": .string(turnID),
+        "approvalsReviewer": .string("auto_review"),
+      ]))
+      guard updated["status"].string == "applied" else {
+        throw ScreenClipError.message("Codex could not update this turn. Reconcile the chat before continuing.")
+      }
+      _ = try await client.request("thread/settings/update", params: .object([
+        "threadId": .string(threadID), "approvalPolicy": .string("on-request"),
+        "approvalsReviewer": .string("auto_review"),
+      ]))
+      // Re-read after awaits so saving the mode cannot overwrite concurrent project edits.
+      guard jobs.contains(issueID), pendingRequests.contains(requestID.data.base64EncodedString()),
+        model.issue(issueID)?.questions.contains(where: { $0.id == questionID && $0.reply == nil }) == true,
+        let current = model.project(issue.projectID) else { return }
+      var project = current
+      project.codexApprovalMode = .automaticReview
+      try model.saveProject(project)
+      await reply(issueID: issueID, questionID: questionID, answers: [:], allow: true)
+    } catch { model.banner = error.localizedDescription }
   }
   func handle(_ message: JSONValue) async {
     guard let method = message["method"].string else { return }
@@ -401,6 +485,11 @@ extension AgentWorker {
           "The latest saved turn is still running. Finish or interrupt it in Codex before continuing."
         )
       }
+      // A user can cancel, add context, or retry while the history request is in flight.
+      // Reconciliation must not replace that newer decision, including during auto recovery.
+      guard let current = model.issue(id), current.status == issue.status,
+        current.revision == issue.revision, current.threadID == issue.threadID, !isActive(id)
+      else { return }
       try model.updateIssue(id) { issue in
         issue.threadID = thread
         issue.dispatchUncertain = false

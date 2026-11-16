@@ -1,6 +1,6 @@
 # Codex
 
-Updated: November 14, 2026. Part of [Coding agents](README.md), which describes the shared agent contract.
+Updated: November 15, 2026. Part of [Coding agents](README.md), which describes the shared agent contract.
 
 Codex is the default when no agent is chosen. ScreenClip keeps one long-lived `codex app-server --listen stdio://` process ([CodexClient.swift](../../Sources/ScreenClipCore/CodexClient.swift)) and one Codex thread per issue.
 
@@ -10,11 +10,12 @@ Codex is the default when no agent is chosen. ScreenClip keeps one long-lived `c
 | --- | --- |
 | Executable | Settings → Connections → Codex. Detected from `/usr/local/bin/codex`, `/opt/homebrew/bin/codex`, or the ChatGPT app's bundled runtime (development fallback only, never redistributed). |
 | Sign-in | Checked and started through app-server (`CodexAuthentication`). An existing Codex session is reused. |
-| Turn | `thread/start` or `thread/resume` with `cwd` set to the worktree, `approvalPolicy: on-request`, `sandbox: workspace-write`, then `turn/start` with the prompt, images as data URLs, and `outputSchema`. |
-| Questions | Typed user-input and approval requests from app-server appear under **Needs you** and are answered in ScreenClip. Command and file approvals can be allowed once or for the chat when offered. A command approval can also save a Codex-proposed command prefix rule after confirmation; that rule can apply across projects and future chats. Managed policies may still require approval. A structured `question` or `blocked` result also becomes **Needs you**. |
+| Turn | `thread/start` or `thread/resume` with `cwd` set to the worktree and the project's permission mode, then `turn/start` with the prompt, images as data URLs, and `outputSchema`. Every turn explicitly reapplies the permission mode, including continuations in an already owned chat. |
+| Permissions | **Project settings → Codex permissions** defaults to **Automatic review (recommended)**, including projects saved before this setting existed. Codex's risk reviewer handles permission requests with the workspace sandbox retained. **Ask me** keeps manual approvals. **Full access (no approval prompts)** uses unrestricted command access and disables approval prompts for that project's subsequent turns. This is an explicit project choice; it is never inferred from screenshots or agent text. |
+| Questions | Genuine user-input and unresolved approval requests appear under **Needs you**. **Allow and automate this project** approves the displayed request once, switches subsequent steps of that live turn to automatic review, and saves automatic review for the project. Other already running reports keep their current mode until their next turn. Manual approvals can also be allowed once or for the chat when offered. A command approval can save a Codex-proposed prefix rule after confirmation; the rule can apply across projects and future chats. Managed policies may still require approval or reject an operation. A structured `question` or `blocked` result also becomes **Needs you**. |
 | Open the conversation | **Open in Codex** uses `codex://threads/<id>`. |
 | Time limit | A turn still running after 45 minutes, not counting time waiting for your answer, is interrupted and the report fails. Continue resumes the same chat. |
-| Recovery | **Reconcile chat** reads the thread and its latest turn, and can recover a completed `implemented` result, which is validated again before publication. **Link existing chat…** binds a thread whose `cwd` matches the worktree. |
+| Recovery | On relaunch, reports stranded solely on command/file approval are reconciled and resumed automatically when the project uses automatic review or full access. Paused queues, manual approval projects, genuine unanswered questions, active chats, uncertain dispatches, and mismatched worktrees are retained. **Reconcile chat** can also recover a completed `implemented` result, which is validated again before publication. **Link existing chat…** binds a thread whose `cwd` matches the worktree. |
 | Usage | Not recorded yet. |
 | Known gap | Desktop sidebar project membership. See [repository association review](../validation.md#repository-association-review). |
 
@@ -30,6 +31,10 @@ Codex is the default when no agent is chosen. ScreenClip keeps one long-lived `c
 ## Adapter behavior
 
 ScreenClip owns a long-lived local worker connection and an outbox. Each issue gets one persistent chat binding and a versioned input bundle containing the approved image, note, routing decision, relevant session context, tested-version evidence, and validation instructions.
+
+Automatic review uses `approvalPolicy: on-request`, `approvalsReviewer: auto_review`, and `sandbox: workspace-write`. Ask me uses `on-request`, `user`, and `workspace-write`. Full access uses `never`, `user`, and `danger-full-access`. The corresponding `sandboxPolicy` is sent on every `turn/start`, so reverting a project from full access takes effect even when `thread/resume` is skipped. Full access removes the runtime sandbox; the prompt's worktree and publication rules still apply, and ScreenClip independently validates before publishing. It is not a substitute for a sandbox.
+
+The installed runtime schema supports `approvalsReviewer` on thread start/resume and turn start, plus `turn/settings/update` for subsequent steps of an active turn. A pending approval retains its original reviewer, so the one-click action sends a normal `accept` for that exact request only after updating the reviewer. Unsupported update APIs leave the approval pending and show an error; ScreenClip never silently accepts future requests. An older runtime that does not acknowledge automatic review on thread creation is stopped before a turn starts with an update-or-use-manual message. Prompts ask the agent to make reasonable implementation choices and run checks independently, reserving questions for missing decisions that materially affect the intended result.
 
 The adapter keeps the issue worktree as `cwd` and separately assigns the chat to a saved Codex runtime project. It pages through `project/list`, matches the registered repository to canonical project root paths (including symlink resolution), and passes the unique matching `projectId` to `thread/start`. Resumed issue chats use `thread/metadata/update` to refresh that association. Names alone never select a project. Missing matches, unsupported APIs, ambiguous matches, and update failures record a deduplicated activity and allow work to continue. Every issue prompt identifies the original repository, isolated working directory, issue branch, and base branch. The installed runtime saves this assignment, but its project IDs currently differ from the desktop's saved-project IDs. Treat runtime association and desktop sidebar membership as separate checks; a successful API response does not establish the latter.
 

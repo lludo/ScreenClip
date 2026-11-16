@@ -58,6 +58,7 @@ import ScreenClipCore
       await model.refreshAgents()
       // Only probe Codex sign-in when Codex is present, so a Claude-only Mac shows no Codex error.
       if model.detection(.codex)?.installed != false { await checkConnection() }
+      await recoverCodexApprovalsAfterRestart()
       await recoverClaudeAfterRestart()
     }
     pump()

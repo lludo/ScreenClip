@@ -9,6 +9,10 @@ public actor CodexClient {
   private var continuation: AsyncStream<JSONValue>.Continuation?
   private var generation = UUID()
   private var ownedThreads = Set<String>()
+  private var reviewerAwareThreads = Set<String>()
+  public func supportsAutomaticReview(threadID: String) -> Bool {
+    reviewerAwareThreads.contains(threadID)
+  }
   // A write racing an app-server exit must fail with EPIPE, not terminate ScreenClip.
   public init() { ProcessEnvironment.ignoreBrokenPipes() }
   deinit { process?.terminate() }
@@ -121,6 +125,7 @@ public actor CodexClient {
     }
     if ["thread/start", "thread/resume"].contains(method), let threadID = result["thread"]["id"].string {
       ownedThreads.insert(threadID)
+      if result["approvalsReviewer"].string != nil { reviewerAwareThreads.insert(threadID) }
     }
     return result
   }
@@ -169,6 +174,7 @@ public actor CodexClient {
   private func disconnected(token: UUID) {
     guard token == generation else { return }
     ownedThreads.removeAll()
+    reviewerAwareThreads.removeAll()
     for callback in pending.values {
       callback.resume(throwing: ScreenClipError.message("Codex disconnected."))
     }
@@ -179,6 +185,7 @@ public actor CodexClient {
   }
   public func stop() {
     ownedThreads.removeAll()
+    reviewerAwareThreads.removeAll()
     generation = UUID()
     process?.terminationHandler = nil
     try? input?.close()

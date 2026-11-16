@@ -27,9 +27,150 @@ import XCTest
   func testClaudeIssueIsNotSilentlyDispatchedToCodex() async throws {
     try await exerciseWorker(projectLookupSupported: true, requestedAgent: .claude)
   }
+  func testProjectCanSwitchFromFullAccessToManualApprovalInTheSameChat() async throws {
+    try await exerciseWorker(projectLookupSupported: true, initialMode: .fullAccess, continuedMode: .ask)
+  }
+  func testAutomaticReviewIsAppliedWhenContinuingAnOwnedChat() async throws {
+    try await exerciseWorker(projectLookupSupported: true, initialMode: .ask, continuedMode: .automaticReview)
+  }
+  func testAllowAndAutomateUpdatesTheLiveTurnAndApprovesOnlyThePendingRequest() async throws {
+    try await exerciseApprovalAutomation()
+  }
+  func testUnsupportedAutomaticReviewKeepsTheApprovalPending() async throws {
+    try await exerciseApprovalAutomation(unsupported: true)
+  }
+  func testOlderRuntimeCannotSilentlyFallBackToManualReviewOnRetry() async throws {
+    try await exerciseWorker(projectLookupSupported: true, reviewerSupported: false)
+  }
+  func testRelaunchResumesAReportStrandedOnPermissionApproval() async throws {
+    try await exerciseApprovalAutomation(recovery: .automaticReview)
+  }
+  func testRelaunchPreservesManualApprovalAndGenuineQuestions() async throws {
+    try await exerciseApprovalAutomation(recovery: .ask)
+    try await exerciseApprovalAutomation(recovery: .automaticReview, genuineQuestion: true)
+  }
+  func testRelaunchDoesNotCompeteWithAnActiveCodexChat() async throws {
+    try await exerciseApprovalAutomation(recovery: .automaticReview, activeChat: true)
+  }
+  func testCancelDuringApprovalRecoveryIsNotOverwrittenByReconciliation() async throws {
+    try await exerciseApprovalAutomation(recovery: .automaticReview, cancelDuringRecovery: true)
+  }
+  private func exerciseApprovalAutomation(
+    unsupported: Bool = false, recovery: CodexApprovalMode? = nil,
+    genuineQuestion: Bool = false, activeChat: Bool = false, cancelDuringRecovery: Bool = false
+  ) async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-approvals-" + UUID().uuidString)
+    try FileManager.default.createDirectory(at: root.appendingPathComponent("repo/.git"), withIntermediateDirectories: true)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let script = root.appendingPathComponent("fake-codex")
+    try """
+      #!/usr/bin/python3
+      import sys,json,os,time
+      for line in sys.stdin:
+          m=json.loads(line)
+          with open(os.path.join(os.path.dirname(__file__),'requests.jsonl'),'a') as log: log.write(line)
+          if 'method' not in m or 'id' not in m: continue
+          if m['method']=='thread/turns/list' and \(cancelDuringRecovery ? "True" : "False"): time.sleep(0.3)
+          if m['method']=='turn/settings/update' and \(unsupported ? "True" : "False"):
+              print(json.dumps({'id':m['id'],'error':{'code':-32601,'message':'Method not found'}}),flush=True)
+          else:
+              result={'status':'applied'}
+              if m['method']=='thread/read': result={'thread':{'cwd':os.path.join(os.path.dirname(__file__),'repo'),'status':{'type':'\(activeChat ? "active" : "idle")'}}}
+              if m['method']=='thread/turns/list': result={'data':[{'status':'interrupted'}]}
+              print(json.dumps({'id':m['id'],'result':result}),flush=True)
+      """.write(to: script, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
+    let model = try AppModel(root: root.appendingPathComponent("queue"))
+    var project = Project(name: "Test", path: root.appendingPathComponent("repo").path)
+    project.codexApprovalMode = .ask
+    var issue = Issue(projectID: project.id, title: "Test", capture: Capture(note: "", imagePath: "/unused", context: CaptureContext()))
+    issue.threadID = "approval-thread"
+    issue.turnID = "approval-turn"
+    issue.worktreePath = project.path
+    issue.status = .working
+    try model.commit {
+      $0.projects = [project]
+      $0.issues = [issue]
+      $0.settings.codexPath = script.path
+      $0.settings.paused = true
+    }
+    try await model.worker.connect()
+    model.worker.jobs.insert(issue.id)
+    let request: JSONValue = .object([
+      "id": .string("pending-build"), "method": .string("item/commandExecution/requestApproval"),
+      "params": .object([
+        "threadId": .string("approval-thread"), "turnId": .string("approval-turn"),
+        "reason": .string("Run local tests"), "command": .string("xcodebuild test"),
+        "availableDecisions": .array([.string("accept"), .string("decline")]),
+      ]),
+    ])
+    await model.worker.handle(request)
+    let question = try XCTUnwrap(model.issue(issue.id)?.questions.first)
+    // Merely receiving an approval never grants permission, even in automatic mode.
+    XCTAssertEqual(model.issue(issue.id)?.status, .needsYou)
+    func requests() throws -> [JSONValue] {
+      try String(contentsOf: root.appendingPathComponent("requests.jsonl"), encoding: .utf8)
+        .split(separator: "\n").map { try JSONDecoder().decode(JSONValue.self, from: Data($0.utf8)) }
+    }
+    if let recovery {
+      project.codexApprovalMode = recovery
+      try model.saveProject(project)
+      try model.commit { $0.settings.paused = false }
+      // Hold dispatch, so the assertion observes the durable queued state after recovery.
+      model.agents = [AgentDetection(kind: .codex, path: "/missing", version: nil, signedIn: nil, detail: "Missing")]
+      if genuineQuestion {
+        try model.updateIssue(issue.id) { $0.questions.append(PendingQuestion(title: "Which layout do you want?")) }
+      }
+      model.worker.pendingRequests.removeAll()
+      model.worker.jobs.remove(issue.id)
+      let recovering = Task { await model.worker.recoverCodexApprovalsAfterRestart() }
+      if cancelDuringRecovery {
+        try await wait { (try? requests().contains { $0["method"].string == "thread/turns/list" }) == true }
+        await model.worker.cancel(issue.id)
+      }
+      await recovering.value
+      if cancelDuringRecovery {
+        XCTAssertEqual(model.issue(issue.id)?.status, .canceled)
+        XCTAssertNil(model.issue(issue.id)?.questions.first?.reply)
+        await model.worker.resetConnection()
+        return
+      }
+      let resumes = recovery != .ask && !genuineQuestion && !activeChat
+      XCTAssertEqual(model.issue(issue.id)?.status, resumes ? .queued : .needsYou)
+      XCTAssertEqual(model.issue(issue.id)?.questions.first?.reply != nil, resumes)
+      XCTAssertFalse(try requests().contains { $0["id"].string == "pending-build" })
+      await model.worker.resetConnection()
+      return
+    }
+    await model.worker.allowAndAutomate(issueID: issue.id, questionID: question.id)
+    if unsupported {
+      XCTAssertEqual(model.issue(issue.id)?.status, .needsYou)
+      XCTAssertNil(model.issue(issue.id)?.questions.first?.reply)
+      XCTAssertEqual(model.project(project.id)?.codexApprovalMode, .ask)
+      XCTAssertFalse(try requests().contains { $0["id"].string == "pending-build" })
+      XCTAssertNotNil(model.banner)
+    } else {
+      try await wait { (try? requests().contains { $0["id"].string == "pending-build" }) == true }
+      XCTAssertEqual(model.issue(issue.id)?.status, .working)
+      XCTAssertEqual(model.project(project.id)?.codexApprovalMode, .automaticReview)
+      let recorded = try requests()
+      XCTAssertEqual(recorded.first { $0["method"].string == "turn/settings/update" }?["params"]["approvalsReviewer"].string, "auto_review")
+      XCTAssertEqual(recorded.first { $0["method"].string == "thread/settings/update" }?["params"]["approvalsReviewer"].string, "auto_review")
+      let response = try XCTUnwrap(recorded.first { $0["id"].string == "pending-build" })
+      XCTAssertEqual(response["result"]["decision"], .string("accept"))
+      XCTAssertFalse(recorded.contains { $0["params"]["sandboxPolicy"] != .null })
+      // A second click cannot approve again after the pending request has been consumed.
+      await model.worker.allowAndAutomate(issueID: issue.id, questionID: question.id)
+      XCTAssertEqual(try requests().filter { $0["id"].string == "pending-build" }.count, 1)
+    }
+    model.worker.jobs.remove(issue.id)
+    await model.worker.resetConnection()
+  }
   private func exerciseWorker(
     projectLookupSupported: Bool, cancelDuring: String? = nil, retryAfterCancel: Bool = false,
-    requestedAgent: AgentKind = .codex, contextDuringTurn: Bool = false
+    requestedAgent: AgentKind = .codex, contextDuringTurn: Bool = false,
+    initialMode: CodexApprovalMode = .automaticReview, continuedMode: CodexApprovalMode? = nil,
+    reviewerSupported: Bool = true
   )
     async throws
   {
@@ -69,6 +210,7 @@ import XCTest
               send({'id':m['id'],'error':{'code':-1,'message':'thread test-thread already has an active writer'}})
               continue
           if method in ['thread/start','thread/read']: result={'thread':{'id':'test-thread','status':{'type':'idle'}}}
+          if method=='thread/start' and \(reviewerSupported ? "True" : "False"): result['approvalsReviewer']=m['params'].get('approvalsReviewer','user')
           if method=='turn/start': result={'turn':{'id':'turn-1'}}
           send({'id':m['id'],'result':result})
           if method=='turn/start':
@@ -79,7 +221,8 @@ import XCTest
     try source.write(to: script, atomically: true, encoding: .utf8)
     try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: script.path)
     let model = try AppModel(root: root.appendingPathComponent("queue"))
-    let project = Project(name: "Test", path: repo.path)
+    var project = Project(name: "Test", path: repo.path)
+    project.codexApprovalMode = initialMode
     try model.saveProject(project)
     var settings = model.snapshot.settings
     settings.codexPath = script.path
@@ -99,6 +242,16 @@ import XCTest
       return try data.split(separator: 10).map {
         try JSONDecoder().decode(JSONValue.self, from: Data($0))
       }
+    }
+    if !reviewerSupported {
+      try await wait { model.issue(id)?.status == .failed }
+      XCTAssertTrue(model.issue(id)?.lastError?.contains("automatic approval review") == true)
+      model.retry(id)
+      try await wait { model.issue(id)?.status == .failed && !model.worker.isActive(id) }
+      XCTAssertFalse(try recordedRequests().contains { $0["method"].string == "turn/start" })
+      XCTAssertEqual(try recordedRequests().filter { $0["method"].string == "thread/start" }.count, 1)
+      await model.worker.resetConnection()
+      return
     }
     if requestedAgent == .claude {
       try await wait { model.issue(id)?.status == .failed }
@@ -165,6 +318,10 @@ import XCTest
     try model.submit(
       imageData: Data([2]), originalData: nil, annotations: [], note: "More detail",
       context: context, projectID: project.id, existingID: id, draft: false)
+    if let continuedMode {
+      project.codexApprovalMode = continuedMode
+      try model.saveProject(project)
+    }
     await model.worker.reply(
       issueID: id, questionID: issue.questions[0].id, answers: ["reply": "Yes, wrap it"])
     try await wait { model.issue(id)?.questions.count == 2 }
@@ -184,11 +341,19 @@ import XCTest
       start["params"]["projectId"].string, projectLookupSupported ? "saved-project" : nil)
     XCTAssertEqual(start["params"]["cwd"].string, issue.worktreePath)
     XCTAssertNotEqual(start["params"]["cwd"].string, project.path)
+    XCTAssertEqual(start["params"]["approvalPolicy"].string, initialMode.approvalPolicy)
+    XCTAssertEqual(start["params"]["approvalsReviewer"].string, initialMode.reviewer)
+    XCTAssertEqual(start["params"]["sandbox"].string, initialMode.sandbox)
     let turn = try XCTUnwrap(requests.first { $0["method"].string == "turn/start" })
+    XCTAssertEqual(turn["params"]["sandboxPolicy"], initialMode.sandboxPolicy)
     let prompt = try XCTUnwrap(turn["params"]["input"].array.first?["text"].string)
     XCTAssertTrue(prompt.contains("Report number: #1."))
     XCTAssertTrue(prompt.contains("Include accessibility checks."))
     let lastTurn = try XCTUnwrap(requests.last { $0["method"].string == "turn/start" })
+    let finalMode = continuedMode ?? initialMode
+    XCTAssertEqual(lastTurn["params"]["approvalPolicy"].string, finalMode.approvalPolicy)
+    XCTAssertEqual(lastTurn["params"]["approvalsReviewer"].string, finalMode.reviewer)
+    XCTAssertEqual(lastTurn["params"]["sandboxPolicy"], finalMode.sandboxPolicy)
     let lastPrompt = try XCTUnwrap(lastTurn["params"]["input"].array.first?["text"].string)
     XCTAssertTrue(lastPrompt.contains("<additional_context>"))
     XCTAssertTrue(lastPrompt.contains("Extra context without a screenshot"))
