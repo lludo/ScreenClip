@@ -452,6 +452,15 @@ public struct AppSettings: Codable, Equatable {
   public var claudeModel: String?
   public var defaultAgent: AgentKind?
   public var preferredAgent: AgentKind { defaultAgent ?? .codex }
+  /// Missing in older queues uses the default; an explicitly empty value disables the add-on.
+  public var defaultPromptAddOn: String?
+  public static let defaultPromptAddOnText = """
+    When preparing a pull request for a visual fix, include a clearly labeled Before / After comparison in the PR description: the original issue screenshot and a new screenshot of the fixed version after rebuilding and retesting the reported scenario. Use the same view, state, and scale where practical so the change is easy to compare at a glance. Briefly describe the retest and its result. Only include images approved for sharing. If either screenshot or the retest is unavailable, explain what is missing and why; do not invent evidence or claim a retest you did not perform.
+    """
+  public var effectivePromptAddOn: String {
+    (defaultPromptAddOn ?? Self.defaultPromptAddOnText)
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+  }
   public var ghPath = "/opt/homebrew/bin/gh"
   public var model = ""
   public var paused = false

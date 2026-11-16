@@ -65,6 +65,8 @@ The webhook also sends `Idempotency-Key` set to `delivery.key`. Request headers 
 
 `notes` are the capture notes, in capture order. `contextNotes` are text added later with **Add context**, kept separate so they do not shift the screenshot paths. `context.browserURL` and `context.windowTitle` are included only when **Read the active browser URL for project matching** is on. App name and bundle ID are always included.
 
+`promptAddOn` is the current shared instruction text from **Settings → Connections → Agent instructions**, separate from the report evidence. Both `report.json` and the webhook include it when nonempty; an omitted field means no add-on. The routine should use the latest webhook value if it differs from an earlier evidence commit (for example, after a same-revision retry). Apply it within the existing permissions and publication contract. Its default requests a Before / After screenshot comparison and an honest retest result in the PR description.
+
 ## What Grok Bot does
 
 1. Wakes on the webhook and reads the note plus the screenshots on the evidence branch.

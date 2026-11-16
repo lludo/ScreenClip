@@ -22,12 +22,39 @@ import XCTest
     let first = AgentPrompt.turn(for: issue, project: project, threadID: "thread")
     XCTAssertTrue(first.text.contains("Resolve this ScreenClip issue"))
     XCTAssertEqual(first.captures.count, 1)
+    XCTAssertTrue(first.text.contains(AppSettings.defaultPromptAddOnText))
 
     issue.deliveredContext = AgentPrompt.delivered(issue, threadID: "thread")
     // A relinked or replacement conversation has seen nothing.
     let other = AgentPrompt.turn(for: issue, project: project, threadID: "other-thread")
     XCTAssertTrue(other.text.contains("Resolve this ScreenClip issue"))
     XCTAssertEqual(other.captures.count, 1)
+  }
+
+  func testCurrentPromptAddOnReplacesEarlierInstructionsOnResumedTurns() {
+    var issue = issue()
+    var settings = AppSettings()
+    settings.defaultPromptAddOn = "Include accessibility checks."
+    let first = AgentPrompt.turn(for: issue, project: project, threadID: nil, settings: settings)
+    XCTAssertTrue(first.text.contains("Include accessibility checks."))
+    XCTAssertFalse(first.text.contains(AppSettings.defaultPromptAddOnText))
+    XCTAssertTrue(first.text.contains("Do not commit, push, open a PR"))
+
+    issue.deliveredContext = AgentPrompt.delivered(issue, threadID: "thread")
+    settings.defaultPromptAddOn = "Explain the validation result."
+    let resumed = AgentPrompt.turn(
+      for: issue, project: project, threadID: "thread", settings: settings)
+    XCTAssertTrue(resumed.text.contains("Explain the validation result."))
+    XCTAssertTrue(resumed.text.contains("replaces any add-on from earlier turns"))
+    XCTAssertFalse(resumed.text.contains("Include accessibility checks."))
+    XCTAssertTrue(resumed.captures.isEmpty)
+
+    settings.defaultPromptAddOn = " \n "
+    let disabled = AgentPrompt.turn(
+      for: issue, project: project, threadID: "thread", settings: settings)
+    XCTAssertTrue(disabled.text.contains("No add-on is configured."))
+    XCTAssertFalse(disabled.text.contains(AppSettings.defaultPromptAddOnText))
+    XCTAssertTrue(disabled.text.contains("do not commit, push, open a PR"))
   }
 
   func testResumedTurnSendsOnlyNewEvidence() {

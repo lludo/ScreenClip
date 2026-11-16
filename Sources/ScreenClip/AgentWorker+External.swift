@@ -116,7 +116,8 @@ extension AgentWorker {
       }
       let filePayload = ExternalAssistant.makePayload(
         issue: issue, project: project, repo: repo, branch: workspace.branch,
-        includePageContext: model.snapshot.settings.browserContext, commit: nil)
+        includePageContext: model.snapshot.settings.browserContext, commit: nil,
+        settings: model.snapshot.settings)
       var images: [Data] = []
       for capture in issue.captures {
         // Approved derivative only. originalPath is the unredacted crop and is never uploaded.
@@ -188,7 +189,8 @@ extension AgentWorker {
     let wire = ExternalAssistant.makePayload(
       issue: sending, project: project, repo: repo, branch: workspace.branch,
       includePageContext: model.snapshot.settings.browserContext, commit: commit, attempt: attempt,
-      previousPullRequests: ExternalAssistant.previousPullRequests(in: sending.activities))
+      previousPullRequests: ExternalAssistant.previousPullRequests(in: sending.activities),
+      settings: model.snapshot.settings)
     let response = try await ExternalAssistantClient.post(
       url: endpoint, authorization: configuration.normalizedAuthorization,
       body: try ExternalAssistant.json(wire), idempotencyKey: wire.delivery?.key)
