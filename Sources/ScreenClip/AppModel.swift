@@ -256,7 +256,7 @@ struct GrokConnectionCheck: Equatable {
           if state.issues[index].status == .draft {
             state.issues[index].agent = chosenAgent
             state.issues[index].projectID = projectID
-            state.issues[index].captures = [capture]
+            state.issues[index].captures = [capture] + state.issues[index].captures.dropFirst()
             state.issues[index].revision += 1
             state.issues[index].status =
               draft ? .draft : (projectID == nil ? .needsProject : .queued)
@@ -282,7 +282,10 @@ struct GrokConnectionCheck: Equatable {
       if let original { try? FileManager.default.removeItem(atPath: original) }
       throw error
     }
-    if let replacedDraft { try? store.deleteAssets(for: replacedDraft) }
+    if var replacedDraft {
+      replacedDraft.captures = Array(replacedDraft.captures.prefix(1))
+      try? store.deleteAssets(for: replacedDraft)
+    }
     if !draft { worker.pump() }
   }
   func assignProject(_ issueID: UUID, projectID: UUID) {
@@ -376,15 +379,37 @@ struct GrokConnectionCheck: Equatable {
       throw error
     }
   }
-  func addContext(_ id: UUID, text: String, followUp: Bool = false) throws {
+  func addContext(
+    _ id: UUID, text: String, images: [Data] = [], followUp: Bool = false
+  ) throws {
     let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-    guard !trimmed.isEmpty else {
+    guard !trimmed.isEmpty || !images.isEmpty else {
       throw ScreenClipError.message("Enter some context before saving.")
     }
-    try updateIssue(id) {
-      // A merged or verified report reopens with this note as feedback for a new fix.
-      if followUp { $0.record("Tester requested a follow-up") }
-      $0.addContext(trimmed)
+    var copied: [String] = []
+    do {
+      let captures = try images.map { data -> Capture in
+        guard let image = NSBitmapImageRep(data: data),
+          let png = image.representation(using: .png, properties: [:])
+        else { throw ScreenClipError.message("Unable to load image attachment.") }
+        let path = try store.writeAsset(png)
+        copied.append(path)
+        return Capture(
+          note: trimmed, imagePath: path,
+          context: CaptureContext(
+            appName: "Image attachment",
+            selection: [0, 0, Double(image.pixelsWide), Double(image.pixelsHigh)]))
+      }
+      try updateIssue(id) {
+        if followUp { $0.record("Tester requested a follow-up") }
+        $0.addContext(trimmed)
+        // One saved context is one revision, including all of its image evidence.
+        // Reuse captures for delivery, export, project moves and asset cleanup.
+        $0.captures.append(contentsOf: captures)
+      }
+    } catch {
+      for path in copied { try? FileManager.default.removeItem(atPath: path) }
+      throw error
     }
     worker.pump()
   }
