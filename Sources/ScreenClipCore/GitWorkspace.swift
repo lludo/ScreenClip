@@ -143,7 +143,7 @@ public enum GitWorkspace {
     }
     let before = try await fingerprint(path: path)
     let result = try await CommandRunner.run(
-      "/bin/zsh", ["-c", project.validationCommand], cwd: path, timeout: 600)
+      "/bin/zsh", ["-c", project.validationCommand], cwd: path, timeout: 3600)
     let after = try await fingerprint(path: path)
     guard before == after else {
       throw ScreenClipError.message(
