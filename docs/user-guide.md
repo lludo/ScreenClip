@@ -38,6 +38,10 @@ Choose **Move to project** in the report's **…** menu.
 - After that, the old report is canceled and a copy with the same screenshots, notes, and agent is queued on the other project. The old chat and worktree belong to the other repository.
 - Cancel active work first. A report that already has a pull request cannot be moved until that pull request is closed or merged. Archived reports and reports with an uncertain dispatch are not movable.
 
+## Shared agent instructions
+
+Open **Settings → Connections → Agent instructions** to edit the **Default prompt add-on** for all projects. The default asks for original and retested screenshots labeled **Before / After** in visual-fix PRs, with a short retest result or an explanation of missing evidence. Choose **Save settings** to apply edits to the next agent request, leave the text empty to disable it, or use **Restore default prompt**. Screenshot capture and sharing still depend on the agent's capabilities and existing permissions. See [Coding agents](agents/README.md#default-prompt-add-on) for details.
+
 ## What each agent can see
 
 Codex and Claude Code see the approved screenshots only on this Mac, inside an isolated Git worktree. They do not get GitHub tokens. ScreenClip commits, pushes, opens the pull request, and merges.

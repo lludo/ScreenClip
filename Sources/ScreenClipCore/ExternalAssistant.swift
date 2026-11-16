@@ -135,7 +135,8 @@ public enum ExternalAssistant {
   /// file and the webhook sends the id of the commit that contains it.
   public static func makePayload(
     issue: Issue, project: Project, repo: String, branch: String, includePageContext: Bool,
-    commit: String?, attempt: Int? = nil, previousPullRequests: [String] = []
+    commit: String?, attempt: Int? = nil, previousPullRequests: [String] = [],
+    settings: AppSettings = AppSettings()
   ) -> ExternalWebhookPayload {
     let number = issue.reportNumber ?? 0
     let source = issue.captures.last?.context
@@ -166,7 +167,8 @@ public enum ExternalAssistant {
         branch: branch, commit: commit,
         paths: evidencePaths(reportNumber: number, captureCount: issue.captures.count)),
       delivery: delivery, workspaceID: issue.workspaceID.uuidString,
-      previousPullRequests: history)
+      previousPullRequests: history,
+      promptAddOn: settings.effectivePromptAddOn.isEmpty ? nil : settings.effectivePromptAddOn)
   }
 
   public static func makeCancelPayload(
@@ -336,12 +338,14 @@ public struct ExternalWebhookPayload: Equatable, Encodable {
   public var delivery: ExternalDelivery?
   public var workspaceID: String?
   public var previousPullRequests: [String]?
+  /// Current shared user instructions, separate from untrusted report evidence.
+  public var promptAddOn: String?
   public init(
     schema: String, reportNumber: Int, issueID: String, revision: Int, title: String,
     notes: [String], contextNotes: [String] = [], context: ExternalWebhookContext,
     project: ExternalWebhookProject,
     evidence: ExternalWebhookEvidence, delivery: ExternalDelivery? = nil,
-    workspaceID: String? = nil, previousPullRequests: [String]? = nil
+    workspaceID: String? = nil, previousPullRequests: [String]? = nil, promptAddOn: String? = nil
   ) {
     self.schema = schema
     self.reportNumber = reportNumber
@@ -356,6 +360,7 @@ public struct ExternalWebhookPayload: Equatable, Encodable {
     self.delivery = delivery
     self.workspaceID = workspaceID
     self.previousPullRequests = previousPullRequests
+    self.promptAddOn = promptAddOn
   }
 }
 

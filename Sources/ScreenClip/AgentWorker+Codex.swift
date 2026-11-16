@@ -115,7 +115,8 @@ extension AgentWorker {
     }
     issue = current
     // A resumed chat already holds earlier evidence; send only what is new.
-    let turn = AgentPrompt.turn(for: issue, project: project, threadID: issue.threadID)
+    let turn = AgentPrompt.turn(
+      for: issue, project: project, threadID: issue.threadID, settings: model.snapshot.settings)
     var input: [JSONValue] = [.object(["type": .string("text"), "text": .string(turn.text)])]
     for capture in turn.captures {
       let image = try Data(contentsOf: URL(fileURLWithPath: capture.imagePath))

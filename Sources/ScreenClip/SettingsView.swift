@@ -320,6 +320,27 @@ struct SettingsView: View {
             Text(chrome: "AI agent", comment: "Settings section for the default agent.")
           }
           Section {
+            VStack(alignment: .leading, spacing: 8) {
+              Text(chrome: "Default prompt add-on", comment: "Label for shared agent instructions.")
+              TextEditor(text: Binding(
+                get: { settings.defaultPromptAddOn ?? AppSettings.defaultPromptAddOnText },
+                set: { settings.defaultPromptAddOn = $0 }))
+                .font(.body)
+                .frame(minHeight: 150)
+                .accessibilityLabel(Text(
+                  chrome: "Default prompt add-on", comment: "Label for shared agent instructions."))
+              Text(
+                chrome: "Added to every agent request for all projects. Leave empty to disable.",
+                comment: "Explains shared prompt instructions and how to disable them."
+              ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+              Button { settings.defaultPromptAddOn = nil } label: {
+                Text(chrome: "Restore default prompt", comment: "Restores the built-in prompt add-on.")
+              }
+            }
+          } header: {
+            Text(chrome: "Agent instructions", comment: "Settings section for shared prompt instructions.")
+          }
+          Section {
             TextField(
               text: Binding(get: { settings.claudePath ?? "" }, set: { settings.claudePath = $0 }),
               prompt: Text(verbatim: AgentDetector.defaultClaudePath().isEmpty

@@ -83,6 +83,7 @@ import XCTest
     try model.saveProject(project)
     var settings = model.snapshot.settings
     settings.codexPath = script.path
+    settings.defaultPromptAddOn = "Include accessibility checks."
     settings.claudePath = root.appendingPathComponent("missing-claude").path
     settings.paused = false
     model.saveSettings(settings)
@@ -158,6 +159,8 @@ import XCTest
         turns[1]["params"]["input"].array[0]["text"].string?.contains(
           "Context added while the agent was working") == true)
     }
+    settings.defaultPromptAddOn = "Explain the validation result."
+    model.saveSettings(settings)
     try model.addContext(id, text: "Extra context without a screenshot")
     try model.submit(
       imageData: Data([2]), originalData: nil, annotations: [], note: "More detail",
@@ -184,10 +187,13 @@ import XCTest
     let turn = try XCTUnwrap(requests.first { $0["method"].string == "turn/start" })
     let prompt = try XCTUnwrap(turn["params"]["input"].array.first?["text"].string)
     XCTAssertTrue(prompt.contains("Report number: #1."))
+    XCTAssertTrue(prompt.contains("Include accessibility checks."))
     let lastTurn = try XCTUnwrap(requests.last { $0["method"].string == "turn/start" })
     let lastPrompt = try XCTUnwrap(lastTurn["params"]["input"].array.first?["text"].string)
     XCTAssertTrue(lastPrompt.contains("<additional_context>"))
     XCTAssertTrue(lastPrompt.contains("Extra context without a screenshot"))
+    XCTAssertTrue(lastPrompt.contains("Explain the validation result."))
+    XCTAssertFalse(lastPrompt.contains("Include accessibility checks."))
     XCTAssertEqual(lastTurn["params"]["threadId"].string, issue.threadID)
     let name = requests.first { $0["method"].string == "thread/name/set" }
     XCTAssertEqual(name?["params"]["name"].string, "ScreenClip: #1 First capture")
@@ -265,6 +271,7 @@ import XCTest
     try model.saveProject(project)
     var settings = model.snapshot.settings
     settings.claudePath = script.path
+    settings.defaultPromptAddOn = "Include accessibility checks."
     settings.defaultAgent = .codex
     settings.paused = false
     model.saveSettings(settings)
@@ -304,6 +311,8 @@ import XCTest
     XCTAssertTrue(first.activities.contains { $0.kind == "usage" && $0.text.contains("$0.01") })
     XCTAssertNil(first.codexURL)
     XCTAssertNotNil(first.claudeResumeCommand)
+    settings.defaultPromptAddOn = "Explain the validation result."
+    model.saveSettings(settings)
     // A follow-up capture keeps the issue's agent even if another one is requested.
     try model.submit(
       imageData: Data([2]), originalData: nil, annotations: [], note: "More detail",
@@ -337,6 +346,9 @@ import XCTest
       URL(fileURLWithPath: first.worktreePath ?? "").resolvingSymlinksInPath().path)
     // The resumed session already has the first screenshot: only the new one is attached.
     let secondContent = runs[1]["content"].array
+    XCTAssertTrue(runs[0]["content"].array.first?["text"].string?.contains("Include accessibility checks.") == true)
+    XCTAssertTrue(secondContent.first?["text"].string?.contains("Explain the validation result.") == true)
+    XCTAssertFalse(secondContent.first?["text"].string?.contains("Include accessibility checks.") == true)
     XCTAssertEqual(secondContent.filter { $0["type"].string == "image" }.count, 1)
     XCTAssertTrue(secondContent.first?["text"].string?.contains("User reply: Yes, wrap it") == true)
     XCTAssertTrue(secondContent.first?["text"].string?.contains("Only what is new") == true)
@@ -345,6 +357,7 @@ import XCTest
       let freshContent = runs[2]["content"].array
       XCTAssertEqual(freshContent.filter { $0["type"].string == "image" }.count, 2)
       XCTAssertTrue(freshContent.first?["text"].string?.contains("Resolve this ScreenClip issue") == true)
+      XCTAssertTrue(freshContent.first?["text"].string?.contains("Explain the validation result.") == true)
     }
     XCTAssertEqual(
       try String(contentsOf: repo.appendingPathComponent("source.txt"), encoding: .utf8), "original")

@@ -3,6 +3,26 @@ import XCTest
 @testable import ScreenClipCore
 
 final class CoreTests: XCTestCase {
+  func testPromptAddOnDefaultsForLegacySettingsAndPersistsCustomOrEmptyText() throws {
+    let data = try JSONEncoder().encode(AppSettings())
+    let legacy = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+      .filter { $0.key != "defaultPromptAddOn" }
+    let decoded = try JSONDecoder().decode(
+      AppSettings.self, from: JSONSerialization.data(withJSONObject: legacy))
+    XCTAssertNil(decoded.defaultPromptAddOn)
+    XCTAssertEqual(decoded.effectivePromptAddOn, AppSettings.defaultPromptAddOnText)
+    let store = try temporaryStore()
+    for value in [nil, "Include accessibility checks.", "", " \n "] as [String?] {
+      var state = StoreSnapshot()
+      state.settings.defaultPromptAddOn = value
+      try store.save(state)
+      let loaded = try store.load().settings
+      XCTAssertEqual(loaded.defaultPromptAddOn, value)
+      XCTAssertEqual(
+        loaded.effectivePromptAddOn,
+        (value ?? AppSettings.defaultPromptAddOnText).trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+  }
   func testSelfCapturePreferenceLoadsOlderSettingsAndPersistsBothChoices() throws {
     let older = try JSONEncoder().encode(AppSettings())
     var settings = try JSONDecoder().decode(AppSettings.self, from: older)
