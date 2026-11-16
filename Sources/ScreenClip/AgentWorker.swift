@@ -237,7 +237,20 @@ import ScreenClipCore
             "Reconnect and reconcile the chat; the original request may no longer be pending.")
         }
         let method = question.requestMethod ?? ""
+        var toolReply: String?
         switch CodexRequestKind(method: method) {
+        case .mcpElicitation:
+          let persist = allow == true ? approvalDecision?.string : nil
+          guard
+            let result = CodexMcpElicitation(params: question.questions ?? .null).response(
+              allow: allow == true, persist: persist, cancel: approvalDecision == .string("cancel"))
+          else { throw ScreenClipError.message("This approval choice is no longer available.") }
+          try await client.respond(id: requestID, result: result)
+          toolReply =
+            allow != true
+            ? (approvalDecision == .string("cancel") ? "Canceled" : "Declined")
+            : persist == "session"
+              ? "Allowed for this chat" : (persist == "always" ? "Always allowed" : "Allowed once")
         case .userInput:
           try await client.respond(
             id: requestID,
@@ -261,7 +274,8 @@ import ScreenClipCore
         try model.updateIssue(issueID) { issue in
           if let i = issue.questions.firstIndex(where: { $0.id == questionID }) {
             issue.questions[i].reply =
-              (approvalDecision == .string("cancel") ? "Canceled" :
+              toolReply
+              ?? (approvalDecision == .string("cancel") ? "Canceled" :
                 approvalDecision == .string("acceptForSession") ? "Allowed for this chat" :
                 (approvalDecision != nil ? "Allowed with a saved command rule" : nil))
               ?? allow.map { $0 ? "Allowed once" : "Declined" }

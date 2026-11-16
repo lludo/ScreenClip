@@ -992,7 +992,7 @@
       }
     },
     "Allow sending screenshots to the external assistant": {
-      "comment": "Project opt-in for sending screenshots to Grok Bot.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -10958,7 +10958,7 @@
       }
     },
     "Grok Bot receives approved screenshots as files on a screenclip/ branch in this repository. Leave this off unless that is acceptable. Public repositories need this too, because those files would be readable by anyone who can see the repository, and pushed files stay in GitHub history even after the branch is deleted. The toggle is off until you turn it on.": {
-      "comment": "Explains the screenshot opt-in. Keep Grok Bot, screenclip/, and GitHub.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -28641,6 +28641,72 @@
           "stringUnit": {
             "state": "translated",
             "value": "一律允許此命令…"
+          }
+        }
+      }
+    },
+    "Always allow": {
+      "comment": "Approves a Codex tool permission now and in future chats.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Always allow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "始终允许"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir siempre"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常に許可"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sempre permitir"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Immer erlauben"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toujours autoriser"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "항상 허용"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Всегда разрешать"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一律允許"
           }
         }
       }

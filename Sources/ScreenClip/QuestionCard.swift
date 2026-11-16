@@ -12,6 +12,9 @@ struct QuestionCard: View {
   private var approvalOptions: CodexApprovalOptions {
     CodexApprovalOptions(method: question.requestMethod ?? "", params: question.questions ?? .null)
   }
+  private var elicitation: CodexMcpElicitation {
+    CodexMcpElicitation(params: question.questions ?? .null)
+  }
   private var ruleText: String {
     (approvalOptions.commandRule ?? []).map { $0.debugDescription }.joined(separator: " ")
   }
@@ -151,6 +154,32 @@ struct QuestionCard: View {
             "Codex will allow commands matching this prefix in future chats, potentially across projects:\n\n\(ruleText)",
             locale: locale,
             comment: "Explains a saved Codex command rule. %@ is the command prefix and is not translated."))
+        }
+      } else if CodexRequestKind(method: question.requestMethod) == .mcpElicitation {
+        // ScreenClip owns this chat, so Codex Desktop shows it as open elsewhere and cannot answer.
+        if let detail = elicitation.detail {
+          Text(verbatim: detail).font(.caption.monospaced()).textSelection(.enabled)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+        FlowLayout {
+          if elicitation.isToolApproval {
+            Button { decide(true) } label: {
+              Text(chrome: "Allow once", comment: "Approves one Codex command.")
+            }.disabled(sending)
+            if elicitation.offersPersist("session") {
+              Button { decide(true, decision: .string("session")) } label: {
+                Text(chrome: "Allow for this chat", comment: "Approves this command for the rest of the chat.")
+              }.disabled(sending)
+            }
+            if elicitation.offersPersist("always") {
+              Button { decide(true, decision: .string("always")) } label: {
+                Text(chrome: "Always allow", comment: "Approves a Codex tool permission now and in future chats.")
+              }.disabled(sending)
+            }
+          }
+          Button { decide(false) } label: {
+            Text(chrome: "Decline", comment: "Declines a Codex command.")
+          }.disabled(sending)
         }
       } else {
         Button { model.openCodex(issue) } label: {
