@@ -19,14 +19,14 @@ People who clone the repo can build it themselves. The DMG is for someone who wa
    | `APPLE_NOTARY_KEY_ID` | The Key ID |
    | `APPLE_NOTARY_ISSUER_ID` | The Issuer ID |
 
-4. Turn on [GitHub Sponsors](https://github.com/sponsors/lludo) for the `lludo` account and finish the payout and tax steps. `.github/FUNDING.yml` already names that account. The in-app buttons open `https://github.com/sponsors/lludo`. The profile is not ready, and the website `donateUrl` is empty. Status is in [Publishing checklist](../open-source.md#github-sponsors-and-the-donate-url).
-5. `LICENSE.md` is the PolyForm Noncommercial License 1.0.0. Root [`CONTRIBUTING.md`](../../CONTRIBUTING.md) and [`SECURITY.md`](../../SECURITY.md) exist; the contributing workflow is in [Development](../development.md#contributing). Review the [open-source audit](open-source-audit.md) and scan changes since its recorded commit before publishing. The checklist is in [Publishing checklist](../open-source.md).
+4. Turn on [GitHub Sponsors](https://github.com/sponsors/lludo) for the `lludo` account and finish the payout and tax steps. `.github/FUNDING.yml` already names that account. The in-app buttons open `https://github.com/sponsors/lludo`. The profile is not ready, and the website `donateUrl` is empty. Status is in [Publishing checklist](publishing-checklist.md#github-sponsors-and-the-donate-url).
+5. `LICENSE.md` is the PolyForm Noncommercial License 1.0.0. Root [`CONTRIBUTING.md`](../../CONTRIBUTING.md) and [`SECURITY.md`](../../SECURITY.md) exist; the contributing workflow is in [Development](../development.md#contributing). Review the [publication audit](publication-audit.md) before publishing, and check anything committed after its date for private data. The checklist is in [Publishing checklist](publishing-checklist.md).
 
 ## What the tag does
 
 Push a tag `v1.2.3` (three numbers). [`.github/workflows/release.yml`](../../.github/workflows/release.yml) then:
 
-1. Stops immediately, with a notice and a green job, if none of the Apple secrets are set. If some are set and some are missing, the job fails. The gate checks the configured secrets at runtime; required values are listed under [Release secrets](../open-source.md#release-secrets).
+1. Stops immediately, with a notice and a green job, if none of the Apple secrets are set. If some are set and some are missing, the job fails. The gate checks the configured secrets at runtime; required values are listed under [Release secrets](publishing-checklist.md#release-secrets).
 2. Writes the tag into `CFBundleShortVersionString` and `CFBundleVersion` for that build. Before tagging, bump `Resources/Info.plist` (and `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in the Xcode project) in a release commit so local builds match. The tag must match `X.Y.Z` (three numbers); `v1.0.0-rc1` fails.
 3. Imports the Developer ID certificate into a temporary keychain, builds the Release scheme with `scripts/build.sh`, and passes `--timestamp` plus `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO`.
 4. Runs `scripts/release-dmg.sh`. That script refuses an App Sandbox signature. It notarizes a zip of the app, staples the app, builds a UDZO disk image with an Applications shortcut, signs and notarizes the DMG, staples the DMG, and writes `SHA256SUMS`.
@@ -40,7 +40,7 @@ Set `downloadUrl` in `website/site.config.json` to that URL when the notarized d
 
 Check a download with `shasum -a 256 -c SHA256SUMS`.
 
-A local notarization can still use `SCREENCLIP_SIGNING_IDENTITY` and a Keychain profile in `SCREENCLIP_NOTARY_PROFILE` via `scripts/package.sh`. CI uses the API key instead of a Keychain profile, because the runner has no long-lived login keychain. `notarytool` is required. Apple's current flow: [Notarizing macOS software before distribution](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution).
+A release can also be signed and notarized locally, without the Actions secrets: set `APPLE_SIGNING_IDENTITY` and a Keychain profile name in `SCREENCLIP_NOTARY_PROFILE`, then run `bash scripts/release-dmg.sh`. v1.0.0 was prepared this way; the commands are in [v1.0.0 readiness](v1.0.0-status.md). CI uses the API key instead of a Keychain profile, because the runner has no long-lived login keychain. `scripts/package.sh` only makes a development zip and is not part of the release. `notarytool` is required. Apple's current flow: [Notarizing macOS software before distribution](https://developer.apple.com/documentation/security/notarizing-macos-software-before-distribution).
 
 Release builds already set `ENABLE_HARDENED_RUNTIME = YES`. Debug builds do not. The Apple Events entitlement ScreenClip needs for the optional Safari and Chrome URL lookup is already in `Resources/ScreenClip.entitlements`.
 
@@ -65,15 +65,10 @@ The formula points at the same `releases/latest/download/ScreenClip.dmg` asset. 
 
 ## Tip window
 
-The direct-download build shows a small window, not a system sheet, because the menu-bar app often has no other window open.
+The direct-download build shows a small tip window. When it appears, how to dismiss it, and where to reopen it are in the [user guide](../user-guide.md#tip-window). The parts that matter for a release:
 
-- It appears on its own after 3 merged or verified fixes, including archived ones, or after the queue has existed for 7 days. Whichever comes first.
-- **Not now**, or closing the window, hides it for 30 days. Closing it after opening it from the menu does the same.
-- **Don't ask again** stores an opt-out in the queue and the automatic prompt stops.
-- The same window is always available from the menu's **Support ScreenClip…** and from **Settings → General → Support**, including after opt-out.
-- The suggested amounts are $3, $5, and $10. Each button opens GitHub Sponsors. GitHub does not offer a stable URL that pre-fills the amount, so the person chooses the amount on that page.
-- Saving Settings does not wipe the opt-out, the snooze, or the first-launch date. Those fields are optional in the queue JSON so older queues still open.
-- Preview and integration launches do not show it. While ScreenClip hides itself for a capture, the window is ordered out so it is not in the screenshot.
+- The opt-out, the snooze, and the first-launch date are stored in the queue. Saving Settings does not wipe them. Those fields are optional in the queue JSON so older queues still open.
+- Each amount button opens GitHub Sponsors. GitHub does not offer a stable URL that pre-fills the amount, so the person chooses the amount on that page.
 
 `DistributionChannel.offersDonations` is false when the app is built with the Swift flag `SCREENCLIP_APP_STORE`. The window, the menu item, and the Settings section are compiled out in that case. Do not set the flag for the GitHub build. Guideline 3.1.1 is why the flag exists: payments for the app, including a tip jar, are an In-App Purchase question on the store, and external payment links are restricted by storefront. The [App Store Review Guidelines](https://developer.apple.com/app-store/review/guidelines/#in-app-purchase) are the reference. This project does not submit to the store, so the flag stays unset.
 

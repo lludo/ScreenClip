@@ -1,6 +1,6 @@
 # Architecture
 
-Updated: November 15, 2026. This page describes the app as it is built. [Validation](validation.md) separates what has been exercised from what is still open. Older "proposed design" wording, including the App Store evaluation, has moved to [Release and distribution](release/README.md) and the [archive](archive/README.md).
+Updated: November 15, 2026. This page describes the app as it is built. [Validation](validation.md) separates what has been exercised from what is still open. The App Store evaluation is under [Release and distribution](release/README.md). Superseded proposals are in the [archive](archive/README.md).
 
 ## What the process is
 
@@ -84,7 +84,7 @@ There is no Mac App Store configuration. `scripts/release-dmg.sh` refuses a sign
 
 The local worker runs while ScreenClip is running and the Mac is awake. Closing the popover does not stop it. A login item is optional (`SMAppService.mainApp`) and off until the user turns it on. Grok Bot is the exception: the remote assistant keeps working if the Mac sleeps.
 
-Secrets ScreenClip stores for itself go in the Keychain. Public pull-request content does not automatically include private screenshots. Deleting a report locally does not delete an agent chat or a pull request that already exists.
+Secrets ScreenClip stores for itself go in the Keychain. Pull requests include the flattened report screenshots and retested After images, and Grok Bot evidence is pushed to a `screenclip/` branch, so anyone who can read the repository can read them. Unredacted originals are never published. Deleting a report locally does not delete an agent chat or a pull request that already exists.
 
 ## Source layout
 

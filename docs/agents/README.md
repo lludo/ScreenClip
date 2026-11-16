@@ -12,7 +12,7 @@ ScreenClip captures an observation and hands it to a coding agent. Codex and Cla
 
 Separately from automatic dispatch, Codex and Claude Code can **read** the queue through the optional MCP plugin. See [the plugin README](../../plugins/screenclip/README.md).
 
-For agent-specific investigation and handoff prompts, see the archived [Claude Code and Grok Bot handoffs](../archive/claude-grok-handoffs.md) proposal.
+The one-off prompts once used to have each agent investigate its own integration are archived in [Claude Code and Grok Bot handoffs](../archive/claude-grok-handoffs.md).
 
 ## Choosing an agent
 
