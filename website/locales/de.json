@@ -43,9 +43,9 @@
     "keysLabel": "Befehl Umschalt 2"
   },
   "demo": {
-    "title": "Die Menüleiste",
-    "alt": "ScreenClip-Menü mit echten Meldungen, darunter Meldungen mit Handlungsbedarf und ein zusammengeführter Fix.",
-    "caption": "Alle Screenclips und ihren Status auf einen Blick in der Menüleiste sehen"
+    "title": "Die Demo",
+    "alt": "Bildschirmaufnahme von ScreenClip: Ein Bereich einer Mac-App wird aufgenommen, mit Rechteck und Pfeil markiert, mit einer Notiz an Codex gesendet und in der Warteschlange verfolgt. Mitteilungen melden anschließend zusammengeführte Fixes.",
+    "caption": "Bereich aufnehmen, markieren und an deinen Agenten übergeben"
   },
   "loop": {
     "eyebrow": "So funktioniert’s",

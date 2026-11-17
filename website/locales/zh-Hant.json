@@ -43,9 +43,9 @@
     "keysLabel": "Command Shift 2"
   },
   "demo": {
-    "title": "選單列",
-    "alt": "ScreenClip 選單列顯示真實回報，包括需要處理的回報和已合併的回報。",
-    "caption": "直接從選單列一覽所有螢幕截圖及其狀態"
+    "title": "示範",
+    "alt": "ScreenClip 螢幕錄製：擷取 Mac App 的一個區域，用矩形和箭頭標示，附上備註傳送給 Codex，並在佇列中追蹤進度。隨後通知會提示修正已合併。",
+    "caption": "擷取一個區域，標示後交給你的代理"
   },
   "loop": {
     "eyebrow": "如何使用",

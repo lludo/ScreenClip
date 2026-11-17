@@ -43,9 +43,9 @@
     "keysLabel": "Command Shift 2"
   },
   "demo": {
-    "title": "菜单栏",
-    "alt": "ScreenClip 菜单栏显示真实报告，包括需要处理的报告和已合并的报告。",
-    "caption": "直接从菜单栏一览所有屏幕截图及其状态"
+    "title": "演示",
+    "alt": "ScreenClip 屏幕录制：截取 Mac App 的一个区域，用矩形和箭头标注，附上备注发送给 Codex，并在队列中跟踪进度。随后通知会提示修复已合并。",
+    "caption": "截取一个区域，标注后交给你的代理"
   },
   "loop": {
     "eyebrow": "如何使用",

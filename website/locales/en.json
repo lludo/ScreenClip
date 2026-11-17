@@ -43,9 +43,9 @@
     "keysLabel": "Command Shift 2"
   },
   "demo": {
-    "title": "The menu bar",
-    "alt": "ScreenClip menu bar showing real ScreenClip reports, including reports that need attention and a merged report.",
-    "caption": "Glance at all your screenclips and their status right from the menu bar"
+    "title": "The demo",
+    "alt": "Screen recording of ScreenClip: a region of a Mac app is captured, marked up with a rectangle and an arrow, sent to Codex with a note, and followed in the queue. Notifications then announce merged fixes.",
+    "caption": "Capture a region, mark it up, and hand it to your agent"
   },
   "loop": {
     "eyebrow": "How it works",

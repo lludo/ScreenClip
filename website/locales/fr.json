@@ -43,9 +43,9 @@
     "keysLabel": "Commande Majuscule 2"
   },
   "demo": {
-    "title": "La barre des menus",
-    "alt": "Menu ScreenClip affichant de vrais signalements, dont certains demandent une intervention et un correctif fusionné.",
-    "caption": "Retrouvez tous vos screenclips et leur statut en un coup d’œil dans la barre des menus"
+    "title": "La démo",
+    "alt": "Enregistrement d’écran de ScreenClip : une zone d’une app Mac est capturée, annotée d’un rectangle et d’une flèche, envoyée à Codex avec une note, puis suivie dans la file. Des notifications annoncent ensuite les correctifs fusionnés.",
+    "caption": "Capturez une zone, annotez-la et confiez-la à votre agent"
   },
   "loop": {
     "eyebrow": "Fonctionnement",

@@ -43,9 +43,9 @@
     "keysLabel": "Command Shift 2"
   },
   "demo": {
-    "title": "A barra de menus",
-    "alt": "Menu do ScreenClip com relatos reais, incluindo relatos que precisam de atenção e uma alteração integrada.",
-    "caption": "Veja todos os seus screenclips e seus status de relance na barra de menus"
+    "title": "A demonstração",
+    "alt": "Gravação de tela do ScreenClip: uma área de um app para Mac é capturada, marcada com um retângulo e uma seta, enviada ao Codex com uma nota e acompanhada na fila. Depois, notificações avisam sobre as alterações integradas.",
+    "caption": "Capture uma área, marque-a e entregue ao seu agente"
   },
   "loop": {
     "eyebrow": "Como funciona",
