@@ -118,6 +118,10 @@
         "a": "macOS 14 ou plus récent, un dépôt Git local et un agent : Codex CLI avec app-server, Claude Code ou un webhook Grok Bot. GitHub CLI est nécessaire pour ouvrir des pull requests et pour envoyer des captures à Grok Bot. Accordez l’autorisation d’enregistrement de l’écran pour la zone choisie. Laissez ScreenClip lancé et le Mac éveillé pendant que Codex ou Claude Code travaillent. Grok Bot continue si le Mac se met en veille, et l’état de la pull request se met à jour au prochain lancement de ScreenClip. Compiler depuis le code exige aussi Xcode 16 ou plus récent."
       },
       {
+        "q": "Comment le configurer ?",
+        "a": "En trois étapes. Connectez-vous à GitHub avec la GitHub CLI (gh auth login) pour que ScreenClip puisse ouvrir des pull requests. Dans Settings, ajoutez chaque projet sur lequel vous travaillez : son dépôt local, sa branche de base et sa commande de validation. Connectez ensuite les agents que vous utilisez : Codex, Claude Code ou Grok Bot. Choisissez un agent par défaut, appuyez sur Commande-Maj-2 et envoyez votre premier signalement."
+      },
+      {
         "q": "Qu’est-ce qui quitte le Mac ?",
         "a": "ScreenClip n’a pas de serveur. Il remet la capture approuvée et la note à Codex ou Claude Code sur le Mac, et cet agent peut les envoyer au compte auquel vous êtes connecté. GitHub reçoit la branche et la pull request ouvertes avec votre GitHub CLI. Les captures finales du rapport, avec vos annotations et masquages, et les captures que l’agent prend après le correctif sont ajoutées au commit du correctif et intégrées à cette pull request : toute personne qui peut lire le dépôt peut les voir. Pour Grok Bot, une fois le webhook enregistré, ScreenClip pousse les captures approuvées vers une branche du même dépôt. Les originaux non masqués ne sont jamais publiés. Il n’y a pas d’analyse ScreenClip. La liste complète est dans la politique de confidentialité."
       },
@@ -144,6 +148,10 @@
       {
         "q": "Cela fonctionne-t-il avec les sites et les apps Mac ?",
         "a": "Oui. Capturez une zone d’un site ou d’une app Mac native. Enregistrez un dépôt et associez-le à des adresses de sites ou à des bundle ID d’apps. Vous pouvez changer de projet avant d’envoyer. Si le projet est ambigu, ScreenClip enregistre le rapport et attend, au lieu de deviner un dépôt."
+      },
+      {
+        "q": "Qui développe ScreenClip ?",
+        "a": "Moi : un seul développeur, épaulé par les agents de code qui corrigent les bugs que je signale avec. ScreenClip est gratuit pour un usage non commercial. Ce que j’aimerais en retour : vos retours, vos signalements de bugs et vos pull requests sur GitHub. Et s’il vous fait gagner un après-midi, l’option de pourboire dans le menu de l’app m’offre un café. Le café repart directement dans le code."
       }
     ]
   },

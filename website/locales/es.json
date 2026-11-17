@@ -118,6 +118,10 @@
         "a": "macOS 14 o posterior, un repositorio Git local y un agente: Codex CLI con app-server, Claude Code o un webhook de Grok Bot. GitHub CLI hace falta para abrir pull requests y para enviar capturas a Grok Bot. Concede el permiso de grabación de pantalla para la zona que selecciones. Deja ScreenClip en ejecución y el Mac despierto mientras trabajan Codex o Claude Code. Grok Bot sigue si el Mac se duerme, y el estado de la pull request se actualiza la próxima vez que ScreenClip esté en marcha. Compilar desde el código también exige Xcode 16 o posterior."
       },
       {
+        "q": "¿Cómo lo configuro?",
+        "a": "En tres pasos. Inicia sesión en GitHub con la GitHub CLI (gh auth login) para que ScreenClip pueda abrir pull requests. En Settings, añade cada proyecto en el que trabajas: su repositorio local, su rama base y su comando de validación. Después conecta los agentes que uses: Codex, Claude Code o Grok Bot. Elige uno por defecto, pulsa Comando-Mayúsculas-2 y envía tu primer informe."
+      },
+      {
         "q": "¿Qué sale de mi Mac?",
         "a": "ScreenClip no tiene servidor propio. Entrega la captura aprobada y la nota a Codex o Claude Code en tu Mac, y ese agente puede enviarlas a la cuenta con la que iniciaste sesión. GitHub recibe la rama y la pull request abiertas con tu GitHub CLI. Las capturas finales del informe, con tus anotaciones y tachados, y las capturas que el agente toma después del arreglo se incluyen en el commit del arreglo y se insertan en esa pull request, así que cualquiera que pueda leer el repositorio puede verlas. Con Grok Bot, una vez que guardas un webhook, ScreenClip envía las capturas aprobadas a una rama del mismo repositorio. Los originales sin tachar nunca se publican. No hay analítica de ScreenClip. La lista completa está en la política de privacidad."
       },
@@ -144,6 +148,10 @@
       {
         "q": "¿Funciona con sitios y apps de Mac?",
         "a": "Sí. Captura una zona de un sitio o de una app nativa de Mac. Registra un repositorio y asócialo a direcciones web o a bundle ID de apps. Puedes cambiar el proyecto antes de enviar. Si el proyecto es ambiguo, ScreenClip guarda el informe y espera, en lugar de adivinar un repositorio."
+      },
+      {
+        "q": "¿Quién hace ScreenClip?",
+        "a": "Yo: un solo desarrollador, más los agentes de código que arreglan los fallos que registro con él. ScreenClip es gratis para uso no comercial. Lo que me encantaría a cambio: comentarios, informes de fallos y pull requests en GitHub. Y si te ahorra una tarde, la opción de propina del menú de la app me invita a un café. El café vuelve directo al código."
       }
     ]
   },
