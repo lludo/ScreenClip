@@ -33,7 +33,8 @@
     "download": "Download for Mac",
     "support": "support page",
     "site": "screenclipai.com",
-    "privacyLead": "Read the privacy policy"
+    "privacyLead": "Read the privacy policy",
+    "author": "Ludo Landry"
   },
   "hero": {
     "eyebrow": "Screenshot feedback for AI coding agents",
@@ -118,6 +119,10 @@
         "a": "macOS 14 or later, a local Git repository, and one agent: Codex CLI with app-server, Claude Code, or a Grok Bot webhook. The GitHub CLI is required to open pull requests, and to send screenshots to Grok Bot. Grant Screen Recording permission for the region you select. Leave ScreenClip running, and the Mac awake, while Codex or Claude Code works. Grok Bot keeps working if the Mac sleeps, and the pull request status updates the next time ScreenClip is running. Building from source also needs Xcode 16 or later."
       },
       {
+        "q": "How do I set it up?",
+        "a": "Three steps. Sign in to GitHub with the GitHub CLI (gh auth login) so ScreenClip can open pull requests. In Settings, add each project you work on: its local repository, base branch, and validation command. Then connect the agents you use: Codex, Claude Code, or Grok Bot. Pick a default, press Command-Shift-2, and file your first report."
+      },
+      {
         "q": "What leaves my Mac?",
         "a": "ScreenClip has no server of its own. It hands the approved screenshot and note to Codex or Claude Code on your Mac, and that agent may send them to the account you signed into. GitHub receives the branch and pull request opened with your GitHub CLI. The flattened report screenshots, with your annotations and redactions, and the screenshots the agent captures after the fix are committed with the fix and embedded in that pull request, so anyone who can read the repository can see them. For Grok Bot, once you save a webhook, ScreenClip pushes the approved screenshots to a branch in the same repository. Unredacted originals are never published. There is no ScreenClip analytics. The privacy policy has the full list."
       },
@@ -144,6 +149,10 @@
       {
         "q": "Does it work on websites and Mac apps?",
         "a": "Yes. Capture a region of a website or a native Mac app. Register a repository and associate it with website addresses or app bundle IDs. You can change the project before you submit. If the project is ambiguous, ScreenClip saves the report and waits instead of guessing a repository."
+      },
+      {
+        "q": "Who makes ScreenClip?",
+        "a": "One developer ({link:author}), plus the coding agents that fix the bugs I file with it. ScreenClip is free for noncommercial use. What I’d love in return is feedback, bug reports, and pull requests on GitHub. And if it saves you an afternoon, the tip option in the app’s menu buys me a coffee. The coffee goes straight back into the code."
       }
     ]
   },

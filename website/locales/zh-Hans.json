@@ -33,7 +33,8 @@
     "download": "下载 Mac 版",
     "support": "支持页面",
     "site": "screenclipai.com",
-    "privacyLead": "阅读隐私政策"
+    "privacyLead": "阅读隐私政策",
+    "author": "Ludo Landry"
   },
   "hero": {
     "eyebrow": "面向 AI 编程代理的截图反馈",
@@ -118,6 +119,10 @@
         "a": "需要 macOS 14 或更高版本、一个本地 Git 仓库，以及一个代理：带 app-server 的 Codex CLI、Claude Code，或 Grok Bot 的 webhook。打开拉取请求以及把截图发给 Grok Bot 都需要 GitHub CLI。请授予屏幕录制权限，以便截取你选中的区域。Codex 或 Claude Code 工作时，请保持 ScreenClip 运行，并让 Mac 保持唤醒。Mac 睡眠时 Grok Bot 仍会继续，下次运行 ScreenClip 时会更新拉取请求状态。从源码构建还需要 Xcode 16 或更高版本。"
       },
       {
+        "q": "如何设置？",
+        "a": "三步即可。先用 GitHub CLI 登录 GitHub（gh auth login），这样 ScreenClip 才能创建拉取请求。在 Settings 中添加你正在做的每个项目：本地仓库、基础分支和验证命令。然后连接你使用的代理：Codex、Claude Code 或 Grok Bot。选一个默认代理，按下 Command-Shift-2，提交你的第一份报告。"
+      },
+      {
         "q": "什么会离开这台 Mac？",
         "a": "ScreenClip 没有自己的服务器。它把已确认的截图和备注交给 Mac 上的 Codex 或 Claude Code，该代理可能按你登录的账户把它们发给提供方。GitHub 会收到用你的 GitHub CLI 打开的分支和拉取请求。报告的最终截图（含你的标注和遮盖）以及代理在修复后截取的截图，会随修复一起提交并嵌入该拉取请求，所以任何能读取该仓库的人都能看到。对 Grok Bot，你保存 webhook 后，ScreenClip 会把已确认的截图推送到同一仓库的分支。未遮盖的原图绝不会发布。ScreenClip 没有分析统计。完整列表在隐私政策里。"
       },
@@ -144,6 +149,10 @@
       {
         "q": "网站和 Mac 应用都能用吗？",
         "a": "可以。网站或原生 Mac 应用都可以框选区域。注册仓库，并把它和网站地址或应用 bundle ID 关联起来。提交前可以改项目。如果项目不明确，ScreenClip 会保存报告并等待，而不是猜一个仓库。"
+      },
+      {
+        "q": "ScreenClip 是谁做的？",
+        "a": "一名开发者（{link:author}），外加几个编程代理，负责修复我用它记下的问题。ScreenClip 非商业使用免费。我希望得到的回报是：反馈、问题报告，以及 GitHub 上的拉取请求。如果它帮你省下一个下午，App 菜单里的打赏选项可以请我喝杯咖啡。咖啡会直接变回代码。"
       }
     ]
   },

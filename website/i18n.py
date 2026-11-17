@@ -37,6 +37,9 @@ KBD = "<kbd>Cmd</kbd> <kbd>Shift</kbd> <kbd>2</kbd>"
 TOKEN = re.compile(r"\[\[(.*?)\]\]|\{(kbd|code|ui|link)(?::([A-Za-z0-9]+))?\}", re.DOTALL)
 
 
+AUTHOR_URL = "https://x.com/ludoviclandry"
+
+
 def page_path(meta, slug):
     prefix = f"/{meta['path']}" if meta["path"] else ""
     if slug in ("", "home"):
@@ -137,6 +140,7 @@ def render_link(name, catalog, config):
         "github": config.github_url,
         "issues": config.issues_url,
         "download": config.download_url,
+        "author": AUTHOR_URL,
     }
     if name not in urls:
         raise KeyError(f"Unknown link token {name}")

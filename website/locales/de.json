@@ -33,7 +33,8 @@
     "download": "Für Mac herunterladen",
     "support": "Support-Seite",
     "site": "screenclipai.com",
-    "privacyLead": "Lies die Datenschutzerklärung"
+    "privacyLead": "Lies die Datenschutzerklärung",
+    "author": "Ludo Landry"
   },
   "hero": {
     "eyebrow": "Screenshot-Feedback für Coding-Agenten",
@@ -118,6 +119,10 @@
         "a": "macOS 14 oder neuer, ein lokales Git-Repository und ein Agent: Codex CLI mit app-server, Claude Code oder ein Grok-Bot-Webhook. Die GitHub CLI brauchst du, um Pull Requests zu öffnen und Screenshots an Grok Bot zu senden. Erlaube die Bildschirmaufnahme für den Bereich, den du auswählst. Lass ScreenClip laufen und den Mac wach, während Codex oder Claude Code arbeiten. Grok Bot arbeitet weiter, wenn der Mac schläft, und der Pull-Request-Status aktualisiert sich beim nächsten Start von ScreenClip. Zum Bauen aus dem Quellcode brauchst du außerdem Xcode 16 oder neuer."
       },
       {
+        "q": "Wie richte ich es ein?",
+        "a": "In drei Schritten. Melde dich mit der GitHub CLI bei GitHub an (gh auth login), damit ScreenClip Pull Requests öffnen kann. Füge in Settings jedes Projekt hinzu, an dem du arbeitest: lokales Repository, Basis-Branch und Validierungsbefehl. Verbinde dann die Agenten, die du nutzt: Codex, Claude Code oder Grok Bot. Wähle einen Standard-Agenten, drücke Befehl-Umschalt-2 und sende deine erste Meldung."
+      },
+      {
         "q": "Was verlässt meinen Mac?",
         "a": "ScreenClip hat keinen eigenen Server. Es übergibt den freigegebenen Screenshot und die Notiz an Codex oder Claude Code auf dem Mac, und der Agent kann sie an das Konto senden, bei dem du angemeldet bist. GitHub erhält den Branch und den Pull Request, die mit deiner GitHub CLI geöffnet wurden. Die fertigen Screenshots des Berichts mit deinen Markierungen und Schwärzungen sowie die Screenshots, die der Agent nach dem Fix aufnimmt, werden mit dem Fix committet und in diesen Pull Request eingebettet. Wer das Repository lesen kann, kann sie sehen. Für Grok Bot pusht ScreenClip die freigegebenen Screenshots in einen Branch desselben Repositories, sobald du einen Webhook gespeichert hast. Ungeschwärzte Originale werden nie veröffentlicht. Es gibt keine ScreenClip-Analyse. Die vollständige Liste steht in der Datenschutzerklärung."
       },
@@ -144,6 +149,10 @@
       {
         "q": "Funktioniert das mit Websites und Mac-Apps?",
         "a": "Ja. Erfasse einen Bereich einer Website oder einer nativen Mac-App. Registriere ein Repository und verknüpfe es mit Website-Adressen oder Bundle-IDs von Apps. Das Projekt kannst du vor dem Senden ändern. Ist das Projekt unklar, speichert ScreenClip den Bericht und wartet, statt ein Repository zu raten."
+      },
+      {
+        "q": "Wer macht ScreenClip?",
+        "a": "Ein einzelner Entwickler ({link:author}), plus die Coding-Agenten, die die Fehler beheben, die ich damit melde. ScreenClip ist für nicht-kommerzielle Nutzung kostenlos. Was ich mir im Gegenzug wünsche: Feedback, Fehlermeldungen und Pull Requests auf GitHub. Und wenn es dir einen Nachmittag spart, spendiert mir die Trinkgeld-Option im Menü der App einen Kaffee. Der Kaffee fließt direkt zurück in den Code."
       }
     ]
   },
