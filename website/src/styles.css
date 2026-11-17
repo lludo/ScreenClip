@@ -556,7 +556,10 @@ kbd {
 
 @media (max-width: 720px) {
   html { scroll-padding-top: 8.5rem; }
-  .header-bar { row-gap: 0.15rem; }
+  .header-bar { gap: 0.15rem 0.5rem; }
+  .site-header .brand { gap: 0.5rem; font-size: 1rem; white-space: nowrap; }
+  .site-header .brand img { width: 1.75rem; height: 1.75rem; }
+  .header-cta .button { padding-inline: 0.65rem; font-size: 0.9375rem; }
   .header-cta { order: 1; margin-left: auto; }
   .site-header nav { order: 3; width: 100%; margin-left: 0; }
   .cards, .benefits-cards, .flow, .notification-example { grid-template-columns: 1fr; }
