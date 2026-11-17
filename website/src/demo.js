@@ -20,9 +20,16 @@ if (video && caption && steps.length) {
     caption.textContent = steps[index].text;
   };
 
+  let following = false;
+
   const follow = () => {
     update();
-    if (!video.paused && !video.ended) requestAnimationFrame(follow);
+    following = !video.paused && !video.ended;
+    if (following) requestAnimationFrame(follow);
+  };
+
+  const startFollowing = () => {
+    if (!following) follow();
   };
 
   // The video has no browser controls, so a click pauses and resumes it.
@@ -31,8 +38,8 @@ if (video && caption && steps.length) {
     else video.pause();
   });
 
-  video.addEventListener("play", follow);
+  video.addEventListener("play", startFollowing);
   video.addEventListener("timeupdate", update);
   video.addEventListener("seeked", update);
-  follow();
+  startFollowing();
 }
