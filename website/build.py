@@ -182,7 +182,7 @@ def render_faq(config, catalog):
             "<details><summary>"
             + esc(question)
             + "</summary><p>"
-            + esc(answer)
+            + i18n.format_message(answer, catalog, config)
             + "</p></details>"
         )
     return "\n        ".join(blocks)
@@ -221,7 +221,7 @@ def structured_data(config, catalog=None):
             {
                 "@type": "Question",
                 "name": question,
-                "acceptedAnswer": {"@type": "Answer", "text": answer},
+                "acceptedAnswer": {"@type": "Answer", "text": answer.replace("{link:author}", catalog.get("link.author"))},
             }
             for question, answer in faq_items(config, catalog)
         ],

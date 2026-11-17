@@ -33,7 +33,8 @@
     "download": "Baixar para Mac",
     "support": "página de suporte",
     "site": "screenclipai.com",
-    "privacyLead": "Leia a política de privacidade"
+    "privacyLead": "Leia a política de privacidade",
+    "author": "Ludo Landry"
   },
   "hero": {
     "eyebrow": "Feedback por captura para agentes de código",
@@ -151,7 +152,7 @@
       },
       {
         "q": "Quem faz o ScreenClip?",
-        "a": "Eu: um único desenvolvedor, mais os agentes de código que corrigem os bugs que eu registro com ele. O ScreenClip é grátis para uso não comercial. O que eu adoraria em troca: feedback, relatos de bugs e pull requests no GitHub. E se ele poupar uma tarde sua, a opção de gorjeta no menu do app me paga um café. O café volta direto para o código."
+        "a": "Eu: um único desenvolvedor ({link:author}), mais os agentes de código que corrigem os bugs que eu registro com ele. O ScreenClip é grátis para uso não comercial. O que eu adoraria em troca: feedback, relatos de bugs e pull requests no GitHub. E se ele poupar uma tarde sua, a opção de gorjeta no menu do app me paga um café. O café volta direto para o código."
       }
     ]
   },
