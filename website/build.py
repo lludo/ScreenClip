@@ -373,7 +373,7 @@ def layout(config, catalogs, catalog, *, slug, robots, body, json_ld, css_href, 
   <a class="skip-link" href="#main">{esc(catalog.get("nav.skip"))}</a>
   <header class="site-header">
     <div class="wrap header-bar">
-      <a class="brand" href="{esc(home)}"><img src="/assets/icon.svg" width="32" height="32" alt=""><span>ScreenClip</span></a>
+      <a class="brand" href="{esc(home)}"><img src="/assets/icon.svg" width="32" height="32" alt=""><span>ScreenClip for AI</span></a>
       <nav aria-label="{esc(catalog.get("nav.primary"))}">{nav(catalog, slug)}</nav>
       <div class="header-cta">{header_cta(config, catalog)}</div>
     </div>
