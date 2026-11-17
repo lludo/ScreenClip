@@ -25,6 +25,12 @@ if (video && caption && steps.length) {
     if (!video.paused && !video.ended) requestAnimationFrame(follow);
   };
 
+  // The video has no browser controls, so a click pauses and resumes it.
+  video.addEventListener("click", () => {
+    if (video.paused) video.play();
+    else video.pause();
+  });
+
   video.addEventListener("play", follow);
   video.addEventListener("timeupdate", update);
   video.addEventListener("seeked", update);

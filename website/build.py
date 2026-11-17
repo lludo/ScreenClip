@@ -617,8 +617,8 @@ def check_output(config, pages):
         raise SystemExit("The demo video needs a poster and a description")
     if 'width="' not in demo.group(0) or 'height="' not in demo.group(0):
         raise SystemExit("The demo video needs explicit width and height")
-    if " muted" not in demo.group(0) or " playsinline" not in demo.group(0) or " controls" not in demo.group(0):
-        raise SystemExit("The demo video must be muted, inline, and pausable")
+    if " muted" not in demo.group(0) or " playsinline" not in demo.group(0) or " controls" in demo.group(0):
+        raise SystemExit("The demo video must be muted and inline, without browser controls")
     for href in re.findall(r'(?:href|src|srcset)="([^"]+)"', text):
         if href.startswith(("https://", "http://", "mailto:")):
             continue
