@@ -152,7 +152,7 @@
       },
       {
         "q": "¿Quién hace ScreenClip?",
-        "a": "Yo: un solo desarrollador ({link:author}), más los agentes de código que arreglan los fallos que registro con él. ScreenClip es gratis para uso no comercial. Lo que me encantaría a cambio: comentarios, informes de fallos y pull requests en GitHub. Y si te ahorra una tarde, la opción de propina del menú de la app me invita a un café. El café vuelve directo al código."
+        "a": "Un solo desarrollador ({link:author}), más los agentes de código que arreglan los fallos que registro con él. ScreenClip es gratis para uso no comercial. Lo que me encantaría a cambio: comentarios, informes de fallos y pull requests en GitHub. Y si te ahorra una tarde, la opción de propina del menú de la app me invita a un café. El café vuelve directo al código."
       }
     ]
   },
