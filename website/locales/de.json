@@ -169,7 +169,7 @@
   "privacy": {
     "eyebrow": "Datenschutz",
     "title": "Datenschutzerklärung",
-    "updated": "Aktualisiert am 15. November 2026.",
+    "updated": "Aktualisiert am 17. November 2026.",
     "intro": "ScreenClip ist eine Menüleisten-App für macOS. Du erfasst einen Bereich, den du auswählst, versiehst ihn bei Bedarf mit Markierung und Notiz und übergibst den Bericht einem Agenten, den du eingerichtet hast. Diese Erklärung beschreibt, was die App auf dem Mac speichert, was ihn verlassen kann und was diese Website tut.",
     "staysTitle": "Was auf dem Mac bleibt",
     "stays1": "Berichte, Screenshots, Notizen, Markierungen, Projekteinstellungen, Fragen und Aktivität liegen auf dem Mac unter {code:appSupport}. Die Warteschlange ist eine SQLite-Datenbank plus Bilddateien. Die Arbeit des Agenten läuft in einem Git-Worktree in demselben Ordner. Dein eigener Projekt-Checkout ist nicht das Arbeitsverzeichnis.",
@@ -199,7 +199,7 @@
     "tipsTitle": "Trinkgeld",
     "tips": "Die App kann ein optionales Trinkgeld-Fenster zeigen; dasselbe Fenster gibt es im Menü und in Settings. Ein Trinkgeld öffnet GitHub Sponsors im Browser. ScreenClip verarbeitet die Zahlung nicht und erhält keine Karten- oder Auszahlungsdaten. Du kannst das Fenster schließen oder den Hinweis abschalten. Diese Website verlinkt keine Zahlungsseite.",
     "siteTitle": "Diese Website",
-    "site1": "{link:site} ist eine statische Website. Die Seiten laden keine Skripte, Schriften oder Analyse von Dritten. Die Sprachwahl speichert diese Wahl in einem Cookie namens screenclip_lang und im lokalen Speicher deines Geräts. Das Cookie wählt nur die Sprache der Startseite. Es wird nicht für Werbung oder Analyse verwendet. Der Host, der die Website ausliefert, erhält gewöhnliche Verbindungsdaten wie IP-Adresse und User-Agent, um die Seite zuzustellen.",
+    "site1": "{link:site} ist eine statische Website. Die Seiten laden keine Skripte oder Schriften von anderen Domains. Die Website nutzt Vercel Web Analytics, bereitgestellt vom Host, der sie ausliefert, um Besucher und Seitenaufrufe zu zählen. Es setzt keine Cookies. Es erfasst die Seitenadresse, die verweisende Website, Browser, Betriebssystem und Gerätetyp sowie das aus der IP-Adresse abgeleitete Land. Es speichert die IP-Adresse nicht und verfolgt dich nicht über andere Websites hinweg. Die Sprachwahl speichert diese Wahl in einem Cookie namens screenclip_lang und im lokalen Speicher deines Geräts. Das Cookie wählt nur die Sprache der Startseite. Es wird nicht für Werbung oder Analyse verwendet. Der Host, der die Website ausliefert, erhält gewöhnliche Verbindungsdaten wie IP-Adresse und User-Agent, um die Seite zuzustellen.",
     "contactTitle": "Kontakt",
     "contact": "Fragen zu dieser Erklärung gehen über die {link:support}.",
     "changesTitle": "Änderungen",
