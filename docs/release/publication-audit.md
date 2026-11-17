@@ -1,6 +1,6 @@
 # Publication audit
 
-Updated November 15, 2026. **The repository remains private.** The branch-history cleanup is complete; GitHub's retained pull-request refs still prevent safe public publication.
+Updated November 16, 2026. **The repository is public, and GitHub's retained pull-request refs still expose removed data.** The branch-history cleanup is complete, but the purge described below has not happened.
 
 ## Completed history cleanup
 
@@ -17,7 +17,7 @@ The rewrite changed commit IDs and removed historical signatures. Existing clone
 
 GitHub owns read-only `refs/pull/*` references. Rewriting branches and deleting source branches does not delete these refs or cached commit views.
 
-GitHub-retained pull-request refs still contain removed personal data. Keep the repository private until GitHub has purged the affected references and cached objects.
+GitHub-retained pull-request refs still contain removed personal data. The repository became public on November 16 before that purge; `main` is clean. Until GitHub has purged the affected references and cached objects, the only way to stop access is to make the repository private again.
 
 GitHub's required server-side procedure is documented in [Removing sensitive data from a repository](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository).
 
@@ -27,6 +27,6 @@ GitHub's required server-side procedure is documented in [Removing sensitive dat
 - Some current marketing screenshots contain real app reports and were intentionally approved for sharing by the owner. The history cleanup does not replace those current assets. Review new screenshots before committing them.
 - No signing credentials are committed. Local signing configuration and release outputs are ignored.
 - The latest Release app and DMG passed Developer ID signing, Apple notarization, ticket stapling, and Gatekeeper verification. Reusable notarization credentials are stored in the macOS Keychain.
-- The website's source and download URLs are active. They return 404 for the public until the repository is public; the v1.0.0 release with the notarized asset is published.
+- The website's source and download URLs are active. The v1.0.0 release with the notarized asset is published and downloads without GitHub authentication.
 
 See [v1.0.0 readiness](v1.0.0-status.md) for the release state.

@@ -6,7 +6,7 @@ The agent icons under `Sources/ScreenClip/Assets.xcassets` are from Lobe Icons a
 
 The [publication audit](publication-audit.md) records the November 15, 2026 history cleanup. The private fixture database and flagged image blobs were removed from rewritten history, and every branch except `main` was deleted. GitHub still retains private data through read-only pull-request refs. GitHub must purge the retained private objects before this repository becomes public.
 
-The repository remains private. Release progress is in [v1.0.0 readiness](v1.0.0-status.md). The other release pages are listed in [Release and distribution](README.md).
+The repository is public. Release progress is in [v1.0.0 readiness](v1.0.0-status.md). The other release pages are listed in [Release and distribution](README.md).
 
 Engineering work that is not a release blocker (live Claude and Grok Bot runs, multi-monitor capture, and the maintenance list) stays on the [roadmap](../roadmap.md).
 
@@ -14,7 +14,7 @@ Engineering work that is not a release blocker (live Claude and Grok Bot runs, m
 
 ### Support email
 
-The support page links to the repository's GitHub Issues, which only collaborators can open while the repository is private. Add a monitored address if you want a channel besides Issues. `website/site.config.json` has no email field.
+The support page links to the repository's GitHub Issues. Add a monitored address if you want a channel besides Issues. `website/site.config.json` has no email field.
 
 ### GitHub Sponsors and the donate URL
 

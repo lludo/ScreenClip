@@ -42,7 +42,7 @@ Current values:
 
 - `siteUrl` is `https://screenclipai.com`.
 - `githubUrl` is `https://github.com/lludo/ScreenClip`. The link works for visitors only once the repository is public.
-- `downloadUrl` is `https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg`, which tracks the newest published release. It returns 404 until the repository is public and the v1.0.0 release with `ScreenClip.dmg` is published. ScreenClip is not on the Mac App Store.
+- `downloadUrl` is `https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg`, which tracks the newest published release. ScreenClip is not on the Mac App Store.
 - `donateUrl` is empty, so the site shows no tip link.
 
 The header **Free Download** button scrolls to the download section on every page, in every availability state. The localized v1.0.0 copy and the public links are in place. Production deploys from `main`, so merge this configuration only when the [release gates](release/v1.0.0-status.md) are complete.
