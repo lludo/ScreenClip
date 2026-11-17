@@ -160,7 +160,13 @@ h3 { font-size: 1.125rem; font-weight: 680; letter-spacing: -0.02em; line-height
   align-items: center;
   padding-block: clamp(3rem, 5vw, 4.25rem) clamp(3.5rem, 5vw, 4.5rem);
 }
-.hero h1 { font-size: clamp(2.5rem, 4.5vw, 3.7rem); margin-bottom: 1.1rem; }
+/* The headline scales with its column so each half stays on one line.
+   --fit is 100 divided by the longer half's width in ems, less a small margin. */
+.hero { container-type: inline-size; }
+.hero h1 { font-size: clamp(1.8rem, var(--fit, 8.2cqi), 3.7rem); margin-bottom: 1.1rem; }
+:lang(es) .hero h1, :lang(fr) .hero h1 { --fit: 7.1cqi; }
+:lang(de) .hero h1 { --fit: 6.3cqi; }
+:lang(ru) .hero h1 { --fit: 6cqi; }
 .hero .eyebrow { margin-bottom: 1rem; }
 :lang(ja) .hero h1, :lang(ko) .hero h1, :lang(zh) .hero h1 {
   font-size: clamp(2.1rem, 3.6vw, 3rem);
@@ -242,14 +248,13 @@ h3 { font-size: 1.125rem; font-weight: 680; letter-spacing: -0.02em; line-height
   border: 1px solid var(--line);
   border-radius: 12px;
   background: #1c1c1e;
-  cursor: pointer;
   box-shadow: 0 12px 30px rgba(36, 31, 26, 0.2), 0 2px 6px rgba(36, 31, 26, 0.1);
 }
 .demo-figure figcaption {
   margin: 0.9rem 0 0;
   color: var(--muted);
-  font-size: 0.975rem;
-  min-height: 3.2em;
+  font-size: 1.125rem;
+  min-height: 3em;
   text-wrap: balance;
 }
 
@@ -529,7 +534,6 @@ kbd {
   .flow-step .icon { grid-column: 1; grid-row: 2 / span 3; margin: 0; }
   .wrap, .prose { width: min(var(--wrap), calc(100% - 2rem)); }
   h1 { font-size: clamp(2.25rem, 10.5vw, 3rem); }
-  .hero h1 { font-size: clamp(2.15rem, 9vw, 2.8rem); }
   .intro { padding-block: 2.75rem 3.5rem; }
   .site-header nav { justify-content: space-between; }
   .site-header nav a { padding-inline: 0.45rem; }
