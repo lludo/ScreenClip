@@ -16,26 +16,11 @@ A native macOS menu bar app for the small things you notice: a clipped button, c
 
 Use the global **⌘⇧2** shortcut or start a capture from the menu bar. You can change the shortcut in Settings, including if the default is already in use.
 
-<table>
-  <tr>
-    <th>1. Start a capture</th>
-    <th>2. Select an area</th>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/menu-preview.png" alt="ScreenClip menu bar popover showing report status and the new capture button."></td>
-    <td><img src="docs/screenshots/capture-selection.png" alt="Selecting a region of the screen to capture, with the selection crosshair restored."></td>
-  </tr>
-  <tr>
-    <th>3. Add your observation</th>
-    <th>4. Annotate and submit</th>
-  </tr>
-  <tr>
-    <td><img src="docs/screenshots/capture-annotation.png" alt="The selected region in ScreenClip's annotation editor, ready for a note and submission."></td>
-    <td><img src="docs/screenshots/composer-preview.png" alt="An example capture annotated with an arrow and rectangle, ready to submit."></td>
-  </tr>
-</table>
+<p align="center">
+  <img src="docs/screenshots/demo.gif" width="960" alt="Screen recording of ScreenClip: a region of a Mac app is captured, given a note, a project, and an agent, marked up with a rectangle and an arrow, and submitted. The report then appears in the menu bar and the queue, and notifications announce merged fixes.">
+</p>
 
-*The menu-bar image and selection crosshair have been edited. The final annotated capture uses sample data.*
+<p align="center"><em>Select a region, say what’s wrong, mark it up, and submit. Then follow the report from the menu bar or the queue until the fix is merged.</em></p>
 
 ## Download
 
