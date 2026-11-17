@@ -169,7 +169,7 @@
   "privacy": {
     "eyebrow": "Privacy policy",
     "title": "Privacy policy",
-    "updated": "Updated November 15, 2026.",
+    "updated": "Updated November 17, 2026.",
     "intro": "ScreenClip is a macOS menu bar app. You capture a region you select, optionally annotate it and add a note, and hand that report to a coding agent you configure. This policy describes what the app stores on your Mac, what can leave it, and what this website does.",
     "staysTitle": "What stays on your Mac",
     "stays1": "Reports, screenshots, notes, annotations, project settings, questions, and activity are stored on your Mac under {code:appSupport}. The queue is a SQLite database plus image files. Agent work runs in a Git worktree under that same folder. Your own project checkout is not the working directory.",
@@ -199,7 +199,7 @@
     "tipsTitle": "Tips",
     "tips": "The app can show an optional tip window, and the same window is available from the menu and from Settings. Choosing a tip opens GitHub Sponsors in your browser. ScreenClip does not process the payment and does not receive card or payout details. You can dismiss the window or turn the prompt off. This website does not link to a payment page.",
     "siteTitle": "This website",
-    "site1": "{link:site} is a static website. Pages on this site load no third-party scripts, fonts, or analytics. Choosing a language stores that choice in a cookie named screenclip_lang and in local storage on your device. The cookie only selects the language for the home page. It is not used for advertising or analytics. The host that serves the site receives ordinary connection data, such as IP address and user agent, in order to deliver the page.",
+    "site1": "{link:site} is a static website. Pages on this site load no scripts or fonts from other domains. The site uses Vercel Web Analytics, provided by the host that serves it, to count visitors and page views. It sets no cookies. It records the page address, the referring site, the browser, operating system, and device type, and the country derived from the IP address. It does not store the IP address and does not follow you across other sites. Choosing a language stores that choice in a cookie named screenclip_lang and in local storage on your device. The cookie only selects the language for the home page. It is not used for advertising or analytics. The host that serves the site receives ordinary connection data, such as IP address and user agent, in order to deliver the page.",
     "contactTitle": "Contact",
     "contact": "Questions about this policy go through the {link:support}.",
     "changesTitle": "Changes",

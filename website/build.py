@@ -368,6 +368,7 @@ def layout(config, catalogs, catalog, *, slug, robots, body, json_ld, css_href, 
   <link rel="stylesheet" href="{esc(css_href)}">
   {json_tag}
   <script type="module" src="{esc(js_href)}"></script>
+  <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">{esc(catalog.get("nav.skip"))}</a>
@@ -621,6 +622,9 @@ def check_output(config, pages):
         raise SystemExit("The demo video must be muted and inline, without browser controls")
     for href in re.findall(r'(?:href|src|srcset)="([^"]+)"', text):
         if href.startswith(("https://", "http://", "mailto:")):
+            continue
+        if href.startswith("/_vercel/"):
+            # Served by Vercel at deploy time (Web Analytics), not built into dist.
             continue
         check_local_ref(href, pages)
     og = (DIST / "assets" / "og.png").read_bytes()

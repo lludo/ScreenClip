@@ -169,7 +169,7 @@
   "privacy": {
     "eyebrow": "Política de privacidade",
     "title": "Política de privacidade",
-    "updated": "Atualizada em 15 de novembro de 2026.",
+    "updated": "Atualizada em 17 de novembro de 2026.",
     "intro": "O ScreenClip é um app da barra de menus do macOS. Você captura uma região que escolhe, anota e acrescenta uma nota se quiser, e entrega esse relatório a um agente que configurou. Esta política descreve o que o app guarda no Mac, o que pode sair e o que este site faz.",
     "staysTitle": "O que fica no Mac",
     "stays1": "Relatórios, capturas, notas, anotações, ajustes de projeto, perguntas e atividade ficam no Mac, em {code:appSupport}. A fila é um banco SQLite mais arquivos de imagem. O trabalho do agente roda em um Git worktree nessa mesma pasta. O checkout do seu projeto não é o diretório de trabalho.",
@@ -199,7 +199,7 @@
     "tipsTitle": "Gorjetas",
     "tips": "O app pode mostrar uma janela opcional de gorjeta, e a mesma janela está no menu e em Settings. Escolher uma gorjeta abre o GitHub Sponsors no navegador. O ScreenClip não processa o pagamento e não recebe dados de cartão nem de repasse. Você pode fechar a janela ou desligar o aviso. Este site não aponta para uma página de pagamento.",
     "siteTitle": "Este site",
-    "site1": "{link:site} é um site estático. As páginas não carregam scripts, fontes nem análise de terceiros. Escolher um idioma guarda essa escolha em um cookie chamado screenclip_lang e no armazenamento local do seu dispositivo. O cookie só escolhe o idioma da página inicial. Não é usado para publicidade nem análise. O host que entrega o site recebe dados comuns de conexão, como endereço IP e user agent, para servir a página.",
+    "site1": "{link:site} é um site estático. As páginas não carregam scripts nem fontes de outros domínios. O site usa o Vercel Web Analytics, fornecido pelo host que o entrega, para contar visitantes e visualizações de página. Ele não grava cookies. Registra o endereço da página, o site de origem, o navegador, o sistema operacional e o tipo de dispositivo, e o país deduzido do endereço IP. Não guarda o endereço IP nem acompanha você em outros sites. Escolher um idioma guarda essa escolha em um cookie chamado screenclip_lang e no armazenamento local do seu dispositivo. O cookie só escolhe o idioma da página inicial. Não é usado para publicidade nem análise. O host que entrega o site recebe dados comuns de conexão, como endereço IP e user agent, para servir a página.",
     "contactTitle": "Contato",
     "contact": "Perguntas sobre esta política vão pela {link:support}.",
     "changesTitle": "Alterações",

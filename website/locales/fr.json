@@ -169,7 +169,7 @@
   "privacy": {
     "eyebrow": "Confidentialité",
     "title": "Politique de confidentialité",
-    "updated": "Mise à jour le 15 novembre 2026.",
+    "updated": "Mise à jour le 17 novembre 2026.",
     "intro": "ScreenClip est une app de la barre des menus de macOS. Vous capturez une zone choisie, vous l’annotez et ajoutez une note si vous le souhaitez, puis vous remettez ce rapport à un agent que vous avez configuré. Cette politique décrit ce que l’app conserve sur le Mac, ce qui peut en sortir et ce que fait ce site.",
     "staysTitle": "Ce qui reste sur le Mac",
     "stays1": "Les rapports, captures, notes, annotations, réglages de projet, questions et activité sont stockés sur le Mac dans {code:appSupport}. La file est une base SQLite plus des fichiers image. Le travail de l’agent s’exécute dans un Git worktree de ce même dossier. Votre propre copie du projet n’est pas le répertoire de travail.",
@@ -199,7 +199,7 @@
     "tipsTitle": "Pourboires",
     "tips": "L’app peut afficher une fenêtre de pourboire facultative, et la même fenêtre est disponible dans le menu et dans Settings. Choisir un pourboire ouvre GitHub Sponsors dans le navigateur. ScreenClip ne traite pas le paiement et ne reçoit ni données de carte ni détails de versement. Vous pouvez fermer la fenêtre ou désactiver l’invite. Ce site ne renvoie pas vers une page de paiement.",
     "siteTitle": "Ce site",
-    "site1": "{link:site} est un site statique. Les pages ne chargent ni scripts, ni polices, ni analyse de tiers. Choisir une langue enregistre ce choix dans un cookie nommé screenclip_lang et dans le stockage local de votre appareil. Le cookie ne sert qu’à choisir la langue de la page d’accueil. Il n’est pas utilisé pour la publicité ni l’analyse. L’hôte qui sert le site reçoit des données de connexion ordinaires, comme l’adresse IP et l’agent utilisateur, afin de livrer la page.",
+    "site1": "{link:site} est un site statique. Les pages ne chargent ni scripts ni polices depuis d’autres domaines. Le site utilise Vercel Web Analytics, fourni par l’hôte qui le sert, pour compter les visiteurs et les pages vues. Il ne dépose aucun cookie. Il enregistre l’adresse de la page, le site d’origine, le navigateur, le système d’exploitation et le type d’appareil, ainsi que le pays déduit de l’adresse IP. Il ne conserve pas l’adresse IP et ne vous suit pas sur d’autres sites. Choisir une langue enregistre ce choix dans un cookie nommé screenclip_lang et dans le stockage local de votre appareil. Le cookie ne sert qu’à choisir la langue de la page d’accueil. Il n’est pas utilisé pour la publicité ni l’analyse. L’hôte qui sert le site reçoit des données de connexion ordinaires, comme l’adresse IP et l’agent utilisateur, afin de livrer la page.",
     "contactTitle": "Contact",
     "contact": "Les questions sur cette politique passent par la {link:support}.",
     "changesTitle": "Modifications",
