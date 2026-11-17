@@ -45,7 +45,15 @@
   "demo": {
     "title": "La demo",
     "alt": "Grabación de pantalla de ScreenClip: se captura una zona de una app de Mac, se marca con un rectángulo y una flecha, se envía a Codex con una nota y se sigue en la cola. Después, las notificaciones avisan de los cambios integrados.",
-    "caption": "Captura una zona, márcala y entrégasela a tu agente"
+    "caption": "Captura una zona, márcala y entrégasela a tu agente",
+    "step1": "Pulsa ⌘⇧2 y arrastra sobre lo que has visto",
+    "step2": "Explica el problema en pocas palabras",
+    "step3": "Elige el proyecto y el agente",
+    "step4": "Márcalo si ayuda",
+    "step5": "Envía y sigue con lo tuyo. Tu agente se encarga",
+    "step6": "Consulta el progreso de un vistazo desde la barra de menús",
+    "step7": "O abre la cola para ver cada informe y su estado",
+    "step8": "Recibe un aviso cuando el cambio esté integrado y listo para volver a probar"
   },
   "loop": {
     "eyebrow": "Cómo funciona",

@@ -672,6 +672,7 @@ def build():
     notification_image = fingerprinted(SRC / "assets" / "retest-notifications.png", hashed)
     demo_video = fingerprinted(SRC / "assets" / "demo.mp4", hashed)
     demo_poster = fingerprinted(SRC / "assets" / "demo-poster.jpg", hashed)
+    demo_js = fingerprinted(SRC / "demo.js", hashed)
     home_preloads = [(demo_poster, "", "image/jpeg")]
     print("Drawing icons…")
     write_icons(assets)
@@ -714,6 +715,7 @@ def build():
             "PRIVACY_PATH": catalog.page("privacy"),
             "DEMO_MP4": demo_video,
             "DEMO_POSTER": demo_poster,
+            "DEMO_JS": demo_js,
         }
         for slug, filename, robots, with_json in page_specs:
             body = (SRC / "pages" / ("home.html" if slug == "home" else f"{slug}.html")).read_text()

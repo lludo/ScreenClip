@@ -45,7 +45,15 @@
   "demo": {
     "title": "Die Demo",
     "alt": "Bildschirmaufnahme von ScreenClip: Ein Bereich einer Mac-App wird aufgenommen, mit Rechteck und Pfeil markiert, mit einer Notiz an Codex gesendet und in der Warteschlange verfolgt. Mitteilungen melden anschließend zusammengeführte Fixes.",
-    "caption": "Bereich aufnehmen, markieren und an deinen Agenten übergeben"
+    "caption": "Bereich aufnehmen, markieren und an deinen Agenten übergeben",
+    "step1": "⌘⇧2 drücken und über das ziehen, was dir aufgefallen ist",
+    "step2": "In wenigen Worten sagen, was nicht stimmt",
+    "step3": "Projekt und Agenten auswählen",
+    "step4": "Bei Bedarf markieren",
+    "step5": "Absenden und weiterarbeiten. Dein Agent übernimmt",
+    "step6": "Den Fortschritt in der Menüleiste im Blick behalten",
+    "step7": "Oder die Warteschlange öffnen und jede Meldung mit Status sehen",
+    "step8": "Mitteilung erhalten, sobald der Fix zusammengeführt und bereit zum erneuten Testen ist"
   },
   "loop": {
     "eyebrow": "So funktioniert’s",

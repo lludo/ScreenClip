@@ -45,7 +45,15 @@
   "demo": {
     "title": "La démo",
     "alt": "Enregistrement d’écran de ScreenClip : une zone d’une app Mac est capturée, annotée d’un rectangle et d’une flèche, envoyée à Codex avec une note, puis suivie dans la file. Des notifications annoncent ensuite les correctifs fusionnés.",
-    "caption": "Capturez une zone, annotez-la et confiez-la à votre agent"
+    "caption": "Capturez une zone, annotez-la et confiez-la à votre agent",
+    "step1": "Appuyez sur ⌘⇧2 et sélectionnez ce que vous avez remarqué",
+    "step2": "Décrivez le problème en quelques mots",
+    "step3": "Choisissez le projet et l’agent",
+    "step4": "Annotez la capture si cela aide",
+    "step5": "Envoyez et reprenez votre travail. Votre agent s’en occupe",
+    "step6": "Suivez l’avancement d’un coup d’œil dans la barre des menus",
+    "step7": "Ou ouvrez la file pour voir chaque signalement et son statut",
+    "step8": "Recevez une notification quand le correctif est fusionné et prêt à retester"
   },
   "loop": {
     "eyebrow": "Fonctionnement",

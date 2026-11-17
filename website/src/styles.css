@@ -248,6 +248,8 @@ h3 { font-size: 1.125rem; font-weight: 680; letter-spacing: -0.02em; line-height
   margin: 0.9rem 0 0;
   color: var(--muted);
   font-size: 0.975rem;
+  min-height: 3.2em;
+  text-wrap: balance;
 }
 
 .section { padding-bottom: var(--space); }

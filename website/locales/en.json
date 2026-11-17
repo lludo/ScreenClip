@@ -45,7 +45,15 @@
   "demo": {
     "title": "The demo",
     "alt": "Screen recording of ScreenClip: a region of a Mac app is captured, marked up with a rectangle and an arrow, sent to Codex with a note, and followed in the queue. Notifications then announce merged fixes.",
-    "caption": "Capture a region, mark it up, and hand it to your agent"
+    "caption": "Capture a region, mark it up, and hand it to your agent",
+    "step1": "Press ⌘⇧2 and drag over what you noticed",
+    "step2": "Say what’s wrong in a few words",
+    "step3": "Pick the project and the agent",
+    "step4": "Mark it up if that helps",
+    "step5": "Submit and get back to work. Your agent takes it from here",
+    "step6": "Glance at progress from the menu bar",
+    "step7": "Or open the queue to see every report and its status",
+    "step8": "Get notified when the fix is merged and ready to retest"
   },
   "loop": {
     "eyebrow": "How it works",

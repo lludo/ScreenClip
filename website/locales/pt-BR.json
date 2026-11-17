@@ -45,7 +45,15 @@
   "demo": {
     "title": "A demonstração",
     "alt": "Gravação de tela do ScreenClip: uma área de um app para Mac é capturada, marcada com um retângulo e uma seta, enviada ao Codex com uma nota e acompanhada na fila. Depois, notificações avisam sobre as alterações integradas.",
-    "caption": "Capture uma área, marque-a e entregue ao seu agente"
+    "caption": "Capture uma área, marque-a e entregue ao seu agente",
+    "step1": "Pressione ⌘⇧2 e arraste sobre o que você notou",
+    "step2": "Diga o que está errado em poucas palavras",
+    "step3": "Escolha o projeto e o agente",
+    "step4": "Marque a captura se ajudar",
+    "step5": "Envie e volte ao trabalho. Seu agente cuida do resto",
+    "step6": "Acompanhe o progresso de relance na barra de menus",
+    "step7": "Ou abra a fila para ver cada relato e seu status",
+    "step8": "Receba uma notificação quando a alteração for integrada e estiver pronta para novo teste"
   },
   "loop": {
     "eyebrow": "Como funciona",

@@ -12,10 +12,21 @@
           <video class="demo-video" width="1280" height="888" poster="@@DEMO_POSTER@@" aria-label="{{demo.alt}}" autoplay muted loop playsinline controls>
             <source src="@@DEMO_MP4@@" type="video/mp4">
           </video>
-          <figcaption>{{demo.caption}}</figcaption>
+          <figcaption data-demo-caption>{{demo.caption}}</figcaption>
+          <ol class="demo-steps" data-demo-steps hidden>
+            <li data-at="0">{{demo.step1}}</li>
+            <li data-at="3.8">{{demo.step2}}</li>
+            <li data-at="5.8">{{demo.step3}}</li>
+            <li data-at="10.6">{{demo.step4}}</li>
+            <li data-at="18.4">{{demo.step5}}</li>
+            <li data-at="20.5">{{demo.step6}}</li>
+            <li data-at="23.2">{{demo.step7}}</li>
+            <li data-at="28.9">{{demo.step8}}</li>
+          </ol>
         </figure>
       </section>
     </div>
+    <script type="module" src="@@DEMO_JS@@"></script>
 
     <section class="section section-rule" id="loop" aria-labelledby="loop-title">
       <div class="wrap">
