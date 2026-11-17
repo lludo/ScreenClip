@@ -399,13 +399,6 @@ def sha256_file(path):
     return digest[:12]
 
 
-def png_size(path):
-    data = path.read_bytes()
-    if data[:8] != b"\x89PNG\r\n\x1a\n":
-        raise SystemExit(f"{path.name} is not a PNG")
-    return struct.unpack(">II", data[16:24])
-
-
 def fingerprinted(path, dest_dir):
     digest = sha256_file(path)
     name = f"{path.stem}.{digest}{path.suffix}"
@@ -619,13 +612,13 @@ def check_output(config, pages):
     if config.download_url and '"downloadUrl":' not in text:
         raise SystemExit("JSON-LD is missing downloadUrl")
     home = (DIST / "index.html").read_text()
-    lcp = re.search(r"<img[^>]*fetchpriority=\"high\"[^>]*>", home)
-    if not lcp or "loading=" in lcp.group(0) or 'alt=""' in lcp.group(0):
-        raise SystemExit("The menu bar image must be eager, sized, and described")
-    if 'width="' not in lcp.group(0) or 'height="' not in lcp.group(0):
-        raise SystemExit("The menu bar image needs explicit width and height")
-    if "image/png" not in home or "prefers-color-scheme: dark" not in home:
-        raise SystemExit("The menu bar picture is missing its dark source")
+    demo = re.search(r"<video[^>]*>", home)
+    if not demo or 'poster="' not in demo.group(0) or 'aria-label="' not in demo.group(0):
+        raise SystemExit("The demo video needs a poster and a description")
+    if 'width="' not in demo.group(0) or 'height="' not in demo.group(0):
+        raise SystemExit("The demo video needs explicit width and height")
+    if " muted" not in demo.group(0) or " playsinline" not in demo.group(0) or " controls" in demo.group(0):
+        raise SystemExit("The demo video must be muted and inline, without browser controls")
     for href in re.findall(r'(?:href|src|srcset)="([^"]+)"', text):
         if href.startswith(("https://", "http://", "mailto:")):
             continue
@@ -677,6 +670,10 @@ def build():
     css_href = fingerprinted(SRC / "styles.css", hashed)
     queue_image = fingerprinted(SRC / "assets" / "report-queue-example.png", hashed)
     notification_image = fingerprinted(SRC / "assets" / "retest-notifications.png", hashed)
+    demo_video = fingerprinted(SRC / "assets" / "demo.mp4", hashed)
+    demo_poster = fingerprinted(SRC / "assets" / "demo-poster.jpg", hashed)
+    demo_js = fingerprinted(SRC / "demo.js", hashed)
+    home_preloads = [(demo_poster, "", "image/jpeg")]
     print("Drawing icons…")
     write_icons(assets)
 
@@ -699,22 +696,6 @@ def build():
     written = {}
     hashes = []
     for catalog in catalogs:
-        popup_dir = SRC / "assets" / "localized-menu"
-        light = popup_dir / f"{catalog.id}-light.png"
-        dark = popup_dir / f"{catalog.id}-dark.png"
-        popup_width, popup_height = png_size(light)
-        if png_size(dark) != (popup_width, popup_height):
-            raise SystemExit(f"Mismatched menu image sizes for {catalog.id}")
-        popup = {
-            "POPUP_LIGHT_PNG": fingerprinted(light, hashed),
-            "POPUP_DARK_PNG": fingerprinted(dark, hashed),
-            "POPUP_W": str(popup_width),
-            "POPUP_H": str(popup_height),
-        }
-        home_preloads = [
-            (popup["POPUP_LIGHT_PNG"], "(prefers-color-scheme: light)", "image/png"),
-            (popup["POPUP_DARK_PNG"], "(prefers-color-scheme: dark)", "image/png"),
-        ]
         tokens = {
             "QUEUE_PNG": queue_image,
             "NOTIFICATION_PNG": notification_image,
@@ -732,7 +713,9 @@ def build():
             "HOME_PATH": catalog.page("home"),
             "SUPPORT_PATH": catalog.page("support"),
             "PRIVACY_PATH": catalog.page("privacy"),
-            **popup,
+            "DEMO_MP4": demo_video,
+            "DEMO_POSTER": demo_poster,
+            "DEMO_JS": demo_js,
         }
         for slug, filename, robots, with_json in page_specs:
             body = (SRC / "pages" / ("home.html" if slug == "home" else f"{slug}.html")).read_text()

@@ -43,9 +43,17 @@
     "keysLabel": "Befehl Umschalt 2"
   },
   "demo": {
-    "title": "Die Menüleiste",
-    "alt": "ScreenClip-Menü mit echten Meldungen, darunter Meldungen mit Handlungsbedarf und ein zusammengeführter Fix.",
-    "caption": "Alle Screenclips und ihren Status auf einen Blick in der Menüleiste sehen"
+    "title": "Die Demo",
+    "alt": "Bildschirmaufnahme von ScreenClip: Ein Bereich einer Mac-App wird aufgenommen, mit Rechteck und Pfeil markiert, mit einer Notiz an Codex gesendet und in der Warteschlange verfolgt. Mitteilungen melden anschließend zusammengeführte Fixes.",
+    "caption": "Bereich aufnehmen, markieren und an deinen Agenten übergeben",
+    "step1": "⌘⇧2 drücken und über das ziehen, was dir aufgefallen ist",
+    "step2": "In wenigen Worten sagen, was nicht stimmt",
+    "step3": "Projekt und Agenten auswählen",
+    "step4": "Bei Bedarf markieren",
+    "step5": "Absenden und weiterarbeiten. Dein Agent übernimmt",
+    "step6": "Den Fortschritt in der Menüleiste im Blick behalten",
+    "step7": "Oder die Warteschlange öffnen und jede Meldung mit Status sehen",
+    "step8": "Mitteilung erhalten, sobald der Fix zusammengeführt und bereit zum erneuten Testen ist"
   },
   "loop": {
     "eyebrow": "So funktioniert’s",
@@ -72,7 +80,7 @@
     "headerButton": "Kostenloser Download",
     "github": "Auf GitHub ansehen",
     "donate": "Projekt unterstützen",
-    "noteReady": "ScreenClip 1.0.0 · Apple Silicon · macOS 14 oder neuer · Notarisiertes Disk-Image.",
+    "noteReady": "ScreenClip 1.0.0 · Apple Silicon · macOS 14 oder neuer",
     "noteSoon": "Der Mac-Download kommt bald.",
     "macSoon": "Der Mac-Download kommt bald.",
     "needsTitle": "Was du brauchst",
@@ -88,7 +96,7 @@
     "title": "Fragen",
     "cost": "Für die nichtkommerzielle Nutzung kostenlos; eine kommerzielle Lizenz ist auf Anfrage erhältlich.",
     "costSource": " Der Quellcode liegt auf GitHub.",
-    "downloadYes": "Ja. „Für Mac herunterladen“ verweist auf das neueste notarisierte Disk-Image auf GitHub Releases.",
+    "downloadYes": "Ja. „Für Mac herunterladen“ verweist auf das neueste Disk-Image auf GitHub Releases.",
     "downloadSource": " Du kannst den Quellcode auch von GitHub bauen.",
     "downloadNo": "Noch nicht. Diese Seite verlinkt den Mac-Download, sobald ein Release veröffentlicht ist.",
     "downloadNoSource": " Bis dahin liegt der Quellcode auf GitHub.",
@@ -192,7 +200,7 @@
     "eyebrow": "Support",
     "title": "Support",
     "intro": "ScreenClip ist eine Menüleisten-App für macOS: Sie schickt einen Screenshot, eine Notiz und Markierungen an Codex, Claude Code oder Grok Bot und verfolgt danach den GitHub-Pull-Request.",
-    "statusReady": "ScreenClip 1.0.0 ist für nicht-kommerzielle Nutzung kostenlos. {link:download} öffnet das neueste notarisierte Disk-Image auf GitHub Releases.",
+    "statusReady": "ScreenClip 1.0.0 ist für nicht-kommerzielle Nutzung kostenlos. {link:download} öffnet das neueste Disk-Image auf GitHub Releases.",
     "statusSoon": "ScreenClip kommt bald. Ein Download ist noch nicht verfügbar.",
     "contactTitle": "Kontakt",
     "issues": "Nutze {link:issues} für Fehler, Einrichtungsfragen und Wünsche. Nenne die macOS-Version, den gewählten Agenten und was ScreenClip im Bericht angezeigt hat. Hänge keinen ungeschwärzten Screenshot von etwas an, das du verbergen wolltest.",

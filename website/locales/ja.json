@@ -43,9 +43,17 @@
     "keysLabel": "Command Shift 2"
   },
   "demo": {
-    "title": "メニューバー",
-    "alt": "対応が必要な報告やマージ済みの報告など、実際の報告を表示するScreenClipのメニューバー。",
-    "caption": "メニューバーからすべてのスクリーンクリップとその状態をひと目で確認"
+    "title": "デモ",
+    "alt": "ScreenClipの画面収録。Macアプリの一部をキャプチャし、長方形と矢印で印を付け、メモを添えてCodexに送信し、キューで進捗を確認します。その後、修正がマージされたことを通知が知らせます。",
+    "caption": "範囲をキャプチャし、印を付けて、エージェントに渡す",
+    "step1": "⌘⇧2を押して、気になった部分をドラッグ",
+    "step2": "何が問題かをひとこと書く",
+    "step3": "プロジェクトとエージェントを選ぶ",
+    "step4": "必要なら印を付ける",
+    "step5": "送信して作業に戻る。あとはエージェントが対応",
+    "step6": "メニューバーから進捗をひと目で確認",
+    "step7": "キューを開けば、すべての報告とその状態を確認できます",
+    "step8": "修正がマージされ再テストできるようになると通知が届く"
   },
   "loop": {
     "eyebrow": "使い方",
@@ -72,7 +80,7 @@
     "headerButton": "無料ダウンロード",
     "github": "GitHubで見る",
     "donate": "プロジェクトを支援",
-    "noteReady": "ScreenClip 1.0.0 · Apple Silicon · macOS 14以降 · 公証済みディスクイメージ。",
+    "noteReady": "ScreenClip 1.0.0 · Apple Silicon · macOS 14以降",
     "noteSoon": "Mac版のダウンロードは近日公開予定です。",
     "macSoon": "Mac版のダウンロードは近日公開です。",
     "needsTitle": "必要なもの",
@@ -88,7 +96,7 @@
     "title": "質問",
     "cost": "非商用利用は無料です。商用ライセンスはお問い合わせにより提供します。",
     "costSource": " ソースはGitHubにあります。",
-    "downloadYes": "はい。「Mac版をダウンロード」はGitHub Releases上の最新の公証済みディスクイメージにリンクします。",
+    "downloadYes": "はい。「Mac版をダウンロード」はGitHub Releases上の最新のディスクイメージにリンクします。",
     "downloadSource": " GitHubのソースからビルドすることもできます。",
     "downloadNo": "まだです。リリースが公開されたら、このページからMac版をダウンロードできるようになります。",
     "downloadNoSource": " それまではソースがGitHubにあります。",
@@ -192,7 +200,7 @@
     "eyebrow": "サポート",
     "title": "サポート",
     "intro": "ScreenClipは、スクリーンショット、メモ、マークアップをCodex、Claude Code、またはGrok Botに送り、GitHubのプルリクエストを追跡するためのmacOSメニューバーアプリです。",
-    "statusReady": "ScreenClip 1.0.0は非商用の利用は無料です。{link:download}からGitHub Releases上の最新の公証済みディスクイメージを開けます。",
+    "statusReady": "ScreenClip 1.0.0は非商用の利用は無料です。{link:download}からGitHub Releases上の最新のディスクイメージを開けます。",
     "statusSoon": "ScreenClipは近日公開予定です。現在ダウンロードは提供されていません。",
     "contactTitle": "連絡先",
     "issues": "バグ、セットアップの質問、機能要望は{link:issues}を使ってください。macOSのバージョン、選んだエージェント、レポートにScreenClipが表示した内容を書いてください。隠すつもりだったものの、墨消し前のスクリーンショットは添付しないでください。",

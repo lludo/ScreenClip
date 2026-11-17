@@ -43,9 +43,17 @@
     "keysLabel": "Command Shift 2"
   },
   "demo": {
-    "title": "菜单栏",
-    "alt": "ScreenClip 菜单栏显示真实报告，包括需要处理的报告和已合并的报告。",
-    "caption": "直接从菜单栏一览所有屏幕截图及其状态"
+    "title": "演示",
+    "alt": "ScreenClip 屏幕录制：截取 Mac App 的一个区域，用矩形和箭头标注，附上备注发送给 Codex，并在队列中跟踪进度。随后通知会提示修复已合并。",
+    "caption": "截取一个区域，标注后交给你的代理",
+    "step1": "按下 ⌘⇧2，拖选你注意到的地方",
+    "step2": "用几个字说明问题",
+    "step3": "选择项目和代理",
+    "step4": "需要时加上标注",
+    "step5": "提交后继续工作，剩下的交给代理",
+    "step6": "在菜单栏一眼查看进度",
+    "step7": "或打开队列，查看每份报告及其状态",
+    "step8": "修复合并并可重新测试时，你会收到通知"
   },
   "loop": {
     "eyebrow": "如何使用",
@@ -72,7 +80,7 @@
     "headerButton": "免费下载",
     "github": "在 GitHub 上查看",
     "donate": "支持这个项目",
-    "noteReady": "ScreenClip 1.0.0 · Apple Silicon · macOS 14 或更高版本 · 已公证磁盘映像。",
+    "noteReady": "ScreenClip 1.0.0 · Apple Silicon · macOS 14 或更高版本",
     "noteSoon": "Mac 版即将开放下载。",
     "macSoon": "Mac 版下载即将提供。",
     "needsTitle": "你需要",
@@ -88,7 +96,7 @@
     "title": "问题",
     "cost": "非商业用途免费；商业许可可按需申请。",
     "costSource": " 源码在 GitHub。",
-    "downloadYes": "可以。“下载 Mac 版”指向 GitHub Releases 上最新的已公证磁盘映像。",
+    "downloadYes": "可以。“下载 Mac 版”指向 GitHub Releases 上最新的磁盘映像。",
     "downloadSource": " 也可以从 GitHub 构建源码。",
     "downloadNo": "还不行。发布之后，本页会提供 Mac 下载链接。",
     "downloadNoSource": " 在此之前，源码在 GitHub。",
@@ -192,7 +200,7 @@
     "eyebrow": "支持",
     "title": "支持",
     "intro": "ScreenClip 是 macOS 菜单栏应用，用来把截图、备注和标记发给 Codex、Claude Code 或 Grok Bot，然后跟踪 GitHub 拉取请求。",
-    "statusReady": "ScreenClip 1.0.0 非商业使用免费。{link:download} 打开 GitHub Releases 上最新的已公证磁盘映像。",
+    "statusReady": "ScreenClip 1.0.0 非商业使用免费。{link:download} 打开 GitHub Releases 上最新的磁盘映像。",
     "statusSoon": "ScreenClip 即将推出，目前尚未开放下载。",
     "contactTitle": "联系",
     "issues": "缺陷、安装问题和功能请求请使用{link:issues}。请写上 macOS 版本、所选代理，以及 ScreenClip 在报告里显示的内容。不要附上你本想遮住的未遮盖截图。",

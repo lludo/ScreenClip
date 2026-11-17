@@ -43,9 +43,17 @@
     "keysLabel": "Comando Mayúsculas 2"
   },
   "demo": {
-    "title": "La barra de menús",
-    "alt": "Menú de ScreenClip con informes reales, incluidos informes que necesitan atención y un cambio integrado.",
-    "caption": "Consulta todos tus screenclips y su estado de un vistazo desde la barra de menús"
+    "title": "La demo",
+    "alt": "Grabación de pantalla de ScreenClip: se captura una zona de una app de Mac, se marca con un rectángulo y una flecha, se envía a Codex con una nota y se sigue en la cola. Después, las notificaciones avisan de los cambios integrados.",
+    "caption": "Captura una zona, márcala y entrégasela a tu agente",
+    "step1": "Pulsa ⌘⇧2 y arrastra sobre lo que has visto",
+    "step2": "Explica el problema en pocas palabras",
+    "step3": "Elige el proyecto y el agente",
+    "step4": "Márcalo si ayuda",
+    "step5": "Envía y sigue con lo tuyo. Tu agente se encarga",
+    "step6": "Consulta el progreso de un vistazo desde la barra de menús",
+    "step7": "O abre la cola para ver cada informe y su estado",
+    "step8": "Recibe un aviso cuando el cambio esté integrado y listo para volver a probar"
   },
   "loop": {
     "eyebrow": "Cómo funciona",
@@ -72,7 +80,7 @@
     "headerButton": "Descarga gratis",
     "github": "Ver en GitHub",
     "donate": "Apoyar el proyecto",
-    "noteReady": "ScreenClip 1.0.0 · Apple Silicon · macOS 14 o posterior · Imagen de disco notarizada.",
+    "noteReady": "ScreenClip 1.0.0 · Apple Silicon · macOS 14 o posterior",
     "noteSoon": "La descarga para Mac estará disponible próximamente.",
     "macSoon": "La descarga para Mac llegará pronto.",
     "needsTitle": "Qué necesitas",
@@ -88,7 +96,7 @@
     "title": "Preguntas",
     "cost": "Gratis para uso no comercial; hay licencias comerciales disponibles previa solicitud.",
     "costSource": " El código está en GitHub.",
-    "downloadYes": "Sí. «Descargar para Mac» enlaza la última imagen de disco notarizada en GitHub Releases.",
+    "downloadYes": "Sí. «Descargar para Mac» enlaza la última imagen de disco en GitHub Releases.",
     "downloadSource": " También puedes compilar el código desde GitHub.",
     "downloadNo": "Todavía no. Esta página enlazará la descarga para Mac cuando se publique una versión.",
     "downloadNoSource": " Mientras tanto, el código está en GitHub.",
@@ -192,7 +200,7 @@
     "eyebrow": "Soporte",
     "title": "Soporte",
     "intro": "ScreenClip es una app de la barra de menús de macOS para enviar una captura, una nota y marcas a Codex, Claude Code o Grok Bot, y después seguir la pull request de GitHub.",
-    "statusReady": "ScreenClip 1.0.0 es gratis para uso no comercial. {link:download} abre la última imagen de disco notarizada en GitHub Releases.",
+    "statusReady": "ScreenClip 1.0.0 es gratis para uso no comercial. {link:download} abre la última imagen de disco en GitHub Releases.",
     "statusSoon": "ScreenClip llegará pronto. Todavía no hay una descarga disponible.",
     "contactTitle": "Contacto",
     "issues": "Usa {link:issues} para errores, dudas de configuración y peticiones. Incluye la versión de macOS, el agente que elegiste y lo que ScreenClip mostró en el informe. No adjuntes una captura sin tachar de algo que querías ocultar.",

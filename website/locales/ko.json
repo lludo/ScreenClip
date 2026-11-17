@@ -43,9 +43,17 @@
     "keysLabel": "Command Shift 2"
   },
   "demo": {
-    "title": "메뉴 막대",
-    "alt": "확인이 필요한 보고서와 병합된 보고서를 포함한 실제 보고서를 보여 주는 ScreenClip 메뉴 막대.",
-    "caption": "메뉴 막대에서 모든 스크린클립과 상태를 한눈에 확인하세요"
+    "title": "데모",
+    "alt": "ScreenClip 화면 기록. Mac 앱의 한 영역을 캡처하고 사각형과 화살표로 표시한 다음, 메모와 함께 Codex에 보내고 대기열에서 진행 상황을 확인합니다. 이후 알림이 병합된 수정 사항을 알려 줍니다.",
+    "caption": "영역을 캡처하고 표시한 다음 에이전트에게 넘기세요",
+    "step1": "⌘⇧2를 누르고 눈에 띈 부분을 드래그하세요",
+    "step2": "무엇이 문제인지 몇 마디로 적으세요",
+    "step3": "프로젝트와 에이전트를 고르세요",
+    "step4": "필요하면 표시를 추가하세요",
+    "step5": "제출하고 하던 일로 돌아가세요. 나머지는 에이전트가 처리합니다",
+    "step6": "메뉴 막대에서 진행 상황을 한눈에 확인하세요",
+    "step7": "또는 대기열을 열어 모든 보고서와 상태를 확인하세요",
+    "step8": "수정 사항이 병합되어 다시 테스트할 준비가 되면 알림을 받습니다"
   },
   "loop": {
     "eyebrow": "사용 방법",
@@ -72,7 +80,7 @@
     "headerButton": "무료 다운로드",
     "github": "GitHub에서 보기",
     "donate": "프로젝트 지원",
-    "noteReady": "ScreenClip 1.0.0 · Apple Silicon · macOS 14 이상 · 공증된 디스크 이미지.",
+    "noteReady": "ScreenClip 1.0.0 · Apple Silicon · macOS 14 이상",
     "noteSoon": "Mac 다운로드가 곧 제공됩니다.",
     "macSoon": "Mac 다운로드는 곧 제공됩니다.",
     "needsTitle": "필요한 것",
@@ -88,7 +96,7 @@
     "title": "질문",
     "cost": "비상업적 용도로 무료이며, 상업용 라이선스는 요청 시 제공됩니다.",
     "costSource": " 소스는 GitHub에 있습니다.",
-    "downloadYes": "네. ‘Mac용 다운로드’는 GitHub Releases의 최신 공증 디스크 이미지를 가리킵니다.",
+    "downloadYes": "네. ‘Mac용 다운로드’는 GitHub Releases의 최신 디스크 이미지를 가리킵니다.",
     "downloadSource": " GitHub 소스로 빌드할 수도 있습니다.",
     "downloadNo": "아직입니다. 릴리스가 게시되면 이 페이지에서 Mac 다운로드를 안내합니다.",
     "downloadNoSource": " 그전까지 소스는 GitHub에 있습니다.",
@@ -192,7 +200,7 @@
     "eyebrow": "지원",
     "title": "지원",
     "intro": "ScreenClip은 스크린샷, 메모, 표시를 Codex, Claude Code 또는 Grok Bot에 보낸 뒤 GitHub pull request를 추적하는 macOS 메뉴 막대 앱입니다.",
-    "statusReady": "ScreenClip 1.0.0은 비상업적 사용에 무료입니다. {link:download}에서 GitHub Releases의 최신 공증 디스크 이미지를 엽니다.",
+    "statusReady": "ScreenClip 1.0.0은 비상업적 사용에 무료입니다. {link:download}에서 GitHub Releases의 최신 디스크 이미지를 엽니다.",
     "statusSoon": "ScreenClip이 곧 출시됩니다. 아직 다운로드할 수 없습니다.",
     "contactTitle": "연락",
     "issues": "버그, 설정 질문, 기능 요청은 {link:issues}를 사용하세요. macOS 버전, 고른 에이전트, 보고서에 ScreenClip이 보여 준 내용을 적어 주세요. 가리려던 것의 가리기 전 스크린샷은 첨부하지 마세요.",
