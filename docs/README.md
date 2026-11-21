@@ -8,6 +8,7 @@ The [root README](../README.md) is the short introduction. This page is the map.
 
 - [Getting started](getting-started.md) — requirements, installing the release or building from source, and the first capture.
 - [User guide](user-guide.md) — capture, the queue, moving a report, agent permissions, what each agent can see, and screen-recording recovery.
+- [1.0.1 release notes](release/v1.0.1.md) — fixes and improvements since 1.0.0.
 - [1.0.0 release notes](release/v1.0.0.md) — what the first release includes, and its limits.
 
 ## Agents
