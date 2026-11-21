@@ -139,4 +139,62 @@ import XCTest
     XCTAssertEqual(model.issue(id)?.status, .queued)
     XCTAssertNil(model.issue(id)?.prURL)
   }
+
+  func testAMergedPullRequestForAnOlderRevisionQueuesTheNewerEvidence() async throws {
+    // Revision 2 was dispatched (raising coveredRevision) but stopped before reaching the PR,
+    // which still holds the revision 1 fix.
+    try model.updateIssue(id) {
+      $0.worktreePath = nil
+      $0.prRevision = $0.revision
+      $0.revision += 1
+      $0.coveredRevision = $0.revision
+      $0.questions.append(PendingQuestion(title: "Which layout do you want?"))
+      $0.record("Needs attention", status: .needsYou)
+    }
+    try pullRequest(["state": .string("MERGED")])
+    await model.worker.refreshPRs()
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertNotEqual(issue.status, .merged)
+    XCTAssertNil(issue.prURL)
+    XCTAssertNil(issue.prRevision)
+  }
+
+  func testAnUncertainDispatchIsNotMarkedMerged() async throws {
+    try model.updateIssue(id) {
+      $0.dispatchUncertain = true
+      $0.record("Needs attention", status: .needsYou)
+    }
+    try pullRequest(["state": .string("MERGED")])
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .needsYou)
+    XCTAssertNotNil(model.issue(id)?.prURL)
+  }
+
+  func testAClosedPullRequestLeavesTheReportWaiting() async throws {
+    try model.updateIssue(id) { $0.record("Needs attention", status: .needsYou) }
+    try pullRequest(["state": .string("CLOSED")])
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .needsYou)
+    XCTAssertNil(model.issue(id)?.mergeCommit)
+  }
+
+  func testAFailedReportWhosePullRequestMergedIsMerged() async throws {
+    try model.updateIssue(id) {
+      $0.worktreePath = nil
+      $0.record("Failed", status: .failed)
+    }
+    try pullRequest(["state": .string("MERGED")])
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .merged)
+  }
+
+  func testAnArchivedReportIsNotWatched() async throws {
+    try model.updateIssue(id) {
+      $0.archived = true
+      $0.record("Needs attention", status: .needsYou)
+    }
+    try pullRequest(["state": .string("MERGED")])
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .needsYou)
+  }
 }

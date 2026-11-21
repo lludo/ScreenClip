@@ -306,6 +306,9 @@ public struct Issue: Codable, Identifiable, Equatable {
   public var branch: String?
   public var prURL: String?
   public var prHead: String?
+  /// The revision whose fix the pull request holds. `coveredRevision` moves on when newer
+  /// evidence is dispatched, before that work reaches the pull request. Nil in older queues.
+  public var prRevision: Int?
   public var mergeCommit: String?
   public var lastError: String?
   public var dispatchUncertain: Bool
@@ -465,6 +468,7 @@ public struct Issue: Codable, Identifiable, Equatable {
       branch = nil
       prURL = nil
       prHead = nil
+      prRevision = nil
       mergeCommit = nil
       handoffCommit = nil
       handoffRevision = nil

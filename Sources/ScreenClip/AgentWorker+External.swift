@@ -377,6 +377,7 @@ extension AgentWorker {
           else { continue }
           try model.updateIssue(issue.id) {
             $0.prURL = match.url
+            $0.prRevision = $0.coveredRevision
             $0.lastError = nil
             $0.record("Pull request opened: " + match.url, status: .prOpen)
             if match.draft == true {

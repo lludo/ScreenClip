@@ -44,6 +44,7 @@ extension AgentWorker {
     await client.stop()
     authentication.reset()
     requestOwners.removeAll()
+    model.codexModels = []
     connected = false
     model.connection = ProviderPhrase.notConnected.english(.codex)
   }
@@ -333,6 +334,8 @@ extension AgentWorker {
       connected = false
       authentication.reset(message: "Codex disconnected. Check the connection to reconnect.")
       requestOwners.removeAll()
+      // Another account may sign in on reconnect; its model list is read again then.
+      model.codexModels = []
       model.connection = ProviderPhrase.disconnected.english(.codex)
       // Work already in validation or publication no longer needs the Codex connection.
       for id in jobs
