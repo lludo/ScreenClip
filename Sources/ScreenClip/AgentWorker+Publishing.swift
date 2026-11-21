@@ -162,8 +162,43 @@ extension AgentWorker {
     if Date().timeIntervalSince(lastExternalDiscovery) >= discoverInterval {
       lastExternalDiscovery = Date()
       await discoverExternalPullRequests()
+      for issue in model.snapshot.issues where Self.awaitsMergeOutsideScreenClip(issue) {
+        await refreshStalledPR(issue.id)
+      }
     }
     for issue in model.snapshot.issues where issue.status == .prOpen { await refreshPR(issue.id) }
+  }
+  /// A report that stopped for attention (a base conflict, failing checks, a question) keeps
+  /// its pull request, and the tester may resolve and merge that pull request on GitHub.
+  static func awaitsMergeOutsideScreenClip(_ issue: Issue) -> Bool {
+    [.needsYou, .failed].contains(issue.status) && issue.prURL != nil && !issue.archived
+  }
+  /// Only watches for a merge: anything else about the pull request waits for Continue.
+  func refreshStalledPR(_ id: UUID) async {
+    guard let issue = model.issue(id), Self.awaitsMergeOutsideScreenClip(issue), let url = issue.prURL,
+      let project = model.project(issue.projectID), !isActive(id), !refreshing.contains(id)
+    else { return }
+    refreshing.insert(id)
+    defer { refreshing.remove(id) }
+    guard
+      let pr = try? await GitHubService.state(
+        url: url, path: issue.worktreePath ?? project.path,
+        gh: AgentDetector.ghPath(model.snapshot.settings)),
+      pr.merged
+    else { return }
+    // The tester may have continued, canceled, or added evidence while gh ran.
+    guard let current = model.issue(id), Self.awaitsMergeOutsideScreenClip(current),
+      current.prURL == url, !isActive(id)
+    else { return }
+    model.perform {
+      try model.updateIssue(id) { issue in
+        for i in issue.questions.indices where issue.questions[i].reply == nil {
+          issue.questions[i].reply = "Pull request merged on GitHub"
+        }
+      }
+      try recordMerge(id, commit: pr.mergeCommit, coveredRevision: current.coveredRevision)
+    }
+    model.notify(current, text: "Fix merged. Ready to rebuild and retest.")
   }
   func refreshPR(_ id: UUID) async {
     // The caller's list is a snapshot from before earlier refreshes were awaited; this report
