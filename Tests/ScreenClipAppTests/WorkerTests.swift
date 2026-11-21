@@ -586,14 +586,14 @@ import XCTest
         import sys,json
         for line in sys.stdin:
             message=json.loads(line)
-            if 'id' not in message: continue
-            print(json.dumps({'id':message['id'],'result':{}}),flush=True)
-            if message.get('method')=='test/disconnect': break
+            if message.get('method')=='initialize':
+                print(json.dumps({'id':message['id'],'result':{}}),flush=True)
+            # The client has received our reply when it sends this notification.
+            elif message.get('method')=='initialized': break
         """.write(to: codex, atomically: true, encoding: .utf8)
       try FileManager.default.setAttributes([.posixPermissions: 0o700], ofItemAtPath: codex.path)
       try model.commit { $0.settings.codexPath = codex.path }
-      await model.worker.checkConnection()
-      _ = try await model.worker.client.request("test/disconnect")
+      try await model.worker.connect()
       try await wait { model.connection == "Codex disconnected" }
       XCTAssertEqual(model.issue(id)?.status, .working)
       try Data().write(to: root.appendingPathComponent("continue-claude"))
