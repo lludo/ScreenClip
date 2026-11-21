@@ -174,9 +174,9 @@ struct ComposerView: View {
               Picker(selection: $issueID) {
                 Text(chrome: "New issue", comment: "Files the capture as a new report.").tag(nil as UUID?)
                 ForEach(
-                  model.snapshot.issues.filter {
+                  Issue.newestFirst(model.snapshot.issues.filter {
                     !$0.archived && $0.projectID == projectID && $0.status != .draft
-                  }
+                  })
                 ) { Text(verbatim: $0.referencedTitle).tag(Optional($0.id)) }
                 if let existing, existing.status == .draft {
                   if let reference = existing.reportReference {

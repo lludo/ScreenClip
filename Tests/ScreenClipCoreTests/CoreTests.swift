@@ -186,6 +186,24 @@ final class CoreTests: XCTestCase {
     replacement.issues = [Issue(projectID: nil, title: "Third", capture: capture())]
     XCTAssertEqual(try store.save(replacement).issues[0].reportNumber, 3)
   }
+  func testNewestFirstOrdersByFilingTimeThenReportNumber() {
+    let now = Date()
+    var oldest = Issue(projectID: nil, title: "Oldest", capture: capture())
+    oldest.createdAt = now.addingTimeInterval(-60)
+    oldest.reportNumber = 11
+    var tiedLower = Issue(projectID: nil, title: "Tied lower", capture: capture())
+    tiedLower.createdAt = now
+    tiedLower.reportNumber = 12
+    var tiedHigher = Issue(projectID: nil, title: "Tied higher", capture: capture())
+    tiedHigher.createdAt = now
+    tiedHigher.reportNumber = 13
+    var newest = Issue(projectID: nil, title: "Newest", capture: capture())
+    newest.createdAt = now.addingTimeInterval(60)
+    newest.reportNumber = 14
+    XCTAssertEqual(
+      Issue.newestFirst([oldest, tiedLower, tiedHigher, newest]).map(\.title),
+      ["Newest", "Tied higher", "Tied lower", "Oldest"])
+  }
   func testReportReferenceSearchIsExactAndStillMatchesDescriptions() {
     var issue = Issue(projectID: nil, title: "Clipped label", capture: capture())
     issue.reportNumber = 234
