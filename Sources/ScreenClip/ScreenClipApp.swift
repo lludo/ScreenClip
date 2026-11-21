@@ -320,7 +320,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     let sourceOverride = !hideScreenClip && popover.isShown ? NSRunningApplication.current : nil
     if textOnly {
       popover.performClose(nil)
-      capture.beginText(sourceOverride: sourceOverride)
+      // A text note has nothing to capture; credit the app the tester was in, not ScreenClip.
+      capture.beginText(sourceOverride: nil)
       return
     }
     if hideScreenClip {

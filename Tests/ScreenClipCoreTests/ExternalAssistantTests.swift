@@ -115,17 +115,28 @@ final class ExternalAssistantTests: XCTestCase {
     let png = Data([0x89, 0x50, 0x4E, 0x47, 1])
     let report = Data("{\"schema\":\"screenclip.external.v1\"}".utf8)
     let paths = try ExternalEvidenceWriter.write(
-      worktree: root.path, reportNumber: 234, report: report, images: [png])
+      worktree: root.path, reportNumber: 234, report: report, images: [(1, png)])
     XCTAssertEqual(paths, [".screenclip/234/report.json", ".screenclip/234/capture-1.png"])
     XCTAssertEqual(
       try Data(contentsOf: root.appendingPathComponent(".screenclip/234/capture-1.png")), png)
     _ = try ExternalEvidenceWriter.write(
-      worktree: root.path, reportNumber: 234, report: report, images: [png, Data([2])])
+      worktree: root.path, reportNumber: 234, report: report, images: [(1, png), (2, Data([2]))])
     XCTAssertTrue(
       FileManager.default.fileExists(atPath: root.appendingPathComponent(".screenclip/234/capture-1.png").path))
     XCTAssertEqual(
       try Data(contentsOf: root.appendingPathComponent(".screenclip/234/capture-2.png")), Data([2]))
     XCTAssertNil(report.range(of: png))
+  }
+
+  func testEvidencePathsFollowCapturePositionsPastTextNotes() {
+    var issue = Issue(
+      projectID: UUID(), title: "Mixed",
+      capture: Capture(note: "Text first", imagePath: nil, context: CaptureContext()))
+    issue.captures.append(Capture(note: "Button clipped", imagePath: "/tmp/b.png", context: CaptureContext()))
+    XCTAssertEqual(ExternalAssistant.screenshotNumbers(issue), [2])
+    XCTAssertEqual(
+      ExternalAssistant.evidencePaths(reportNumber: 7, captureNumbers: [2]),
+      [".screenclip/7/report.json", ".screenclip/7/capture-2.png"])
   }
 
   func testBranchSlugIsStableAndGitSafe() {

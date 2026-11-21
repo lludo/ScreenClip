@@ -18,6 +18,11 @@ import ScreenClipCore
   @Published var refreshing = Set<UUID>()
   /// Set only by a successful eligibility check, never restored from a saved queue.
   @Published var manualMergeHeads: [UUID: String] = [:]
+  /// When each report's head was first seen with an empty check rollup. GitHub reports no
+  /// checks for a minute or so after a push, before CI has registered its runs.
+  var emptyRollupSince: [UUID: (head: String, since: Date)] = [:]
+  /// How long a head's rollup must stay empty before it counts as having no checks.
+  var emptyRollupGrace: TimeInterval = 180
   var lastExternalDiscovery = Date.distantPast
   /// The run that currently owns each Grok Bot report. Cancel clears it, so a run still in
   /// flight stops at its next check and cannot remove a later run's job after a retry.

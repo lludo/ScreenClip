@@ -87,6 +87,8 @@ struct ComposerView: View {
               Text(chrome: "Project", comment: "Caption above the project picker.").font(.caption)
                 .foregroundStyle(.secondary)
               Picker(selection: Binding(get: { projectID }, set: { newProject in
+                // Choosing the current project again keeps a hand-picked agent.
+                guard newProject != projectID else { return }
                 projectID = newProject
                 if issueID != existing?.id { issueID = nil }
                 selectInitialAgent()
@@ -105,6 +107,7 @@ struct ComposerView: View {
               Text(chrome: "Issue", comment: "Caption above the issue picker.").font(.caption)
                 .foregroundStyle(.secondary)
               Picker(selection: Binding(get: { issueID }, set: { newIssue in
+                guard newIssue != issueID else { return }
                 issueID = newIssue
                 selectInitialAgent()
               })) {

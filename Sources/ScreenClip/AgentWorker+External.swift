@@ -106,10 +106,11 @@ extension AgentWorker {
         issue: issue, project: project, repo: repo, branch: workspace.branch,
         includePageContext: model.snapshot.settings.browserContext, commit: nil,
         settings: model.snapshot.settings)
-      var images: [Data] = []
-      for path in issue.captures.compactMap(\.imagePath) {
+      var images: [(number: Int, data: Data)] = []
+      for (offset, capture) in issue.captures.enumerated() {
         // Approved derivative only. originalPath is the unredacted crop and is never uploaded.
-        images.append(try Data(contentsOf: URL(fileURLWithPath: path)))
+        guard let path = capture.imagePath else { continue }
+        images.append((offset + 1, try Data(contentsOf: URL(fileURLWithPath: path))))
       }
       let paths = try ExternalEvidenceWriter.write(
         worktree: workspace.path, reportNumber: number,
@@ -117,7 +118,7 @@ extension AgentWorker {
       guard
         paths
           == ExternalAssistant.evidencePaths(
-            reportNumber: number, captureCount: images.count)
+            reportNumber: number, captureNumbers: ExternalAssistant.screenshotNumbers(issue))
       else { throw ScreenClipError.message("Could not write the approved screenshots for Grok Bot.") }
       commit = try await GitHubService.commitEvidence(
         directory: ExternalAssistant.evidenceDirectory(reportNumber: number),

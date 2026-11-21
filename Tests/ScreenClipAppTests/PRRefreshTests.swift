@@ -115,6 +115,10 @@ import XCTest
       XCTAssertFalse(FileManager.default.fileExists(atPath: request.path))
     }
     try pullRequest(clean.merging(["statusCheckRollup": .array([])]) { _, new in new })
+    // Right after a push GitHub reports no checks until CI registers its runs.
+    await model.worker.refreshPR(id)
+    XCTAssertNil(model.worker.manualMergeHeads[id], "A fresh empty rollup is not \"no checks\".")
+    model.worker.emptyRollupGrace = 0
     try model.commit { $0.projects[0].autoMerge = true }
     await model.worker.refreshPR(id)
     XCTAssertEqual(model.worker.manualMergeHeads[id], "pushed")
