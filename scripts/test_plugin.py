@@ -34,6 +34,12 @@ class PluginTests(unittest.TestCase):
         self.assertEqual(result["content"][1]["data"], "YXBwcm92ZWQ=")
         self.assertNotIn("original", result["content"][0]["text"])
         self.assertNotIn("secret", result["content"][0]["text"])
+    def test_text_capture_with_images_requested(self):
+        self.issue["captures"].insert(0, {"id": "note", "note": "Text only", "context": {}})
+        self.save()
+        content = plugin.call("get_issue", {"issue_id": self.id, "include_images": True})["content"]
+        self.assertEqual([item["type"] for item in content], ["text", "image"])
+        self.assertEqual(json.loads(content[0]["text"])["captures"][0]["note"], "Text only")
     def test_images_require_an_explicit_boolean(self):
         for value in ["false", "true", 0, 1, [], {}, None]:
             with self.subTest(value=value), self.assertRaises(plugin.InvalidParams):

@@ -46,6 +46,18 @@ public enum CodexApprovalMode: String, Codable, CaseIterable, Identifiable, Send
   }
 }
 
+public struct ReportAgentChoice: Codable, Equatable {
+  public var agent: AgentKind
+  public var model: String?
+  public var effort: String?
+
+  public init(agent: AgentKind, model: String? = nil, effort: String? = nil) {
+    self.agent = agent
+    self.model = model
+    self.effort = model == nil ? nil : effort
+  }
+}
+
 public struct Project: Codable, Identifiable, Equatable {
   public var id: UUID
   public var name: String
@@ -59,6 +71,8 @@ public struct Project: Codable, Identifiable, Equatable {
   public var allowExternalScreenshots: Bool? = nil
   /// nil follows the system default. An explicit provider stays when the system default changes.
   public var defaultAgent: AgentKind? = nil
+  public var reuseLastAgentChoice = false
+  public var lastAgentChoice: ReportAgentChoice?
   public var codexApprovalMode: CodexApprovalMode = .automaticReview
   /// SF Symbol shown next to the project name. Optional so projects saved earlier still decode.
   public var symbol: String? = nil
@@ -84,7 +98,7 @@ public struct Project: Codable, Identifiable, Equatable {
 
   private enum CodingKeys: String, CodingKey {
     case id, name, path, baseBranch, origins, bundleIDs, validationCommand, autoMerge
-    case allowExternalScreenshots, symbol, defaultAgent, codexApprovalMode
+    case allowExternalScreenshots, symbol, defaultAgent, codexApprovalMode, reuseLastAgentChoice, lastAgentChoice
   }
 
   public init(from decoder: Decoder) throws {
@@ -101,6 +115,8 @@ public struct Project: Codable, Identifiable, Equatable {
     symbol = try container.decodeIfPresent(String.self, forKey: .symbol)
     codexApprovalMode = try container.decodeIfPresent(CodexApprovalMode.self, forKey: .codexApprovalMode)
       ?? .automaticReview
+    reuseLastAgentChoice = try container.decodeIfPresent(Bool.self, forKey: .reuseLastAgentChoice) ?? false
+    lastAgentChoice = try container.decodeIfPresent(ReportAgentChoice.self, forKey: .lastAgentChoice)
     // A missing key is an older project. Opting into Grok Bot screenshots meant that
     // project sent its work to Grok Bot, so that choice becomes an explicit default.
     // A present null is "use the system default" and must not be migrated again.
@@ -125,6 +141,8 @@ public struct Project: Codable, Identifiable, Equatable {
     try container.encode(autoMerge, forKey: .autoMerge)
     try container.encodeIfPresent(allowExternalScreenshots, forKey: .allowExternalScreenshots)
     try container.encodeIfPresent(symbol, forKey: .symbol)
+    try container.encode(reuseLastAgentChoice, forKey: .reuseLastAgentChoice)
+    try container.encodeIfPresent(lastAgentChoice, forKey: .lastAgentChoice)
     try container.encode(defaultAgent, forKey: .defaultAgent)
     try container.encode(codexApprovalMode, forKey: .codexApprovalMode)
   }
@@ -196,12 +214,12 @@ public struct Annotation: Codable, Identifiable, Equatable {
 public struct Capture: Codable, Identifiable, Equatable {
   public var id: UUID
   public var note: String
-  public var imagePath: String
+  public var imagePath: String?
   public var originalPath: String?
   public var annotations: [Annotation]
   public var context: CaptureContext
   public init(
-    note: String, imagePath: String, originalPath: String? = nil, annotations: [Annotation] = [],
+    note: String, imagePath: String?, originalPath: String? = nil, annotations: [Annotation] = [],
     context: CaptureContext
   ) {
     id = UUID()

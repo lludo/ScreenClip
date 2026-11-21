@@ -150,7 +150,9 @@ public final class IssueStore {
     var exported = snapshot
     for i in exported.issues.indices {
       for c in exported.issues[i].captures.indices {
-        let source = URL(fileURLWithPath: exported.issues[i].captures[c].imagePath)
+        exported.issues[i].captures[c].originalPath = nil
+        guard let path = exported.issues[i].captures[c].imagePath else { continue }
+        let source = URL(fileURLWithPath: path)
         let filename = source.lastPathComponent
         let destination = directory.appendingPathComponent(filename)
         // A capture whose image is gone should not abort the whole export.
@@ -160,7 +162,6 @@ public final class IssueStore {
           try FileManager.default.copyItem(at: source, to: destination)
         }
         exported.issues[i].captures[c].imagePath = filename
-        exported.issues[i].captures[c].originalPath = nil
       }
     }
     let encoder = JSONEncoder()

@@ -90,6 +90,8 @@ You can also launch the installed app against the same synthetic queue:
 open /Applications/ScreenClip.app --args --screenshot-fixture --locale de
 ```
 
+Add `--show-popover` to open the menu bar popover with the fixture data.
+
 A different command, `ScreenClip --render-preview`, writes the marketing stills (composer, queue, menu) through `PreviewSupport.render`. That path is described in [Validation](validation.md#native-previews). It is not the locale matrix.
 
 Website screenshots are a separate script. See [Website](website.md#screenshots).

@@ -97,6 +97,11 @@ struct ProjectEditor: View {
             .fixedSize(horizontal: false, vertical: true)
         }
 
+        Toggle(isOn: $project.reuseLastAgentChoice) {
+          Text(chrome: "Use the last agent, model, and effort for new reports",
+            comment: "Project setting to start new reports with the last submitted agent choice.")
+        }
+
         Picker(selection: $project.codexApprovalMode) {
           Text(chrome: "Automatic review (recommended)", comment: "Codex reviews permission requests automatically.")
             .tag(CodexApprovalMode.automaticReview)

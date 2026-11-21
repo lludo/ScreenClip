@@ -70,6 +70,8 @@ final class AgentSelectionTests: XCTestCase {
     }
     let untouched = try decoded([:])
     XCTAssertNil(untouched.defaultAgent)
+    XCTAssertFalse(untouched.reuseLastAgentChoice)
+    XCTAssertNil(untouched.lastAgentChoice)
     let optedIn = try decoded(["allowExternalScreenshots": true])
     XCTAssertEqual(optedIn.defaultAgent, .external)
     let explicitInherit = try decoded(["allowExternalScreenshots": true, "defaultAgent": NSNull()])

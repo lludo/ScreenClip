@@ -139,7 +139,7 @@ final class CoreTests: XCTestCase {
     let reopened = try IssueStore(root: store.root, readOnly: true).load()
     XCTAssertEqual(reopened.issues, state.issues)
     XCTAssertEqual(
-      try Data(contentsOf: URL(fileURLWithPath: reopened.issues[0].captures[0].imagePath)), bytes)
+      try Data(contentsOf: URL(fileURLWithPath: XCTUnwrap(reopened.issues[0].captures[0].imagePath))), bytes)
     XCTAssertEqual(reopened.issues[0].status, .queued)
   }
   func testLegacyReportNumbersMigrateInCreationOrderWithoutReordering() throws {
@@ -392,7 +392,7 @@ final class CoreTests: XCTestCase {
     XCTAssertNil(exported.issues[0].captures[0].originalPath)
     XCTAssertEqual(
       try Data(
-        contentsOf: destination.appendingPathComponent(exported.issues[0].captures[0].imagePath)),
+        contentsOf: destination.appendingPathComponent(XCTUnwrap(exported.issues[0].captures[0].imagePath))),
       Data([1]))
   }
   func testSecondWriterCannotDispatchTheSameQueue() throws {

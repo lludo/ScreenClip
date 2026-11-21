@@ -67,6 +67,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       capture.onAbandon = { [weak self] in self?.restoreHiddenWindows() }
       shortcut = GlobalShortcut()
       model.captureAction = { [weak self] in self?.startCapture() }
+      model.textCaptureAction = { [weak self] in self?.startCapture(textOnly: true) }
       model.queueAction = { [weak self] in self?.showQueue() }
       model.settingsAction = { [weak self] in self?.showSettings() }
       model.relaunchAction = { [weak self] in self?.relaunch() }
@@ -101,6 +102,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       }
       if screenshotMode {
         showQueue()
+        if arguments.contains("--show-popover") {
+          // Keep the real popover visible when the screenshot tool takes focus.
+          popover.behavior = .applicationDefined
+          // The status item gets its window after the application finishes launching.
+          DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in self?.togglePopover() }
+        }
         return
       }
       if previewMode { try PreviewSupport.seed(model: model) } else { model.worker.start() }
@@ -303,7 +310,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
     }
   }
-  func startCapture() {
+  func startCapture(textOnly: Bool = false) {
     if let composerWindow {
       composerWindow.makeKeyAndOrderFront(nil)
       NSApp.activate(ignoringOtherApps: true)
@@ -311,6 +318,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
     let hideScreenClip = model.snapshot.settings.shouldHideScreenClipDuringCapture
     let sourceOverride = !hideScreenClip && popover.isShown ? NSRunningApplication.current : nil
+    if textOnly {
+      popover.performClose(nil)
+      capture.beginText(sourceOverride: sourceOverride)
+      return
+    }
     if hideScreenClip {
       popover.performClose(nil)
       for window in [queueWindow, settingsWindow, donationWindow].compactMap({ $0 })
@@ -408,7 +420,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     NSApp.activate(ignoringOtherApps: true)
     #endif
   }
-  func showComposer(image: NSImage, context: CaptureContext, existing: Issue?) {
+  func showComposer(image: NSImage?, context: CaptureContext, existing: Issue?) {
     if let composerWindow {
       composerWindow.makeKeyAndOrderFront(nil)
       return
@@ -426,7 +438,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
     composerWindow = makeWindow(
       title: Chrome.text("New observation", comment: "Capture composer window title."),
-      view: rooted(view), size: NSSize(width: 860, height: 720))
+      view: rooted(view), size: NSSize(width: 860, height: image == nil ? 380 : 720))
     composerWindow?.level = .floating
     composerWindow?.delegate = self
     composerWindow?.makeKeyAndOrderFront(nil)

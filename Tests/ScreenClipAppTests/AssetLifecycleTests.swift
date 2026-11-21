@@ -17,10 +17,10 @@ import XCTest
       imageData: Data([3]), originalData: Data([4]), annotations: [], note: "Updated",
       context: CaptureContext(), projectID: nil, existingID: draft.id, draft: true)
     let capture = try XCTUnwrap(model.issue(draft.id)?.captures.first)
-    XCTAssertFalse(FileManager.default.fileExists(atPath: draft.captures[0].imagePath))
+    XCTAssertFalse(FileManager.default.fileExists(atPath: try XCTUnwrap(draft.captures[0].imagePath)))
     XCTAssertFalse(
       FileManager.default.fileExists(atPath: try XCTUnwrap(draft.captures[0].originalPath)))
-    XCTAssertEqual(try Data(contentsOf: URL(fileURLWithPath: capture.imagePath)), Data([3]))
+    XCTAssertEqual(try Data(contentsOf: URL(fileURLWithPath: XCTUnwrap(capture.imagePath))), Data([3]))
     XCTAssertEqual(
       try Data(contentsOf: URL(fileURLWithPath: XCTUnwrap(capture.originalPath))), Data([4]))
   }

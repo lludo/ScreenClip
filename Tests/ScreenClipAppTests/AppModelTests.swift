@@ -13,6 +13,64 @@ import XCTest
     return (model, root)
   }
 
+  func testTextDraftCanBeReopenedAndSubmittedWithoutImageAssets() throws {
+    let (model, root) = try makeModel()
+    let context = CaptureContext(appName: "Demo", testedVersion: "1.2")
+    func save(_ note: String, draft: Bool, id: UUID? = nil) throws {
+      try model.submit(imageData: nil, originalData: nil, annotations: [], note: note,
+        context: context, projectID: nil, existingID: id, draft: draft)
+    }
+    XCTAssertThrowsError(try save("  \n", draft: false))
+    try save("First idea", draft: true)
+    let draft = try XCTUnwrap(try model.store.load().issues.first)
+    XCTAssertNil(draft.captures.first?.imagePath)
+    XCTAssertEqual(draft.captures.first?.note, "First idea")
+    try save("Final observation", draft: false, id: draft.id)
+    let submitted = try XCTUnwrap(try model.store.load().issues.first)
+    XCTAssertEqual(submitted.title, "Final observation")
+    XCTAssertEqual(submitted.status, .needsProject)
+    XCTAssertEqual(submitted.captures.count, 1)
+    XCTAssertEqual(submitted.captures.first?.context.testedVersion, "1.2")
+    let project = Project(name: "Demo", path: root.path)
+    let prompt = AgentPrompt.text(for: submitted, project: project)
+    XCTAssertTrue(prompt.contains("Final observation"))
+    XCTAssertTrue(prompt.contains("No After PNG is required"))
+    for directory in ["assets", "originals"] {
+      XCTAssertTrue(try FileManager.default.contentsOfDirectory(atPath: root.appendingPathComponent(directory).path).isEmpty)
+    }
+  }
+
+  func testProjectPersistsLastSubmittedChoiceAndIgnoresDraftsAndFollowUps() throws {
+    let (model, root) = try makeModel()
+    try FileManager.default.createDirectory(at: root.appendingPathComponent(".git"), withIntermediateDirectories: false)
+    var project = Project(name: "Demo", path: root.path)
+    let other = Project(name: "Other", path: root.path)
+    try model.saveProject(project)
+    try model.saveProject(other)
+    let choice = ReportAgentChoice(agent: .claude, model: "opus", effort: "high")
+    func file(_ choice: ReportAgentChoice, id: UUID? = nil, draft: Bool = false) throws -> UUID {
+      try model.submit(imageData: nil, originalData: nil, annotations: [], note: "Observation",
+        context: CaptureContext(), projectID: project.id, existingID: id, draft: draft,
+        agent: choice.agent, agentModel: choice.model, agentEffort: choice.effort)
+      return try XCTUnwrap(model.selectedIssueID)
+    }
+    let report = try file(ReportAgentChoice(agent: .codex))
+    _ = try file(choice)
+    XCTAssertEqual(model.initialAgentChoice(for: project.id), ReportAgentChoice(agent: .codex))
+    project.reuseLastAgentChoice = true
+    try model.saveProject(project)  // Editor opened before the two reports were filed.
+    _ = try file(ReportAgentChoice(agent: .codex), draft: true)
+    _ = try file(ReportAgentChoice(agent: .codex), id: report)
+    let saved = try IssueStore(root: root, readOnly: true).load()
+    XCTAssertEqual(saved.projects.first?.lastAgentChoice, choice)
+    XCTAssertEqual(saved.projects.first?.reuseLastAgentChoice, true)
+    XCTAssertEqual(model.initialAgentChoice(for: project.id), choice)
+    XCTAssertEqual(model.initialAgentChoice(for: other.id), ReportAgentChoice(agent: .codex))
+    project.reuseLastAgentChoice = false
+    try model.saveProject(project)
+    XCTAssertEqual(model.initialAgentChoice(for: project.id), ReportAgentChoice(agent: .codex))
+  }
+
   func testDraftKeepsTheChosenModelAndEffortForItsTurns() throws {
     let (model, _) = try makeModel()
     try model.submit(
@@ -180,7 +238,7 @@ import XCTest
     XCTAssertEqual(moved.captures.count, 1)
     XCTAssertNotEqual(moved.captures[0].imagePath, old.captures[0].imagePath)
     XCTAssertEqual(
-      try Data(contentsOf: URL(fileURLWithPath: moved.captures[0].imagePath)), Data([4]))
+      try Data(contentsOf: URL(fileURLWithPath: XCTUnwrap(moved.captures[0].imagePath))), Data([4]))
     XCTAssertNotNil(moved.reportNumber)
     XCTAssertTrue(old.activities.contains { $0.text.hasPrefix("Moved to Genealogy as #") })
     XCTAssertEqual(model.selectedIssueID, movedID)

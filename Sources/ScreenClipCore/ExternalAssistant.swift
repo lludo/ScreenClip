@@ -174,10 +174,12 @@ public enum ExternalAssistant {
         validationCommand: GitHubService.redactSecrets(project.validationCommand)),
       evidence: ExternalWebhookEvidence(
         branch: branch, commit: commit,
-        paths: evidencePaths(reportNumber: number, captureCount: issue.captures.count)),
+        paths: evidencePaths(reportNumber: number, captureCount: issue.captures.compactMap(\.imagePath).count)),
       delivery: delivery, workspaceID: issue.workspaceID.uuidString,
       previousPullRequests: history,
-      promptAddOn: [autonomyInstructions, screenshotPublicationInstructions, settings.effectivePromptAddOn]
+      promptAddOn: [autonomyInstructions, issue.captures.contains { $0.imagePath != nil }
+        ? screenshotPublicationInstructions : "This report was filed as text only and has no original screenshots.",
+        settings.effectivePromptAddOn]
         .filter { !$0.isEmpty }.joined(separator: "\n\n"))
   }
 

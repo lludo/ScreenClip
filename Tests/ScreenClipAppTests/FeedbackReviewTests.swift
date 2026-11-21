@@ -66,7 +66,7 @@ import XCTest
     XCTAssertEqual(saved.revision, issue.revision + 1)
     XCTAssertEqual(saved.captures.count, 2)
     let attachment = try XCTUnwrap(saved.captures.last)
-    XCTAssertNotNil(NSImage(contentsOfFile: attachment.imagePath))
+    XCTAssertNotNil(NSImage(contentsOfFile: try XCTUnwrap(attachment.imagePath)))
     XCTAssertEqual(attachment.context.selection, [0, 0, 2, 2])
     XCTAssertEqual(try model.store.load().issues.first, saved)
     let project = Project(name: "Test", path: root.path)
@@ -111,7 +111,7 @@ import XCTest
     let saved = try XCTUnwrap(model.issue(issue.id))
     XCTAssertEqual(saved.captures.count, 2)
     XCTAssertEqual(saved.captures.last, attachment)
-    XCTAssertNotNil(NSImage(contentsOfFile: attachment.imagePath))
+    XCTAssertNotNil(NSImage(contentsOfFile: try XCTUnwrap(attachment.imagePath)))
     XCTAssertFalse(FileManager.default.fileExists(atPath: original))
   }
 

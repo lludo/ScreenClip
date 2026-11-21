@@ -88,8 +88,9 @@ enum AgentPrompt {
   }
   private static func describe(_ capture: Capture, number: Int) -> String {
     let c = capture.context
+    let kind = capture.imagePath == nil ? "Text note" : "Capture"
     return
-      "Capture \(number) at \(c.capturedAt.formatted(.iso8601)): \(capture.note)\nSource: \(c.appName); window: \(c.windowTitle ?? "unknown"); URL: \(c.browserURL ?? "unavailable"); selection: \(c.selection); scale: \(c.scale)\nTesting session: \(c.sessionName); tested version: \(c.testedVersion.isEmpty ? "unknown; do not assume current HEAD" : c.testedVersion)"
+      "\(kind) \(number) at \(c.capturedAt.formatted(.iso8601)): \(capture.note)\nSource: \(c.appName); window: \(c.windowTitle ?? "unknown"); URL: \(c.browserURL ?? "unavailable"); selection: \(c.selection); scale: \(c.scale)\nTesting session: \(c.sessionName); tested version: \(c.testedVersion.isEmpty ? "unknown; do not assume current HEAD" : c.testedVersion)"
   }
   private static func describe(_ note: ContextNote) -> String {
     "Context added at \(note.date.formatted(.iso8601)):\n\(note.text)"
@@ -108,7 +109,10 @@ enum AgentPrompt {
     """
   }
   private static func screenshotInstructions(_ issue: Issue) -> String {
-    """
+    guard issue.captures.contains(where: { $0.imagePath != nil }) else {
+      return "This report was filed as text only and has no original screenshots. No After PNG is required."
+    }
+    return """
     Screenshot publication is authorized for this report, including the original captures and new retest images. This replaces any earlier instruction prohibiting screenshot publication or requiring separate sharing approval. ScreenClip handles the upload and PR image links.
     After rebuilding, retest the reported scenario and save actual PNG screenshots of the fixed UI in \(PRScreenshotEvidence.directory(for: issue))/after/ inside the isolated worktree (create the directory). Use filenames such as 1.png and 2.png corresponding to the original captures, with comparable view, state, and scale. These must be real retest captures, not generated mockups or copies of the originals. Keep them as source changes for ScreenClip to commit. ScreenClip supplies the Before images from this report; do not access its queue. A report with captures requires at least one After PNG before publication. If capture is impossible after reasonable attempts, return blocked with the specific obstacle rather than implemented. Describe the retest in your summary.
     """
