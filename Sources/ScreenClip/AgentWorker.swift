@@ -8,7 +8,6 @@ import ScreenClipCore
   let claude = ClaudeCodeClient()
   var connected = false
   var connecting: Task<Void, Error>?
-  var eventsTask: Task<Void, Never>?
   var jobs = Set<UUID>()
   // Keep canceled dispatches serialized until their outstanding requests return.
   var dispatching = Set<UUID>()
@@ -22,10 +21,10 @@ import ScreenClipCore
   /// flight stops at its next check and cannot remove a later run's job after a retry.
   var externalRuns: [UUID: UUID] = [:]
   var mergingProjects = Set<UUID>()
-  var pendingRequests = Set<String>()
-  /// The report each pending request belongs to. Codex numbers requests per process, so an
-  /// id alone can match another report's request after a restart.
+  /// The report each pending request belongs to, keyed by `requestKey`. Codex numbers
+  /// requests per process, so an id alone can match another report's request after a restart.
   var requestOwners: [String: UUID] = [:]
+  static func requestKey(_ id: JSONValue) -> String { id.data.base64EncodedString() }
   /// Turns interrupted by Cancel. Their late completion must not fail a run started since.
   var canceledTurns = Set<String>()
   var timer: Timer?
@@ -249,8 +248,8 @@ import ScreenClipCore
     else { return }
     do {
       if let requestID = question.requestID {
-        let key = requestID.data.base64EncodedString()
-        guard connected, pendingRequests.contains(key), requestOwners[key] == issueID,
+        let key = Self.requestKey(requestID)
+        guard connected, requestOwners[key] == issueID,
           jobs.contains(issueID), question.reply == nil
         else {
           throw ScreenClipError.message(
@@ -290,8 +289,7 @@ import ScreenClipCore
           try await client.reject(
             id: requestID, message: "Complete this permission or connection request in Codex.")
         }
-        pendingRequests.remove(requestID.data.base64EncodedString())
-        requestOwners.removeValue(forKey: requestID.data.base64EncodedString())
+        requestOwners.removeValue(forKey: key)
         try model.updateIssue(issueID) { issue in
           if let i = issue.questions.firstIndex(where: { $0.id == questionID }) {
             issue.questions[i].reply =
@@ -327,8 +325,7 @@ import ScreenClipCore
       for question in issue.questions where question.reply == nil {
         guard let requestID = question.requestID, let askedAt = question.askedAt,
           now.timeIntervalSince(askedAt) >= questionTimeLimit,
-          pendingRequests.contains(requestID.data.base64EncodedString()),
-          requestOwners[requestID.data.base64EncodedString()] == issue.id
+          requestOwners[Self.requestKey(requestID)] == issue.id
         else { continue }
         await answerUnattended(issueID: issue.id, question: question, requestID: requestID)
       }
@@ -363,8 +360,7 @@ import ScreenClipCore
         try await client.reject(
           id: requestID, message: "The tester is not available. Continue without this if you can.")
       }
-      pendingRequests.remove(requestID.data.base64EncodedString())
-      requestOwners.removeValue(forKey: requestID.data.base64EncodedString())
+      requestOwners.removeValue(forKey: Self.requestKey(requestID))
       let minutes = max(1, Int((questionTimeLimit / 60).rounded()))
       try model.updateIssue(issueID) { issue in
         if let i = issue.questions.firstIndex(where: { $0.id == question.id }) {
@@ -411,7 +407,6 @@ import ScreenClipCore
       }
     }
     for (key, owner) in requestOwners where owner == id {
-      pendingRequests.remove(key)
       requestOwners.removeValue(forKey: key)
     }
     if issue.resolvedAgent == .claude, let session = issue.threadID {

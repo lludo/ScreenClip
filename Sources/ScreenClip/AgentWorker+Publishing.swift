@@ -19,6 +19,19 @@ extension AgentWorker {
     try JSONEncoder().encode(receipt).write(to: receiptURL(issue), options: .atomic)
   }
 
+  /// Finishes a completed turn unless another path already is. While a report is in
+  /// `finishing`, disconnect events and duplicate completions leave it alone.
+  func finishOnce(_ id: UUID) async {
+    guard finishing.insert(id).inserted else { return }
+    await finishMarked(id)
+  }
+  /// For callers that inserted `id` into `finishing` themselves.
+  func finishMarked(_ id: UUID) async {
+    await finish(id)
+    finishing.remove(id)
+    // A report queued again during validation waits for this run to end.
+    pump()
+  }
   func finish(_ id: UUID) async {
     guard let issue = model.issue(id), let project = model.project(issue.projectID),
       issue.status != .canceled

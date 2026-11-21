@@ -200,7 +200,7 @@ import XCTest
       if genuineQuestion {
         try model.updateIssue(issue.id) { $0.questions.append(PendingQuestion(title: "Which layout do you want?")) }
       }
-      model.worker.pendingRequests.removeAll()
+      model.worker.requestOwners.removeAll()
       model.worker.jobs.remove(issue.id)
       let recovering = Task { await model.worker.recoverCodexAfterRestart() }
       if cancelDuringRecovery {
@@ -907,7 +907,6 @@ import XCTest
       ]
     }
     let key = JSONValue.number(12).data.base64EncodedString()
-    model.worker.pendingRequests.insert(key)
     model.worker.requestOwners[key] = id
     XCTAssertEqual(model.issue(id)?.canArchive, false)
     await model.worker.cancel(id)
@@ -917,7 +916,6 @@ import XCTest
     // A question the agent asked in its result is still the tester's to answer.
     XCTAssertNil(canceled.questions[1].reply)
     XCTAssertTrue(canceled.canArchive)
-    XCTAssertTrue(model.worker.pendingRequests.isEmpty)
     XCTAssertTrue(model.worker.requestOwners.isEmpty)
   }
   func testLateCompletionOfACanceledTurnDoesNotFailTheNextRun() async throws {
