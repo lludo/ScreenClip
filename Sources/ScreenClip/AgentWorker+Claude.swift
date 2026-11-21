@@ -46,7 +46,8 @@ extension AgentWorker {
     var request = ClaudeTurnRequest(
       executable: executable, cwd: path, sessionID: sessionID, resume: resume,
       name: "ScreenClip: " + issue.referencedTitle,
-      model: model.snapshot.settings.claudeModel, prompt: turn.text,
+      model: issue.agentModel ?? model.snapshot.settings.claudeModel,
+      effort: issue.agentModel == nil ? nil : issue.agentEffort, prompt: turn.text,
       images: turn.captures.compactMap { allImages[$0.id] }, schema: AgentPrompt.resultSchema)
     request.timeout = turnTimeLimit
     let progress: @Sendable (String) async -> Void = { [weak self] text in

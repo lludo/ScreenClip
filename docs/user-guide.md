@@ -8,7 +8,7 @@ The default shortcut is **⌘⇧2**. Escape cancels the selection. The composer 
 
 ScreenClip suggests a project from the app or the browser context. Correct it before submitting. If the project is ambiguous, the report is saved as **Needs project** and no agent starts.
 
-In the composer's **Issue** menu, **New issue** starts a report, and choosing an existing issue appends the capture to it. A follow-up keeps that issue's agent. You cannot switch a submitted issue to a different agent; cancel it and file a new report.
+In the composer's **Issue** menu, **New issue** starts a report, and choosing an existing issue appends the capture to it. The **Agent** menu also picks the model and reasoning effort in one go: choose an agent to keep its defaults, or open its submenu for a model (**Claude Code ▸ Opus**) and that model's submenu for an effort (**Claude Code ▸ Opus ▸ Extra high**). The default rows name the default when the agent reports it; otherwise the model from Settings applies. Codex lists its own models and efforts once connected; the Claude Code list (Fable, Opus, Sonnet, Haiku) is built in. Grok Bot picks its own model. A follow-up keeps that issue's agent, model, and effort. You cannot switch a submitted issue to a different agent; cancel it and file a new report.
 
 Redaction is only the black rectangles you draw with the redact tool. Those pixels are flattened to opaque black in the saved screenshot. Arrows, pen strokes, shapes, and text do not hide what is underneath. When a capture has a redaction, ScreenClip does not keep the unredacted crop.
 
