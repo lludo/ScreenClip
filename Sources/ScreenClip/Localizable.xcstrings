@@ -42883,134 +42883,134 @@
         }
       }
     },
-    "Screenshot": {
-      "comment": "Menu bar button to capture a screen region.",
+    "Screenshot task": {
+      "comment": "Menu bar button to start a task by capturing a screen region.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Screenshot"
+            "value": "Screenshot task"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "截屏"
+            "value": "截图任务"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Captura de pantalla"
+            "value": "Tarea con captura"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "スクリーンショット"
+            "value": "スクリーンショットのタスク"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Captura de tela"
+            "value": "Tarefa com captura"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Screenshot"
+            "value": "Screenshot-Aufgabe"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Capture d’écran"
+            "value": "Tâche avec capture"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "스크린샷"
+            "value": "스크린샷 작업"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Снимок экрана"
+            "value": "Задача со снимком"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "截圖"
+            "value": "截圖任務"
           }
         }
       }
     },
-    "Text note": {
-      "comment": "Menu bar button to file a text-only observation.",
+    "Text task": {
+      "comment": "Menu bar button to start a task by writing a note.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Text note"
+            "value": "Text task"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "文字笔记"
+            "value": "文本任务"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nota de texto"
+            "value": "Tarea de texto"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "テキストメモ"
+            "value": "テキストのタスク"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nota de texto"
+            "value": "Tarefa de texto"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Textnotiz"
+            "value": "Textaufgabe"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Note écrite"
+            "value": "Tâche texte"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "텍스트 메모"
+            "value": "텍스트 작업"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Заметка"
+            "value": "Текстовая задача"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "文字筆記"
+            "value": "文字任務"
           }
         }
       }

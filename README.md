@@ -14,7 +14,7 @@ A native macOS menu bar app for the small things you notice: a clipped button, c
 
 ## Capture a report
 
-Use the global **⌘⇧2** shortcut or choose **Screenshot** from the menu bar. Choose **Text note** to file a written observation directly. You can change the shortcut in Settings, including if the default is already in use.
+Use the global **⌘⇧2** shortcut or choose **Screenshot task** from the menu bar. Choose **Text task** to file a written observation directly. You can change the shortcut in Settings, including if the default is already in use.
 
 <p align="center">
   <img src="docs/screenshots/demo.gif" width="960" alt="Screen recording of ScreenClip: a region of a Mac app is captured, given a note, a project, and an agent, marked up with a rectangle and an arrow, and submitted. The report then appears in the menu bar and the queue, and notifications announce merged fixes.">
