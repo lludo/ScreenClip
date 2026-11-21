@@ -32,27 +32,26 @@ struct ComposerView: View {
   @Environment(\.locale) private var locale
   var body: some View {
     VStack(spacing: 0) {
-      HStack(spacing: 12) {
-        Image(systemName: "viewfinder").font(.title2).foregroundStyle(.orange)
-        VStack(alignment: .leading, spacing: 3) {
-          Group {
-            if existing?.status == .draft {
-              Text(chrome: "Finish your observation", comment: "Composer title when editing a draft.")
-            } else {
-              Text(chrome: "What did you notice?", comment: "Composer title for a new capture.")
-            }
+      HStack(spacing: 10) {
+        Image(systemName: "viewfinder").font(.title3).foregroundStyle(.orange)
+        Group {
+          if existing?.status == .draft {
+            Text(chrome: "Finish your observation", comment: "Composer title when editing a draft.")
+          } else {
+            Text(chrome: "What did you notice?", comment: "Composer title for a new capture.")
           }
-            .font(.title3.weight(.semibold))
-            .fixedSize(horizontal: false, vertical: true)
-          Text(
-            [
-              context.appName,
-              context.browserURL.flatMap { URL(string: $0)?.host } ?? context.windowTitle ?? "",
-            ].filter { !$0.isEmpty }.joined(separator: " · ")
-          ).font(.caption).foregroundStyle(.secondary).lineLimit(1)
         }
-        Spacer()
-      }.padding(20)
+          .font(.title3.weight(.semibold))
+          .fixedSize(horizontal: false, vertical: true)
+          .layoutPriority(1)
+        Spacer(minLength: 12)
+        Text(
+          [
+            context.appName,
+            context.browserURL.flatMap { URL(string: $0)?.host } ?? context.windowTitle ?? "",
+          ].filter { !$0.isEmpty }.joined(separator: " · ")
+        ).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+      }.padding(.horizontal, 20).padding(.vertical, 10)
       HStack(spacing: 6) {
         ForEach(MarkKind.allCases, id: \.self) { kind in
           Button {
