@@ -138,7 +138,7 @@ Polling looks for an open (or already merged) pull request whose head is the evi
 
 The same pass reads `gh api repos/<owner>/<name>/commits/<evidence-commit>/statuses` and keeps the newest `screenclip/grok-bot` entry. With no such status, and until this connection has produced one, behavior is the 2-hour reminder only. A status link is shown only when it is `https://cursor.com/agents/bc-<uuid>` or a pull request in this repository. Any other target, including `grokbot://`, is ignored. A non-2xx webhook error is `Grok Bot rejected the report (HTTP <status>).` and does not include the response body.
 
-When the project has automatic merge on, ScreenClip validates the pull request head with the project's validation command before auto-merge. That runs the pull request's code on your Mac, outside any sandbox, so with automatic merge off ScreenClip does not run it and the report says so. With it on, a merge still requires passing checks, a current revision, and the project's review rules. The assistant does not merge.
+ScreenClip runs the project’s validation command on the pull request head before merging. This runs the pull request’s code on your Mac. With automatic merge off, validation waits until you confirm **Merge pull request** on the report. Both merge paths require passing checks, a current revision, and the project’s required reviews. The assistant does not merge.
 
 ## Picker
 

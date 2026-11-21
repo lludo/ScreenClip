@@ -72,6 +72,97 @@ import XCTest
 
   private let failedChecks = JSONValue.array([.object(["conclusion": .string("FAILURE")])])
 
+  func testManualMergeRechecksTheReviewedHeadAndRequiresGitHubConfirmation() async throws {
+    try model.commit { $0.projects[0].autoMerge = false }
+    let issue = try XCTUnwrap(model.issue(id))
+    let repo = try XCTUnwrap(issue.worktreePath)
+    // Simulate a reachable base with a local repository. The fake gh only records merge requests.
+    _ = try await CommandRunner.checked(GitWorkspace.git, ["remote", "add", "origin", repo], cwd: repo)
+    let gh = root.appendingPathComponent("gh")
+    try """
+      #!/bin/sh
+      cd "$(dirname "$0")"
+      if [ "$2" = "merge" ]; then
+        printf '%s\\n' "$@" >> merge-request
+      else
+        cat state.json
+      fi
+      """.write(to: gh, atomically: false, encoding: .utf8)
+    let request = root.appendingPathComponent("merge-request")
+    let clean: [String: JSONValue] = [
+      "mergeable": .string("MERGEABLE"), "mergeStateStatus": .string("CLEAN"),
+      "statusCheckRollup": .array([.object(["conclusion": .string("SUCCESS")])]),
+    ]
+    try pullRequest(clean)
+    await model.worker.refreshPR(id)
+    XCTAssertNil(model.worker.manualMergeHeads[id], "Checks alone cannot replace local validation.")
+    try model.worker.saveReceipt(
+      ValidationReceipt(head: "pushed", command: "true", passed: true, date: Date(),
+        output: "", fingerprint: "fixture"), for: id, issue: issue)
+
+    for change: [String: JSONValue] in [
+      ["headRefOid": .string("another-head")], ["isDraft": .bool(true)], ["state": .string("CLOSED")],
+      ["reviewDecision": .string("REVIEW_REQUIRED")], ["baseRefName": .string("different-base")],
+      ["statusCheckRollup": .null], ["statusCheckRollup": .array([.object(["status": .string("QUEUED")])])],
+      ["statusCheckRollup": .array([]), "mergeStateStatus": .string("BLOCKED")],
+    ] {
+      try pullRequest(clean)
+      await model.worker.refreshPR(id)
+      XCTAssertEqual(model.worker.manualMergeHeads[id], "pushed")
+      try pullRequest(clean.merging(change) { _, new in new })
+      await model.worker.refreshPR(id, mergeReviewedHead: "pushed")
+      XCTAssertNil(model.worker.manualMergeHeads[id])
+      XCTAssertFalse(FileManager.default.fileExists(atPath: request.path))
+    }
+    try pullRequest(clean.merging(["statusCheckRollup": .array([])]) { _, new in new })
+    try model.commit { $0.projects[0].autoMerge = true }
+    await model.worker.refreshPR(id)
+    XCTAssertEqual(model.worker.manualMergeHeads[id], "pushed")
+    XCTAssertFalse(FileManager.default.fileExists(atPath: request.path), "Automatic merge requires host checks.")
+    try model.commit { $0.projects[0].autoMerge = false }
+    await model.worker.refreshPR(id)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: request.path))
+    await model.worker.refreshPR(id, mergeReviewedHead: "pushed")
+    XCTAssertEqual(try String(contentsOf: request, encoding: .utf8).split(separator: "\n"),
+      ["pr", "merge", "https://github.com/example/app/pull/1", "--squash", "--match-head-commit", "pushed"])
+    XCTAssertEqual(model.issue(id)?.status, .prOpen, "The merge command alone is not confirmation.")
+    XCTAssertFalse(model.snapshot.projects[0].autoMerge)
+    try model.updateIssue(id) { $0.branch = nil }
+    try pullRequest(["state": .string("MERGED"), "mergeCommit": .object(["oid": .string("result")])])
+    await model.worker.refreshPR(id)
+    XCTAssertEqual(model.issue(id)?.mergeCommit, "result")
+    XCTAssertEqual(model.issue(id)?.status, .merged)
+  }
+
+  func testManualGrokMergeValidatesOnlyOnRequestAndCoversAFollowUpOnTheSameBranch() async throws {
+    try model.commit { $0.projects[0].autoMerge = false }
+    let issue = try XCTUnwrap(model.issue(id))
+    let path = try XCTUnwrap(issue.worktreePath)
+    _ = try await CommandRunner.checked(GitWorkspace.git, ["remote", "add", "origin", path], cwd: path)
+    let head = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
+    try model.updateIssue(id) {
+      $0.agent = .external
+      $0.prRevision = 1
+      $0.revision = 2
+      $0.coveredRevision = 2
+      $0.handoffRevision = 2
+      $0.handoffCommit = head
+    }
+    try pullRequest([
+      "headRefOid": .string(head), "mergeable": .string("MERGEABLE"), "mergeStateStatus": .string("CLEAN"),
+      "statusCheckRollup": .array([.object(["conclusion": .string("SUCCESS")])]),
+    ])
+    await model.worker.refreshPR(id)
+    XCTAssertEqual(model.issue(id)?.prRevision, 2)
+    XCTAssertNil(model.worker.loadReceipt(id, issue: issue))
+    XCTAssertEqual(model.worker.manualMergeHeads[id], head)
+    await model.worker.refreshPR(id, mergeReviewedHead: head)
+    let receipt = try XCTUnwrap(model.worker.loadReceipt(id, issue: issue))
+    XCTAssertTrue(receipt.passed)
+    XCTAssertEqual(receipt.head, head)
+    XCTAssertFalse(model.snapshot.projects[0].autoMerge)
+  }
+
   func testFailedChecksForAnotherHeadDoNotStartARepair() async throws {
     try pullRequest(["headRefOid": .string("someone-else"), "statusCheckRollup": failedChecks])
     await model.worker.refreshPR(id)

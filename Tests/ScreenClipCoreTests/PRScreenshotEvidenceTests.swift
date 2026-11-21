@@ -5,6 +5,24 @@ final class PRScreenshotEvidenceTests: XCTestCase {
   // A real one-pixel PNG; invalid image data must never become a broken PR embed.
   let image = Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aV1sAAAAASUVORK5CYII=")!
 
+  func testPrivateImageLookupIsScopedToTheReportAndThePublishedCommit() throws {
+    let pr = try XCTUnwrap(URL(string: "https://github.com/example/app/pull/24"))
+    let id = UUID()
+    let head = String(repeating: "a", count: 40)
+    let path = ".screenclip/pr/\(id.uuidString.lowercased())/revision-1/after/1.png"
+    let image = "https://github.com/example/app/blob/\(head)/\(path)?raw=true"
+    func endpoint(_ link: String) throws -> String? {
+      PRScreenshotEvidence.contentsEndpoint(image: try XCTUnwrap(URL(string: link)), pullRequest: pr, issueID: id)
+    }
+    XCTAssertEqual(try endpoint(image)?.removingPercentEncoding, "repos/example/app/contents/\(path)?ref=\(head)")
+    for (original, replacement) in [
+      ("example/app", "example/another"), (head, "main"), (id.uuidString.lowercased(), UUID().uuidString),
+      ("after/1.png", "notes.txt"), ("github.com", "example.org"),
+    ] {
+      XCTAssertNil(try endpoint(image.replacingOccurrences(of: original, with: replacement)))
+    }
+  }
+
   func fixture() async throws -> (URL, Issue) {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-images-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)

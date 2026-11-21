@@ -223,7 +223,7 @@ extension AgentWorker {
     try noteCheckSummary(id, ExternalAssistant.evidenceStillPresentSummary)
   }
   func inspectExternal(
-    _ id: UUID, issue: Issue, project: Project, path: String, pullHead: String
+    _ id: UUID, issue: Issue, project: Project, path: String, pullHead: String, requestedMerge: Bool = false
   ) async throws -> ExternalInspection {
     guard let branch = issue.branch else {
       throw ScreenClipError.message("The Grok Bot report has no evidence branch.")
@@ -246,7 +246,17 @@ extension AgentWorker {
       try noteScreenclipEvidence(id)
       return .blocked
     }
-    if let receipt = loadReceipt(id, issue: issue), receipt.head == head {
+    // A follow-up handoff can update an already attached PR. Only credit that revision once
+    // the inspected, evidence-free head actually contains its handoff commit.
+    if issue.prRevision != issue.coveredRevision, issue.handoffRevision == issue.coveredRevision,
+      let commit = issue.handoffCommit, GitHubService.isCommit(commit),
+      try await CommandRunner.run(GitWorkspace.git, ["merge-base", "--is-ancestor", commit, head], cwd: path).status == 0,
+      model.issue(id)?.workspaceID == issue.workspaceID, model.issue(id)?.revision == issue.coveredRevision
+    {
+      try model.updateIssue(id) { $0.prRevision = issue.coveredRevision }
+    }
+    if let receipt = loadReceipt(id, issue: issue), receipt.head == head,
+      receipt.command == project.validationCommand {
       if receipt.passed {
         if model.issue(id)?.prHead != head {
           try model.updateIssue(id) { $0.prHead = head }
@@ -256,9 +266,8 @@ extension AgentWorker {
       try noteCheckSummary(id, Self.validationFailedSummary)
       return .blocked
     }
-    // The validation command runs the pull request's code on this Mac. Without automatic
-    // merge ScreenClip has nothing to decide, so it does not run it.
-    guard project.autoMerge else {
+    // Watching alone does not authorize running the pull request's code on this Mac.
+    guard project.autoMerge || requestedMerge else {
       // Follow the head so the summary below describes this pull request, not a changed one.
       if model.issue(id)?.prHead != head { try model.updateIssue(id) { $0.prHead = head } }
       return .unvalidated

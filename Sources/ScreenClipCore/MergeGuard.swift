@@ -7,8 +7,10 @@ public struct PRState {
   public var head: String
   public var base: String
   public var merged: Bool
+  public var open: Bool
   public var mergeCommit: String?
   public var checksPassed: Bool
+  public var noChecksReported: Bool
   public var checksFailed: Bool
   public var mergeable: Bool
   /// GitHub reports that the head no longer merges into the base. Nothing but integrating the
@@ -34,7 +36,9 @@ public struct PRState {
     return PRState(
       url: value["url"].string ?? "", head: value["headRefOid"].string ?? "",
       base: value["baseRefName"].string ?? "", merged: value["state"].string == "MERGED",
-      mergeCommit: value["mergeCommit"]["oid"].string, checksPassed: passed, checksFailed: failed,
+      open: value["state"].string == "OPEN",
+      mergeCommit: value["mergeCommit"]["oid"].string, checksPassed: passed,
+      noChecksReported: value["statusCheckRollup"] == .array([]), checksFailed: failed,
       mergeable: value["mergeStateStatus"].string == "CLEAN"
         && value["mergeable"].string == "MERGEABLE",
       conflicting: value["mergeable"].string == "CONFLICTING",
@@ -101,9 +105,10 @@ public struct MergeEvidence: Equatable {
     self.screenclipEvidenceCleared = screenclipEvidenceCleared
     self.draft = draft
   }
-  public var canMerge: Bool {
+  public var readyForValidation: Bool {
     !expectedHead.isEmpty && expectedHead == currentHead && inputRevision == coveredRevision
-      && validationPassed && hasValidation && checksPassed && mergeable && reviewSatisfied
+      && checksPassed && mergeable && reviewSatisfied
       && !unresolvedQuestions && screenclipEvidenceCleared && !draft
   }
+  public var canMerge: Bool { readyForValidation && validationPassed && hasValidation }
 }
