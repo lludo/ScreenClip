@@ -95,7 +95,9 @@ def call(name, arguments):
     if include_images:
         total = 0
         for capture in captures:
-            path = Path(capture.get("imagePath") or "").resolve()
+            if capture.get("imagePath") is None:
+                continue
+            path = Path(capture["imagePath"]).resolve()
             if path.parent != ROOT / "assets" or not path.is_file():
                 raise ValueError("Approved image is missing or outside ScreenClip's assets")
             total += path.stat().st_size

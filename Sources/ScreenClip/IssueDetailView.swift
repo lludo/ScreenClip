@@ -203,10 +203,10 @@ struct IssueDetailView: View {
           }
           if issue.status == .draft {
             Button {
-              if let c = issue.captures.first,
-                let image = NSImage(contentsOfFile: c.originalPath ?? c.imagePath)
-              {
-                model.composerAction?(image, c.context, issue)
+              guard let capture = issue.captures.first else { return }
+              let image = (capture.originalPath ?? capture.imagePath).flatMap(NSImage.init(contentsOfFile:))
+              if capture.imagePath == nil || image != nil {
+                model.composerAction?(image, capture.context, issue)
               }
             } label: {
               Text(chrome: "Edit draft", comment: "Reopens a draft in the composer.")
@@ -290,7 +290,7 @@ struct IssueDetailView: View {
               Text(capture.context.capturedAt, style: .time).font(.caption).foregroundStyle(
                 .tertiary)
             }
-            if let image = CaptureImageCache.image(capture.imagePath) {
+            if let image = capture.imagePath.flatMap(CaptureImageCache.image) {
               Image(nsImage: image).resizable().scaledToFit().frame(
                 maxWidth: .infinity, maxHeight: 420
               ).background(Color.black.opacity(0.04)).clipShape(RoundedRectangle(cornerRadius: 10))

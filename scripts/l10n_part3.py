@@ -314,3 +314,7 @@ A("Low", "低", "Bajo", "低", "Baixo", "Niedrig", "Faible", "낮음", "Низк
 A("High", "高", "Alto", "高", "Alto", "Hoch", "Élevé", "높음", "Высокое", "高")
 A("Extra high", "超高", "Muy alto", "最高", "Muito alto", "Sehr hoch", "Très élevé", "매우 높음", "Очень высокое", "超高")
 A("Max", "最大", "Máximo", "最大", "Máximo", "Maximal", "Maximal", "최대", "Максимальное", "最大")
+A("Screenshot", "截屏", "Captura de pantalla", "スクリーンショット", "Captura de tela", "Screenshot", "Capture d’écran", "스크린샷", "Снимок экрана", "截圖")
+A("Text note", "文字笔记", "Nota de texto", "テキストメモ", "Nota de texto", "Textnotiz", "Note écrite", "텍스트 메모", "Заметка", "文字筆記")
+A("Describe what you noticed…", "描述你注意到的情况…", "Describe lo que has observado…", "気づいたことを書いてください…", "Descreva o que você percebeu…", "Beschreibe, was dir aufgefallen ist…", "Décrivez ce que vous avez remarqué…", "발견한 내용을 적으세요…", "Опишите, что вы заметили…", "描述你注意到的情況…")
+A("Use the last agent, model, and effort for new reports", "新报告沿用上次的代理、模型和推理强度", "Usar el último agente, modelo y nivel de esfuerzo en los informes nuevos", "新しいレポートで前回のエージェント、モデル、推論の強度を使う", "Usar o último agente, modelo e nível de esforço nos novos relatórios", "Für neue Berichte den letzten Agenten, das Modell und den Denkaufwand übernehmen", "Réutiliser l’agent, le modèle et l’effort de raisonnement du dernier rapport", "새 리포트에 마지막으로 사용한 에이전트, 모델 및 추론 강도 적용", "Для новых отчётов использовать последние выбранные агент, модель и уровень усилий", "新報告沿用上次的代理程式、模型與推理強度")

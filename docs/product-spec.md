@@ -28,8 +28,8 @@ Example: while moving through a checkout flow, the tester notices a clipped butt
 | Primary value | Capture feedback as it is noticed, then continue without losing flow; support many small observations per session |
 | Apps being tested | Websites and native macOS apps |
 | Entry point | Menu bar utility plus a global keyboard shortcut |
-| Capture | Region selection resembling Command–Shift–4 |
-| Composer | Screenshot overlay with a short description and image annotations |
+| Capture | Select a screen region or start a text note from the menu bar |
+| Composer | Write an observation and choose a project and agent. Screenshot reports also offer image annotation tools. |
 | Capturing ScreenClip itself | Hidden by default; turn off **Hide ScreenClip during capture** to capture its windows and menu bar popover |
 | Submission | Save to the queue and begin AI work immediately |
 | Organization | One conversation per issue; related captures share that issue. Codex uses a thread, Claude Code a session, and Grok Bot a GitHub branch plus webhook |
@@ -86,7 +86,7 @@ Menu bar label: icon plus the count of submitted, unresolved issues. A separate 
 
 | Surface | Contents and actions |
 | --- | --- |
-| Menu bar popover | Current project/session, New capture, Pause processing, status totals, recent issues, Open queue, Settings |
+| Menu bar popover | Current project/session, Screenshot, Text note, Pause processing, status totals, recent issues, Open queue, Settings |
 | Issue row | Permanent report number (for example, #234), thumbnail, short title, project, status, latest update, unread indicator |
 | Issue detail | Click-to-copy report number, ordered images and notes, captured context, concise activity, questions and replies, the agent's conversation link when it has one, PR link, validation result |
 | Queue window | All issues, project/status filters, search, drafts, archive |

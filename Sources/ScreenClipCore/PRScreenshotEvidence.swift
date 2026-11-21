@@ -55,26 +55,30 @@ public enum PRScreenshotEvidence {
   }
 
   public static func prepare(issue: Issue, worktree: String) async throws {
-    guard !issue.captures.isEmpty else { return }
+    let screenshots = issue.captures.enumerated().compactMap { index, capture in
+      capture.imagePath.map { (number: index + 1, path: $0) }
+    }
+    guard !screenshots.isEmpty else { return }
     let after = try afterFiles(issue, worktree)
     let before = try folder(issue, worktree, "before")
     if FileManager.default.fileExists(atPath: before.path) {
       try FileManager.default.removeItem(at: before)
     }
     try FileManager.default.createDirectory(at: before, withIntermediateDirectories: true)
-    for (index, capture) in issue.captures.enumerated() {
-      let data = try png(URL(fileURLWithPath: capture.imagePath))
-      try data.write(to: before.appendingPathComponent("\(index + 1).png"), options: .atomic)
+    for screenshot in screenshots {
+      let data = try png(URL(fileURLWithPath: screenshot.path))
+      try data.write(to: before.appendingPathComponent("\(screenshot.number).png"), options: .atomic)
     }
     // Repositories may ignore .screenclip or PNGs. Include the evidence in validation and push.
     _ = try await CommandRunner.checked(
       GitWorkspace.git, ["add", "--force", "--"]
-        + issue.captures.indices.map { directory(for: issue) + "/before/\($0 + 1).png" }
+        + screenshots.map { directory(for: issue) + "/before/\($0.number).png" }
         + after.map { directory(for: issue) + "/after/" + $0.lastPathComponent }, cwd: worktree)
   }
 
   public static func markdown(issue: Issue, worktree: String, remote: String, head: String) throws -> String {
-    guard !issue.captures.isEmpty else { return "" }
+    let screenshots = issue.captures.enumerated().filter { $0.element.imagePath != nil }
+    guard !screenshots.isEmpty else { return "" }
     guard let repository = GitHubRepository.parse(remote: remote) else {
       throw ScreenClipError.message("Cannot identify the screenshot repository.")
     }
@@ -85,7 +89,7 @@ public enum PRScreenshotEvidence {
       return "![\(label)](https://github.com/\(repository.slug)/blob/\(head)/\(encoded)?raw=true)"
     }
     let before = try folder(issue, worktree, "before")
-    let beforeImages = try issue.captures.enumerated().map { index, _ in
+    let beforeImages = try screenshots.map { index, _ in
       let filename = "\(index + 1).png"
       _ = try png(before.appendingPathComponent(filename))
       return image(directory(for: issue) + "/before/" + filename, "Before \(index + 1)")

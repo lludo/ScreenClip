@@ -18,7 +18,7 @@ The one-off prompts once used to have each agent investigate its own integration
 
 - **System default.** Settings → Connections → **AI agent** → **System default** sets `AppSettings.defaultAgent`. Missing in older queues means Codex.
 - **Project default.** Project settings stores either inherit (`defaultAgent` null) or an explicit provider. Inherit follows the system default. An explicit provider stays when the system default changes. An older project with screenshot sharing on migrates to Grok Bot; every other older project inherits.
-- **Per report.** The capture window's **Agent** picker starts at the project's effective default and can be changed for a new report or a draft. The choice is stamped on the issue (`Issue.agent`).
+- **Per report.** The capture window's **Agent** picker starts at the project's effective default (or its last submitted agent, model, and effort when enabled in Project settings) and can be changed for a new report or a draft. The choice is stamped on the issue (`Issue.agent`).
 - **Follow-ups keep their agent.** Adding a capture to a submitted issue locks the picker to that issue's agent, because conversation IDs are not interchangeable between agents. Switching a submitted issue to another agent is not supported; cancel it and submit a new report.
 - **Older issues** have no `agent` field and resolve to Codex (`Issue.resolvedAgent`).
 

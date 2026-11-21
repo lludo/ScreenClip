@@ -37,6 +37,25 @@ final class PRScreenshotEvidenceTests: XCTestCase {
     XCTAssertEqual(committed.sorted(), [".screenclip/5/capture-1.png", ".screenclip/5/report.json"])
   }
 
+  func testTextOnlyReportNeedsNoImagesAndMixedReportPublishesOnlyPhotos() async throws {
+    let (root, original) = try await fixture()
+    var issue = original
+    issue.captures = [Capture(note: "Text only", imagePath: nil, context: CaptureContext())]
+    try await PRScreenshotEvidence.prepare(issue: issue, worktree: root.path)
+    XCTAssertEqual(try PRScreenshotEvidence.markdown(issue: issue, worktree: root.path, remote: "", head: ""), "")
+    issue.add(original.captures[0])
+    let folder = root.appendingPathComponent(PRScreenshotEvidence.directory(for: issue))
+    try FileManager.default.createDirectory(at: folder.appendingPathComponent("after"), withIntermediateDirectories: true)
+    try image.write(to: folder.appendingPathComponent("after/2.png"))
+    try await PRScreenshotEvidence.prepare(issue: issue, worktree: root.path)
+    let before = try FileManager.default.contentsOfDirectory(atPath: folder.appendingPathComponent("before").path)
+    XCTAssertEqual(before, ["2.png"])
+    let payload = ExternalAssistant.makePayload(issue: issue, project: Project(name: "Demo", path: root.path),
+      repo: "owner/demo", branch: "demo", includePageContext: false, commit: nil)
+    XCTAssertEqual(payload.notes.first, "Text only")
+    XCTAssertEqual(payload.evidence.paths.filter { $0.hasSuffix(".png") }.count, 1)
+  }
+
   func testImagesAreStagedDespiteIgnoreRulesAndUseImmutableLinks() async throws {
     let (root, issue) = try await fixture()
     try ".screenclip/\n*.png\n".write(to: root.appendingPathComponent(".gitignore"), atomically: true, encoding: .utf8)

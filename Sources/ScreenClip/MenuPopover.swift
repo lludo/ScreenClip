@@ -53,20 +53,29 @@ struct MenuPopover: View {
             "metric.retest.phrase", "\(retestCount) To retest", locale: locale,
             comment: "Accessibility label for merged reports waiting to be retested. %lld is the count."))
       }
-      Button {
-        model.captureAction?()
-      } label: {
-        HStack(alignment: .firstTextBaseline) {
-          Label {
-            Text(chrome: "New capture", comment: "Starts a screen capture from the menu bar.")
-          } icon: {
-            Image(systemName: "plus")
+      HStack(spacing: 8) {
+        Button {
+          model.captureAction?()
+        } label: {
+          HStack(spacing: 8) {
+            Label {
+              Text(chrome: "Screenshot", comment: "Menu bar button to capture a screen region.")
+            } icon: {
+              Image(systemName: "photo")
+            }
+            Text(model.snapshot.settings.shortcutDescription).foregroundStyle(.secondary)
           }
-          Spacer(minLength: 8)
-          Text(model.snapshot.settings.shortcutDescription).foregroundStyle(.secondary)
-            .fixedSize()
-        }.frame(maxWidth: .infinity)
-      }.buttonStyle(.borderedProminent).tint(.orange)
+        }
+        Button {
+          model.textCaptureAction?()
+        } label: {
+          Label {
+            Text(chrome: "Text note", comment: "Menu bar button to file a text-only observation.")
+          } icon: {
+            Image(systemName: "text.alignleft")
+          }
+        }
+      }.buttonStyle(.bordered)
       if let banner = model.banner {
         HStack(alignment: .top, spacing: 8) {
           Image(systemName: "exclamationmark.circle").foregroundStyle(.orange)

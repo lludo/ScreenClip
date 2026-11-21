@@ -22,10 +22,12 @@ extension AgentWorker {
     }
     issue = current
     // Read every screenshot up front, so a missing file fails before the session is touched.
-    let allImages = try Dictionary(
-      uniqueKeysWithValues: issue.captures.map {
-        ($0.id, try Data(contentsOf: URL(fileURLWithPath: $0.imagePath)))
-      })
+    var allImages: [UUID: Data] = [:]
+    for capture in issue.captures {
+      if let path = capture.imagePath {
+        allImages[capture.id] = try Data(contentsOf: URL(fileURLWithPath: path))
+      }
+    }
     try model.updateIssue(id) {
       $0.threadID = sessionID
       $0.turnID = Self.claudeTurnID(sessionID)

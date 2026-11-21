@@ -143,8 +143,8 @@ extension AgentWorker {
     let turn = AgentPrompt.turn(
       for: issue, project: project, threadID: issue.threadID, settings: model.snapshot.settings)
     var input: [JSONValue] = [.object(["type": .string("text"), "text": .string(turn.text)])]
-    for capture in turn.captures {
-      let image = try Data(contentsOf: URL(fileURLWithPath: capture.imagePath))
+    for path in turn.captures.compactMap(\.imagePath) {
+      let image = try Data(contentsOf: URL(fileURLWithPath: path))
       input.append(
         .object([
           "type": .string("image"),

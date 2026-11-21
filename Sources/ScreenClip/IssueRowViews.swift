@@ -27,11 +27,11 @@ struct IssueRow: View {
   @Environment(\.locale) private var locale
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
-      if let image = issue.captures.first.flatMap({ CaptureImageCache.image($0.imagePath) }) {
+      if let image = issue.captures.first?.imagePath.flatMap(CaptureImageCache.image) {
         Image(nsImage: image).resizable().scaledToFill().frame(width: 48, height: 48).clipped()
           .clipShape(RoundedRectangle(cornerRadius: 7))
       } else {
-        Image(systemName: "photo").frame(width: 48, height: 48).background(
+        Image(systemName: issue.captures.first?.imagePath == nil ? "text.alignleft" : "photo").frame(width: 48, height: 48).background(
           .quaternary, in: RoundedRectangle(cornerRadius: 7))
       }
       VStack(alignment: .leading, spacing: 6) {

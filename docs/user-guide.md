@@ -4,11 +4,13 @@ Capture is the point of the app: notice something, grab it, and keep going. Agen
 
 ## Capture
 
-The default shortcut is **⌘⇧2**. Escape cancels the selection. The composer can take a note, freehand drawing, arrows, rectangles, ellipses, text, and an opaque redaction, with undo and redo. A screenshot alone is a valid report. Submit with the primary button or **⌘↩**.
+Choose **Screenshot** in the menu bar or press **⌘⇧2** to select a screen region. Choose **Text note** to type an observation directly. Escape cancels the selection. The composer can take a note, freehand drawing, arrows, rectangles, ellipses, text, and an opaque redaction, with undo and redo. A screenshot alone is a valid report. Submit with the primary button or **⌘↩**.
 
 ScreenClip suggests a project from the app or the browser context. Correct it before submitting. If the project is ambiguous, the report is saved as **Needs project** and no agent starts.
 
 In the composer's **Issue** menu, **New issue** starts a report. Existing issues are listed newest first, and choosing one appends the capture to it. The **Agent** menu also picks the model and reasoning effort in one go: choose an agent to keep its defaults, or open its submenu for a model (**Claude Code ▸ Opus**) and that model's submenu for an effort (**Claude Code ▸ Opus ▸ Extra high**). The default rows name the default when the agent reports it; otherwise the model from Settings applies. Codex lists its own models and efforts once connected; the Claude Code list (Fable, Opus, Sonnet, Haiku) is built in. Grok Bot picks its own model. A follow-up keeps that issue's agent, model, and effort. You cannot switch a submitted issue to a different agent; cancel it and file a new report.
+
+New reports start with the project default. Enable **Use the last agent, model, and effort for new reports** in Project settings to reuse the selection from the last report submitted for that project.
 
 Redaction is only the black rectangles you draw with the redact tool. Those pixels are flattened to opaque black in the saved screenshot. Arrows, pen strokes, shapes, and text do not hide what is underneath. When a capture has a redaction, ScreenClip does not keep the unredacted crop.
 
@@ -50,7 +52,7 @@ A permission from a Codex connector, such as Computer Use asking to control an a
 
 ## Shared agent instructions
 
-Open **Settings → Connections → Agent instructions** to edit the **Default prompt add-on** for all projects. The default asks for original and retested screenshots labeled **Before / After** in visual-fix PRs, with a short retest result or an explanation of missing evidence. Choose **Save settings** to apply edits to the next agent request, leave the text empty to disable it, or use **Restore default prompt**. Screenshot sharing is always enabled. Local agents must supply a retested After PNG; ScreenClip publishes it with the original report image in the PR. Missing images trigger repair or a concrete blocker. See [Coding agents](agents/README.md#default-prompt-add-on) for details.
+Open **Settings → Connections → Agent instructions** to edit the **Default prompt add-on** for all projects. The default asks for original and retested screenshots labeled **Before / After** in visual-fix PRs, with a short retest result or an explanation of missing evidence. Choose **Save settings** to apply edits to the next agent request, leave the text empty to disable it, or use **Restore default prompt**. Screenshot sharing is always enabled. For reports with screenshots, local agents must supply a retested After PNG; ScreenClip publishes it with the original report image in the PR. Missing images trigger repair or a concrete blocker. See [Coding agents](agents/README.md#default-prompt-add-on) for details.
 
 ## What each agent can see
 

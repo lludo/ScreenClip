@@ -50,10 +50,11 @@ struct GrokConnectionCheck: Equatable {
   /// Set when a screenclip://connect link should open the connect sheet.
   @Published var grokConnectRequest: GrokConnectRequest?
   var captureAction: (() -> Void)?
+  var textCaptureAction: (() -> Void)?
   var queueAction: (() -> Void)?
   var settingsAction: (() -> Void)?
   var relaunchAction: (() -> Void)?
-  var composerAction: ((NSImage, CaptureContext, Issue?) -> Void)?
+  var composerAction: ((NSImage?, CaptureContext, Issue?) -> Void)?
   var supportAction: (() -> Void)?
 
   init(root: URL, recoverInterruptedWork: Bool = true) throws {
@@ -209,20 +210,30 @@ struct GrokConnectionCheck: Equatable {
     }
     try commit { state in
       if let index = state.projects.firstIndex(where: { $0.id == project.id }) {
-        state.projects[index] = project
+        // A report can be filed while the project editor is open.
+        var edited = project
+        edited.lastAgentChoice = state.projects[index].lastAgentChoice
+        state.projects[index] = edited
       } else {
         state.projects.append(project)
       }
     }
   }
   func submit(
-    imageData: Data, originalData: Data?, annotations: [Annotation], note: String,
+    imageData: Data?, originalData: Data?, annotations: [Annotation], note: String,
     context: CaptureContext, projectID: UUID?, existingID: UUID?, draft: Bool,
     agent: AgentKind? = nil, agentModel: String? = nil, agentEffort: String? = nil
   ) throws {
-    let chosenAgent = AgentSelection.capture(
-      override: agent, project: projectID.flatMap(project), system: snapshot.settings.preferredAgent)
-    if draft, let existingID, let target = issue(existingID), target.status != .draft {
+    guard imageData != nil || !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+      throw ScreenClipError.message("Enter some context before saving.")
+    }
+    let target = existingID.flatMap(issue)
+    var choice = initialAgentChoice(for: projectID)
+    if agent != nil || agentModel != nil {
+      choice = ReportAgentChoice(agent: agent ?? choice.agent, model: agentModel, effort: agentEffort)
+    }
+    let chosenAgent = target.flatMap { $0.status == .draft ? nil : $0.resolvedAgent } ?? choice.agent
+    if draft, let target, target.status != .draft {
       throw ScreenClipError.message(
         "Drafts cannot be added to a submitted issue. Submit the capture, or choose New issue.")
     }
@@ -231,16 +242,21 @@ struct GrokConnectionCheck: Equatable {
         configured: loadExternalAssistant().isConfigured, hasProject: true)
       if let hint = availability.hint { throw ScreenClipError.message(hint) }
     }
-    let approved = try store.writeAsset(imageData)
+    let approved = try imageData.map { try store.writeAsset($0) }
     // A redacted original is never retained where a local coding agent could read it.
     var original: String?
-    let replacedDraft = existingID.flatMap { issue($0) }.flatMap { $0.status == .draft ? $0 : nil }
+    let replacedDraft = target.flatMap { $0.status == .draft ? $0 : nil }
     do {
-      original = try originalData.map { try store.writeAsset($0, original: true) }
+      if approved != nil { original = try originalData.map { try store.writeAsset($0, original: true) } }
       let capture = Capture(
         note: note, imagePath: approved, originalPath: original, annotations: annotations,
         context: context)
       try commit { state in
+        if !draft, target == nil || target?.status == .draft,
+          let index = state.projects.firstIndex(where: { $0.id == projectID })
+        {
+          state.projects[index].lastAgentChoice = choice
+        }
         // Remember the app for the project the tester chose, so its next capture routes itself.
         // Drafts are not a confirmed choice yet.
         if !draft, let projectID,
@@ -257,8 +273,8 @@ struct GrokConnectionCheck: Equatable {
           }
           if state.issues[index].status == .draft {
             state.issues[index].agent = chosenAgent
-            state.issues[index].agentModel = agentModel
-            state.issues[index].agentEffort = agentModel == nil ? nil : agentEffort
+            state.issues[index].agentModel = choice.model
+            state.issues[index].agentEffort = choice.effort
             state.issues[index].projectID = projectID
             state.issues[index].captures = [capture] + state.issues[index].captures.dropFirst()
             state.issues[index].revision += 1
@@ -277,14 +293,14 @@ struct GrokConnectionCheck: Equatable {
             } ?? (context.appName.isEmpty ? "New observation" : "Observation in " + context.appName)
           var issue = Issue(
             projectID: projectID, title: title, capture: capture, draft: draft, agent: chosenAgent)
-          issue.agentModel = agentModel
-          issue.agentEffort = agentModel == nil ? nil : agentEffort
+          issue.agentModel = choice.model
+          issue.agentEffort = choice.effort
           state.issues.append(issue)
           selectedIssueID = issue.id
         }
       }
     } catch {
-      try? FileManager.default.removeItem(atPath: approved)
+      if let approved { try? FileManager.default.removeItem(atPath: approved) }
       if let original { try? FileManager.default.removeItem(atPath: original) }
       throw error
     }
@@ -345,8 +361,10 @@ struct GrokConnectionCheck: Equatable {
     var copied: [String] = []
     do {
       let captures = try issue.captures.map { capture -> Capture in
-        let image = try store.writeAsset(Data(contentsOf: URL(fileURLWithPath: capture.imagePath)))
-        copied.append(image)
+        let image = try capture.imagePath.map {
+          try store.writeAsset(Data(contentsOf: URL(fileURLWithPath: $0)))
+        }
+        if let image { copied.append(image) }
         let original = try capture.originalPath.map {
           try store.writeAsset(Data(contentsOf: URL(fileURLWithPath: $0)), original: true)
         }
@@ -442,9 +460,14 @@ struct GrokConnectionCheck: Equatable {
         throw ScreenClipError.message(
           "Dispatch was not acknowledged. Use Reconcile chat before retrying.")
       }
-      try updateIssue(id) { issue in
-        issue.lastError = nil
-        issue.record("Queued to continue", status: issue.projectID == nil ? .needsProject : .queued)
+      try commit { state in
+        guard let index = state.issues.firstIndex(where: { $0.id == id }) else { return }
+        if issue.status == .draft, let project = state.projects.firstIndex(where: { $0.id == issue.projectID }) {
+          state.projects[project].lastAgentChoice = ReportAgentChoice(
+            agent: issue.resolvedAgent, model: issue.agentModel, effort: issue.agentEffort)
+        }
+        state.issues[index].lastError = nil
+        state.issues[index].record("Queued to continue", status: issue.projectID == nil ? .needsProject : .queued)
       }
     }
     worker.pump()
@@ -621,9 +644,10 @@ struct GrokConnectionCheck: Equatable {
       ),
     ]
   }
-  func effectiveAgent(for projectID: UUID?) -> AgentKind {
-    AgentSelection.projectDefault(
-      projectID.flatMap(project), system: snapshot.settings.preferredAgent)
+  func initialAgentChoice(for projectID: UUID?) -> ReportAgentChoice {
+    let project = project(projectID)
+    if let project, project.reuseLastAgentChoice, let choice = project.lastAgentChoice { return choice }
+    return ReportAgentChoice(agent: AgentSelection.projectDefault(project, system: snapshot.settings.preferredAgent))
   }
   /// Models offered for a report after choosing `kind`. Grok Bot picks its own model.
   func modelOptions(for kind: AgentKind) -> [AgentModelOption] {

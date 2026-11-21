@@ -43,16 +43,13 @@ import ScreenClipCore
         }
       })
   }
-  func begin(sourceOverride: NSRunningApplication? = nil) {
-    guard !model.captureBusy else { return }
-    model.captureBusy = true
-    model.captureDiagnostics.record("capture.shortcut")
-    let hideScreenClip = model.snapshot.settings.shouldHideScreenClipDuringCapture
-    let source =
-      sourceOverride
-      ?? NSWorkspace.shared.frontmostApplication.flatMap {
-        $0.bundleIdentifier == Bundle.main.bundleIdentifier && hideScreenClip ? lastExternalApp : $0
-      }
+  private func sourceApp(override: NSRunningApplication?) -> NSRunningApplication? {
+    override ?? NSWorkspace.shared.frontmostApplication.flatMap {
+      $0.bundleIdentifier == Bundle.main.bundleIdentifier
+        && model.snapshot.settings.shouldHideScreenClipDuringCapture ? lastExternalApp : $0
+    }
+  }
+  private func context(for source: NSRunningApplication?) -> CaptureContext {
     var context = CaptureContext(
       appName: source?.localizedName ?? "", bundleID: source?.bundleIdentifier ?? "",
       sessionName: model.snapshot.settings.sessionName,
@@ -60,6 +57,20 @@ import ScreenClipCore
     if model.snapshot.settings.browserContext {
       context.browserURL = Self.browserURL(bundleID: context.bundleID)
     }
+    context.routingReason = ProjectRouter.infer(context, projects: model.snapshot.projects).reason
+    return context
+  }
+  func beginText(sourceOverride: NSRunningApplication?) {
+    guard !model.captureBusy else { return }
+    model.composerAction?(nil, context(for: sourceApp(override: sourceOverride)), nil)
+  }
+  func begin(sourceOverride: NSRunningApplication? = nil) {
+    guard !model.captureBusy else { return }
+    model.captureBusy = true
+    model.captureDiagnostics.record("capture.shortcut")
+    let hideScreenClip = model.snapshot.settings.shouldHideScreenClipDuringCapture
+    let source = sourceApp(override: sourceOverride)
+    var context = context(for: source)
     Task { [self] in
       do {
         let content = try await model.capturePermission.obtain {
@@ -96,8 +107,6 @@ import ScreenClipCore
         guard !backdrops.isEmpty else {
           throw ScreenClipError.message("No display is available for capture.")
         }
-        let decision = ProjectRouter.infer(context, projects: model.snapshot.projects)
-        context.routingReason = decision.reason
         if model.capturePermissionIssue {
           model.banner = nil
           model.capturePermissionIssue = false
