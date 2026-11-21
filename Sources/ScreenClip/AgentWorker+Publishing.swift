@@ -170,7 +170,7 @@ extension AgentWorker {
   }
   /// A report that stopped for attention (a base conflict, failing checks, a question) keeps
   /// its pull request, and the tester may resolve and merge that pull request on GitHub.
-  static func awaitsMergeOutsideScreenClip(_ issue: Issue) -> Bool {
+  nonisolated static func awaitsMergeOutsideScreenClip(_ issue: Issue) -> Bool {
     [.needsYou, .failed].contains(issue.status) && issue.prURL != nil && !issue.archived
   }
   /// Only watches for a merge: anything else about the pull request waits for Continue.
