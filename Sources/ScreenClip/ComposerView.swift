@@ -194,14 +194,16 @@ struct ComposerView: View {
               Text(chrome: "Agent", comment: "Caption above the agent picker.").font(.caption)
                 .foregroundStyle(.secondary)
               Picker(selection: $agent) {
+                // The pop-up sizes its button from its option labels.
                 if agentChoices.isEmpty && lockedAgent == nil {
                   Text(verbatim: model.detectingAgents
                     ? Chrome.text("Checking agents…", locale: locale, comment: "Agent list is still loading.")
                     : Chrome.text("No agents available", locale: locale, comment: "No coding agent can take this report.")
-                  ).tag(agent)
+                  ).frame(idealWidth: column, maxWidth: .infinity, alignment: .leading).tag(agent)
                 } else {
                   ForEach(agentChoices, id: \.self) { kind in
-                    AgentLabel(kind: kind).tag(kind)
+                    AgentLabel(kind: kind)
+                      .frame(idealWidth: column, maxWidth: .infinity, alignment: .leading).tag(kind)
                   }
                 }
               } label: {
@@ -233,15 +235,15 @@ struct ComposerView: View {
             .textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
         }
         HStack(alignment: .center) {
+          Spacer(minLength: 8)
+          Text(chrome: "⌘ Return to submit", comment: "Hint that Command-Return submits. Keep the ⌘ symbol.")
+            .font(.caption).foregroundStyle(.tertiary)
+            .fixedSize(horizontal: false, vertical: true)
           if canSaveDraft {
             Button { submit(draft: true) } label: {
               Text(chrome: "Save draft", comment: "Saves the capture without sending it.")
             }.keyboardShortcut("s", modifiers: .command)
           }
-          Spacer(minLength: 8)
-          Text(chrome: "⌘ Return to submit", comment: "Hint that Command-Return submits. Keep the ⌘ symbol.")
-            .font(.caption).foregroundStyle(.tertiary)
-            .fixedSize(horizontal: false, vertical: true)
           Button(action: { submit(draft: false) }) {
             Text(chrome: "Submit", comment: "Submits the capture.")
           }.buttonStyle(.borderedProminent).tint(.orange)

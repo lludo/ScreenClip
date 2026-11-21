@@ -57,10 +57,11 @@ public enum ProcessEnvironment {
   static func path(base: String?, login: String? = nil) -> String {
     var seen = Set<String>()
     let existing = userToolDirectories().filter { FileManager.default.fileExists(atPath: $0) }
-    let entries =
-      searchPath.split(separator: ":").map(String.init) + existing
-      + (login ?? loginState.path ?? "").split(separator: ":").map(String.init)
-      + (base ?? "").split(separator: ":").map(String.init)
+    let loginPath = login ?? loginState.path ?? ""
+    var entries: [String] = searchPath.split(separator: ":").map(String.init)
+    entries.append(contentsOf: existing)
+    entries.append(contentsOf: loginPath.split(separator: ":").map(String.init))
+    entries.append(contentsOf: (base ?? "").split(separator: ":").map(String.init))
     return entries.filter { !$0.isEmpty && seen.insert($0).inserted }.joined(separator: ":")
   }
 
