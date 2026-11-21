@@ -474,9 +474,7 @@ public enum AgentPicker {
     }
   }
 
-  public static func externalAvailability(
-    configured: Bool, hasProject: Bool, projectOptIn: Bool
-  ) -> ExternalAgentAvailability {
+  public static func externalAvailability(configured: Bool, hasProject: Bool) -> ExternalAgentAvailability {
     if !configured {
       return ExternalAgentAvailability(
         enabled: false, hint: ProviderPhrase.notConnected.english(.external))

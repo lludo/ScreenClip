@@ -174,12 +174,12 @@ final class ExternalAssistantTests: XCTestCase {
     XCTAssertNil(GitHubRepository.parse(remote: "https://notgithub.com/lludo/ScreenClip"))
   }
 
-  func testScreenshotSharingIsAlwaysEnabledForOlderAndOptedOutProjects() throws {
+  func testScreenshotSharingPreferenceSurvivesARoundTrip() throws {
     var project = Project(name: "P", path: "/p")
     for preference: Bool? in [nil, false, true] {
       project.allowExternalScreenshots = preference
       let decoded = try JSONDecoder().decode(Project.self, from: JSONEncoder().encode(project))
-      XCTAssertTrue(decoded.sendsExternalScreenshots)
+      XCTAssertEqual(decoded.allowExternalScreenshots, preference)
     }
   }
 
@@ -230,20 +230,13 @@ final class ExternalAssistantTests: XCTestCase {
       ).isConfigured)
     XCTAssertFalse(ExternalAssistantConfiguration.isSafeHeaderValue("Bearer\r\nX-Injected: 1"))
 
-    let unconfigured = AgentPicker.externalAvailability(
-      configured: false, hasProject: true, projectOptIn: true)
+    let unconfigured = AgentPicker.externalAvailability(configured: false, hasProject: true)
     XCTAssertFalse(unconfigured.enabled)
     XCTAssertEqual(unconfigured.hint, "Grok Bot is not connected")
-    let noProject = AgentPicker.externalAvailability(
-      configured: true, hasProject: false, projectOptIn: false)
+    let noProject = AgentPicker.externalAvailability(configured: true, hasProject: false)
     XCTAssertFalse(noProject.enabled)
     XCTAssertTrue(noProject.hint?.contains("Choose a project") == true)
-    let optedOut = AgentPicker.externalAvailability(
-      configured: true, hasProject: true, projectOptIn: false)
-    XCTAssertTrue(optedOut.enabled)
-    XCTAssertNil(optedOut.hint)
-    let available = AgentPicker.externalAvailability(
-      configured: true, hasProject: true, projectOptIn: true)
+    let available = AgentPicker.externalAvailability(configured: true, hasProject: true)
     XCTAssertTrue(available.enabled)
     XCTAssertNil(available.hint)
   }

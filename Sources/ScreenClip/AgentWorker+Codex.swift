@@ -196,14 +196,6 @@ extension AgentWorker {
     if let effort = issue.agentEffort, !effort.isEmpty { params["effort"] = .string(effort) }
     return params
   }
-  /// The report's model and effort for `turn/start`. Owned threads skip thread/resume, so the
-  /// turn carries the report's choice. Without one the thread keeps the Settings model.
-  static func codexModelParams(for issue: Issue) -> [String: JSONValue] {
-    guard let chosen = issue.agentModel, !chosen.isEmpty else { return [:] }
-    var params: [String: JSONValue] = ["model": .string(chosen)]
-    if let effort = issue.agentEffort, !effort.isEmpty { params["effort"] = .string(effort) }
-    return params
-  }
   /// Completion of a Codex turn arrives only as an app-server event. If Codex stalls without
   /// disconnecting, that event never comes, so stop the turn after `turnTimeLimit`. Time the
   /// turn spends waiting for the tester's answer does not count.

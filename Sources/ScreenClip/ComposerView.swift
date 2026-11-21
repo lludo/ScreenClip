@@ -31,6 +31,8 @@ struct ComposerView: View {
   @State private var agentModel: String?
   @State private var agentEffort: String?
   @State private var error: String?
+  /// Whether Grok Bot is connected. Cached: the Keychain must not be read on every keystroke.
+  @State private var externalConfigured = false
   @FocusState private var noteFocused: Bool
   @Environment(\.locale) private var locale
   var body: some View {
@@ -216,7 +218,7 @@ struct ComposerView: View {
           Text(verbatim: hint).font(.caption).foregroundStyle(.orange)
             .fixedSize(horizontal: false, vertical: true)
         } else if model.effectiveAgent(for: projectID) == .external,
-          model.loadExternalAssistant().isConfigured == false
+          !externalConfigured
         {
           Text(verbatim: ProviderPhrase.notConnected.localized(.external, locale: locale))
             .font(.caption).foregroundStyle(.orange)
@@ -246,6 +248,7 @@ struct ComposerView: View {
     }
     .frame(minWidth: 680, idealWidth: 860, minHeight: 560, idealHeight: 720)
     .onAppear {
+      externalConfigured = model.loadExternalAssistant().isConfigured
       noteFocused = true
       projectID =
         existing?.projectID
@@ -281,7 +284,11 @@ struct ComposerView: View {
       }
       reconcileAgent()
     }
-    .onChange(of: model.agents) { _, _ in reconcileAgent() }
+    .onChange(of: model.agents) { _, _ in
+      // Saving or removing the Grok Bot connection refreshes the agent list.
+      externalConfigured = model.loadExternalAssistant().isConfigured
+      reconcileAgent()
+    }
     .onChange(of: model.codexModels) { _, _ in reconcileAgent() }
   }
   /// Drafts are new reports or the draft being edited, never evidence on a submitted issue.
@@ -302,9 +309,7 @@ struct ComposerView: View {
     return target.resolvedAgent
   }
   private var externalAvailability: ExternalAgentAvailability {
-    AgentPicker.externalAvailability(
-      configured: model.loadExternalAssistant().isConfigured, hasProject: projectID != nil,
-      projectOptIn: model.project(projectID)?.sendsExternalScreenshots == true)
+    AgentPicker.externalAvailability(configured: externalConfigured, hasProject: projectID != nil)
   }
   private var agentChoices: [AgentKind] {
     if let lockedAgent { return [lockedAgent] }

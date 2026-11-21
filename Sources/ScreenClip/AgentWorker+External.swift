@@ -54,7 +54,7 @@ extension AgentWorker {
     let configuration = model.loadExternalAssistant()
     guard configuration.isConfigured, let endpoint = configuration.endpoint else {
       throw ScreenClipError.message(
-        AgentPicker.externalAvailability(configured: false, hasProject: true, projectOptIn: true).hint
+        AgentPicker.externalAvailability(configured: false, hasProject: true).hint
           ?? "Grok Bot is not connected.")
     }
     let repo = try await githubRepo(project)

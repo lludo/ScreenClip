@@ -57,7 +57,6 @@ public struct Project: Codable, Identifiable, Equatable {
   public var autoMerge: Bool
   /// Legacy persisted preference, retained for decoding older queues. Sharing is always enabled.
   public var allowExternalScreenshots: Bool? = nil
-  public var sendsExternalScreenshots: Bool { true }
   /// nil follows the system default. An explicit provider stays when the system default changes.
   public var defaultAgent: AgentKind? = nil
   public var codexApprovalMode: CodexApprovalMode = .automaticReview
@@ -435,7 +434,6 @@ public struct Issue: Codable, Identifiable, Equatable {
     prepareForNewEvidence()
     captures.append(capture)
     revision += 1
-    updatedAt = Date()
     archived = false
     if resolvedAgent == .external {
       // A new revision is another handoff on the same branch, including while a PR is open.
@@ -443,7 +441,7 @@ public struct Issue: Codable, Identifiable, Equatable {
     } else if ![.working, .needsYou].contains(status) {
       status = projectID == nil ? .needsProject : .queued
     }
-    activities.append(Activity("Added capture \(captures.count)"))
+    record("Added capture \(captures.count)")
   }
   public mutating func addContext(_ text: String) {
     prepareForNewEvidence()
@@ -461,7 +459,7 @@ public struct Issue: Codable, Identifiable, Equatable {
   private mutating func prepareForNewEvidence() {
     repairAttempts = 0
     if [.merged, .verified].contains(status) {
-      if let prURL { activities.append(Activity("Previous fix: " + prURL)) }
+      if let prURL { record(ExternalAssistant.previousFixPrefix + prURL) }
       workspaceID = UUID()
       worktreePath = nil
       branch = nil
