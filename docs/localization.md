@@ -16,6 +16,8 @@ Counts such as "1 Open" use plural forms. Dates and numbers use the formatters a
 | `Sources/ScreenClipCore/Localizable.xcstrings` | Status names and agent-detection sentences. The core package looks these up with `Bundle.module` |
 | `Resources/InfoPlist.xcstrings` | The Screen Recording and Automation permission prompts |
 
+The Swift package uses the `CompileStringCatalog` build plugin to compile the app and core catalogs into localized `.strings` and `.stringsdict` resources. This also supplies translations when running `swift test` with the native SwiftPM build system.
+
 The catalogs are generated. Edit the Python sources, then regenerate. Do not hand-edit the `.xcstrings` files.
 
 - `scripts/l10n_part1.py`, `scripts/l10n_part2.py`, and `scripts/l10n_part3.py` hold one row per plain string. Part 2 imports part 1, part 3 imports part 2, and `scripts/build_string_catalogs.py` imports part 3.

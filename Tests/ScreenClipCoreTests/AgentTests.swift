@@ -146,8 +146,10 @@ final class AgentTests: XCTestCase {
       resumed[resumed.firstIndex(of: "--resume")! + 1], "11111111-2222-3333-4444-555555555555")
     XCTAssertFalse(resumed.contains("--session-id"))
     XCTAssertEqual(resumed[resumed.firstIndex(of: "--permission-mode")! + 1], "auto")
-    XCTAssertEqual(resumed[resumed.firstIndex(of: "--settings")! + 1],
-      created[created.firstIndex(of: "--settings")! + 1])
+    let resumedSettings = try JSONDecoder().decode(
+      JSONValue.self,
+      from: Data(resumed[resumed.firstIndex(of: "--settings")! + 1].utf8))
+    XCTAssertEqual(resumedSettings, settings)
   }
 
   func testUserMessageCarriesPromptAndScreenshots() {
