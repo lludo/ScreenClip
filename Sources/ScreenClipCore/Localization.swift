@@ -22,11 +22,6 @@ extension IssueStatus {
 extension AgentDetection {
   public func localizedDetail(locale: Locale) -> String {
     if let match = ProviderPhrase.localizedMatch(detail, locale: locale) { return match }
-    let prefix = "\(kind.title) ready · "
-    if detail.hasPrefix(prefix) {
-      let extra = String(detail.dropFirst(prefix.count))
-      return ProviderPhrase.readyDetailLocalized(kind: kind, extra: extra, locale: locale)
-    }
     let at = "\(kind.title) at "
     let suffix = " did not respond."
     if detail.hasPrefix(at), detail.hasSuffix(suffix) {
@@ -61,15 +56,9 @@ public enum CoreChrome {
   }
 
   static let exact: Set<String> = [
-    "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → Connections → External assistant.",
     "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant.",
-    "Detected. Webhook and Authorization header are saved in the Keychain.",
-    "Send test succeeded.",
     "Codex CLI not found.",
     "Claude Code CLI not found. Install it from claude.com/claude-code.",
-    "Grok Bot — not connected",
-    "Not connected — Connect Grok Bot",
-    "Not connected — Connect Grok Bot. The address has to start with https, and the secret can't contain a line break.",
     "Connected",
     "Choose a project that can share screenshots with Grok Bot.",
     "Enter the key from the ScreenClip reports routine.",
@@ -77,9 +66,6 @@ public enum CoreChrome {
     "The key can't contain a line break.",
     "Paste the Webhook URL on one line and the Authorization header on the next. Copy both from the ScreenClip reports routine in Grok Bot.",
     "Add the webhook URL too. Copy it from the ScreenClip reports routine and paste it with the Authorization header.",
-    "Codex — not found",
-    "Claude Code — not found",
-    "Claude Code — signed out",
     "Draft",
     "Needs project",
     "Queued",

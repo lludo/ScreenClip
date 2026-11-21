@@ -1,7 +1,5 @@
 import ScreenClipCore
-import ServiceManagement
 import SwiftUI
-import UserNotifications
 
 struct ScreenCapturePermissionControls: View {
   @ObservedObject var model: AppModel
@@ -124,78 +122,6 @@ struct CodexConnectionControls: View {
     return .secondary
   }
 }
-struct GrokBotConnectionFields: View {
-  @Binding var webhookURL: String
-  @Binding var authorization: String
-  var sendingTest: Bool
-  var testResult: String?
-  var sendTest: () -> Void
-  @Environment(\.locale) private var locale
-  var body: some View {
-    TextField(
-      text: $webhookURL,
-      prompt: Text(verbatim: "https://")
-    ) {
-      Text(chrome: "Webhook URL", comment: "Grok Bot webhook URL field. Keep URL.")
-        .fixedSize(horizontal: false, vertical: true)
-    }
-    SecureField(text: $authorization) {
-      Text(chrome: "Authorization header", comment: "Grok Bot Authorization header field. Keep Authorization.")
-        .fixedSize(horizontal: false, vertical: true)
-    }
-    Text(
-      chrome:
-        "Paste the Webhook URL and the Authorization header from the Grok Bot routine panel. ScreenClip sends that header value as the HTTP Authorization header and does not add a prefix. Both are stored in the Keychain, not in the queue database.",
-      comment: "Explains the Grok Bot connection fields. Keep HTTP, Authorization, and Keychain."
-    ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-    HStack {
-      Button(action: sendTest) {
-        if sendingTest {
-          Text(chrome: "Sending…", comment: "Grok Bot test request is in flight.")
-        } else {
-          Text(chrome: "Send test", comment: "Posts a test webhook to Grok Bot.")
-        }
-      }.disabled(
-        sendingTest || webhookURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-          || authorization.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-      if sendingTest { ProgressView().controlSize(.small) }
-    }
-    if let testResult {
-      Text(verbatim: Chrome.stored(testResult, locale: locale)).font(.caption)
-        .foregroundStyle(.secondary).textSelection(.enabled)
-        .fixedSize(horizontal: false, vertical: true)
-    }
-    Text(
-      chrome:
-        "Send test posts {\"schema\":\"screenclip.external.v1.test\"} and shows the HTTP result. Grok Bot is listed as Detected once both values are saved; a successful test is optional.",
-      comment: "Explains the test payload. Keep the schema identifier and HTTP."
-    ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-  }
-}
-
-/// The Grok Bot connection form, framed the way Settings presents it and how screenshots show the sheet.
-struct ConnectGrokBotSheet: View {
-  @Binding var webhookURL: String
-  @Binding var authorization: String
-  var sendingTest: Bool = false
-  var testResult: String?
-  var sendTest: () -> Void = {}
-  var body: some View {
-    VStack(alignment: .leading, spacing: 16) {
-      Text(chrome: "Connect Grok Bot", comment: "Title of the Grok Bot connection form.")
-        .font(.title2.weight(.semibold))
-        .fixedSize(horizontal: false, vertical: true)
-      Form {
-        GrokBotConnectionFields(
-          webhookURL: $webhookURL, authorization: $authorization, sendingTest: sendingTest,
-          testResult: testResult, sendTest: sendTest)
-      }
-    }
-    .padding(24)
-    .frame(minWidth: 560, idealWidth: 680)
-  }
-}
-
 struct AgentDetectionRow: View {
   let kind: AgentKind
   let detection: AgentDetection?

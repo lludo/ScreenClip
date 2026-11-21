@@ -5,15 +5,9 @@ import SwiftUI
 struct AgentIcon: View {
   let kind: AgentKind
   var body: some View {
-    #if SWIFT_PACKAGE
-    Image(assetName, bundle: .module)
+    Image(assetName, bundle: AppLocalization.bundle)
       .renderingMode(.template).resizable().scaledToFit().frame(width: 14, height: 14)
       .accessibilityHidden(true)
-    #else
-    Image(assetName)
-      .renderingMode(.template).resizable().scaledToFit().frame(width: 14, height: 14)
-      .accessibilityHidden(true)
-    #endif
   }
   private var assetName: String {
     switch kind {

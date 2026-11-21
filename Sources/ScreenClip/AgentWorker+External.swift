@@ -7,7 +7,7 @@ import ScreenClipCore
 /// Grok Bot has no local session, so there is nothing to reconcile or interrupt.
 extension AgentWorker {
   enum ExternalInspection {
-    case ready(Bool)
+    case ready
     /// Not validated on this Mac (automatic merge is off). PR status is still shown.
     case unvalidated
     case blocked
@@ -157,11 +157,7 @@ extension AgentWorker {
       }
       return
     }
-    let begun = ExternalHandoff.beginSend(
-      ExternalHandoffState(
-        revision: preparedRevision, handoffRevision: current.handoffRevision,
-        handoffCommit: commit, uncertain: false),
-      revision: preparedRevision, commit: commit)
+    let begun = ExternalHandoff.beginSend(revision: preparedRevision, commit: commit)
     let attempt = ExternalDeliveryAttempt.next(
       stored: current.handoffAttempts, handoffRevision: current.handoffRevision,
       revision: preparedRevision)
@@ -212,16 +208,9 @@ extension AgentWorker {
     }
     return repo.slug
   }
-  private func receiptURL(_ issue: Issue) -> URL {
-    model.store.root.appendingPathComponent("runs/\(issue.workspaceID).json")
-  }
-  private func loadReceipt(_ id: UUID, issue: Issue) -> ValidationReceipt? {
-    if let receipt = receipts[id] { return receipt }
-    return try? JSONDecoder().decode(
-      ValidationReceipt.self, from: Data(contentsOf: receiptURL(issue)))
-  }
-  private func noteScreenclipEvidence(_ id: UUID) throws {
-    let summary = ExternalAssistant.evidenceStillPresentSummary
+  private static let validationFailedSummary = "Project validation failed for this pull request head."
+  /// Shows `summary` as the check summary, recording it in the activity only when it changes.
+  private func noteCheckSummary(_ id: UUID, _ summary: String) throws {
     try model.updateIssue(id) { issue in
       if issue.checkSummary != summary {
         issue.record(summary)
@@ -229,6 +218,9 @@ extension AgentWorker {
       }
       issue.checkSummary = summary
     }
+  }
+  private func noteScreenclipEvidence(_ id: UUID) throws {
+    try noteCheckSummary(id, ExternalAssistant.evidenceStillPresentSummary)
   }
   func inspectExternal(
     _ id: UUID, issue: Issue, project: Project, path: String, pullHead: String
@@ -245,14 +237,8 @@ extension AgentWorker {
     try await GitHubService.fastForwardToFetchHead(cwd: path)
     let head = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
     guard head == pullHead else {
-      let summary = "The pull request head does not match the \(branch) branch ScreenClip is watching."
-      try model.updateIssue(id) {
-        if $0.checkSummary != summary {
-          $0.record(summary)
-          $0.unread = true
-        }
-        $0.checkSummary = summary
-      }
+      try noteCheckSummary(
+        id, "The pull request head does not match the \(branch) branch ScreenClip is watching.")
       return .blocked
     }
     let localPaths = try await GitHubService.listScreenclipPaths(revision: "HEAD", cwd: path)
@@ -265,16 +251,9 @@ extension AgentWorker {
         if model.issue(id)?.prHead != head {
           try model.updateIssue(id) { $0.prHead = head }
         }
-        return .ready(true)
+        return .ready
       }
-      let summary = "Project validation failed for this pull request head."
-      try model.updateIssue(id) {
-        if $0.checkSummary != summary {
-          $0.record(summary)
-          $0.unread = true
-        }
-        $0.checkSummary = summary
-      }
+      try noteCheckSummary(id, Self.validationFailedSummary)
       return .blocked
     }
     // The validation command runs the pull request's code on this Mac. Without automatic
@@ -297,23 +276,21 @@ extension AgentWorker {
         output: error.localizedDescription, fingerprint: "")
       try model.updateIssue(id) { $0.lastError = error.localizedDescription }
     }
-    receipts[id] = validated
-    try JSONEncoder().encode(validated).write(to: receiptURL(issue), options: .atomic)
+    try saveReceipt(validated, for: id, issue: issue)
     try model.updateIssue(id) { $0.prHead = validated.head }
     guard validated.passed else {
-      let summary = "Project validation failed for this pull request head."
       try model.updateIssue(id) {
-        $0.checkSummary = summary
-        $0.record(summary)
+        $0.checkSummary = Self.validationFailedSummary
+        $0.record(Self.validationFailedSummary)
         $0.unread = true
       }
       return .blocked
     }
-    return .ready(true)
+    return .ready
   }
   /// Puts the worktree back on `head`. A failed reset leaves an unvalidated merge that blocks
   /// every later refresh, so it is reported (with the error that caused the rollback) instead of ignored.
-  func rollBackBase(_ path: String, to head: String, after cause: Error?) async throws {
+  private func rollBackBase(_ path: String, to head: String, after cause: Error?) async throws {
     do {
       _ = try await CommandRunner.checked(GitWorkspace.git, ["reset", "--hard", head], cwd: path)
     } catch {
@@ -354,8 +331,7 @@ extension AgentWorker {
       try noteScreenclipEvidence(id)
       return
     }
-    receipts[id] = validated
-    try JSONEncoder().encode(validated).write(to: receiptURL(issue), options: .atomic)
+    try saveReceipt(validated, for: id, issue: issue)
     do {
       _ = try await CommandRunner.checked(
         GitWorkspace.git, ["push", "origin", "HEAD:\(branch)"], cwd: path)

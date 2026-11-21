@@ -392,9 +392,7 @@ struct QueueView: View {
             }
             .padding(.vertical, 4).contentShape(Rectangle())
             .fontWeight(selection == .status(item) ? .bold : .regular)
-          }.buttonStyle(.plain)
-            .listRowBackground(sidebarHighlight(selection == .status(item)))
-            .accessibilityAddTraits(selection == .status(item) ? .isSelected : [])
+          }.sidebarRow(selected: selection == .status(item))
         }
       } header: {
         sidebarHeader(Chrome.text("WORKSPACE", locale: locale, comment: "Sidebar section heading for status filters."))
@@ -407,10 +405,9 @@ struct QueueView: View {
             Label(project.name, systemImage: project.displaySymbol)
               .fontWeight(selection == .project(project.id) ? .bold : .regular)
               .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-          }.buttonStyle(.plain).help(
+          }.help(
             Text(chrome: "Project settings", comment: "Opens settings for this project."))
-            .listRowBackground(sidebarHighlight(selection == .project(project.id)))
-            .accessibilityAddTraits(selection == .project(project.id) ? .isSelected : [])
+            .sidebarRow(selected: selection == .project(project.id))
         }
         Button {
           selection = .newProject
@@ -423,9 +420,7 @@ struct QueueView: View {
           .fontWeight(selection == .newProject ? .bold : .regular)
           .foregroundStyle(selection == .newProject ? Color.primary : Color.secondary)
           .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
-        }.buttonStyle(.plain)
-          .listRowBackground(sidebarHighlight(selection == .newProject))
-          .accessibilityAddTraits(selection == .newProject ? .isSelected : [])
+        }.sidebarRow(selected: selection == .newProject)
       } header: {
         sidebarHeader(Chrome.text("PROJECTS", locale: locale, comment: "Sidebar section heading for projects."))
       }
@@ -440,14 +435,6 @@ struct QueueView: View {
       .fixedSize(horizontal: false, vertical: true)
   }
   /// Finder-style selection: a rounded neutral pill behind the row, with bold text.
-  @ViewBuilder private func sidebarHighlight(_ selected: Bool) -> some View {
-    if selected {
-      RoundedRectangle(cornerRadius: 8, style: .continuous)
-        .fill(Color.primary.opacity(0.1)).padding(.horizontal, 6)
-    } else {
-      Color.clear
-    }
-  }
   private var sidebarFooter: some View {
     VStack(alignment: .leading, spacing: 8) {
       ForEach(model.agentStatuses, id: \.kind) { status in
@@ -484,5 +471,17 @@ struct SidebarLabelStyle: LabelStyle {
     } icon: {
       configuration.icon.foregroundStyle(.orange)
     }
+  }
+}
+
+extension View {
+  /// A sidebar button row: plain style, a rounded highlight and the selected trait.
+  fileprivate func sidebarRow(selected: Bool) -> some View {
+    buttonStyle(.plain)
+      .listRowBackground(
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+          .fill(selected ? Color.primary.opacity(0.1) : Color.clear).padding(.horizontal, 6)
+      )
+      .accessibilityAddTraits(selected ? .isSelected : [])
   }
 }

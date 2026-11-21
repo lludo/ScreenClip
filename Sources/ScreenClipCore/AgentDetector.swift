@@ -194,8 +194,7 @@ public enum AgentDetector {
   }
 
   private static func version(_ path: String) async -> String? {
-    guard !path.isEmpty, FileManager.default.isExecutableFile(atPath: path),
-      let result = try? await CommandRunner.run(path, ["--version"], timeout: 15),
+    guard let result = try? await CommandRunner.run(path, ["--version"], timeout: 15),
       result.status == 0
     else { return nil }
     let text = result.output.trimmingCharacters(in: .whitespacesAndNewlines)

@@ -59,10 +59,7 @@ public actor CodexClient {
     return stream
   }
   public func projectID(forRepositoryPath path: String) async throws -> String? {
-    func canonicalPath(_ path: String) -> String {
-      URL(fileURLWithPath: path).standardizedFileURL.resolvingSymlinksInPath().path
-    }
-    let repository = canonicalPath(path)
+    let repository = GitWorkspace.canonical(path)
     var matches = Set<String>()
     var cursors = Set<String>()
     var cursor: String?
@@ -74,7 +71,7 @@ public actor CodexClient {
         guard let id = project["id"].string, !id.isEmpty else { continue }
         if project["roots"].array.contains(where: { root in
           guard let rootPath = root["path"].string else { return false }
-          return canonicalPath(rootPath) == repository
+          return GitWorkspace.canonical(rootPath) == repository
         }) {
           matches.insert(id)
         }

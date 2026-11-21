@@ -192,8 +192,7 @@ struct QuestionCard: View {
           }.disabled(sending)
         }
       }
-    }.padding(16).frame(maxWidth: .infinity, alignment: .leading).background(
-      .orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+    }.card(.orange.opacity(0.08))
   }
   private func decide(_ allow: Bool, decision: JSONValue? = nil) {
     sending = true

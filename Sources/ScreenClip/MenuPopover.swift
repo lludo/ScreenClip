@@ -1,7 +1,6 @@
 import AppKit
 import ScreenClipCore
 import SwiftUI
-import UserNotifications
 
 struct MenuPopover: View {
   @ObservedObject var model: AppModel

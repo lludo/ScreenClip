@@ -996,7 +996,7 @@ import XCTest
     try model.saveProject(project)
     let validated = try await model.worker.inspectExternal(
       id, issue: issue, project: project, path: repo, pullHead: head)
-    guard case .ready(true) = validated else { return XCTFail("expected ready, got \(validated)") }
+    guard case .ready = validated else { return XCTFail("expected ready, got \(validated)") }
     XCTAssertTrue(FileManager.default.fileExists(atPath: marker.path))
   }
   private func wait(_ condition: () -> Bool) async throws {

@@ -132,10 +132,6 @@ public enum ProviderPhrase: String, CaseIterable, Sendable {
 
 /// System default, then project default, then the capture's own choice.
 public enum AgentSelection {
-  public static func systemDefault(_ settings: AppSettings) -> AgentKind {
-    settings.preferredAgent
-  }
-
   /// A nil project agent follows the system default. An explicit agent stays put.
   public static func projectDefault(_ project: Project?, system: AgentKind) -> AgentKind {
     project?.defaultAgent ?? system

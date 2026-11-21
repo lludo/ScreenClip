@@ -1,13 +1,33 @@
 import ScreenClipCore
 import SwiftUI
 
+/// Capture PNGs are written once under a fresh UUID name, so a path always names the same
+/// image. Views re-render on every agent progress line; this keeps them off the disk.
+@MainActor enum CaptureImageCache {
+  private static let cache = NSCache<NSString, NSImage>()
+  static func image(_ path: String) -> NSImage? {
+    if let hit = cache.object(forKey: path as NSString) { return hit }
+    guard let image = NSImage(contentsOfFile: path) else { return nil }
+    cache.setObject(image, forKey: path as NSString)
+    return image
+  }
+}
+
+extension View {
+  /// The rounded panel used for report sections and question cards.
+  func card(_ fill: some ShapeStyle) -> some View {
+    padding(16).frame(maxWidth: .infinity, alignment: .leading)
+      .background(fill, in: RoundedRectangle(cornerRadius: 12))
+  }
+}
+
 struct IssueRow: View {
   let issue: Issue
   let project: Project?
   @Environment(\.locale) private var locale
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
-      if let image = issue.captures.first.flatMap({ NSImage(contentsOfFile: $0.imagePath) }) {
+      if let image = issue.captures.first.flatMap({ CaptureImageCache.image($0.imagePath) }) {
         Image(nsImage: image).resizable().scaledToFill().frame(width: 48, height: 48).clipped()
           .clipShape(RoundedRectangle(cornerRadius: 7))
       } else {

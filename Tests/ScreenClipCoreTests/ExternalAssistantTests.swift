@@ -252,7 +252,7 @@ final class ExternalAssistantTests: XCTestCase {
     let initial = ExternalHandoffState(
       revision: 2, handoffRevision: nil, handoffCommit: nil, uncertain: false)
     XCTAssertEqual(ExternalHandoff.action(initial), .commitEvidence)
-    let sending = ExternalHandoff.beginSend(initial, revision: 2, commit: "abc")
+    let sending = ExternalHandoff.beginSend(revision: 2, commit: "abc")
     XCTAssertTrue(sending.uncertain)
     XCTAssertEqual(sending.handoffCommit, "abc")
     XCTAssertEqual(sending.handoffRevision, 2)

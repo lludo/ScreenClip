@@ -14,6 +14,8 @@ import Foundation
 /// Nothing in this type writes the secret to a log. Failures carry a fixed message and
 /// do not echo the input.
 public enum ExternalConnectCode {
+  /// A capability name: short, ASCII, safe to put in JSON and logs.
+  private static let capabilityPattern = #"^[A-Za-z0-9_-]{1,32}$"#
   public static let prefix = "screenclip-connect:v1:"
 
   public struct Credentials: Equatable, Sendable {
@@ -102,7 +104,7 @@ public enum ExternalConnectCode {
         "\"url\":" + jsonString(credentials.url),
       ]
       let capabilities = credentials.capabilities.filter {
-        $0.range(of: #"^[A-Za-z0-9_-]{1,32}$"#, options: .regularExpression) != nil
+        $0.range(of: capabilityPattern, options: .regularExpression) != nil
       }
       if !capabilities.isEmpty {
         let list = capabilities.map(jsonString).joined(separator: ",")
@@ -321,7 +323,7 @@ public enum ExternalConnectCode {
     for value in values {
       guard let text = value as? String else { continue }
       let token = text.trimmingCharacters(in: .whitespacesAndNewlines)
-      guard token.range(of: #"^[A-Za-z0-9_-]{1,32}$"#, options: .regularExpression) != nil else {
+      guard token.range(of: capabilityPattern, options: .regularExpression) != nil else {
         continue
       }
       if !result.contains(where: { $0.caseInsensitiveCompare(token) == .orderedSame }) {

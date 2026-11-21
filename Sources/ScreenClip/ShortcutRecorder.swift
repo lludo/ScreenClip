@@ -1,7 +1,5 @@
 import ScreenClipCore
-import ServiceManagement
 import SwiftUI
-import UserNotifications
 
 struct ShortcutRecorder: NSViewRepresentable {
   @Binding var settings: AppSettings

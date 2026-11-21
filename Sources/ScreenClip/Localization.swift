@@ -52,7 +52,6 @@ enum Chrome {
         locale: locale)
     }
     if let core = CoreChrome.display(english, locale: locale) { return core }
-    if let prefixed = ActivityPatterns.prefixed(english, locale: locale) { return prefixed }
     return english
   }
 }
@@ -150,12 +149,6 @@ enum AppChrome {
     "ScreenClip could not open its queue",
     "Could not save the report.",
     "Press shortcut…", "Include ⌘, ⌃ or ⌥",
-    "Your note will be included after the chat is reconciled.",
-    "Your note stays with this draft until you submit it.",
-    "Choose a project in the report before work can begin.",
-    "Your note will be included in follow-up work after the current work finishes.",
-    "Your note will be included when work continues. Answer any pending questions in the report.",
-    "Saving queues this report with your added context.",
     "Not checked yet",
     "Project selected by tester",
     "Unable to load image attachment.",
@@ -397,19 +390,6 @@ enum ActivityPatterns {
       return Chrome.format(
         "store.saveFailed", "Could not save the report: \(detail)", locale: locale,
         comment: "Database error. %@ is the SQLite message and stays unchanged.")
-    }
-    return nil
-  }
-
-  /// English sentences with a translated prefix and an unchanged remainder.
-  static func prefixed(_ text: String, locale: Locale) -> String? {
-    let prefixes = [
-      "GitHub checks failed for ": "error.checksFailed",
-    ]
-    for (prefix, _) in prefixes where text.hasPrefix(prefix) {
-      // The remainder is agent-directed diagnostic text. Translate only when the whole
-      // sentence is a known template; otherwise leave the stored English.
-      return nil
     }
     return nil
   }
