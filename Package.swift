@@ -3,6 +3,7 @@ import PackageDescription
 
 let package = Package(
   name: "ScreenClip",
+  defaultLocalization: "en",
   platforms: [.macOS(.v14)],
   products: [
     .executable(name: "ScreenClip", targets: ["ScreenClip"]),
@@ -12,13 +13,15 @@ let package = Package(
     .systemLibrary(name: "CSQLite"),
     .target(
       name: "ScreenClipCore", dependencies: ["CSQLite"],
-      resources: [.process("Localizable.xcstrings")]),
+      exclude: ["Localizable.xcstrings"], plugins: ["CompileStringCatalog"]),
     .executableTarget(
       name: "ScreenClip", dependencies: ["ScreenClipCore"],
+      exclude: ["Localizable.xcstrings"],
       resources: [
-        .process("Localizable.xcstrings"), .process("Assets.xcassets"),
+        .process("Assets.xcassets"),
         .copy("AgentIcons-LICENSE.txt"),
-      ]),
+      ], plugins: ["CompileStringCatalog"]),
+    .plugin(name: "CompileStringCatalog", capability: .buildTool(), path: "scripts/CompileStringCatalog"),
     .executableTarget(name: "ScreenClipProbe", dependencies: ["ScreenClipCore"]),
     .testTarget(name: "ScreenClipCoreTests", dependencies: ["ScreenClipCore"]),
     .testTarget(name: "ScreenClipAppTests", dependencies: ["ScreenClip"]),
