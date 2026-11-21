@@ -30,6 +30,8 @@ Codex chats may show up in Recents instead of the desktop project you expect. Th
 
 After an interruption, **Reconcile chat** can recover a saved Codex result and validate it again before publication. For Claude Code, reconciliation checks that no session process is still running before Continue. It does not recover a finished result from Claude's history. **Refresh PR status** updates checks immediately. It also appears on a **Needs you** or **Failed** report that has a pull request: if you merged that pull request on GitHub yourself, ScreenClip marks the report **Merged**, closes its open question, and moves it to **To retest**. ScreenClip also checks these reports on its own about once a minute.
 
+Select a report with a pull request to read its formatted GitHub description. The refresh button beside the PR number reloads the description and checks the PR status. Choose **Merge pull request** and confirm to squash-merge a ready PR, even when automatic merge is off. ScreenClip checks the reviewed commit, current report revision, local validation, GitHub checks and required reviews before merging. If GitHub reports a clean, mergeable PR with no checks configured, you can merge it manually after local validation passes. Automatic merge still requires passing GitHub checks. The report moves to **To retest** when GitHub confirms the merge.
+
 Archive keeps the screenshots and the outcome and clears the report from the active queue. Active work has to be canceled or resolved first. Restore brings it back.
 
 ## Filed under the wrong project

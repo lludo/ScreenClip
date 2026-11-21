@@ -158,6 +158,8 @@ enum AppChrome {
     "Connected, but the result could not be saved to the Keychain.",
     "Cancel the active ScreenClip run before opening this session in Claude Desktop.",
     "Opened in Claude Desktop. Continue there, and let it finish before ScreenClip runs again.",
+    "The pull request is closed.", "Merge will run the project’s validation command on this Mac.",
+    "Local validation is required for this commit.", "Local validation passed. GitHub reports no checks.",
     ExternalAssistant.validationNeedsAutoMerge,
   ]
 }

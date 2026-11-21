@@ -108,6 +108,24 @@ public enum GitHubService {
       ], cwd: path)
     return PRState.parse(try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)))
   }
+  public struct PullRequestDescription: Decodable {
+    public let bodyHTML: String
+    public let headRefOid: String
+  }
+
+  /// Ask GitHub to render the Markdown in repository context, including task lists, tables,
+  /// and relative links. This also works after the issue's worktree has been removed.
+  public static func description(url: URL, gh: String) async throws -> PullRequestDescription {
+    guard url.scheme == "https", url.host == "github.com" else {
+      throw ScreenClipError.message("Invalid GitHub PR URL.")
+    }
+    let query = "query($url: URI!) { resource(url: $url) { ... on PullRequest { bodyHTML headRefOid } } }"
+    let result = try await CommandRunner.checked(gh, [
+      "api", "graphql", "--hostname", "github.com", "-f", "query=" + query,
+      "-f", "url=" + url.absoluteString, "--jq", ".data.resource",
+    ])
+    return try JSONDecoder().decode(PullRequestDescription.self, from: Data(result.utf8))
+  }
   public static func merge(url: String, head: String, path: String, gh: String) async throws {
     _ = try await CommandRunner.checked(
       gh, ["pr", "merge", url, "--squash", "--match-head-commit", head], cwd: path)

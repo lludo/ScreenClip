@@ -85,13 +85,8 @@ struct IssueDetailView: View {
               chrome: "Copies a Terminal command that reopens this issue's Claude Code session",
               comment: "Help for the Claude resume command button."))
           }
-          if let url = issue.prURL.flatMap(URL.init(string:)) {
-            Link(destination: url) {
-              Text(chrome: "View pull request", comment: "Opens the report's pull request.")
-            }
-          }
-          if issue.status == .prOpen || AgentWorker.awaitsMergeOutsideScreenClip(issue)
-            || (issue.resolvedAgent == .external && issue.status == .working && !issue.dispatchUncertain)
+          if issue.prURL == nil && issue.resolvedAgent == .external
+            && issue.status == .working && !issue.dispatchUncertain
           {
             Button { Task { await model.worker.refreshPRs() } } label: {
               Text(chrome: "Refresh PR status", comment: "Refreshes pull request checks. Keep PR.")
@@ -172,15 +167,9 @@ struct IssueDetailView: View {
             Image(systemName: "exclamationmark.circle")
           }.font(.callout).foregroundStyle(.orange)
         }
-        if issue.status == .prOpen, let summary = issue.checkSummary {
-          Label {
-            Text(verbatim: Chrome.stored(summary, locale: locale))
-              .fixedSize(horizontal: false, vertical: true)
-          } icon: {
-            Image(systemName: summary == ExternalAssistant.evidenceStillPresentSummary
-              ? "exclamationmark.circle" : "clock")
-          }.font(.callout).foregroundStyle(
-            summary == ExternalAssistant.evidenceStillPresentSummary ? .orange : .secondary)
+        if let url = issue.prURL.flatMap(URL.init(string:)) {
+          PullRequestCard(model: model, worker: model.worker, issue: issue, url: url)
+            .id(url)
         }
         if let commit = issue.mergeCommit {
           Text(verbatim: Chrome.format(

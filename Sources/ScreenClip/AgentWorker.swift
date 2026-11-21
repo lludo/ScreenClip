@@ -2,7 +2,7 @@ import AppKit
 import Foundation
 import ScreenClipCore
 
-@MainActor final class AgentWorker {
+@MainActor final class AgentWorker: ObservableObject {
   unowned let model: AppModel
   let client = CodexClient()
   let claude = ClaudeCodeClient()
@@ -15,12 +15,14 @@ import ScreenClipCore
   var receipts: [UUID: ValidationReceipt] = [:]
   var publishing = Set<UUID>()
   var finishing = Set<UUID>()
-  var refreshing = Set<UUID>()
+  @Published var refreshing = Set<UUID>()
+  /// Set only by a successful eligibility check, never restored from a saved queue.
+  @Published var manualMergeHeads: [UUID: String] = [:]
   var lastExternalDiscovery = Date.distantPast
   /// The run that currently owns each Grok Bot report. Cancel clears it, so a run still in
   /// flight stops at its next check and cannot remove a later run's job after a retry.
   var externalRuns: [UUID: UUID] = [:]
-  var mergingProjects = Set<UUID>()
+  @Published var mergingProjects = Set<UUID>()
   /// The report each pending request belongs to, keyed by `requestKey`. Codex numbers
   /// requests per process, so an id alone can match another report's request after a restart.
   var requestOwners: [String: UUID] = [:]

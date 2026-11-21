@@ -4,6 +4,26 @@ import ImageIO
 /// Report evidence lives in the fix commit so PR images survive branch deletion and merging.
 /// Only the flattened report derivatives are copied; unredacted originals are never read.
 public enum PRScreenshotEvidence {
+  /// Private blob images may need GitHub authentication even when its rendered PR body was
+  /// fetched successfully. Only resolve immutable ScreenClip evidence for this report and repo.
+  public static func contentsEndpoint(image: URL, pullRequest: URL, issueID: UUID) -> String? {
+    let pr = pullRequest.pathComponents
+    let path = image.pathComponents
+    guard image.scheme == "https", image.host == "github.com", pullRequest.host == "github.com",
+      pr.count == 5, pr[3] == "pull", path.count == 11,
+      path[1...2] == pr[1...2], GitHubService.isRepositorySlug(path[1] + "/" + path[2]),
+      ["blob", "raw"].contains(path[3]), GitHubService.isCommit(path[4]),
+      path[5] == ".screenclip", path[6] == "pr", UUID(uuidString: path[7]) == issueID,
+      path[8].range(of: #"^revision-[1-9][0-9]*$"#, options: .regularExpression) != nil,
+      ["before", "after"].contains(path[9]), path[10].lowercased().hasSuffix(".png"),
+      !path[10].contains("/"), !path[10].contains("\\")
+    else { return nil }
+    let encoded = path[5...].map {
+      $0.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? ""
+    }.joined(separator: "/")
+    return "repos/\(pr[1])/\(pr[2])/contents/\(encoded)?ref=\(path[4])"
+  }
+
   public static func directory(for issue: Issue) -> String {
     ".screenclip/pr/\(issue.id.uuidString.lowercased())/revision-\(issue.revision)"
   }

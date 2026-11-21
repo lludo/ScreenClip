@@ -235,26 +235,47 @@ extension AgentWorker {
       pump()
     }
   }
-  func refreshPR(_ id: UUID) async {
+  func refreshPR(_ id: UUID, mergeReviewedHead: String? = nil) async {
     // The caller's list is a snapshot from before earlier refreshes were awaited; this report
     // may have been canceled or sent back to its agent since.
-    guard let issue = model.issue(id), issue.status == .prOpen, let url = issue.prURL,
+    guard let issue = model.issue(id), issue.status == .prOpen, !issue.archived, let url = issue.prURL,
       let path = issue.worktreePath, let project = model.project(issue.projectID)
     else { return }
     guard !refreshing.contains(id), !mergingProjects.contains(project.id) else { return }
+    if let mergeReviewedHead {
+      guard manualMergeHeads[id] == mergeReviewedHead, !model.snapshot.settings.paused else { return }
+    }
     refreshing.insert(id)
-    defer { refreshing.remove(id) }
+    var eligibleHead: String?
+    defer {
+      if manualMergeHeads[id] != eligibleHead { manualMergeHeads[id] = eligibleHead }
+      refreshing.remove(id)
+    }
     do {
       let pr = try await GitHubService.state(
         url: url, path: path, gh: AgentDetector.ghPath(model.snapshot.settings))
+      guard pr.url == url, let current = model.issue(id), current.status == .prOpen,
+        current.prURL == url, current.workspaceID == issue.workspaceID
+      else { return }
       if pr.merged {
-        try recordMerge(id, commit: pr.mergeCommit, coveredRevision: issue.coveredRevision)
+        try recordMerge(id, commit: pr.mergeCommit, coveredRevision: issue.prRevision ?? issue.coveredRevision)
         model.notify(issue, text: "Fix merged. Ready to rebuild and retest.")
+        return
+      }
+      guard pr.open else {
+        if current.checkSummary != "The pull request is closed." {
+          try model.updateIssue(id) { $0.checkSummary = "The pull request is closed." }
+        }
+        return
+      }
+      if let mergeReviewedHead, mergeReviewedHead != pr.head {
+        try model.updateIssue(id) { $0.checkSummary = "The PR changed; run validation again before merging." }
         return
       }
       var validatedHere = true
       if issue.resolvedAgent == .external {
-        switch try await inspectExternal(id, issue: issue, project: project, path: path, pullHead: pr.head)
+        switch try await inspectExternal(id, issue: issue, project: project, path: path,
+          pullHead: pr.head, requestedMerge: mergeReviewedHead != nil)
         {
         case .blocked: return
         case .unvalidated: validatedHere = false
@@ -298,13 +319,15 @@ extension AgentWorker {
         return
       }
       let receipt = loadReceipt(id, issue: issue)
-      let currentIssue = model.issue(id) ?? issue
+      guard let currentIssue = model.issue(id), currentIssue.status == .prOpen,
+        currentIssue.prURL == url, currentIssue.workspaceID == issue.workspaceID
+      else { return }
       let evidence = MergeEvidence(
         expectedHead: currentIssue.prHead ?? "", currentHead: pr.head,
-        inputRevision: currentIssue.revision, coveredRevision: currentIssue.coveredRevision,
+        inputRevision: currentIssue.revision, coveredRevision: currentIssue.prRevision ?? currentIssue.coveredRevision,
         validationPassed: receipt?.passed == true && receipt?.head == pr.head,
         hasValidation: receipt?.command == project.validationCommand
-          && !project.validationCommand.isEmpty, checksPassed: pr.checksPassed,
+          && !project.validationCommand.isEmpty, checksPassed: pr.checksPassed || pr.noChecksReported,
         mergeable: pr.mergeable && pr.base == project.baseBranch,
         reviewSatisfied: pr.reviewSatisfied,
         unresolvedQuestions: currentIssue.questions.contains { $0.reply == nil },
@@ -318,18 +341,24 @@ extension AgentWorker {
       } else if pr.conflicting {
         // Ahead of the checks: CI often does not start on a conflicting pull request.
         checkSummary = "The base branch conflicts with this fix."
-      } else if !pr.checksPassed {
+      } else if !pr.checksPassed && !pr.noChecksReported {
         checkSummary = pr.details
       } else if !pr.reviewSatisfied {
         checkSummary = "Waiting for required review."
+      } else if pr.base != project.baseBranch {
+        checkSummary = "The existing PR targets a different base branch."
       } else if !pr.mergeable {
         checkSummary = "Waiting for the PR to become mergeable."
       } else if !validatedHere {
-        checkSummary = ExternalAssistant.validationNeedsAutoMerge
-      } else if !project.autoMerge {
-        checkSummary = "Checks passed. Automatic merge is disabled for this project."
+        checkSummary = "Merge will run the project’s validation command on this Mac."
+      } else if !evidence.validationPassed || !evidence.hasValidation {
+        checkSummary = "Local validation is required for this commit."
+      } else if pr.noChecksReported {
+        checkSummary = "Local validation passed. GitHub reports no checks."
       } else if model.snapshot.settings.paused {
         checkSummary = "Checks passed. Processing is paused."
+      } else if !project.autoMerge && mergeReviewedHead == nil {
+        checkSummary = "Checks passed. Automatic merge is disabled for this project."
       } else {
         checkSummary = "Checks passed; preparing merge."
       }
@@ -345,7 +374,14 @@ extension AgentWorker {
         // A Grok Bot pull request is only validated, and so only updated, on this Mac with
         // automatic merge on.
         && (issue.resolvedAgent != .external || project.autoMerge)
-      let mergesNow = project.autoMerge && evidence.canMerge
+      // A clean PR with an explicitly empty check rollup can be merged by the tester after
+      // local validation. Automatic merge still requires at least one passing GitHub check.
+      let mergesNow = evidence.canMerge && (mergeReviewedHead != nil || (project.autoMerge && pr.checksPassed))
+      if !mergesNow, evidence.readyForValidation, currentIssue.revision == currentIssue.coveredRevision,
+        evidence.canMerge || (!validatedHere && !project.validationCommand.isEmpty)
+      {
+        eligibleHead = pr.head
+      }
       guard (mergesNow || resolvesConflict) && !model.snapshot.settings.paused else { return }
       // Re-check after the awaits above: parallel reports in one project must merge one at a
       // time, so each later merge revalidates against the base that already includes the earlier.
@@ -427,7 +463,12 @@ extension AgentWorker {
         return
       }
       // Recheck local revision immediately before submitting a guarded merge.
-      guard mergesNow, model.issue(id)?.revision == issue.coveredRevision && model.issue(id)?.status == .prOpen
+      guard mergesNow, let latest = model.issue(id), latest.status == .prOpen,
+        latest.revision == issue.coveredRevision, latest.prURL == url, latest.prHead == pr.head,
+        latest.questions.allSatisfy({ $0.reply != nil }), !model.snapshot.settings.paused,
+        let latestProject = model.project(latest.projectID), latestProject.baseBranch == pr.base,
+        latestProject.validationCommand == project.validationCommand,
+        latestProject.autoMerge || mergeReviewedHead == pr.head
       else { return }
       try await GitHubService.merge(
         url: url, head: pr.head, path: path, gh: AgentDetector.ghPath(model.snapshot.settings))
