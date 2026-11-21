@@ -104,4 +104,39 @@ import XCTest
     XCTAssertEqual(model.issue(id)?.status, .canceled)
     XCTAssertNil(model.issue(id)?.mergeCommit)
   }
+
+  func testAPullRequestMergedOnGitHubCompletesAReportThatNeedsYou() async throws {
+    // Stopped on a base conflict; the tester resolved and merged the pull request by hand.
+    try model.updateIssue(id) {
+      $0.worktreePath = nil
+      $0.checkSummary = "The base branch conflicts with this fix."
+      $0.lastError = "The base branch conflicts with this fix in: App.swift"
+      $0.questions.append(PendingQuestion(title: "Resolve the conflict?"))
+      $0.record("The base update needs attention in Claude Code.", status: .needsYou)
+    }
+    try pullRequest(["state": .string("OPEN"), "mergeable": .string("CONFLICTING")])
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .needsYou)
+
+    try pullRequest(["state": .string("MERGED"), "mergeCommit": .object(["oid": .string("abc123")])])
+    await model.worker.refreshPRs()
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.status, .merged)
+    XCTAssertEqual(issue.mergeCommit, "abc123")
+    XCTAssertNil(issue.lastError)
+    XCTAssertFalse(issue.questions.contains { $0.reply == nil })
+  }
+
+  func testAMergedPullRequestDoesNotOverrideNewerEvidence() async throws {
+    try model.updateIssue(id) {
+      $0.worktreePath = nil
+      $0.revision = $0.coveredRevision + 1
+      $0.record("Needs attention", status: .needsYou)
+    }
+    try pullRequest(["state": .string("MERGED")])
+    await model.worker.refreshPRs()
+    // The merged revision is done; the newer evidence goes back to the queue for a new fix.
+    XCTAssertEqual(model.issue(id)?.status, .queued)
+    XCTAssertNil(model.issue(id)?.prURL)
+  }
 }
