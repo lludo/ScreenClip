@@ -45,7 +45,7 @@ Grok Bot does not take the local edit turn. ScreenClip still uses a worktree, bu
 | Menu bar | SwiftUI `MenuBarExtra`, plus a queue window |
 | Shortcut | Carbon `RegisterEventHotKey`, conflict detection, user-editable shortcut |
 | Capture | AppKit overlays and ScreenCaptureKit still images (`SCScreenshotManager`, macOS 14) |
-| Composer | Note, project, agent, and an annotation canvas |
+| Composer | Note, project, issue destination, agent with model and effort (`AgentModelMenu`), and an annotation canvas |
 | Context | Source app and window; optional Safari or Chrome URL |
 | Store | SQLite plus image files in Application Support |
 | Dispatcher | Outbox, one job per issue, retry, the per-project limit, worktrees |
@@ -94,7 +94,7 @@ Secrets ScreenClip stores for itself go in the Keychain. Pull requests include t
 | `Sources/ScreenClip/AgentWorker*.swift` | Scheduling (`AgentWorker`), Codex (`+Codex`), Claude Code (`+Claude`), Grok Bot (`+External`), validation and merge (`+Publishing`) |
 | `Sources/ScreenClip/AgentPrompt.swift` | The prompt and result schema local agents receive |
 | `Sources/ScreenClip/Localization.swift` | String Catalog lookup. User-written report text is not translated |
-| `Sources/ScreenClipCore/` | Model, store, routing, agent clients, processes, Git, GitHub, and `MergeGuard` |
+| `Sources/ScreenClipCore/` | Model, store, routing, agent clients and their model/effort catalog (`AgentModels`), processes, Git, GitHub, and `MergeGuard` |
 | `plugins/screenclip/` | Read-only MCP server and the Claude Code `fix-report` skill |
-| `scripts/` | Build, install, package, test, localization, probes, and the read-only queue review |
+| `scripts/` | Build, install, package, test, localization (including the `CompileStringCatalog` SwiftPM build plugin), probes, and the read-only queue review |
 | `website/` | The static site deployed as the Vercel project `screenclip-website` |

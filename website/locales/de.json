@@ -63,7 +63,7 @@
   "agents": {
     "eyebrow": "Agenten",
     "title": "Codex, Claude Code oder Grok Bot.",
-    "intro": "Wähle in Settings einen Standardagenten oder einen Agenten pro neuem Bericht. Eine Folgeaufnahme bleibt beim Agenten dieses Berichts.",
+    "intro": "Wähle in Settings einen Standardagenten oder einen Agenten pro neuem Bericht, bei Codex und Claude Code samt Modell und Denkaufwand. Eine Folgeaufnahme bleibt beim Agenten dieses Berichts.",
     "codexTitle": "Codex",
     "codexBody": "Auf diesem Mac, in einem isolierten Git-Worktree. Er pusht nicht und öffnet den Pull Request nicht selbst. ScreenClip führt die Validierung aus und öffnet ihn. Fragen beantwortest du im Bericht.",
     "claudeTitle": "Claude Code",

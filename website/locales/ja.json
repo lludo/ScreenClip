@@ -63,7 +63,7 @@
   "agents": {
     "eyebrow": "コーディングエージェント",
     "title": "Codex、Claude Code、Grok Bot。",
-    "intro": "Settingsで既定を選ぶか、新しいレポートごとにエージェントを選べます。追記のキャプチャは、そのレポートのエージェントのままです。",
+    "intro": "Settingsで既定を選ぶか、新しいレポートごとにエージェントを選べます。Codex と Claude Code ではモデルと推論レベルも選べます。追記のキャプチャは、そのレポートのエージェントのままです。",
     "codexTitle": "Codex",
     "codexBody": "このMac上の、隔離されたGit worktreeで動きます。pushやプルリクエストの作成は自分では行いません。ScreenClipが検証コマンドを実行してプルリクエストを開きます。質問にはレポート上で答えます。",
     "claudeTitle": "Claude Code",

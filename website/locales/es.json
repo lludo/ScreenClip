@@ -63,7 +63,7 @@
   "agents": {
     "eyebrow": "Agentes",
     "title": "Codex, Claude Code o Grok Bot.",
-    "intro": "Elige un agente predeterminado en Settings, o uno distinto para cada informe nuevo. Una captura de seguimiento se queda con el agente de ese informe.",
+    "intro": "Elige un agente predeterminado en Settings, o uno distinto para cada informe nuevo, con su modelo y su nivel de razonamiento en Codex y Claude Code. Una captura de seguimiento se queda con el agente de ese informe.",
     "codexTitle": "Codex",
     "codexBody": "En este Mac, en un Git worktree aislado. No envía la rama ni abre la pull request. ScreenClip ejecuta el comando de validación y la abre. Respondes a las preguntas en el informe.",
     "claudeTitle": "Claude Code",

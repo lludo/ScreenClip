@@ -63,7 +63,7 @@
   "agents": {
     "eyebrow": "코딩 에이전트",
     "title": "Codex, Claude Code 또는 Grok Bot.",
-    "intro": "Settings에서 기본 에이전트를 고르거나, 새 보고서마다 고를 수 있습니다. 이어서 찍은 캡처는 그 보고서의 에이전트에 남습니다.",
+    "intro": "Settings에서 기본 에이전트를 고르거나, 새 보고서마다 고를 수 있습니다. Codex와 Claude Code는 모델과 추론 수준도 고를 수 있습니다. 이어서 찍은 캡처는 그 보고서의 에이전트에 남습니다.",
     "codexTitle": "Codex",
     "codexBody": "이 Mac의 격리된 Git worktree에서 일합니다. 직접 푸시하거나 pull request를 열지 않습니다. ScreenClip이 검증 명령을 실행하고 엽니다. 질문에는 보고서에서 답합니다.",
     "claudeTitle": "Claude Code",

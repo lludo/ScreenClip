@@ -63,7 +63,7 @@
   "agents": {
     "eyebrow": "编程代理",
     "title": "Codex、Claude Code 或 Grok Bot。",
-    "intro": "在 Settings 里选一个默认代理，或为每份新报告单独选择。后续截图仍交给这份报告原来的代理。",
+    "intro": "在 Settings 里选一个默认代理，或为每份新报告单独选择；Codex 和 Claude Code 还可以选模型和推理强度。后续截图仍交给这份报告原来的代理。",
     "codexTitle": "Codex",
     "codexBody": "在这台 Mac 上的隔离 Git worktree 中工作。它自己不会推送，也不会打开拉取请求。ScreenClip 运行验证命令并打开它。你在报告里回答问题。",
     "claudeTitle": "Claude Code",
