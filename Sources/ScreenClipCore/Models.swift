@@ -389,6 +389,13 @@ public struct Issue: Codable, Identifiable, Equatable {
   public var referencedTitle: String {
     reportReference.map { "\($0) \(title)" } ?? title
   }
+  /// Most recent first: by filing time, then by report number when times match.
+  public static func newestFirst(_ issues: [Issue]) -> [Issue] {
+    issues.sorted {
+      if $0.createdAt != $1.createdAt { return $0.createdAt > $1.createdAt }
+      return ($0.reportNumber ?? .max) > ($1.reportNumber ?? .max)
+    }
+  }
   public static func parseReportReference(_ query: String) -> Int? {
     let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
     let digits = trimmed.hasPrefix("#") ? String(trimmed.dropFirst()) : trimmed
