@@ -315,6 +315,10 @@ public struct Issue: Codable, Identifiable, Equatable {
   public var checkSummary: String?
   // Optional so queues from earlier versions decode; those issues were always Codex issues.
   public var agent: AgentKind?
+  /// Model chosen when filing; nil uses the agent's default from Settings.
+  public var agentModel: String? = nil
+  /// Reasoning effort chosen when filing; nil uses the model's default.
+  public var agentEffort: String? = nil
   /// Evidence commit already pushed for this revision. A retry of the same revision reuses it.
   public var handoffRevision: Int? = nil
   public var handoffCommit: String? = nil

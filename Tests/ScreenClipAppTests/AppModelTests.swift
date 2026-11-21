@@ -13,6 +13,32 @@ import XCTest
     return (model, root)
   }
 
+  func testDraftKeepsTheChosenModelAndEffortForItsTurns() throws {
+    let (model, _) = try makeModel()
+    try model.submit(
+      imageData: Data([1]), originalData: nil, annotations: [], note: "Draft",
+      context: CaptureContext(), projectID: nil, existingID: nil, draft: true, agent: .codex,
+      agentModel: "gpt-5.5", agentEffort: "xhigh")
+    let draft = try XCTUnwrap(model.snapshot.issues.first)
+    XCTAssertEqual(draft.agentModel, "gpt-5.5")
+    XCTAssertEqual(draft.agentEffort, "xhigh")
+    XCTAssertEqual(
+      AgentWorker.codexModelParams(for: draft),
+      ["model": .string("gpt-5.5"), "effort": .string("xhigh")])
+    // Back to the defaults: the turn leaves the thread's model alone.
+    try model.submit(
+      imageData: Data([2]), originalData: nil, annotations: [], note: "Draft",
+      context: CaptureContext(), projectID: nil, existingID: draft.id, draft: true, agent: .claude,
+      agentModel: nil, agentEffort: "high")
+    let updated = try XCTUnwrap(model.issue(draft.id))
+    XCTAssertEqual(updated.agent, .claude)
+    XCTAssertNil(updated.agentModel)
+    XCTAssertNil(updated.agentEffort, "An effort belongs to a chosen model")
+    XCTAssertEqual(AgentWorker.codexModelParams(for: updated), [:])
+    XCTAssertEqual(model.modelOptions(for: .claude), AgentModelCatalog.claude)
+    XCTAssertEqual(model.modelOptions(for: .external), [])
+  }
+
   func testSavingTheSettingsFormKeepsTheCurrentPauseState() throws {
     let (model, _) = try makeModel()
     var form = model.snapshot.settings
