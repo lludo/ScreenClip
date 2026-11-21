@@ -139,49 +139,40 @@ struct QueueView: View {
   }
   private var reportList: some View {
     VStack(spacing: 0) {
-      VStack(alignment: .leading, spacing: 12) {
+      VStack(alignment: .leading, spacing: 2) {
         // The sidebar picks the status; this menu narrows it by project and by agent.
-        HStack(alignment: .center, spacing: 8) {
+        HStack(spacing: 0) {
           if isReportLookup {
             Text(chrome: "Report search", comment: "Heading when the list is showing a report-number search.")
               .fontWeight(.semibold)
               .frame(maxWidth: .infinity, alignment: .leading)
           } else {
-            filterMenu
+            filterMenu.padding(.trailing, 4)
           }
-          Button {
+          headerButton("plus", label: Text(chrome: "New capture", comment: "Help for the button that starts a capture.")) {
             model.captureAction?()
-          } label: {
-            Image(systemName: "plus").frame(width: 16, height: 16)
-          }.help(Text(chrome: "New capture", comment: "Help for the button that starts a capture."))
-            .accessibilityLabel(Text(chrome: "New capture", comment: "Help for the button that starts a capture."))
-        }.controlSize(.regular).buttonStyle(.bordered)
-        HStack(spacing: 8) {
-          HStack(spacing: 6) {
-            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
-              .accessibilityHidden(true)
-            TextField(text: $search) {
-              Text(chrome: "Search reports and feedback", comment: "Search field in the report list.")
-            }.textFieldStyle(.plain)
-              .accessibilityLabel(Text(chrome: "Search reports and feedback", comment: "Search field in the report list."))
-              .focused($searchFocused)
           }
-          .padding(.horizontal, 10).padding(.vertical, 6)
-          .background(Color(nsColor: .textBackgroundColor), in: Capsule())
-          .overlay(
-            Capsule().strokeBorder(
-              searchFocused ? Color.accentColor : Color.secondary.opacity(0.3),
-              lineWidth: searchFocused ? 2 : 1)
-          )
-          Button {
+          headerButton("gearshape", label: Text(chrome: "Settings", comment: "Help for the button that opens Settings.")) {
             model.settingsAction?()
-          } label: {
-            Image(systemName: "gearshape").frame(width: 16, height: 16)
-          }.help(Text(chrome: "Settings", comment: "Help for the button that opens Settings."))
-            .accessibilityLabel(Text(chrome: "Settings", comment: "Help for the button that opens Settings."))
-            .controlSize(.regular).buttonStyle(.bordered)
+          }
         }
-      }.padding(20)
+        HStack(spacing: 6) {
+          Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+            .accessibilityHidden(true)
+          TextField(text: $search) {
+            Text(chrome: "Search reports and feedback", comment: "Search field in the report list.")
+          }.textFieldStyle(.plain)
+            .accessibilityLabel(Text(chrome: "Search reports and feedback", comment: "Search field in the report list."))
+            .focused($searchFocused)
+        }
+        .padding(.horizontal, 10).padding(.vertical, 6)
+        .background(Color(nsColor: .textBackgroundColor), in: Capsule())
+        .overlay(
+          Capsule().strokeBorder(
+            searchFocused ? Color.accentColor : Color.secondary.opacity(0.3),
+            lineWidth: searchFocused ? 2 : 1)
+        )
+      }.padding(.top, 10).padding([.horizontal, .bottom], 20)
       Divider()
       if filtered.isEmpty {
         ContentUnavailableView {
@@ -223,6 +214,18 @@ struct QueueView: View {
         }.listStyle(.inset)
       }
     }.frame(minWidth: 280, idealWidth: 330, maxHeight: .infinity, alignment: .top)
+  }
+  private func headerButton(_ symbol: String, label: Text, action: @escaping () -> Void) -> some View {
+    Button(action: action) {
+      Image(systemName: symbol)
+        .frame(width: 32, height: 24)
+        .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
+        .frame(width: 44, height: 44)
+        .contentShape(Rectangle())
+    }
+    .buttonStyle(.plain)
+    .help(label)
+    .accessibilityLabel(label)
   }
   private var reportDetail: some View {
     Group {
