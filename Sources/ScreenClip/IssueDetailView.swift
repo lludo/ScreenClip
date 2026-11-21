@@ -88,7 +88,7 @@ struct IssueDetailView: View {
               Text(chrome: "View pull request", comment: "Opens the report's pull request.")
             }
           }
-          if issue.status == .prOpen
+          if issue.status == .prOpen || AgentWorker.awaitsMergeOutsideScreenClip(issue)
             || (issue.resolvedAgent == .external && issue.status == .working && !issue.dispatchUncertain)
           {
             Button { Task { await model.worker.refreshPRs() } } label: {
