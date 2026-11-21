@@ -4,6 +4,7 @@ ScreenClip is not on the Mac App Store. The download, when a release exists, is 
 
 | Page | What it covers |
 | --- | --- |
+| [v1.0.2 release notes](v1.0.2.md) | Text notes, merging from the report, and fixes |
 | [v1.0.1 release notes](v1.0.1.md) | Fixes and improvements since 1.0.0 |
 | [v1.0.0 release notes](v1.0.0.md) | Features, installation, requirements, privacy, and limits. The release workflow publishes `docs/release/<tag>.md` as the GitHub Release notes, so each release needs a file named after its tag |
 | [v1.0.0 readiness](v1.0.0-status.md) | Current validation and the remaining notarization and publication steps |

@@ -241,7 +241,14 @@ extension AgentWorker {
     guard let issue = model.issue(id), issue.status == .prOpen, !issue.archived, let url = issue.prURL,
       let path = issue.worktreePath, let project = model.project(issue.projectID)
     else { return }
-    guard !refreshing.contains(id), !mergingProjects.contains(project.id) else { return }
+    guard !refreshing.contains(id), !mergingProjects.contains(project.id) else {
+      if mergeReviewedHead != nil {
+        try? model.updateIssue(id) {
+          $0.checkSummary = "ScreenClip is busy with this project. Try the merge again in a moment."
+        }
+      }
+      return
+    }
     if let mergeReviewedHead {
       guard manualMergeHeads[id] == mergeReviewedHead, !model.snapshot.settings.paused else { return }
     }
@@ -318,6 +325,17 @@ extension AgentWorker {
         }
         return
       }
+      // An empty rollup counts as "no checks" only once it has stayed empty for this head,
+      // so a merge cannot slip in before CI has registered its runs.
+      let noChecksSettled: Bool
+      if pr.noChecksReported {
+        if emptyRollupSince[id]?.head != pr.head { emptyRollupSince[id] = (pr.head, Date()) }
+        noChecksSettled =
+          Date().timeIntervalSince(emptyRollupSince[id]?.since ?? Date()) >= emptyRollupGrace
+      } else {
+        emptyRollupSince[id] = nil
+        noChecksSettled = false
+      }
       let receipt = loadReceipt(id, issue: issue)
       guard let currentIssue = model.issue(id), currentIssue.status == .prOpen,
         currentIssue.prURL == url, currentIssue.workspaceID == issue.workspaceID
@@ -327,7 +345,7 @@ extension AgentWorker {
         inputRevision: currentIssue.revision, coveredRevision: currentIssue.prRevision ?? currentIssue.coveredRevision,
         validationPassed: receipt?.passed == true && receipt?.head == pr.head,
         hasValidation: receipt?.command == project.validationCommand
-          && !project.validationCommand.isEmpty, checksPassed: pr.checksPassed || pr.noChecksReported,
+          && !project.validationCommand.isEmpty, checksPassed: pr.checksPassed || noChecksSettled,
         mergeable: pr.mergeable && pr.base == project.baseBranch,
         reviewSatisfied: pr.reviewSatisfied,
         unresolvedQuestions: currentIssue.questions.contains { $0.reply == nil },
@@ -341,7 +359,7 @@ extension AgentWorker {
       } else if pr.conflicting {
         // Ahead of the checks: CI often does not start on a conflicting pull request.
         checkSummary = "The base branch conflicts with this fix."
-      } else if !pr.checksPassed && !pr.noChecksReported {
+      } else if !pr.checksPassed && !noChecksSettled {
         checkSummary = pr.details
       } else if !pr.reviewSatisfied {
         checkSummary = "Waiting for required review."
@@ -353,7 +371,7 @@ extension AgentWorker {
         checkSummary = "Merge will run the project’s validation command on this Mac."
       } else if !evidence.validationPassed || !evidence.hasValidation {
         checkSummary = "Local validation is required for this commit."
-      } else if pr.noChecksReported {
+      } else if noChecksSettled {
         checkSummary = "Local validation passed. GitHub reports no checks."
       } else if model.snapshot.settings.paused {
         checkSummary = "Checks passed. Processing is paused."
@@ -372,9 +390,9 @@ extension AgentWorker {
         && currentIssue.prHead == pr.head && currentIssue.revision == currentIssue.coveredRevision
         && !evidence.unresolvedQuestions
         // A Grok Bot pull request is only validated, and so only updated, on this Mac with
-        // automatic merge on.
+        // automatic merge on, or when the tester confirms a merge.
         && (issue.resolvedAgent != .external || project.autoMerge)
-      // A clean PR with an explicitly empty check rollup can be merged by the tester after
+      // A clean PR whose check rollup has stayed empty can be merged by the tester after
       // local validation. Automatic merge still requires at least one passing GitHub check.
       let mergesNow = evidence.canMerge && (mergeReviewedHead != nil || (project.autoMerge && pr.checksPassed))
       if !mergesNow, evidence.readyForValidation, currentIssue.revision == currentIssue.coveredRevision,

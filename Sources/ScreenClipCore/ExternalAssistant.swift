@@ -121,14 +121,16 @@ public enum ExternalAssistant {
     ".screenclip/\(reportNumber)"
   }
 
-  public static func evidencePaths(reportNumber: Int, captureCount: Int) -> [String] {
-    var paths = ["\(evidenceDirectory(reportNumber: reportNumber))/report.json"]
-    if captureCount > 0 {
-      paths += (1...captureCount).map {
-        "\(evidenceDirectory(reportNumber: reportNumber))/capture-\($0).png"
-      }
-    }
-    return paths
+  /// `capture-<n>.png` is named after the capture's position in the report, so it lines up
+  /// with `notes[n - 1]`; text notes have no file.
+  public static func evidencePaths(reportNumber: Int, captureNumbers: [Int]) -> [String] {
+    let directory = evidenceDirectory(reportNumber: reportNumber)
+    return ["\(directory)/report.json"] + captureNumbers.map { "\(directory)/capture-\($0).png" }
+  }
+
+  /// One-based positions of the captures that have a screenshot.
+  public static func screenshotNumbers(_ issue: Issue) -> [Int] {
+    issue.captures.enumerated().compactMap { $1.imagePath == nil ? nil : $0 + 1 }
   }
 
   public static let autonomyInstructions = """
@@ -174,7 +176,7 @@ public enum ExternalAssistant {
         validationCommand: GitHubService.redactSecrets(project.validationCommand)),
       evidence: ExternalWebhookEvidence(
         branch: branch, commit: commit,
-        paths: evidencePaths(reportNumber: number, captureCount: issue.captures.compactMap(\.imagePath).count)),
+        paths: evidencePaths(reportNumber: number, captureNumbers: screenshotNumbers(issue))),
       delivery: delivery, workspaceID: issue.workspaceID.uuidString,
       previousPullRequests: history,
       promptAddOn: [autonomyInstructions, issue.captures.contains { $0.imagePath != nil }
@@ -747,17 +749,19 @@ extension ExternalAssistant {
 public enum ExternalEvidenceWriter {
   /// Writes `report.json` and the approved PNGs. Callers must pass the flattened derivative,
   /// never the unredacted original.
-  public static func write(worktree: String, reportNumber: Int, report: Data, images: [Data]) throws
-    -> [String]
-  {
+  public static func write(
+    worktree: String, reportNumber: Int, report: Data, images: [(number: Int, data: Data)]
+  ) throws -> [String] {
     let directory = try PRScreenshotEvidence.safeFolder(
       worktree: worktree, relative: ExternalAssistant.evidenceDirectory(reportNumber: reportNumber))
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     try report.write(to: directory.appendingPathComponent("report.json"), options: .atomic)
-    for (offset, image) in images.enumerated() {
-      try image.write(to: directory.appendingPathComponent("capture-\(offset + 1).png"), options: .atomic)
+    for image in images {
+      try image.data.write(
+        to: directory.appendingPathComponent("capture-\(image.number).png"), options: .atomic)
     }
-    return ExternalAssistant.evidencePaths(reportNumber: reportNumber, captureCount: images.count)
+    return ExternalAssistant.evidencePaths(
+      reportNumber: reportNumber, captureNumbers: images.map(\.number))
   }
 }
 

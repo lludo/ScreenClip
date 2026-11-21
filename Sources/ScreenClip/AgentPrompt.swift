@@ -88,9 +88,12 @@ enum AgentPrompt {
   }
   private static func describe(_ capture: Capture, number: Int) -> String {
     let c = capture.context
-    let kind = capture.imagePath == nil ? "Text note" : "Capture"
+    // Attached images follow the order of the captures that have one; text notes have none.
+    let header = capture.imagePath == nil
+      ? "Text note \(number) (no screenshot) at \(c.capturedAt.formatted(.iso8601)): \(capture.note)\nSource: \(c.appName); window: \(c.windowTitle ?? "unknown"); URL: \(c.browserURL ?? "unavailable")"
+      : "Capture \(number) (screenshot attached) at \(c.capturedAt.formatted(.iso8601)): \(capture.note)\nSource: \(c.appName); window: \(c.windowTitle ?? "unknown"); URL: \(c.browserURL ?? "unavailable"); selection: \(c.selection); scale: \(c.scale)"
     return
-      "\(kind) \(number) at \(c.capturedAt.formatted(.iso8601)): \(capture.note)\nSource: \(c.appName); window: \(c.windowTitle ?? "unknown"); URL: \(c.browserURL ?? "unavailable"); selection: \(c.selection); scale: \(c.scale)\nTesting session: \(c.sessionName); tested version: \(c.testedVersion.isEmpty ? "unknown; do not assume current HEAD" : c.testedVersion)"
+      "\(header)\nTesting session: \(c.sessionName); tested version: \(c.testedVersion.isEmpty ? "unknown; do not assume current HEAD" : c.testedVersion)"
   }
   private static func describe(_ note: ContextNote) -> String {
     "Context added at \(note.date.formatted(.iso8601)):\n\(note.text)"

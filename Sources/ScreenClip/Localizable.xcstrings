@@ -43674,6 +43674,72 @@
           }
         }
       }
+    },
+    "ScreenClip is busy with this project. Try the merge again in a moment.": {
+      "comment": "Shown when a confirmed merge cannot start because ScreenClip is already updating the pull request or project.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip is busy with this project. Try the merge again in a moment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 正在处理此项目。请稍后再尝试合并。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip está ocupado con este proyecto. Vuelve a intentar la fusión en un momento."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip はこのプロジェクトを処理中です。しばらくしてからもう一度マージしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O ScreenClip está ocupado com este projeto. Tente mesclar novamente em instantes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip ist mit diesem Projekt beschäftigt. Versuche das Zusammenführen gleich noch einmal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip est occupé avec ce projet. Réessayez la fusion dans un instant."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip이 이 프로젝트를 처리하고 있습니다. 잠시 후 다시 병합해 보세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip занят этим проектом. Повторите слияние через минуту."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 正在處理此專案。請稍後再嘗試合併。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
