@@ -9,7 +9,7 @@ ScreenClip can send any report to Claude Code instead of Codex or Grok Bot. Each
 | Topic | Behavior |
 | --- | --- |
 | Executable | Settings → Connections → Claude Code. Detected from `/opt/homebrew/bin/claude`, `/usr/local/bin/claude`, `~/.local/bin/claude`, `~/.claude/local/claude`, `~/.npm-global/bin/claude`, or `~/.bun/bin/claude`. Override the path if needed. |
-| Model | Optional, for example `opus` or `sonnet`. Empty uses Claude Code's default. |
+| Model | Optional default in Settings, for example `opus` or `sonnet`; empty uses Claude Code's default. A report can override the model and effort from the composer's **Agent** menu. |
 | Sign-in | **Sign in to Claude Code** opens Terminal running `claude auth login`, then use **Detect agents**. Detection reads `claude auth status`. ScreenClip never handles Claude credentials. The Claude desktop app's sign-in is separate from the CLI's. |
 | Turn | One process per turn, with the prompt and approved PNGs sent as one stream-json user message. |
 | Questions | Returned as a structured `question` or `blocked` result, answered under **Needs you**. A reply starts the next turn with `--resume`. |
@@ -29,7 +29,7 @@ claude -p --input-format stream-json --output-format stream-json --verbose \
   --name 'ScreenClip: #234 …'
 ```
 
-Add `--model '<model>'` when a model override is configured.
+Add `--model '<model>'` when the report or Settings chooses a model, and `--effort '<level>'` when the report also chooses an effort. The composer's built-in Claude list is `AgentModelCatalog.claude` (Fable, Opus, Sonnet, Haiku).
 
 - **Working directory:** the issue's worktree.
 - **Input:** a single `{"type":"user","message":{"content":[text, image…]}}` line on stdin, then stdin closes. Images are base64 `image/png` blocks.

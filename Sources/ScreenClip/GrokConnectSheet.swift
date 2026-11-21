@@ -5,12 +5,6 @@ struct GrokConnectSheet: View {
   @ObservedObject var model: AppModel
   let initialCode: String?
   let onSaved: () -> Void
-  init(model: AppModel, initialCode: String?, projectID: UUID?, onSaved: @escaping () -> Void) {
-    self.model = model
-    self.initialCode = initialCode
-    self.onSaved = onSaved
-    _ = projectID
-  }
   @Environment(\.dismiss) private var dismiss
   @Environment(\.locale) private var locale
   @State private var webhookURL = ""
@@ -100,11 +94,7 @@ struct GrokConnectSheet: View {
     .onChange(of: webhookURL) { _, newValue in
       guard !applyingPaste else { return }
       guard case .success(let credentials) = ExternalConnectCode.parse(newValue) else { return }
-      applyingPaste = true
-      webhookURL = credentials.url
-      key = credentials.authorization
-      pastedCapabilities = credentials.capabilities
-      applyingPaste = false
+      apply(credentials)
     }
   }
 
@@ -126,12 +116,17 @@ struct GrokConnectSheet: View {
     guard let initialCode, !initialCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
       case .success(let credentials) = ExternalConnectCode.parse(initialCode)
     else { return }
+    apply(credentials)
+    filledFromLink = true
+  }
+
+  /// Fills the fields from a connect code without re-parsing the URL field it rewrites.
+  private func apply(_ credentials: ExternalConnectCode.Credentials) {
     applyingPaste = true
     webhookURL = credentials.url
     key = credentials.authorization
     pastedCapabilities = credentials.capabilities
     applyingPaste = false
-    filledFromLink = true
   }
 
   private func connect() {

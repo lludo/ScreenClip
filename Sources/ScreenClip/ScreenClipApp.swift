@@ -36,10 +36,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     NSApp.setActivationPolicy(.accessory)
     do {
       let arguments = ProcessInfo.processInfo.arguments
-      previewMode =
-        arguments.contains("--preview") || arguments.contains("--render-preview")
-        || arguments.contains("--integration-run")
-        || arguments.contains("--integration-project-link")
+      let integration =
+        arguments.contains("--integration-run") || arguments.contains("--integration-project-link")
+      previewMode = integration || arguments.contains("--preview") || arguments.contains("--render-preview")
       screenshotMode = arguments.contains("--screenshot-fixture")
       if let localeFlag = arguments.firstIndex(of: "--locale"), arguments.indices.contains(localeFlag + 1) {
         screenshotLocale = Locale(identifier: arguments[localeFlag + 1])
@@ -47,8 +46,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       let override = arguments.firstIndex(of: "--data-dir").flatMap {
         arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil
       }
-      let integration =
-        arguments.contains("--integration-run") || arguments.contains("--integration-project-link")
       guard !integration || override != nil else {
         throw ScreenClipError.message("Integration checks require an explicit fresh --data-dir.")
       }

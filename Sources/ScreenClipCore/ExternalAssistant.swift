@@ -193,23 +193,21 @@ public enum ExternalAssistant {
       evidence: ExternalCancelEvidence(branch: branch))
   }
 
-  public static func jsonCancel(_ payload: ExternalCancelPayload) throws -> Data {
+  /// Sorted keys keep payloads byte-stable for signatures and tests.
+  private static func encode(_ value: some Encodable, pretty: Bool = false) throws -> Data {
     let encoder = JSONEncoder()
-    encoder.outputFormatting = [.sortedKeys]
-    return try encoder.encode(payload)
+    encoder.outputFormatting = pretty ? [.sortedKeys, .prettyPrinted] : [.sortedKeys]
+    return try encoder.encode(value)
+  }
+  public static func jsonCancel(_ payload: ExternalCancelPayload) throws -> Data {
+    try encode(payload)
   }
   public static func json(_ payload: ExternalWebhookPayload, pretty: Bool = false) throws -> Data {
-    let encoder = JSONEncoder()
-    var formatting: JSONEncoder.OutputFormatting = [.sortedKeys]
-    if pretty { formatting.insert(.prettyPrinted) }
-    encoder.outputFormatting = formatting
-    return try encoder.encode(payload)
+    try encode(payload, pretty: pretty)
   }
 
   public static func testJSON() throws -> Data {
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = [.sortedKeys]
-    return try encoder.encode(ExternalTestPayload())
+    try encode(ExternalTestPayload())
   }
 
   public static func containsScreenclipEvidence(_ paths: [String]) -> Bool {
@@ -476,9 +474,7 @@ public enum AgentPicker {
     }
   }
 
-  public static func externalAvailability(
-    configured: Bool, hasProject: Bool, projectOptIn: Bool
-  ) -> ExternalAgentAvailability {
+  public static func externalAvailability(configured: Bool, hasProject: Bool) -> ExternalAgentAvailability {
     if !configured {
       return ExternalAgentAvailability(
         enabled: false, hint: ProviderPhrase.notConnected.english(.external))
@@ -518,9 +514,7 @@ public enum ExternalHandoff {
     return .commitEvidence
   }
   /// Persisted immediately before the POST. A crash retries this same revision.
-  public static func beginSend(
-    _ state: ExternalHandoffState, revision: Int, commit: String
-  ) -> ExternalHandoffState {
+  public static func beginSend(revision: Int, commit: String) -> ExternalHandoffState {
     ExternalHandoffState(
       revision: revision, handoffRevision: revision, handoffCommit: commit, uncertain: true)
   }
@@ -754,25 +748,14 @@ public enum ExternalEvidenceWriter {
   public static func write(worktree: String, reportNumber: Int, report: Data, images: [Data]) throws
     -> [String]
   {
-    var directory = URL(fileURLWithPath: worktree, isDirectory: true).standardizedFileURL
-      .resolvingSymlinksInPath()
-    // The branch can come from the remote; a committed symlink must not redirect the files.
-    for component in ExternalAssistant.evidenceDirectory(reportNumber: reportNumber).split(separator: "/") {
-      directory.appendPathComponent(String(component), isDirectory: true)
-      let attributes = try? FileManager.default.attributesOfItem(atPath: directory.path)
-      if attributes?[.type] as? FileAttributeType == .typeSymbolicLink {
-        throw ScreenClipError.message("Screenshot evidence folders must not contain symbolic links.")
-      }
-    }
+    let directory = try PRScreenshotEvidence.safeFolder(
+      worktree: worktree, relative: ExternalAssistant.evidenceDirectory(reportNumber: reportNumber))
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-    var paths = ["\(ExternalAssistant.evidenceDirectory(reportNumber: reportNumber))/report.json"]
     try report.write(to: directory.appendingPathComponent("report.json"), options: .atomic)
     for (offset, image) in images.enumerated() {
-      let name = "capture-\(offset + 1).png"
-      try image.write(to: directory.appendingPathComponent(name), options: .atomic)
-      paths.append("\(ExternalAssistant.evidenceDirectory(reportNumber: reportNumber))/\(name)")
+      try image.write(to: directory.appendingPathComponent("capture-\(offset + 1).png"), options: .atomic)
     }
-    return paths
+    return ExternalAssistant.evidencePaths(reportNumber: reportNumber, captureCount: images.count)
   }
 }
 

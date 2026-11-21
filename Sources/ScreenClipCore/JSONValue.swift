@@ -59,7 +59,6 @@ public indirect enum JSONValue: Codable, Equatable, Sendable {
     if case .object(let v) = self { return v }
     return [:]
   }
-  public static func text(_ value: String) -> JSONValue { .string(value) }
   public var data: Data { (try? JSONEncoder().encode(self)) ?? Data() }
 }
 

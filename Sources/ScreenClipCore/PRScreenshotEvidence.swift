@@ -9,10 +9,16 @@ public enum PRScreenshotEvidence {
   }
 
   private static func folder(_ issue: Issue, _ worktree: String, _ name: String) throws -> URL {
-    let root = URL(fileURLWithPath: worktree).standardizedFileURL.resolvingSymlinksInPath()
-    var folder = root
-    for component in (directory(for: issue) + "/" + name).split(separator: "/") {
-      folder.appendPathComponent(String(component))
+    try safeFolder(worktree: worktree, relative: directory(for: issue) + "/" + name)
+  }
+
+  /// `relative` inside the worktree. The branch can come from the remote, so a committed
+  /// symlink in any component must not redirect evidence files.
+  static func safeFolder(worktree: String, relative: String) throws -> URL {
+    var folder = URL(fileURLWithPath: worktree, isDirectory: true).standardizedFileURL
+      .resolvingSymlinksInPath()
+    for component in relative.split(separator: "/") {
+      folder.appendPathComponent(String(component), isDirectory: true)
       let attributes = try? FileManager.default.attributesOfItem(atPath: folder.path)
       if attributes?[.type] as? FileAttributeType == .typeSymbolicLink {
         throw ScreenClipError.message("Screenshot evidence folders must not contain symbolic links.")

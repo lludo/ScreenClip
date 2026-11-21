@@ -11,6 +11,8 @@ struct IssueDetailView: View {
   @State private var showFollowUpEditor = false
   @Environment(\.locale) private var locale
   var body: some View {
+    // Read once per render: it queries the Keychain for active Grok Bot reports.
+    let cancelIsBestEffort = grokCancelIsBestEffort
     ScrollView {
       VStack(alignment: .leading, spacing: 22) {
         HStack {
@@ -160,8 +162,7 @@ struct IssueDetailView: View {
             } label: {
               Text(chrome: "Choose project", comment: "Menu of projects for an unassigned capture.")
             }
-          }.padding(16).frame(maxWidth: .infinity, alignment: .leading).background(
-            .orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+          }.card(.orange.opacity(0.08))
         }
         if let error = issue.lastError {
           Label {
@@ -230,22 +231,17 @@ struct IssueDetailView: View {
             }
           }
           if [.working, .queued, .needsYou, .prOpen].contains(issue.status) {
-            if grokCancelIsBestEffort {
-              Button(role: .destructive) {
-                Task { await model.worker.cancel(issue.id) }
-              } label: {
-                Text(chrome: "Cancel work", comment: "Cancels local work on this report.")
-              }
-              .help(Text(
-                chrome: "Asks Grok Bot to stop. This is best-effort and may not stop work it already started.",
-                comment: "Help for Cancel when Grok Bot can be asked to stop. The stop is not guaranteed."))
-            } else {
-              Button(role: .destructive) {
-                Task { await model.worker.cancel(issue.id) }
-              } label: {
-                Text(chrome: "Cancel work", comment: "Cancels local work on this report.")
-              }
+            Button(role: .destructive) {
+              Task { await model.worker.cancel(issue.id) }
+            } label: {
+              Text(chrome: "Cancel work", comment: "Cancels local work on this report.")
             }
+            .help(
+              cancelIsBestEffort
+                ? Text(
+                  chrome: "Asks Grok Bot to stop. This is best-effort and may not stop work it already started.",
+                  comment: "Help for Cancel when Grok Bot can be asked to stop. The stop is not guaranteed.")
+                : Text(verbatim: ""))
           }
           if issue.status == .merged {
             Button {
@@ -272,7 +268,7 @@ struct IssueDetailView: View {
               comment: "Help for the follow-up button."))
           }
         }
-        if grokCancelIsBestEffort {
+        if cancelIsBestEffort {
           Text(
             chrome: "Asks Grok Bot to stop. This is best-effort and may not stop work it already started.",
             comment: "Shown beside Cancel when Grok Bot can be asked to stop. The stop is not guaranteed."
@@ -281,9 +277,7 @@ struct IssueDetailView: View {
           .fixedSize(horizontal: false, vertical: true)
         }
         if let summary = issue.resultSummary {
-          Text(verbatim: summary).textSelection(.enabled).padding(16).frame(
-            maxWidth: .infinity, alignment: .leading
-          ).background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+          Text(verbatim: summary).textSelection(.enabled).card(.quaternary.opacity(0.5))
         }
         ForEach(Array(issue.captures.enumerated()), id: \.element.id) { index, capture in
           VStack(alignment: .leading, spacing: 10) {
@@ -296,7 +290,7 @@ struct IssueDetailView: View {
               Text(capture.context.capturedAt, style: .time).font(.caption).foregroundStyle(
                 .tertiary)
             }
-            if let image = NSImage(contentsOfFile: capture.imagePath) {
+            if let image = CaptureImageCache.image(capture.imagePath) {
               Image(nsImage: image).resizable().scaledToFit().frame(
                 maxWidth: .infinity, maxHeight: 420
               ).background(Color.black.opacity(0.04)).clipShape(RoundedRectangle(cornerRadius: 10))
@@ -347,8 +341,7 @@ struct IssueDetailView: View {
                   .fixedSize(horizontal: false, vertical: true)
               }
             }
-          }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
-            .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 12))
+          }.card(.quaternary.opacity(0.5))
         }
         Divider()
         Text(chrome: "ACTIVITY", comment: "Heading above the report activity log.")

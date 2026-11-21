@@ -58,7 +58,7 @@ struct ContextNoteEditor: View {
             chrome: "Additional context", comment: "Accessibility label for the context note field."
           ))
       attachmentEditor
-      Text(verbatim: Chrome.stored(contextHint, locale: locale)).font(.caption)
+      Text(verbatim: contextHint).font(.caption)
         .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
       if let error {
         Text(verbatim: Chrome.stored(error, locale: locale)).font(.callout).foregroundStyle(.red)
@@ -195,18 +195,26 @@ struct ContextNoteEditor: View {
   }
   private var contextHint: String {
     guard let issue = model.issue(issueID) else { return "" }
+    let comment: StaticString = "Hint under the added-context field: when the note takes effect."
     if issue.dispatchUncertain {
-      return "Your note will be included after the chat is reconciled."
+      return Chrome.text(
+        "Your note will be included after the chat is reconciled.", locale: locale, comment: comment)
     }
     switch issue.status {
-    case .draft: return "Your note stays with this draft until you submit it."
-    case .needsProject: return "Choose a project in the report before work can begin."
+    case .draft:
+      return Chrome.text("Your note stays with this draft until you submit it.", locale: locale, comment: comment)
+    case .needsProject:
+      return Chrome.text("Choose a project in the report before work can begin.", locale: locale, comment: comment)
     case .working:
-      return "Your note will be included in follow-up work after the current work finishes."
+      return Chrome.text(
+        "Your note will be included in follow-up work after the current work finishes.", locale: locale,
+        comment: comment)
     case .needsYou:
-      return
-        "Your note will be included when work continues. Answer any pending questions in the report."
-    default: return "Saving queues this report with your added context."
+      return Chrome.text(
+        "Your note will be included when work continues. Answer any pending questions in the report.",
+        locale: locale, comment: comment)
+    default:
+      return Chrome.text("Saving queues this report with your added context.", locale: locale, comment: comment)
     }
   }
 }

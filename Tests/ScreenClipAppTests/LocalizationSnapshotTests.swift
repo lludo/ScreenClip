@@ -68,11 +68,11 @@ import XCTest
           MenuPopover(model: model), name: "menu-\(suffix)", size: NSSize(width: 460, height: 640),
           locale: identifier, appearance: appearance, output: output))
         written.append(try render(
-          SettingsView(model: model, close: {}, initialTab: 0), name: "settings-\(suffix)",
+          SettingsView(model: model, close: {}), name: "settings-\(suffix)",
           size: NSSize(width: 780, height: 720), locale: identifier, appearance: appearance,
           output: output))
         written.append(try render(
-          GrokConnectSheet(model: model, initialCode: nil, projectID: nil, onSaved: {}),
+          GrokConnectSheet(model: model, initialCode: nil, onSaved: {}),
           name: "connect-grok-\(suffix)", size: NSSize(width: 720, height: 860),
           locale: identifier, appearance: appearance, output: output))
       }

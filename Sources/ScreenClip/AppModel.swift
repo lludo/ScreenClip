@@ -84,41 +84,40 @@ struct GrokConnectionCheck: Equatable {
     snapshot = try store.load()
     // Do not replay uncertain work automatically after a crash.
     if recoverInterruptedWork {
-    for i in snapshot.issues.indices
-    where snapshot.issues[i].status == .working || snapshot.issues[i].dispatchUncertain {
-      if snapshot.issues[i].resolvedAgent == .external {
-        switch ExternalRecovery.afterRestart(
-          status: snapshot.issues[i].status, uncertain: snapshot.issues[i].dispatchUncertain,
-          sentCurrentRevision: ExternalRecovery.sentCurrentRevision(snapshot.issues[i]))
-        {
-        case .retrySend:
-          snapshot.issues[i].dispatchUncertain = false
-          snapshot.issues[i].record(ExternalAssistant.restartRetryActivity, status: .failed)
-        case .watchForPullRequest:
-          snapshot.issues[i].record(ExternalAssistant.restartWatchActivity)
+      for i in snapshot.issues.indices
+      where snapshot.issues[i].status == .working || snapshot.issues[i].dispatchUncertain {
+        if snapshot.issues[i].resolvedAgent == .external {
+          switch ExternalRecovery.afterRestart(
+            status: snapshot.issues[i].status, uncertain: snapshot.issues[i].dispatchUncertain,
+            sentCurrentRevision: ExternalRecovery.sentCurrentRevision(snapshot.issues[i]))
+          {
+          case .retrySend:
+            snapshot.issues[i].dispatchUncertain = false
+            snapshot.issues[i].record(ExternalAssistant.restartRetryActivity, status: .failed)
+          case .watchForPullRequest:
+            snapshot.issues[i].record(ExternalAssistant.restartWatchActivity)
+          }
+        } else {
+          if snapshot.issues[i].resolvedAgent == .claude && snapshot.issues[i].status == .working {
+            restartedClaudeIssues.append(snapshot.issues[i].id)
+          }
+          if snapshot.issues[i].resolvedAgent == .codex && snapshot.issues[i].status == .working
+            && !snapshot.issues[i].dispatchUncertain
+          {
+            restartedCodexIssues.insert(snapshot.issues[i].id)
+          }
+          snapshot.issues[i].record(Self.restartActivity, status: .needsYou)
         }
-      } else {
-        if snapshot.issues[i].resolvedAgent == .claude && snapshot.issues[i].status == .working {
-          restartedClaudeIssues.append(snapshot.issues[i].id)
-        }
-        if snapshot.issues[i].resolvedAgent == .codex && snapshot.issues[i].status == .working
-          && !snapshot.issues[i].dispatchUncertain
-        {
-          restartedCodexIssues.insert(snapshot.issues[i].id)
-        }
-        snapshot.issues[i].record(Self.restartActivity, status: .needsYou)
       }
     }
-    }
     if snapshot.settings.codexPath.isEmpty {
-      snapshot.settings.codexPath = Self.defaultCodexPath()
+      snapshot.settings.codexPath = AgentDetector.defaultCodexPath()
     }
     if snapshot.settings.firstLaunchedAt == nil {
       snapshot.settings.firstLaunchedAt = Date()
     }
     snapshot = try store.save(snapshot)
   }
-  static func defaultCodexPath() -> String { AgentDetector.defaultCodexPath() }
   func commit(_ change: (inout StoreSnapshot) throws -> Void) throws {
     var next = snapshot
     try change(&next)
@@ -221,16 +220,15 @@ struct GrokConnectionCheck: Equatable {
     context: CaptureContext, projectID: UUID?, existingID: UUID?, draft: Bool,
     agent: AgentKind? = nil, agentModel: String? = nil, agentEffort: String? = nil
   ) throws {
-    let chosenAgent = agent ?? AgentSelection.projectDefault(
-      projectID.flatMap(project), system: snapshot.settings.preferredAgent)
+    let chosenAgent = AgentSelection.capture(
+      override: agent, project: projectID.flatMap(project), system: snapshot.settings.preferredAgent)
     if draft, let existingID, let target = issue(existingID), target.status != .draft {
       throw ScreenClipError.message(
         "Drafts cannot be added to a submitted issue. Submit the capture, or choose New issue.")
     }
     if !draft, chosenAgent == .external, projectID != nil {
       let availability = AgentPicker.externalAvailability(
-        configured: loadExternalAssistant().isConfigured, hasProject: true,
-        projectOptIn: project(projectID)?.sendsExternalScreenshots == true)
+        configured: loadExternalAssistant().isConfigured, hasProject: true)
       if let hint = availability.hint { throw ScreenClipError.message(hint) }
     }
     let approved = try store.writeAsset(imageData)

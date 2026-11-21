@@ -5,6 +5,33 @@ import ScreenClipCore
 /// Agent-neutral result handling: validation, PR publication, repair attempts, PR
 /// monitoring, guarded merges, and workspace cleanup.
 extension AgentWorker {
+  /// Validation receipts outlive a restart, keyed by the report's worktree.
+  func receiptURL(_ issue: Issue) -> URL {
+    model.store.root.appendingPathComponent("runs/\(issue.workspaceID).json")
+  }
+  func loadReceipt(_ id: UUID, issue: Issue) -> ValidationReceipt? {
+    if let receipt = receipts[id] { return receipt }
+    return try? JSONDecoder().decode(
+      ValidationReceipt.self, from: Data(contentsOf: receiptURL(issue)))
+  }
+  func saveReceipt(_ receipt: ValidationReceipt, for id: UUID, issue: Issue) throws {
+    receipts[id] = receipt
+    try JSONEncoder().encode(receipt).write(to: receiptURL(issue), options: .atomic)
+  }
+
+  /// Finishes a completed turn unless another path already is. While a report is in
+  /// `finishing`, disconnect events and duplicate completions leave it alone.
+  func finishOnce(_ id: UUID) async {
+    guard finishing.insert(id).inserted else { return }
+    await finishMarked(id)
+  }
+  /// For callers that inserted `id` into `finishing` themselves.
+  func finishMarked(_ id: UUID) async {
+    await finish(id)
+    finishing.remove(id)
+    // A report queued again during validation waits for this run to end.
+    pump()
+  }
   func finish(_ id: UUID) async {
     guard let issue = model.issue(id), let project = model.project(issue.projectID),
       issue.status != .canceled
@@ -116,10 +143,7 @@ extension AgentWorker {
         })
       var savedReceipt = receipt
       savedReceipt.head = published.head
-      receipts[id] = savedReceipt
-      try JSONEncoder().encode(savedReceipt).write(
-        to: model.store.root.appendingPathComponent("runs/\(issue.workspaceID).json"),
-        options: .atomic)
+      try saveReceipt(savedReceipt, for: id, issue: issue)
       try model.updateIssue(id) { current in
         current.prURL = published.url
         current.prHead = published.head
@@ -217,18 +241,17 @@ extension AgentWorker {
         model.notify(issue, text: "Fix merged. Ready to rebuild and retest.")
         return
       }
-      var screenclipEvidenceCleared = true
       var validatedHere = true
       if issue.resolvedAgent == .external {
         switch try await inspectExternal(id, issue: issue, project: project, path: path, pullHead: pr.head)
         {
         case .blocked: return
         case .unvalidated: validatedHere = false
-        case .ready(let cleared): screenclipEvidenceCleared = cleared
+        case .ready: break
         }
       }
       if pr.checksFailed, model.issue(id)?.status == .prOpen {
-        if model.issue(id)?.resolvedAgent == .external {
+        if issue.resolvedAgent == .external {
           if model.issue(id)?.checkSummary != pr.details {
             try model.updateIssue(id) {
               $0.checkSummary = pr.details
@@ -263,12 +286,7 @@ extension AgentWorker {
         }
         return
       }
-      let receipt =
-        receipts[id]
-        ?? (try? JSONDecoder().decode(
-          ValidationReceipt.self,
-          from: Data(
-            contentsOf: model.store.root.appendingPathComponent("runs/\(issue.workspaceID).json"))))
+      let receipt = loadReceipt(id, issue: issue)
       let currentIssue = model.issue(id) ?? issue
       let evidence = MergeEvidence(
         expectedHead: currentIssue.prHead ?? "", currentHead: pr.head,
@@ -279,7 +297,8 @@ extension AgentWorker {
         mergeable: pr.mergeable && pr.base == project.baseBranch,
         reviewSatisfied: pr.reviewSatisfied,
         unresolvedQuestions: currentIssue.questions.contains { $0.reply == nil },
-        screenclipEvidenceCleared: screenclipEvidenceCleared, draft: pr.draft)
+        // Grok Bot pull requests that still carry evidence returned `.blocked` above.
+        screenclipEvidenceCleared: true, draft: pr.draft)
       let checkSummary: String
       if pr.draft {
         checkSummary = ExternalAssistant.draftPullRequestSummary
@@ -294,8 +313,6 @@ extension AgentWorker {
         checkSummary = "Waiting for required review."
       } else if !pr.mergeable {
         checkSummary = "Waiting for the PR to become mergeable."
-      } else if !screenclipEvidenceCleared {
-        checkSummary = ExternalAssistant.evidenceStillPresentSummary
       } else if !validatedHere {
         checkSummary = ExternalAssistant.validationNeedsAutoMerge
       } else if !project.autoMerge {

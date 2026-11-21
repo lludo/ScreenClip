@@ -43,8 +43,7 @@ public enum GitHubService {
       throw ScreenClipError.message("The source or issue changed before push. Publication stopped.")
     }
     let screenshots = try PRScreenshotEvidence.markdown(issue: issue, worktree: path, remote: remote, head: head)
-    _ = try await CommandRunner.checked(
-      GitWorkspace.git, ["push", "-u", "origin", branch], cwd: path)
+    try await pushBranch(branch, cwd: path)
     let existing = try await CommandRunner.checked(
       gh, ["pr", "list", "--head", branch, "--state", "open", "--json", "url,baseRefName,isCrossRepository"],
       cwd: path)
@@ -130,25 +129,16 @@ public enum GitHubService {
   /// Hides values in `NAME=value` assignments and long token-like strings so a validation
   /// command never publishes credentials in a PR body.
   public static func redactSecrets(_ text: String) -> String {
-    var result = text.replacingOccurrences(
-      of: #"\b([A-Za-z_][A-Za-z0-9_]*)=("[^"]*"|'[^']*'|\S+)"#, with: "$1=…",
-      options: .regularExpression)
-    return redactTokens(result)
+    redactTokens(
+      text.replacingOccurrences(
+        of: #"\b([A-Za-z_][A-Za-z0-9_]*)=("[^"]*"|'[^']*'|\S+)"#, with: "$1=…",
+        options: .regularExpression))
   }
   /// Hides only token-shaped strings. For agent prompts, where `CI=1 npm test` must stay runnable.
   public static func redactTokens(_ text: String) -> String {
     text.replacingOccurrences(
       of: #"\b(gh[pousr]_[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_-]{20,}|[A-Za-z0-9_-]{40,})\b"#,
       with: "…", options: .regularExpression)
-  }
-  public static func repositoryIsPublic(_ repo: String, gh: String, cwd: String) async -> Bool? {
-    guard
-      let text = try? await CommandRunner.checked(
-        gh, ["repo", "view", repo, "--json", "isPrivate"], cwd: cwd),
-      let json = try? JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)),
-      let isPrivate = json["isPrivate"].bool
-    else { return nil }
-    return !isPrivate
   }
   public static func pullRequests(head: String, gh: String, cwd: String) async throws
     -> [ExternalPullRequestCandidate]

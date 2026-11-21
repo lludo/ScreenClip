@@ -38,7 +38,7 @@ Example: while moving through a checkout flow, the tester notices a clipped butt
 | Agent outcome | Implement, test, open a PR, and merge when checks pass. ScreenClip decides merges for every agent, including Grok Bot |
 | Communication | Follow-up questions and completion feedback. Codex and Claude questions are answered in ScreenClip; Grok Bot questions stay in Grok Bot's chat |
 | Audience | Eventual public distribution |
-| Agents | Codex, Claude Code, or Grok Bot, chosen per report with a default in Settings; see [Coding agents](agents/README.md) |
+| Agents | Codex, Claude Code, or Grok Bot, chosen per report (with model and reasoning effort for Codex and Claude Code) and a default in Settings; see [Coding agents](agents/README.md) |
 
 Sections below describe the implemented behavior. Closed product questions are under [Decisions](#decisions).
 
@@ -47,7 +47,7 @@ Sections below describe the implemented behavior. Closed product questions are u
 1. Invoke a configurable global shortcut. Default shortcut: Command–Shift–2, subject to availability; the built-in screenshot shortcut stays available.
 2. Preserve the source app and available context before ScreenClip takes focus.
 3. Show a crosshair and region selection. Escape cancels. A selection that spans two displays is not implemented. Retina scales, full-screen Spaces, and mixed-scale monitors are still on the [roadmap](roadmap.md#open-gates).
-4. Show a compact overlay with the image, a focused note field, an inferred project chip, and an issue destination: **New issue** or **Add to issue…**.
+4. Show a compact overlay with the image, a focused note field, an inferred project, an **Issue** picker (**New issue**, or an existing issue, newest first), and an **Agent** menu that also picks the model and reasoning effort.
 5. Immediately offer freehand marks, arrows, rectangles, circles/ellipses, text, color and stroke-thickness choices, undo/redo, and an opaque redaction tool. A redaction is a rectangle the user draws; it is flattened to opaque black and is the only mark that hides pixels. Notes and annotations are optional; allow an image-only observation.
 6. Submit using the primary button or Command–Return. Persist the report before acknowledging success, dismiss the overlay, and return focus to the tested app.
 7. Dispatch immediately when routing and connectivity permit. A paused, offline, or ambiguous report remains saved with a clear reason.
@@ -111,7 +111,7 @@ Notify on a question, blocked run, or completed merge. Do not interrupt testing 
 | Working | Agent investigating, editing, testing, or repairing checks |
 | Needs you | Agent needs an answer or an action that its configured permissions do not allow |
 | PR open | A PR exists; CI, review requirements, or mergeability are pending |
-| Merged | The hosting service confirms the PR was merged |
+| Merged | The hosting service confirms the PR was merged, including a merge done on GitHub while the report was **Needs you** or **Failed** |
 | Verified | Tester confirmed the fix in the relevant running build |
 | Failed | Processing stopped with a recoverable or explained error |
 | Canceled | Further agent work was stopped; existing files/PRs remain inspectable |

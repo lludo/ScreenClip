@@ -29,7 +29,8 @@ extension AgentWorker {
     let task = Task { @MainActor [self] in
       let stream = try await client.connect(path: AgentDetector.codexPath(model.snapshot.settings))
       connected = true
-      eventsTask = Task { [weak self] in for await event in stream { await self?.handle(event) } }
+      // Ends with the stream when the client stops.
+      Task { [weak self] in for await event in stream { await self?.handle(event) } }
     }
     connecting = task
     defer { connecting = nil }
@@ -42,7 +43,6 @@ extension AgentWorker {
     }
     await client.stop()
     authentication.reset()
-    pendingRequests.removeAll()
     requestOwners.removeAll()
     connected = false
     model.connection = ProviderPhrase.notConnected.english(.codex)
@@ -129,8 +129,11 @@ extension AgentWorker {
       return
     }
     issue = current
+    guard let threadID = issue.threadID else {
+      throw ScreenClipError.message("Codex did not return a chat ID.")
+    }
     if mode == .automaticReview,
-      !(await client.supportsAutomaticReview(threadID: issue.threadID!))
+      !(await client.supportsAutomaticReview(threadID: threadID))
     {
       throw ScreenClipError.message(
         "Codex did not enable automatic approval review. Update Codex or choose Ask me in project settings.")
@@ -155,11 +158,11 @@ extension AgentWorker {
       $0.record("Investigating capture revision \(issue.revision)", status: .working)
     }
     texts[id] = nil
-    sentContext[id] = AgentPrompt.delivered(issue, threadID: issue.threadID!)
+    sentContext[id] = AgentPrompt.delivered(issue, threadID: threadID)
     let result = try await client.request(
       "turn/start",
       params: .object([
-        "threadId": .string(issue.threadID!), "input": .array(input), "outputSchema": schema,
+        "threadId": .string(threadID), "input": .array(input), "outputSchema": schema,
         // A follow-up after a merge runs in a new worktree; an owned thread is not resumed,
         // so the turn is what carries the current directory.
         "cwd": .string(path),
@@ -180,10 +183,10 @@ extension AgentWorker {
     // before cancel() knows which turn to interrupt.
     if !jobs.contains(id) || model.issue(id)?.status == .canceled {
       canceledTurns.insert(turnID)
-      await interrupt(threadID: issue.threadID!, turnID: turnID)
+      await interrupt(threadID: threadID, turnID: turnID)
       return
     }
-    watchCodexTurn(id, threadID: issue.threadID!, turnID: turnID)
+    watchCodexTurn(id, threadID: threadID, turnID: turnID)
   }
   /// The report's model and effort for `turn/start`. Owned threads skip thread/resume, so the
   /// turn carries the report's choice. Without one the thread keeps the Settings model.
@@ -290,7 +293,7 @@ extension AgentWorker {
       jobs.contains(issueID), let threadID = issue.threadID, let turnID = issue.turnID,
       let question = issue.questions.first(where: { $0.id == questionID && $0.reply == nil }),
       let requestID = question.requestID,
-      pendingRequests.contains(requestID.data.base64EncodedString()),
+      requestOwners[Self.requestKey(requestID)] == issueID,
       CodexRequestKind(method: question.requestMethod).isApproval,
       CodexApprovalOptions(method: question.requestMethod ?? "", params: question.questions ?? .null)
         .permits("accept"),
@@ -311,7 +314,7 @@ extension AgentWorker {
         "approvalsReviewer": .string("auto_review"),
       ]))
       // Re-read after awaits so saving the mode cannot overwrite concurrent project edits.
-      guard jobs.contains(issueID), pendingRequests.contains(requestID.data.base64EncodedString()),
+      guard jobs.contains(issueID), requestOwners[Self.requestKey(requestID)] == issueID,
         model.issue(issueID)?.questions.contains(where: { $0.id == questionID && $0.reply == nil }) == true,
         let current = model.project(issue.projectID) else { return }
       var project = current
@@ -329,7 +332,6 @@ extension AgentWorker {
     if method == "screenclip/disconnected" {
       connected = false
       authentication.reset(message: "Codex disconnected. Check the connection to reconnect.")
-      pendingRequests.removeAll()
       requestOwners.removeAll()
       model.connection = ProviderPhrase.disconnected.english(.codex)
       // Work already in validation or publication no longer needs the Codex connection.
@@ -367,8 +369,7 @@ extension AgentWorker {
           id: message["id"], message: "This ScreenClip issue is no longer running.")
         return
       }
-      pendingRequests.insert(message["id"].data.base64EncodedString())
-      requestOwners[message["id"].data.base64EncodedString()] = id
+      requestOwners[Self.requestKey(message["id"])] = id
       let isQuestion = CodexRequestKind(method: method) == .userInput
       let title =
         isQuestion
@@ -428,14 +429,9 @@ extension AgentWorker {
         if let turn = p["turn"]["id"].string {
           model.perform { try model.updateIssue(id) { $0.consumedTurnID = turn } }
         }
-        if !finishing.contains(id) {
-          finishing.insert(id)
-          Task {
-            await finish(id)
-            finishing.remove(id)
-            // A report queued again during validation waits for this run to end.
-            pump()
-          }
+        // Marked synchronously, so a second completion event cannot start another finish.
+        if finishing.insert(id).inserted {
+          Task { await finishMarked(id) }
         }
       } else {
         let error =
@@ -462,8 +458,7 @@ extension AgentWorker {
         }
       }
     case "serverRequest/resolved":
-      pendingRequests.remove(p["requestId"].data.base64EncodedString())
-      requestOwners.removeValue(forKey: p["requestId"].data.base64EncodedString())
+      requestOwners.removeValue(forKey: Self.requestKey(p["requestId"]))
       model.perform {
         try model.updateIssue(id) { issue in
           for i in issue.questions.indices
@@ -479,7 +474,6 @@ extension AgentWorker {
       }
     default: break
     }
-    _ = threadID
   }
   func interrupt(threadID: String, turnID: String) async {
     _ = try? await client.request(
@@ -563,7 +557,8 @@ extension AgentWorker {
           $0.consumedTurnID = turn["id"].string
           $0.record("Recovering completed fix", status: .working)
         }
-        await finish(id)
+        // Marked finishing like a live completion, so a disconnect meanwhile cannot fail it.
+        await finishOnce(id)
       }
     } catch { model.banner = error.localizedDescription }
   }

@@ -28,16 +28,13 @@ extension AgentWorker {
       })
     try model.updateIssue(id) {
       $0.threadID = sessionID
-      $0.turnID = "claude:" + sessionID
+      $0.turnID = Self.claudeTurnID(sessionID)
       $0.dispatchUncertain = false
       $0.coveredRevision = issue.revision
       $0.record("Investigating capture revision \(issue.revision) with Claude Code", status: .working)
     }
-    guard let current = model.issue(id) else {
-      jobs.remove(id)
-      return
-    }
-    issue = current
+    // updateIssue throws when the report is gone, so it exists here.
+    issue = model.issue(id) ?? issue
     texts[id] = nil
     // A resumed session already holds earlier evidence; send only what is new.
     let turn = AgentPrompt.turn(
@@ -73,7 +70,7 @@ extension AgentWorker {
         let fresh = UUID().uuidString.lowercased()
         try model.updateIssue(id) {
           $0.threadID = fresh
-          $0.turnID = "claude:" + fresh
+          $0.turnID = Self.claudeTurnID(fresh)
           $0.record("Previous Claude Code session was not found; starting a new session")
         }
         request.sessionID = fresh
@@ -137,14 +134,10 @@ extension AgentWorker {
       }
       texts[id] = json
     }
-    if !finishing.contains(id) {
-      finishing.insert(id)
-      await finish(id)
-      finishing.remove(id)
-      // A report queued again during validation waits for this run to end.
-      pump()
-    }
+    await finishOnce(id)
   }
+  /// Claude Code has no turn IDs; a running session stands in for its turn.
+  static func claudeTurnID(_ session: String) -> String { "claude:" + session }
   static let claudePermissionFailure = """
     Claude Code could not run a required tool because access was denied. No text reply can grant that access. Choose Continue to retry with automatic permission review. If it is denied again, open the Claude chat to inspect the restriction. Technical details are in Activity.
     """

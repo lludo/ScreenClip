@@ -6,7 +6,6 @@ import UserNotifications
 struct SettingsView: View {
   @ObservedObject var model: AppModel
   let close: () -> Void
-  var initialTab = 0
   @Environment(\.locale) private var locale
   @State private var settings = AppSettings()
   @State private var editProject: Project?
@@ -20,6 +19,9 @@ struct SettingsView: View {
   @State private var testingGrok = false
   @State private var grokTestResult: String?
   @State private var grokTestOK = false
+  /// The saved connection. Cached so rendering does not query the Keychain on every keystroke.
+  @State private var grokSaved = ExternalAssistantConfiguration.empty
+  @State private var openAtLogin = false
   var body: some View {
     VStack(spacing: 0) {
       Group {
@@ -67,9 +69,9 @@ struct SettingsView: View {
       }
       .onAppear {
         settings = model.snapshot.settings
+        openAtLogin = SMAppService.mainApp.status == .enabled
         reloadGrokConnection()
         if model.snapshot.projects.isEmpty { tab = 1 }
-        if initialTab != 0 { tab = initialTab }
         presentGrokConnectIfNeeded()
       }
       .onChange(of: model.grokConnectRequest?.id) { _, id in
@@ -82,7 +84,7 @@ struct SettingsView: View {
           model.grokConnectRequest = nil
         }) {
           GrokConnectSheet(
-            model: model, initialCode: grokConnectCode, projectID: nil, onSaved: reloadGrokConnection
+            model: model, initialCode: grokConnectCode, onSaved: reloadGrokConnection
           ).id(grokConnectPresentation)
         }
       }
@@ -157,8 +159,9 @@ struct SettingsView: View {
           Section {
             Toggle(
               isOn: Binding(
-                get: { SMAppService.mainApp.status == .enabled },
+                get: { openAtLogin },
                 set: { enabled in
+                  openAtLogin = enabled
                   Task {
                     do {
                       if enabled {
@@ -167,6 +170,8 @@ struct SettingsView: View {
                         try await SMAppService.mainApp.unregister()
                       }
                     } catch { self.error = error.localizedDescription }
+                    // A failed change must not leave the checkbox showing the click.
+                    openAtLogin = SMAppService.mainApp.status == .enabled
                   }
                 })) {
               Text(chrome: "Open ScreenClip at login", comment: "Launches ScreenClip when you log in.")
@@ -507,7 +512,6 @@ struct SettingsView: View {
           }
         }.formStyle(.grouped)
   }
-  private var grokSaved: ExternalAssistantConfiguration { model.loadExternalAssistant() }
   private var grokConnected: Bool { grokSaved.isConfigured }
   private var grokKeyIsSet: Bool {
     !authorization.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -543,6 +547,7 @@ struct SettingsView: View {
       webhookURL = ""
       authorization = ""
       grokTestResult = nil
+      grokSaved = .empty
       Task { await model.refreshAgents() }
     } catch {
       grokTestOK = false
@@ -551,6 +556,7 @@ struct SettingsView: View {
   }
   private func reloadGrokConnection() {
     let connection = model.loadExternalAssistant()
+    grokSaved = connection
     webhookURL = connection.webhookURL
     authorization = connection.authorization
   }
@@ -572,6 +578,7 @@ struct SettingsView: View {
   private func detectAgents() {
     do {
       try model.saveExternalAssistant(webhookURL: webhookURL, authorization: authorization)
+      grokSaved = model.loadExternalAssistant()
     } catch {
       self.error = error.localizedDescription
       return

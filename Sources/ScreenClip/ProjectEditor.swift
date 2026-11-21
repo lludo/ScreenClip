@@ -1,7 +1,5 @@
 import ScreenClipCore
-import ServiceManagement
 import SwiftUI
-import UserNotifications
 
 struct ProjectEditor: View {
   @ObservedObject var model: AppModel
@@ -16,6 +14,7 @@ struct ProjectEditor: View {
   @State private var error: String?
   @Environment(\.dismiss) var dismiss
   @Environment(\.locale) private var locale
+  private var hasReports: Bool { model.snapshot.issues.contains { $0.projectID == project.id } }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       Group {
@@ -81,9 +80,7 @@ struct ProjectEditor: View {
           comment: "Explains validation. Keep GitHub."
         ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         Picker(
-          selection: Binding(
-            get: { project.defaultAgent },
-            set: { project.defaultAgent = $0 })
+          selection: $project.defaultAgent
         ) {
           Text(
             verbatim: Chrome.format(
@@ -139,10 +136,10 @@ struct ProjectEditor: View {
             close(removed: true)
           } label: {
             Text(chrome: "Remove project", comment: "Removes a project that has no reports.")
-          }.disabled(model.snapshot.issues.contains { $0.projectID == project.id })
+          }.disabled(hasReports)
             .help(
               Text(
-                verbatim: model.snapshot.issues.contains { $0.projectID == project.id }
+                verbatim: hasReports
                   ? Chrome.text(
                     "Projects with reports can't be removed.", locale: locale,
                     comment: "Why the remove button is disabled.")
