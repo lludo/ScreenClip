@@ -27,32 +27,34 @@ struct ComposerView: View {
   @State private var projectID: UUID?
   @State private var issueID: UUID?
   @State private var agent: AgentKind = .codex
+  /// nil keeps the agent's default model; `agentEffort` nil keeps the model's default effort.
+  @State private var agentModel: String?
+  @State private var agentEffort: String?
   @State private var error: String?
   @FocusState private var noteFocused: Bool
   @Environment(\.locale) private var locale
   var body: some View {
     VStack(spacing: 0) {
-      HStack(spacing: 12) {
-        Image(systemName: "viewfinder").font(.title2).foregroundStyle(.orange)
-        VStack(alignment: .leading, spacing: 3) {
-          Group {
-            if existing?.status == .draft {
-              Text(chrome: "Finish your observation", comment: "Composer title when editing a draft.")
-            } else {
-              Text(chrome: "What did you notice?", comment: "Composer title for a new capture.")
-            }
+      HStack(spacing: 10) {
+        Image(systemName: "viewfinder").font(.title3).foregroundStyle(.orange)
+        Group {
+          if existing?.status == .draft {
+            Text(chrome: "Finish your observation", comment: "Composer title when editing a draft.")
+          } else {
+            Text(chrome: "What did you notice?", comment: "Composer title for a new capture.")
           }
-            .font(.title3.weight(.semibold))
-            .fixedSize(horizontal: false, vertical: true)
-          Text(
-            [
-              context.appName,
-              context.browserURL.flatMap { URL(string: $0)?.host } ?? context.windowTitle ?? "",
-            ].filter { !$0.isEmpty }.joined(separator: " · ")
-          ).font(.caption).foregroundStyle(.secondary).lineLimit(1)
         }
-        Spacer()
-      }.padding(20)
+          .font(.title3.weight(.semibold))
+          .fixedSize(horizontal: false, vertical: true)
+          .layoutPriority(1)
+        Spacer(minLength: 12)
+        Text(
+          [
+            context.appName,
+            context.browserURL.flatMap { URL(string: $0)?.host } ?? context.windowTitle ?? "",
+          ].filter { !$0.isEmpty }.joined(separator: " · ")
+        ).font(.caption).foregroundStyle(.secondary).lineLimit(1).truncationMode(.middle)
+      }.padding(.horizontal, 20).padding(.vertical, 10)
       HStack(spacing: 6) {
         ForEach(MarkKind.allCases, id: \.self) { kind in
           Button {
@@ -193,29 +195,19 @@ struct ComposerView: View {
             VStack(alignment: .leading, spacing: 6) {
               Text(chrome: "Agent", comment: "Caption above the agent picker.").font(.caption)
                 .foregroundStyle(.secondary)
-              Picker(selection: $agent) {
-                // The pop-up sizes its button from its option labels.
-                if agentChoices.isEmpty && lockedAgent == nil {
-                  Text(verbatim: model.detectingAgents
-                    ? Chrome.text("Checking agents…", locale: locale, comment: "Agent list is still loading.")
-                    : Chrome.text("No agents available", locale: locale, comment: "No coding agent can take this report.")
-                  ).frame(idealWidth: column, maxWidth: .infinity, alignment: .leading).tag(agent)
-                } else {
-                  ForEach(agentChoices, id: \.self) { kind in
-                    AgentLabel(kind: kind)
-                      .frame(idealWidth: column, maxWidth: .infinity, alignment: .leading).tag(kind)
-                  }
-                }
+              Menu {
+                agentMenuItems
               } label: {
-                Text(chrome: "Agent", comment: "Accessibility label for the agent picker.")
+                AgentLabel(kind: lockedAgent ?? agent, title: agentSummary)
               }
-              .labelsHidden().frame(maxWidth: .infinity, alignment: .leading)
+              .menuIndicator(.visible)
+              .frame(maxWidth: .infinity, alignment: .leading)
               .disabled(lockedAgent != nil || agentChoices.isEmpty)
               .accessibilityLabel(Text(chrome: "Agent", comment: "Accessibility label for the agent picker."))
               .help(
                 lockedAgent != nil
                   ? Text(chrome: "Follow-up captures continue with the issue's existing agent.", comment: "Help when the agent cannot be changed.")
-                  : Text(chrome: "Which agent works on this report.", comment: "Help for the agent picker."))
+                  : Text(chrome: "Which agent works on this report, with its model and effort.", comment: "Help for the agent picker, which also chooses the model and reasoning effort."))
             }.frame(width: column, alignment: .leading)
           }
         }
@@ -263,6 +255,8 @@ struct ComposerView: View {
         agent = lockedAgent
       } else if let existing, existing.status == .draft, let chosen = existing.agent {
         agent = chosen
+        agentModel = existing.agentModel
+        agentEffort = existing.agentEffort
       } else {
         agent = model.effectiveAgent(for: projectID)
       }
@@ -275,19 +269,20 @@ struct ComposerView: View {
     .onChange(of: projectID) { _, new in
       if existing == nil { issueID = nil }
       if lockedAgent == nil, existing == nil || new != existing?.projectID {
-        agent = model.effectiveAgent(for: new)
+        setAgent(model.effectiveAgent(for: new))
       }
       reconcileAgent()
     }
     .onChange(of: issueID) { _, _ in
       if let lockedAgent {
-        agent = lockedAgent
+        setAgent(lockedAgent)
       } else if issueID == nil {
-        agent = model.effectiveAgent(for: projectID)
+        setAgent(model.effectiveAgent(for: projectID))
       }
       reconcileAgent()
     }
     .onChange(of: model.agents) { _, _ in reconcileAgent() }
+    .onChange(of: model.codexModels) { _, _ in reconcileAgent() }
   }
   /// Drafts are new reports or the draft being edited, never evidence on a submitted issue.
   private var canSaveDraft: Bool {
@@ -317,8 +312,50 @@ struct ComposerView: View {
       detections: model.agents, externalAvailable: externalAvailability.enabled)
   }
   private func reconcileAgent() {
-    if let lockedAgent { agent = lockedAgent }
-    else if !agentChoices.contains(agent), let first = agentChoices.first { agent = first }
+    if let lockedAgent { setAgent(lockedAgent) }
+    else if !agentChoices.contains(agent), let first = agentChoices.first { setAgent(first) }
+    (agentModel, agentEffort) = AgentModelCatalog.reconcile(
+      model: agentModel, effort: agentEffort, in: model.modelOptions(for: agent))
+  }
+  /// A model and effort belong to one agent, so switching agents returns to the defaults.
+  private func setAgent(_ kind: AgentKind) {
+    guard kind != agent else { return }
+    agent = kind
+    (agentModel, agentEffort) = (nil, nil)
+  }
+  /// The selection shown on the menu button: the agent, then the model and effort when the
+  /// report does not keep the defaults. A follow-up shows the issue's existing choice.
+  private var agentSummary: String {
+    if let lockedAgent, let issueID, let target = model.issue(issueID) {
+      return AgentModelMenu.summary(
+        kind: lockedAgent, model: target.agentModel, effort: target.agentEffort,
+        options: model.modelOptions(for: lockedAgent),
+        defaultModel: model.defaultModel(for: lockedAgent), locale: locale)
+    }
+    if agentChoices.isEmpty {
+      return model.detectingAgents
+        ? Chrome.text("Checking agents…", locale: locale, comment: "Agent list is still loading.")
+        : Chrome.text("No agents available", locale: locale, comment: "No coding agent can take this report.")
+    }
+    return AgentModelMenu.summary(
+      kind: agent, model: agentModel, effort: agentEffort,
+      options: model.modelOptions(for: agent), defaultModel: model.defaultModel(for: agent),
+      locale: locale)
+  }
+  /// Each agent can be chosen directly with its defaults, or through its submenus with a
+  /// model and then an effort, so Claude Code · Opus · Extra high is one pick.
+  @ViewBuilder private var agentMenuItems: some View {
+    ForEach(agentChoices, id: \.self) { kind in
+      AgentModelMenu(
+        kind: kind, options: model.modelOptions(for: kind),
+        defaultModel: model.defaultModel(for: kind),
+        selected: kind == agent ? (agentModel, agentEffort) : nil,
+        isCurrent: kind == agent, locale: locale
+      ) { chosenModel, chosenEffort in
+        agent = kind
+        (agentModel, agentEffort) = (chosenModel, chosenEffort)
+      }
+    }
   }
   private func symbol(_ tool: MarkKind) -> String {
     switch tool {
@@ -349,7 +386,8 @@ struct ComposerView: View {
       try model.submit(
         imageData: data, originalData: original, annotations: document.marks, note: note,
         context: captured, projectID: projectID, existingID: issueID, draft: draft,
-        agent: lockedAgent ?? agent)
+        agent: lockedAgent ?? agent, agentModel: lockedAgent == nil ? agentModel : nil,
+        agentEffort: lockedAgent == nil ? agentEffort : nil)
       close()
     } catch { self.error = error.localizedDescription }
   }

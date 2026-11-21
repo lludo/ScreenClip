@@ -10,7 +10,9 @@ extension AgentWorker {
     guard authentication.state == .ready else { return }
     do {
       let models = try await client.request("model/list")
-      let available = models["data"].array.compactMap { $0["id"].string }
+      model.codexModels = AgentModelCatalog.codex(fromModelList: models)
+      let available = models["data"].array.flatMap { [$0["id"].string, $0["model"].string] }
+        .compactMap { $0 }
       if !model.snapshot.settings.model.isEmpty
         && !available.contains(model.snapshot.settings.model)
       {
@@ -57,9 +59,8 @@ extension AgentWorker {
       "cwd": .string(path), "approvalPolicy": .string(mode.approvalPolicy),
       "approvalsReviewer": .string(mode.reviewer), "sandbox": .string(mode.sandbox),
     ]
-    if !model.snapshot.settings.model.isEmpty {
-      threadParams["model"] = .string(model.snapshot.settings.model)
-    }
+    let chosenModel = issue.agentModel ?? model.snapshot.settings.model
+    if !chosenModel.isEmpty { threadParams["model"] = .string(chosenModel) }
     // Runtime project identity is separate from the isolated execution directory.
     // Desktop sidebar membership must be verified independently.
     var codexProjectID: String?
@@ -166,7 +167,7 @@ extension AgentWorker {
         // including a switch back from full access and a continuation after a question.
         "approvalPolicy": .string(mode.approvalPolicy),
         "approvalsReviewer": .string(mode.reviewer), "sandboxPolicy": mode.sandboxPolicy,
-      ]), timeout: 60)
+      ].merging(Self.codexModelParams(for: issue)) { $1 }), timeout: 60)
     guard let turnID = result["turn"]["id"].string else {
       throw ScreenClipError.message("Codex did not acknowledge the turn.")
     }
@@ -183,6 +184,14 @@ extension AgentWorker {
       return
     }
     watchCodexTurn(id, threadID: issue.threadID!, turnID: turnID)
+  }
+  /// The report's model and effort for `turn/start`. Owned threads skip thread/resume, so the
+  /// turn carries the report's choice. Without one the thread keeps the Settings model.
+  static func codexModelParams(for issue: Issue) -> [String: JSONValue] {
+    guard let chosen = issue.agentModel, !chosen.isEmpty else { return [:] }
+    var params: [String: JSONValue] = ["model": .string(chosen)]
+    if let effort = issue.agentEffort, !effort.isEmpty { params["effort"] = .string(effort) }
+    return params
   }
   /// Completion of a Codex turn arrives only as an app-server event. If Codex stalls without
   /// disconnecting, that event never comes, so stop the turn after `turnTimeLimit`. Time the

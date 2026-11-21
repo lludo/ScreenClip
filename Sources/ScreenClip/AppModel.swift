@@ -27,6 +27,8 @@ struct GrokConnectionCheck: Equatable {
   /// while a queued report is held for an agent that is not ready.
   @Published var agents: [AgentDetection] = []
   @Published var detectingAgents = false
+  /// Models the connected Codex reports through `model/list`. Empty until it answers.
+  @Published var codexModels: [AgentModelOption] = []
   var lastAgentDetection = Date.distantPast
   /// Agents whose run reported a sign-in failure, and when. Detection can still say "signed in"
   /// (an expired token, for example), so automatic checks keep the agent held for
@@ -217,7 +219,7 @@ struct GrokConnectionCheck: Equatable {
   func submit(
     imageData: Data, originalData: Data?, annotations: [Annotation], note: String,
     context: CaptureContext, projectID: UUID?, existingID: UUID?, draft: Bool,
-    agent: AgentKind? = nil
+    agent: AgentKind? = nil, agentModel: String? = nil, agentEffort: String? = nil
   ) throws {
     let chosenAgent = agent ?? AgentSelection.projectDefault(
       projectID.flatMap(project), system: snapshot.settings.preferredAgent)
@@ -257,6 +259,8 @@ struct GrokConnectionCheck: Equatable {
           }
           if state.issues[index].status == .draft {
             state.issues[index].agent = chosenAgent
+            state.issues[index].agentModel = agentModel
+            state.issues[index].agentEffort = agentModel == nil ? nil : agentEffort
             state.issues[index].projectID = projectID
             state.issues[index].captures = [capture] + state.issues[index].captures.dropFirst()
             state.issues[index].revision += 1
@@ -273,8 +277,10 @@ struct GrokConnectionCheck: Equatable {
             note.split(separator: "\n").first.map(String.init).flatMap {
               $0.isEmpty ? nil : String($0.prefix(100))
             } ?? (context.appName.isEmpty ? "New observation" : "Observation in " + context.appName)
-          let issue = Issue(
+          var issue = Issue(
             projectID: projectID, title: title, capture: capture, draft: draft, agent: chosenAgent)
+          issue.agentModel = agentModel
+          issue.agentEffort = agentModel == nil ? nil : agentEffort
           state.issues.append(issue)
           selectedIssueID = issue.id
         }
@@ -620,6 +626,25 @@ struct GrokConnectionCheck: Equatable {
   func effectiveAgent(for projectID: UUID?) -> AgentKind {
     AgentSelection.projectDefault(
       projectID.flatMap(project), system: snapshot.settings.preferredAgent)
+  }
+  /// Models offered for a report after choosing `kind`. Grok Bot picks its own model.
+  func modelOptions(for kind: AgentKind) -> [AgentModelOption] {
+    switch kind {
+    case .codex: return codexModels
+    case .claude: return AgentModelCatalog.claude
+    case .external: return []
+    }
+  }
+  /// The model a report runs with when it keeps the default.
+  func defaultModel(for kind: AgentKind) -> AgentModelOption? {
+    switch kind {
+    case .codex:
+      return AgentModelCatalog.defaultModel(in: codexModels, configured: snapshot.settings.model)
+    case .claude:
+      return AgentModelCatalog.defaultModel(
+        in: AgentModelCatalog.claude, configured: snapshot.settings.claudeModel)
+    case .external: return nil
+    }
   }
   func agentStatus(_ kind: AgentKind) -> (text: String, ready: Bool) {
     switch kind {

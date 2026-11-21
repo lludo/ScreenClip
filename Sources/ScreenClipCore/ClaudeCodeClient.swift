@@ -10,6 +10,8 @@ public struct ClaudeTurnRequest: Sendable {
   public var resume: Bool
   public var name: String?
   public var model: String?
+  /// `--effort` level. Nil keeps the model's default.
+  public var effort: String?
   public var prompt: String
   public var images: [Data]
   public var schema: JSONValue
@@ -17,7 +19,8 @@ public struct ClaudeTurnRequest: Sendable {
   public var timeout: TimeInterval = 45 * 60
   public init(
     executable: String, cwd: String, sessionID: String, resume: Bool, name: String? = nil,
-    model: String? = nil, prompt: String, images: [Data], schema: JSONValue
+    model: String? = nil, effort: String? = nil, prompt: String, images: [Data],
+    schema: JSONValue
   ) {
     self.executable = executable
     self.cwd = cwd
@@ -25,6 +28,7 @@ public struct ClaudeTurnRequest: Sendable {
     self.resume = resume
     self.name = name
     self.model = model
+    self.effort = effort
     self.prompt = prompt
     self.images = images
     self.schema = schema
@@ -96,6 +100,7 @@ public actor ClaudeCodeClient {
     arguments += request.resume ? ["--resume", request.sessionID] : ["--session-id", request.sessionID]
     if let name = request.name, !name.isEmpty { arguments += ["--name", name] }
     if let model = request.model, !model.isEmpty { arguments += ["--model", model] }
+    if let effort = request.effort, !effort.isEmpty { arguments += ["--effort", effort] }
     return arguments
   }
 
