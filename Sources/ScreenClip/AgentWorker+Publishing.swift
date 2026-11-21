@@ -147,6 +147,7 @@ extension AgentWorker {
       try model.updateIssue(id) { current in
         current.prURL = published.url
         current.prHead = published.head
+        current.prRevision = issue.coveredRevision
         current.lastError = nil
         current.validationFeedback = nil
         current.record(
@@ -194,8 +195,10 @@ extension AgentWorker {
   }
   /// A report that stopped for attention (a base conflict, failing checks, a question) keeps
   /// its pull request, and the tester may resolve and merge that pull request on GitHub.
+  /// An uncertain dispatch may still be running in the worktree; it waits for Reconcile.
   nonisolated static func awaitsMergeOutsideScreenClip(_ issue: Issue) -> Bool {
     [.needsYou, .failed].contains(issue.status) && issue.prURL != nil && !issue.archived
+      && !issue.dispatchUncertain
   }
   /// Only watches for a merge: anything else about the pull request waits for Continue.
   func refreshStalledPR(_ id: UUID) async {
@@ -220,9 +223,17 @@ extension AgentWorker {
           issue.questions[i].reply = "Pull request merged on GitHub"
         }
       }
-      try recordMerge(id, commit: pr.mergeCommit, coveredRevision: current.coveredRevision)
+      // Newer evidence may have been dispatched after the pull request was last updated; only
+      // the revision it holds is fixed. Older queues have no record and use the covered one.
+      try recordMerge(
+        id, commit: pr.mergeCommit, coveredRevision: current.prRevision ?? current.coveredRevision)
     }
-    model.notify(current, text: "Fix merged. Ready to rebuild and retest.")
+    if model.issue(id)?.status == .merged {
+      model.notify(current, text: "Fix merged. Ready to rebuild and retest.")
+    } else {
+      // recordMerge queued the newer evidence for a new fix.
+      pump()
+    }
   }
   func refreshPR(_ id: UUID) async {
     // The caller's list is a snapshot from before earlier refreshes were awaited; this report
@@ -459,6 +470,7 @@ extension AgentWorker {
         issue.branch = nil
         issue.prURL = nil
         issue.prHead = nil
+        issue.prRevision = nil
         issue.handoffCommit = nil
         issue.handoffRevision = nil
         issue.handoffAttempts = nil

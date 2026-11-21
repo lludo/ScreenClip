@@ -332,10 +332,12 @@ struct ComposerView: View {
   /// report does not keep the defaults. A follow-up shows the issue's existing choice.
   private var agentSummary: String {
     if let lockedAgent, let issueID, let target = model.issue(issueID) {
+      // A Codex chat keeps the model it started with, which today's Settings may not name.
+      let unnamedDefault = lockedAgent == .codex && target.agentModel == nil
       return AgentModelMenu.summary(
         kind: lockedAgent, model: target.agentModel, effort: target.agentEffort,
         options: model.modelOptions(for: lockedAgent),
-        defaultModel: model.defaultModel(for: lockedAgent), locale: locale)
+        defaultModel: unnamedDefault ? nil : model.defaultModel(for: lockedAgent), locale: locale)
     }
     if agentChoices.isEmpty {
       return model.detectingAgents
