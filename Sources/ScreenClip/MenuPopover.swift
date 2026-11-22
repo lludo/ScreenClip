@@ -59,21 +59,23 @@ struct MenuPopover: View {
         } label: {
           HStack(spacing: 8) {
             Label {
-              Text(chrome: "Screenshot", comment: "Menu bar button to capture a screen region.")
+              Text(chrome: "Screenshot task", comment: "Menu bar button to start a task by capturing a screen region.")
             } icon: {
               Image(systemName: "photo")
             }
             Text(model.snapshot.settings.shortcutDescription).foregroundStyle(.secondary)
           }
+          .frame(minWidth: 0, maxWidth: .infinity)
         }
         Button {
           model.textCaptureAction?()
         } label: {
           Label {
-            Text(chrome: "Text note", comment: "Menu bar button to file a text-only observation.")
+            Text(chrome: "Text task", comment: "Menu bar button to start a task by writing a note.")
           } icon: {
             Image(systemName: "text.alignleft")
           }
+          .frame(minWidth: 0, maxWidth: .infinity)
         }
       }.buttonStyle(.bordered)
       if let banner = model.banner {
