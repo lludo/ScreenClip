@@ -369,6 +369,7 @@ def layout(config, catalogs, catalog, *, slug, robots, body, json_ld, css_href, 
   {json_tag}
   <script type="module" src="{esc(js_href)}"></script>
   <script defer src="/_vercel/insights/script.js"></script>
+  <script defer src="/analytics-events.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">{esc(catalog.get("nav.skip"))}</a>
@@ -671,6 +672,7 @@ def build():
     hashed.mkdir()
     shutil.copyfile(SRC / "assets" / "icon.svg", assets / "icon.svg")
     shutil.copyfile(SRC / "assets" / "og.png", assets / "og.png")
+    shutil.copyfile(ROOT / "analytics-events.js", DIST / "analytics-events.js")
     css_href = fingerprinted(SRC / "styles.css", hashed)
     queue_image = fingerprinted(SRC / "assets" / "report-queue-example.png", hashed)
     notification_image = fingerprinted(SRC / "assets" / "retest-notifications.png", hashed)
