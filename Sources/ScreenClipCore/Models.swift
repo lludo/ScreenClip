@@ -520,11 +520,33 @@ public struct AppSettings: Codable, Equatable {
   /// Missing in older queues uses the default; an explicitly empty value disables the add-on.
   public var defaultPromptAddOn: String?
   public static let defaultPromptAddOnText = """
-    When preparing a pull request for a visual fix, include a clearly labeled Before / After comparison in the PR description: the original issue screenshot and a new screenshot of the fixed version after rebuilding and retesting the reported scenario. Use the same view, state, and scale where practical so the change is easy to compare at a glance. Briefly describe the retest and its result. ScreenClip publishes the report screenshots and retested images to the project repository. If either screenshot or the retest is unavailable, explain what is missing and why; do not invent evidence or claim a retest you did not perform.
+    Write the pull request description so a reviewer can understand the change at a glance. Use these Markdown sections, in this order, with short paragraphs or bullets and no filler:
+
+    ### What was the issue
+    One to three sentences on the reported problem as the tester experienced it, and its root cause once you found it.
+
+    ### How we addressed it
+    The approach and the key changes, naming the main files, components, or settings involved. Mention trade-offs, follow-ups, or behavior changes only when a reviewer needs them.
+
+    ### How we verified it
+    The tests, builds, and checks you ran and their results, and how you retested the reported scenario. Say plainly if anything failed or was skipped, and why.
+
+    After these sections comes the visual evidence. For a visual fix, include a clearly labeled Before / After comparison: the original issue screenshot and a new screenshot of the fixed version after rebuilding and retesting the reported scenario, in the same view, state, and scale where practical. ScreenClip publishes the report screenshots and retested images to the project repository; when it embeds the comparison right after your description, do not repeat the images or add a second Before / After heading. If either screenshot or the retest is unavailable, explain what is missing and why; do not invent evidence or claim a retest you did not perform.
     """
+  /// Built-in add-ons replaced by a later default. A queue that saved one unchanged follows
+  /// the current default instead of keeping the outdated text.
+  static let retiredPromptAddOnTexts: Set<String> = [
+    "When preparing a pull request for a visual fix, include a clearly labeled Before / After comparison in the PR description: the original issue screenshot and a new screenshot of the fixed version after rebuilding and retesting the reported scenario. Use the same view, state, and scale where practical so the change is easy to compare at a glance. Briefly describe the retest and its result. ScreenClip publishes the report screenshots and retested images to the project repository. If either screenshot or the retest is unavailable, explain what is missing and why; do not invent evidence or claim a retest you did not perform."
+  ]
+  /// The add-on as Settings shows it: the saved text, or the current default when none is saved.
+  public var promptAddOnText: String {
+    guard let text = defaultPromptAddOn,
+      !Self.retiredPromptAddOnTexts.contains(text.trimmingCharacters(in: .whitespacesAndNewlines))
+    else { return Self.defaultPromptAddOnText }
+    return text
+  }
   public var effectivePromptAddOn: String {
-    (defaultPromptAddOn ?? Self.defaultPromptAddOnText)
-      .trimmingCharacters(in: .whitespacesAndNewlines)
+    promptAddOnText.trimmingCharacters(in: .whitespacesAndNewlines)
   }
   public var ghPath = "/opt/homebrew/bin/gh"
   public var model = ""

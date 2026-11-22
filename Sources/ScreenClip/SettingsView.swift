@@ -352,7 +352,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 8) {
               Text(chrome: "Default prompt add-on", comment: "Label for shared agent instructions.")
               TextEditor(text: Binding(
-                get: { settings.defaultPromptAddOn ?? AppSettings.defaultPromptAddOnText },
+                get: { settings.promptAddOnText },
                 set: { settings.defaultPromptAddOn = $0 }))
                 .font(.body)
                 .frame(minHeight: 150)

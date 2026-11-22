@@ -50,7 +50,8 @@ import XCTest
     try data.write(to: URL(fileURLWithPath: destination))
   }
 
-  func testMissingAfterScreenshotSchedulesRepairWithoutOpeningPR() async throws {
+  /// A missing After image no longer blocks publication, but a broken one still asks the agent to fix it.
+  func testInvalidAfterScreenshotSchedulesRepairWithoutOpeningPR() async throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-missing-after-" + UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: root) }
     let model = try AppModel(root: root)
@@ -60,12 +61,15 @@ import XCTest
     issue.worktreePath = root.path
     issue.status = .working
     issue.coveredRevision = issue.revision
+    let after = root.appendingPathComponent(PRScreenshotEvidence.directory(for: issue) + "/after")
+    try FileManager.default.createDirectory(at: after, withIntermediateDirectories: true)
+    try Data("not a PNG".utf8).write(to: after.appendingPathComponent("1.png"))
     try model.commit { $0.projects = [project]; $0.issues = [issue]; $0.settings.paused = true }
     await model.worker.publish(issue.id, project: project, summary: "Fixed")
     let repaired = try XCTUnwrap(model.issue(issue.id))
     XCTAssertEqual(repaired.status, .queued)
     XCTAssertEqual(repaired.repairAttempts, 1)
-    XCTAssertTrue(repaired.validationFeedback?.contains("Missing After screenshot") == true)
+    XCTAssertTrue(repaired.validationFeedback?.contains("Invalid PNG screenshot") == true)
     XCTAssertNil(repaired.prURL)
   }
 

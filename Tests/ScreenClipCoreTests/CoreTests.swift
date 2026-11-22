@@ -70,6 +70,21 @@ final class CoreTests: XCTestCase {
         (value ?? AppSettings.defaultPromptAddOnText).trimmingCharacters(in: .whitespacesAndNewlines))
     }
   }
+  func testPromptAddOnStructuresPRDescriptionAndReplacesRetiredDefault() throws {
+    let text = AppSettings.defaultPromptAddOnText
+    let sections = ["What was the issue", "How we addressed it", "How we verified it", "Before / After"]
+      .compactMap { text.range(of: $0)?.lowerBound }
+    XCTAssertEqual(sections.count, 4)
+    XCTAssertEqual(sections, sections.sorted())
+    var settings = AppSettings()
+    for retired in AppSettings.retiredPromptAddOnTexts {
+      settings.defaultPromptAddOn = retired + "\n"
+      XCTAssertEqual(settings.promptAddOnText, text)
+      XCTAssertEqual(settings.effectivePromptAddOn, text.trimmingCharacters(in: .whitespacesAndNewlines))
+    }
+    settings.defaultPromptAddOn = "Include accessibility checks."
+    XCTAssertEqual(settings.effectivePromptAddOn, "Include accessibility checks.")
+  }
   func testSelfCapturePreferenceLoadsOlderSettingsAndPersistsBothChoices() throws {
     let older = try JSONEncoder().encode(AppSettings())
     var settings = try JSONDecoder().decode(AppSettings.self, from: older)

@@ -852,7 +852,7 @@ import XCTest
     XCTAssertEqual(model.issue(id)?.resultSummary, "Recovered fix")
     XCTAssertEqual(model.issue(id)?.status, .queued)
     XCTAssertEqual(model.issue(id)?.consumedTurnID, "T1")
-    XCTAssertTrue(model.issue(id)?.validationFeedback?.contains("Missing After screenshot") == true) // Recovery requests the missing retest evidence before publication.
+    XCTAssertTrue(model.issue(id)?.validationFeedback?.contains("Invalid PNG screenshot") == true) // Recovery hands the result to publication, which asks for valid evidence.
     let requests = try String(contentsOf: root.appendingPathComponent("requests"), encoding: .utf8)
     XCTAssertFalse(requests.contains("turn/start"))
     await model.worker.resetConnection()
