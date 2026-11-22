@@ -141,13 +141,13 @@ struct QueueView: View {
     VStack(spacing: 0) {
       VStack(alignment: .leading, spacing: 2) {
         // The sidebar picks the status; this menu narrows it by project and by agent.
-        HStack(spacing: 0) {
+        HStack(spacing: 8) {
           if isReportLookup {
             Text(chrome: "Report search", comment: "Heading when the list is showing a report-number search.")
               .fontWeight(.semibold)
               .frame(maxWidth: .infinity, alignment: .leading)
           } else {
-            filterMenu.padding(.trailing, 4)
+            filterMenu
           }
           headerButton("plus", label: Text(chrome: "New capture", comment: "Help for the button that starts a capture.")) {
             model.captureAction?()
@@ -220,7 +220,7 @@ struct QueueView: View {
       Image(systemName: symbol)
         .frame(width: 32, height: 24)
         .background(Color.primary.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
-        .frame(width: 44, height: 44)
+        .frame(height: 44)
         .contentShape(Rectangle())
     }
     .buttonStyle(.plain)
