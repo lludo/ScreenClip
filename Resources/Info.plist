@@ -37,6 +37,14 @@
 	<string>Read the active Safari or Chrome tab URL when you capture, so ScreenClip can match the right project.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>SUAutomaticallyUpdate</key>
+	<true/>
+	<key>SUEnableAutomaticChecks</key>
+	<true/>
+	<key>SUFeedURL</key>
+	<string>https://github.com/lludo/ScreenClip/releases/latest/download/appcast.xml</string>
+	<key>SUPublicEDKey</key>
+	<string>cSRCTXXubTc/1M5//+kIB8k7yS8n/ozAtC2+++Mto74=</string>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>Capture a region you select to report an app issue to your AI coding assistant.</string>
 </dict>

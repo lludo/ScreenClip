@@ -5,6 +5,7 @@ import UserNotifications
 
 struct SettingsView: View {
   @ObservedObject var model: AppModel
+  @ObservedObject private var updater = Updater.shared
   let close: () -> Void
   @Environment(\.locale) private var locale
   @State private var settings = AppSettings()
@@ -199,6 +200,28 @@ struct SettingsView: View {
             .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
           } header: {
             Text(chrome: "Support", comment: "Settings section for optional tips.")
+          }
+          if updater.isAvailable {
+            Section {
+              Toggle(
+                isOn: Binding(
+                  get: { updater.automaticallyInstallsUpdates },
+                  set: { updater.automaticallyInstallsUpdates = $0 })) {
+                Text(
+                  chrome: "Download and install updates automatically",
+                  comment: "Lets ScreenClip install new versions without asking."
+                ).fixedSize(horizontal: false, vertical: true)
+              }
+              Text(
+                chrome: "ScreenClip checks for a new version once a day. A downloaded update installs the next time ScreenClip quits.",
+                comment: "Explains automatic updates. Keep ScreenClip."
+              ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+              Button { updater.checkForUpdates() } label: {
+                Text(chrome: "Check for Updates…", comment: "Checks for a newer version of the app.")
+              }.disabled(!updater.canCheckForUpdates)
+            } header: {
+              Text(chrome: "Updates", comment: "Settings section for app updates.")
+            }
           }
           #endif
           Section {

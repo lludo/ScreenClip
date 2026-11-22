@@ -4,6 +4,7 @@ import SwiftUI
 
 struct MenuPopover: View {
   @ObservedObject var model: AppModel
+  @ObservedObject private var updater = Updater.shared
   @Environment(\.locale) private var locale
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
@@ -125,6 +126,15 @@ struct MenuPopover: View {
             .fixedSize(horizontal: false, vertical: true)
         }
         Spacer(minLength: 8)
+        if let version = updater.pendingVersion {
+          Button {
+            updater.installPendingUpdate()
+          } label: {
+            Text(verbatim: Chrome.format(
+              "menu.update.install", "Update to \(version)", locale: locale,
+              comment: "Installs a downloaded app update. %@ is a version number and is not translated."))
+          }.buttonStyle(.borderedProminent).tint(.orange)
+        }
         Button {
           model.togglePaused()
         } label: {
@@ -136,6 +146,13 @@ struct MenuPopover: View {
         }
         Menu {
           #if !SCREENCLIP_APP_STORE
+          if updater.isAvailable {
+            Button {
+              updater.checkForUpdates()
+            } label: {
+              Text(chrome: "Check for Updates…", comment: "Checks for a newer version of the app.")
+            }.disabled(!updater.canCheckForUpdates)
+          }
           Button {
             model.supportAction?()
           } label: {

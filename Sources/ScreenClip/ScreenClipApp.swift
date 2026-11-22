@@ -110,7 +110,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         }
         return
       }
-      if previewMode { try PreviewSupport.seed(model: model) } else { model.worker.start() }
+      if previewMode { try PreviewSupport.seed(model: model) } else {
+        model.worker.start()
+        Updater.shared.start()
+      }
       if arguments.contains("--recover-reports") {
         Task { @MainActor [self] in
           let reports = model.snapshot.issues.filter {

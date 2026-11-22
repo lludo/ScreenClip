@@ -1,5 +1,6 @@
 #!/bin/bash
-# Notarize a Developer ID-signed Release app, staple it, and write a stapled DMG plus SHA256SUMS.
+# Notarize a Developer ID-signed Release app, staple it, and write a stapled DMG, SHA256SUMS,
+# and the signed Sparkle appcast.xml.
 # Called by .github/workflows/release.yml after the certificate is in the keychain.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -73,4 +74,17 @@ spctl --assess --type open --context context:primary-signature --verbose=2 "$dmg
     cd "$out"
     shasum -a 256 ScreenClip.dmg > SHA256SUMS
 )
+# Sparkle appcast. The EdDSA key comes from SPARKLE_ED_PRIVATE_KEY (CI) or, locally, from the
+# login keychain item that `generate_keys --account ScreenClip` created.
+sparkle_bin="${SPARKLE_BIN:-$PWD/.local/XcodePackages/artifacts/sparkle/Sparkle/bin}"
+if [[ ! -x "$sparkle_bin/sign_update" ]]; then
+    printf '%s\n' "Sparkle's sign_update was not found in $sparkle_bin. Build with scripts/build.sh first." >&2
+    exit 1
+fi
+if [[ -n "${SPARKLE_ED_PRIVATE_KEY:-}" ]]; then
+    ed_signature=$(printf '%s' "$SPARKLE_ED_PRIVATE_KEY" | "$sparkle_bin/sign_update" --ed-key-file - -p "$dmg")
+else
+    ed_signature=$("$sparkle_bin/sign_update" --account ScreenClip -p "$dmg")
+fi
+python3 scripts/make_appcast.py "$app" "$dmg" "$ed_signature" "$out/appcast.xml"
 printf 'Packaged %s\n' "$dmg"
