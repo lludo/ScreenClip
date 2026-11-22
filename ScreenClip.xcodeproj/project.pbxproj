@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		100000000000000000000001 /* ScreenClipCore in Frameworks */ = {isa = PBXBuildFile; productRef = 100000000000000000000002 /* ScreenClipCore */; };
 		100000000000000000000018 /* Resources/InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000019 /* Resources/InfoPlist.xcstrings */; };
+		10000000000000000000001A /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 10000000000000000000001B /* Sparkle */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -34,6 +35,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				100000000000000000000001 /* ScreenClipCore in Frameworks */,
+				10000000000000000000001A /* Sparkle in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -83,6 +85,7 @@
 			name = ScreenClip;
 			packageProductDependencies = (
 				100000000000000000000002 /* ScreenClipCore */,
+				10000000000000000000001B /* Sparkle */,
 			);
 			productName = ScreenClip;
 			productReference = 100000000000000000000003 /* ScreenClip.app */;
@@ -123,6 +126,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				100000000000000000000012 /* XCLocalSwiftPackageReference "." */,
+				10000000000000000000001C /* XCRemoteSwiftPackageReference "Sparkle" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 10000000000000000000000A /* Products */;
@@ -282,11 +286,27 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		10000000000000000000001C /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.10.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		100000000000000000000002 /* ScreenClipCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 100000000000000000000012 /* XCLocalSwiftPackageReference "." */;
 			productName = ScreenClipCore;
+		};
+		10000000000000000000001B /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 10000000000000000000001C /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,5 +1,6 @@
 # Tag-triggered direct distribution. Does nothing useful until every Apple secret below
-# is set. A partial set fails the job. No Sparkle step: re-download the latest DMG.
+# is set. A partial set fails the job. SPARKLE_ED_PRIVATE_KEY signs the appcast that
+# installed copies read for automatic updates; it is required once the Apple secrets are set.
 name: Release
 on:
   push:
@@ -24,6 +25,7 @@ jobs:
           KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
           ISSUER: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
           P8: ${{ secrets.APPLE_NOTARY_KEY_P8_BASE64 }}
+          SPARKLE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
         run: |
           set -euo pipefail
           present=0
@@ -38,6 +40,10 @@ jobs:
           fi
           if [[ "$missing" -eq 1 ]]; then
             echo "Set all of the Apple signing secrets, or none of them." >&2
+            exit 1
+          fi
+          if [[ -z "$SPARKLE_KEY" ]]; then
+            echo "Set SPARKLE_ED_PRIVATE_KEY so installed copies can verify the update." >&2
             exit 1
           fi
           echo "ready=true" >> "$GITHUB_OUTPUT"
@@ -100,6 +106,7 @@ jobs:
           APPLE_NOTARY_KEY: ${{ runner.temp }}/AuthKey.p8
           APPLE_NOTARY_KEY_ID: ${{ secrets.APPLE_NOTARY_KEY_ID }}
           APPLE_NOTARY_ISSUER_ID: ${{ secrets.APPLE_NOTARY_ISSUER_ID }}
+          SPARKLE_ED_PRIVATE_KEY: ${{ secrets.SPARKLE_ED_PRIVATE_KEY }}
         run: bash scripts/release-dmg.sh
 
       - name: Publish the GitHub Release
@@ -114,10 +121,10 @@ jobs:
           notes="../docs/release/$tag.md"
           test -s "$notes"
           if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" ScreenClip.dmg SHA256SUMS --clobber
+            gh release upload "$tag" ScreenClip.dmg SHA256SUMS appcast.xml --clobber
             gh release edit "$tag" --title "$title" --notes-file "$notes"
           else
-            gh release create "$tag" ScreenClip.dmg SHA256SUMS --verify-tag --title "$title" --notes-file "$notes"
+            gh release create "$tag" ScreenClip.dmg SHA256SUMS appcast.xml --verify-tag --title "$title" --notes-file "$notes"
           fi
 
       - name: Remove signing material
