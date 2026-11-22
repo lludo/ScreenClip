@@ -6,6 +6,12 @@ struct MenuPopover: View {
   @ObservedObject var model: AppModel
   @ObservedObject private var updater = Updater.shared
   @Environment(\.locale) private var locale
+  /// The list shown under the counts. Each count picks the queue list it describes.
+  @State private var list: QueueFilter
+  init(model: AppModel, list: QueueFilter = .active) {
+    self.model = model
+    _list = State(initialValue: list)
+  }
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
       HStack(alignment: .firstTextBaseline) {
@@ -27,33 +33,35 @@ struct MenuPopover: View {
         }.buttonStyle(.plain)
           .accessibilityLabel(Text(chrome: "Settings", comment: "Opens Settings from the menu bar."))
       }
-      HStack(alignment: .top, spacing: 12) {
+      HStack(alignment: .top, spacing: 4) {
         metric(
           Chrome.format(
             "metric.open.caption", "Open", locale: locale,
             comment: "Caption under the open-report count. The number is shown separately."),
-          model.snapshot.activeCount,
+          count(.active), list: .active,
           phrase: Chrome.format(
-            "metric.open.phrase", "\(model.snapshot.activeCount) Open", locale: locale,
+            "metric.open.phrase", "\(count(.active)) Open", locale: locale,
             comment: "Accessibility label for the open-report count. %lld is the count."))
         metric(
           Chrome.format(
             "metric.needsYou.caption", "Needs you", locale: locale,
             comment: "Caption under the needs-you count. The number is shown separately."),
-          model.snapshot.attentionCount,
+          count(.attention), list: .attention,
           phrase: Chrome.format(
-            "metric.needsYou.phrase", "\(model.snapshot.attentionCount) Needs you", locale: locale,
+            "metric.needsYou.phrase", "\(count(.attention)) Needs you", locale: locale,
             comment: "Accessibility label for reports that need the user. %lld is the count."))
         metric(
           Chrome.format(
             "metric.retest.caption",
             "To retest", locale: locale,
             comment: "Caption under the retest count. The number is shown separately."),
-          retestCount,
+          count(.retest), list: .retest,
           phrase: Chrome.format(
-            "metric.retest.phrase", "\(retestCount) To retest", locale: locale,
+            "metric.retest.phrase", "\(count(.retest)) To retest", locale: locale,
             comment: "Accessibility label for merged reports waiting to be retested. %lld is the count."))
       }
+      // The selection pill extends past the numbers so they stay aligned with the title.
+      .padding(.horizontal, -8)
       HStack(spacing: 8) {
         Button {
           model.captureAction?()
@@ -102,14 +110,17 @@ struct MenuPopover: View {
         .font(.callout).foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, minHeight: 110)
+      } else if listed.isEmpty {
+        Text(chrome: "Nothing here yet", comment: "Empty report list title.")
+          .font(.callout).foregroundStyle(.secondary)
+          .frame(maxWidth: .infinity, minHeight: 110)
       } else {
         ScrollView {
-          VStack(spacing: 0) {
-            ForEach(Array(model.snapshot.issues.filter { !$0.archived }.suffix(5).reversed())) {
-              issue in
+          LazyVStack(spacing: 0) {
+            ForEach(listed) { issue in
               Button {
                 model.selectedIssueID = issue.id
-                model.queueAction?()
+                openQueue()
               } label: {
                 IssueRow(issue: issue, project: model.project(issue.projectID))
               }.buttonStyle(.plain)
@@ -120,7 +131,7 @@ struct MenuPopover: View {
       }
       HStack(alignment: .center) {
         Button {
-          model.queueAction?()
+          openQueue()
         } label: {
           Text(chrome: "Open queue", comment: "Opens the report queue window.")
             .fixedSize(horizontal: false, vertical: true)
@@ -173,18 +184,38 @@ struct MenuPopover: View {
       }
     }.padding(20).frame(minWidth: 400, idealWidth: 460, maxWidth: 520)
   }
-  private var retestCount: Int {
-    model.snapshot.issues.filter { $0.status == .merged && !$0.archived }.count
+  /// Counted exactly like the queue sidebar, so both always show the same numbers.
+  private func count(_ filter: QueueFilter) -> Int {
+    model.snapshot.issues.filter { filter.includes($0) }.count
   }
-  func metric(_ title: String, _ value: Int, phrase: String) -> some View {
-    VStack(alignment: .leading, spacing: 3) {
-      Text(value, format: .number).font(.system(size: 24, weight: .semibold, design: .rounded))
-        .monospacedDigit().minimumScaleFactor(0.7).lineLimit(1)
-      Text(verbatim: title).font(.caption).foregroundStyle(.secondary)
-        .fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.leading)
+  /// The reports behind the selected count, newest first.
+  private var listed: [Issue] { model.snapshot.issues.filter { list.includes($0) }.reversed() }
+  /// The queue opens on the list shown here, so a row is never opened beside another list.
+  private func openQueue() {
+    model.queueFilterRequest = list
+    model.queueAction?()
+  }
+  func metric(_ title: String, _ value: Int, list item: QueueFilter, phrase: String) -> some View {
+    Button {
+      list = item
+    } label: {
+      VStack(alignment: .leading, spacing: 3) {
+        Text(value, format: .number).font(.system(size: 24, weight: .semibold, design: .rounded))
+          .monospacedDigit().minimumScaleFactor(0.7).lineLimit(1)
+        Text(verbatim: title).font(.caption).foregroundStyle(.secondary)
+          .fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.leading)
+      }
+      .padding(.horizontal, 8).padding(.vertical, 6)
+      .frame(maxWidth: .infinity, alignment: .leading)
+      .background(
+        RoundedRectangle(cornerRadius: 8, style: .continuous)
+          .fill(list == item ? Color.primary.opacity(0.1) : Color.clear)
+      )
+      .contentShape(Rectangle())
     }
-    .frame(maxWidth: .infinity, alignment: .leading)
+    .buttonStyle(.plain)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text(verbatim: phrase))
+    .accessibilityAddTraits(list == item ? [.isButton, .isSelected] : .isButton)
   }
 }

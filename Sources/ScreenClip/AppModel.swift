@@ -19,6 +19,8 @@ struct GrokConnectionCheck: Equatable {
 @MainActor final class AppModel: ObservableObject {
   @Published private(set) var snapshot: StoreSnapshot
   @Published var selectedIssueID: UUID?
+  /// A queue list the menu bar popover asks the queue window to show. The queue clears it.
+  @Published var queueFilterRequest: QueueFilter?
   @Published var banner: String?
   @Published var connection = ProviderPhrase.notConnected.english(.codex)
   @Published var captureBusy = false
