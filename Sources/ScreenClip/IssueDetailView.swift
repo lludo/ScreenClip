@@ -266,7 +266,7 @@ struct IssueDetailView: View {
           .fixedSize(horizontal: false, vertical: true)
         }
         if let summary = issue.resultSummary {
-          Text(verbatim: summary).textSelection(.enabled).card(.quaternary.opacity(0.5))
+          MarkdownText(summary).card(.quaternary.opacity(0.5))
         }
         ForEach(Array(issue.captures.enumerated()), id: \.element.id) { index, capture in
           VStack(alignment: .leading, spacing: 10) {
