@@ -32,6 +32,13 @@ struct SettingsView: View {
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       Divider()
       HStack {
+        if let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String,
+          let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        {
+          Text(verbatim: "\(version) (\(build))")
+            .font(.caption).foregroundStyle(.secondary)
+            .fixedSize().textSelection(.enabled)
+        }
         if let error {
           Text(verbatim: Chrome.stored(error, locale: locale)).font(.caption)
             .foregroundStyle(.secondary).lineLimit(4).fixedSize(horizontal: false, vertical: true)
