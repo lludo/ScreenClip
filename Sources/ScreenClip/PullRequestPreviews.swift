@@ -26,15 +26,22 @@ import ScreenClipCore
   }
 
   /// Measured description heights, so a revisited report keeps its layout while it renders.
-  var heights: [URL: CGFloat] = [:]
+  private(set) var heights: [URL: CGFloat] = [:]
   private var previews: [URL: Preview] = [:]
   private var recent: [URL] = []
   private var loads: [URL: Task<Preview, Error>] = [:]
   private var queued: Set<URL> = []
   private var prefetching: Task<Void, Never>?
   private let limit = 24
+  /// Evidence PNGs can be several megabytes each, so the cache is also capped by size.
+  private let byteLimit = 96 * 1024 * 1024
 
   func cached(_ url: URL) -> Preview? { previews[url] }
+
+  /// Heights are kept only for cached previews, so they are evicted together.
+  func rememberHeight(_ height: CGFloat, for url: URL) {
+    if previews[url] != nil { heights[url] = height }
+  }
 
   /// Fetches the latest description, reusing images already downloaded and joining a fetch
   /// already in progress. The fetch finishes and is cached even if the caller goes away.
@@ -58,8 +65,11 @@ import ScreenClipCore
   }
 
   /// Report rows prefetch one at a time so scrolling the queue doesn't start a burst of `gh` calls.
+  /// The queue is capped at what the cache holds, so a long scroll can't fetch reports that would be
+  /// evicted again before they are opened.
   func prefetch(_ url: URL, issueID: UUID, gh: String) {
-    guard previews[url] == nil, loads[url] == nil, queued.insert(url).inserted else { return }
+    guard previews[url] == nil, loads[url] == nil, queued.count < limit, queued.insert(url).inserted
+    else { return }
     let previous = prefetching
     prefetching = Task {
       await previous?.value
@@ -75,7 +85,9 @@ import ScreenClipCore
     previews[url] = preview
     recent.removeAll { $0 == url }
     recent.append(url)
-    while recent.count > limit {
+    func bytes() -> Int { previews.values.reduce(0) { $0 + $1.images.values.reduce(0) { $0 + $1.count } } }
+    // Keep at least the preview just loaded, however large.
+    while recent.count > limit || (recent.count > 1 && bytes() > byteLimit) {
       let old = recent.removeFirst()
       previews[old] = nil
       heights[old] = nil

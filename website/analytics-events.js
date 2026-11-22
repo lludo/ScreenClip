@@ -25,7 +25,7 @@
   function isDiskImage(href) {
     var url = href || '';
     if (/\.dmg(\?|#|$)/i.test(url)) return true;
-    if (/github\.com\/lludo\/ScreenClip\/releases/i.test(url)) return true;
+    if (/github\.com\/lludo\/ScreenClip\/releases\/(latest\/)?download\//i.test(url)) return true;
     return false;
   }
 

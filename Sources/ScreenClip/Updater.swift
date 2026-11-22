@@ -46,9 +46,10 @@ final class Updater: NSObject, ObservableObject {
     #endif
   }
 
+  /// Starts a check, or brings forward an update Sparkle is already holding. The popover button
+  /// clears when Sparkle reports that the person saw the update.
   func checkForUpdates() {
     #if canImport(Sparkle)
-    pendingVersion = nil
     controller?.checkForUpdates(nil)
     #endif
   }
@@ -57,8 +58,9 @@ final class Updater: NSObject, ObservableObject {
   /// capture or running agent work can still stop it.
   func installPendingUpdate() {
     #if canImport(Sparkle)
+    // Kept after use: if quitting is refused (an open capture, running work), the button
+    // stays and a second click tries again.
     if let installNow {
-      self.installNow = nil
       installNow()
     } else {
       checkForUpdates()
@@ -117,11 +119,12 @@ extension Updater: SPUStandardUserDriverDelegate {
   }
 
   nonisolated func standardUserDriverDidReceiveUserAttention(forUpdate update: SUAppcastItem) {
-    MainActor.assumeIsolated { pendingVersion = nil }
+    MainActor.assumeIsolated { if installNow == nil { pendingVersion = nil } }
   }
 
   nonisolated func standardUserDriverWillFinishUpdateSession() {
-    MainActor.assumeIsolated { pendingVersion = nil }
+    // A downloaded update waiting for quit outlives its session; keep offering it.
+    MainActor.assumeIsolated { if installNow == nil { pendingVersion = nil } }
   }
 }
 #endif
