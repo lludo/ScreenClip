@@ -4,7 +4,7 @@ Capture is the point of the app: notice something, grab it, and keep going. Agen
 
 ## Capture
 
-Choose **Screenshot** in the menu bar or press **⌘⇧2** to select a screen region. Choose **Text note** to type an observation directly. Escape cancels the selection. The composer can take a note, freehand drawing, arrows, rectangles, ellipses, text, and an opaque redaction, with undo and redo. A screenshot alone is a valid report. Submit with the primary button or **⌘↩**.
+Choose **Screenshot task** in the menu bar or press **⌘⇧2** to select a screen region. Choose **Text task** to type an observation directly. Escape cancels the selection. The composer can take a note, freehand drawing, arrows, rectangles, ellipses, text, and an opaque redaction, with undo and redo. A screenshot alone is a valid report. Submit with the primary button or **⌘↩**.
 
 ScreenClip suggests a project from the app or the browser context. Correct it before submitting. If the project is ambiguous, the report is saved as **Needs project** and no agent starts.
 

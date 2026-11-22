@@ -86,7 +86,7 @@ Menu bar label: icon plus the count of submitted, unresolved issues. A separate 
 
 | Surface | Contents and actions |
 | --- | --- |
-| Menu bar popover | Current project/session, Screenshot, Text note, Pause processing, status totals, recent issues, Open queue, Settings |
+| Menu bar popover | Current project/session, Screenshot task, Text task, Pause processing, status totals, recent issues, Open queue, Settings |
 | Issue row | Permanent report number (for example, #234), thumbnail, short title, project, status, latest update, unread indicator |
 | Issue detail | Click-to-copy report number, ordered images and notes, captured context, concise activity, questions and replies, the agent's conversation link when it has one, PR link, validation result |
 | Queue window | All issues, project/status filters, search, drafts, archive |
