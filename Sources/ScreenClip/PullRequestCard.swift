@@ -8,7 +8,7 @@ struct PullRequestCard: View {
   let issue: Issue
   let url: URL
 
-  @State private var description: GitHubService.PullRequestDescription?
+  @State private var preview: PullRequestPreviews.Preview?
   @State private var loadError: String?
   @State private var reload = 0
   @State private var confirmMerge = false
@@ -17,6 +17,15 @@ struct PullRequestCard: View {
   private struct Request: Equatable {
     let head: String?
     let reload: Int
+  }
+
+  init(model: AppModel, worker: AgentWorker, issue: Issue, url: URL) {
+    self.model = model
+    self.worker = worker
+    self.issue = issue
+    self.url = url
+    // A cached description shows at once and is refreshed in place.
+    _preview = State(initialValue: PullRequestPreviews.shared.cached(url))
   }
 
   var body: some View {
@@ -46,15 +55,15 @@ struct PullRequestCard: View {
         .help(Text(chrome: "Refresh PR status", comment: "Refreshes pull request checks. Keep PR."))
       }
       Divider()
-      if let loadError {
-        Text(verbatim: loadError).font(.callout).foregroundStyle(.secondary).textSelection(.enabled)
-      } else if let description {
-        if description.bodyHTML.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      if let preview {
+        if preview.description.bodyHTML.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
           Text(chrome: "No description provided.", comment: "The pull request has an empty description.")
             .foregroundStyle(.secondary)
         } else {
-          PullRequestHTML(html: description.bodyHTML, url: url, issueID: issue.id, gh: gh)
+          PullRequestHTML(preview: preview, url: url, issueID: issue.id, gh: gh)
         }
+      } else if let loadError {
+        Text(verbatim: loadError).font(.callout).foregroundStyle(.secondary).textSelection(.enabled)
       } else {
         ProgressView().controlSize(.small)
           .accessibilityLabel(Text(chrome: "Pull request description", comment: "Description loading indicator."))
@@ -71,7 +80,7 @@ struct PullRequestCard: View {
             summary == ExternalAssistant.evidenceStillPresentSummary ? .orange : .secondary)
         }
         Button {
-          reviewedHead = description?.headRefOid
+          reviewedHead = preview?.description.headRefOid
           confirmMerge = true
         } label: {
           Text(chrome: "Merge pull request", comment: "Merges the reviewed pull request in ScreenClip.")
@@ -102,12 +111,11 @@ struct PullRequestCard: View {
       }
     }
     .task(id: Request(head: issue.prHead, reload: reload)) {
-      description = nil
       loadError = nil
       do {
-        let value = try await GitHubService.description(url: url, gh: gh)
+        let value = try await PullRequestPreviews.shared.load(url, issueID: issue.id, gh: gh)
         try Task.checkCancellation()
-        description = value
+        preview = value
       } catch {
         if !Task.isCancelled { loadError = Chrome.stored(error.localizedDescription, locale: locale) }
       }
@@ -117,7 +125,7 @@ struct PullRequestCard: View {
   @Environment(\.locale) private var locale
   private var gh: String { AgentDetector.ghPath(model.snapshot.settings) }
   private var canRequestMerge: Bool {
-    guard let head = description?.headRefOid, let project = model.project(issue.projectID) else { return false }
+    guard let head = preview?.description.headRefOid, let project = model.project(issue.projectID) else { return false }
     return worker.manualMergeHeads[issue.id] == head && issue.prHead == head
       && !issue.archived && issue.revision == (issue.prRevision ?? issue.coveredRevision)
       && !worker.refreshing.contains(issue.id) && !worker.mergingProjects.contains(project.id)
@@ -127,31 +135,61 @@ struct PullRequestCard: View {
 
 /// GitHub supplies sanitized, repository-aware HTML. Fit the web content to the native report
 /// scroll view, including later image loads, disclosures and changes to the window width.
+/// The page stays hidden until it has loaded, so it appears at its final size.
 private struct PullRequestHTML: View {
-  let html: String
+  let preview: PullRequestPreviews.Preview
   let url: URL
   let issueID: UUID
   let gh: String
-  @State private var height: CGFloat = 24
+  @State private var height: CGFloat
+  @State private var ready = false
+  private let measured: Bool
+
+  init(preview: PullRequestPreviews.Preview, url: URL, issueID: UUID, gh: String) {
+    self.preview = preview
+    self.url = url
+    self.issueID = issueID
+    self.gh = gh
+    let cached = PullRequestPreviews.shared.heights[url]
+    measured = cached != nil
+    _height = State(initialValue: cached ?? 24)
+  }
 
   var body: some View {
-    Document(html: html, url: url, issueID: issueID, gh: gh, height: $height)
+    Document(preview: preview, url: url, issueID: issueID, gh: gh, height: $height, ready: $ready)
       .frame(maxWidth: .infinity).frame(height: height)
+      .opacity(ready ? 1 : 0)
+      .overlay {
+        if !ready && !measured {
+          ProgressView().controlSize(.small)
+            .accessibilityLabel(Text(chrome: "Pull request description", comment: "Description loading indicator."))
+        }
+      }
+      .onChange(of: height) { PullRequestPreviews.shared.heights[url] = height }
+      .task {
+        // A slow external image must not keep the description hidden.
+        try? await Task.sleep(for: .seconds(3))
+        ready = true
+      }
   }
 
   struct Document: NSViewRepresentable {
-    let html: String
+    let preview: PullRequestPreviews.Preview
     let url: URL
     let issueID: UUID
     let gh: String
     @Binding var height: CGFloat
+    @Binding var ready: Bool
 
-    func makeCoordinator() -> Coordinator { Coordinator(height: $height, url: url, issueID: issueID, gh: gh) }
+    func makeCoordinator() -> Coordinator {
+      Coordinator(height: $height, ready: $ready, url: url, issueID: issueID, gh: gh)
+    }
 
     func makeNSView(context: Context) -> WKWebView {
       let config = WKWebViewConfiguration()
       config.websiteDataStore = .nonPersistent()
       config.defaultWebpagePreferences.allowsContentJavaScript = false
+      config.setURLSchemeHandler(context.coordinator, forURLScheme: PullRequestPreviews.scheme)
       let controller = config.userContentController
       controller.add(context.coordinator, contentWorld: .defaultClient, name: "contentHeight")
       controller.addScriptMessageHandler(context.coordinator, contentWorld: .defaultClient, name: "evidenceImage")
@@ -161,9 +199,12 @@ private struct PullRequestHTML: View {
           Math.ceil(article.getBoundingClientRect().height))).observe(article);
         for (const img of article.querySelectorAll('img')) {
           const retry = async () => {
+            img.style.visibility = 'hidden';
             const url = await window.webkit.messageHandlers.evidenceImage.postMessage(
               [img.src, img.closest('a')?.href || '']);
-            if (url) img.src = url;
+            if (!url) return;
+            img.addEventListener('load', () => img.style.visibility = '', {once: true});
+            img.src = url;
           };
           if (img.complete && !img.naturalWidth) retry();
           else img.addEventListener('error', retry, {once: true});
@@ -176,11 +217,12 @@ private struct PullRequestHTML: View {
     }
 
     func updateNSView(_ view: WKWebView, context: Context) {
-      guard context.coordinator.html != html else { return }
-      context.coordinator.html = html
+      guard context.coordinator.html != preview.html else { return }
+      context.coordinator.html = preview.html
+      context.coordinator.preview = preview
       view.loadHTMLString("""
         <!doctype html><html><head><meta charset="utf-8">
-        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https:; style-src 'unsafe-inline'; form-action 'none'; base-uri 'none'">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: \(PullRequestPreviews.scheme):; style-src 'unsafe-inline'; form-action 'none'; base-uri 'none'">
         <meta name="referrer" content="no-referrer">
         <style>
           :root { color-scheme: light dark; font: 13px/1.5 -apple-system, sans-serif; }
@@ -199,19 +241,24 @@ private struct PullRequestHTML: View {
           table { display: block; overflow-x: auto; border-collapse: collapse; }
           td, th { padding: .3em .6em; border: 1px solid rgba(128,128,128,.4); }
           .task-list-item { list-style: none; }
-        </style></head><body><article>\(html)</article></body></html>
+        </style></head><body><article>\(preview.html)</article></body></html>
         """, baseURL: url)
     }
 
-    final class Coordinator: NSObject, WKScriptMessageHandler, WKScriptMessageHandlerWithReply, WKNavigationDelegate {
+    final class Coordinator: NSObject, WKScriptMessageHandler, WKScriptMessageHandlerWithReply,
+      WKNavigationDelegate, WKURLSchemeHandler
+    {
       var html: String?
+      var preview: PullRequestPreviews.Preview?
       let height: Binding<CGFloat>
+      let ready: Binding<Bool>
       let url: URL
       let issueID: UUID
       let gh: String
 
-      init(height: Binding<CGFloat>, url: URL, issueID: UUID, gh: String) {
+      init(height: Binding<CGFloat>, ready: Binding<Bool>, url: URL, issueID: UUID, gh: String) {
         self.height = height
+        self.ready = ready
         self.url = url
         self.issueID = issueID
         self.gh = gh
@@ -238,8 +285,32 @@ private struct PullRequestHTML: View {
         }
       }
 
+      func webView(_ webView: WKWebView, start task: WKURLSchemeTask) {
+        guard let url = task.request.url, let data = preview?.image(at: url) else {
+          task.didFailWithError(URLError(.fileDoesNotExist))
+          return
+        }
+        task.didReceive(URLResponse(url: url, mimeType: "image/png", expectedContentLength: data.count,
+          textEncodingName: nil))
+        task.didReceive(data)
+        task.didFinish()
+      }
+
+      func webView(_ webView: WKWebView, stop task: WKURLSchemeTask) {}
+
       func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         (webView as? FittingWebView)?.applyFitHeight(force: true)
+        // Images have loaded by now; reveal the page at its final height once it has painted.
+        webView.callAsyncJavaScript("""
+          await new Promise(done => requestAnimationFrame(() => requestAnimationFrame(done)));
+          return Math.ceil(document.querySelector('article').getBoundingClientRect().height);
+          """, in: nil, in: .defaultClient
+        ) { [height, ready] result in
+          if case .success(let value) = result, let value = value as? CGFloat, value.isFinite, value > 0 {
+            height.wrappedValue = value
+          }
+          ready.wrappedValue = true
+        }
       }
 
       func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,

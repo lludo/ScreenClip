@@ -23,6 +23,35 @@ final class PRScreenshotEvidenceTests: XCTestCase {
     }
   }
 
+  /// Evidence is prefetched and served locally, so the description never shows a broken image.
+  func testRenderedDescriptionImagesArePointedAtPrefetchedEvidence() throws {
+    let pr = try XCTUnwrap(URL(string: "https://github.com/example/app/pull/24"))
+    let id = UUID()
+    let head = String(repeating: "b", count: 40)
+    let base = "https://github.com/example/app/blob/\(head)/.screenclip/pr/\(id.uuidString.lowercased())/revision-1"
+    let html = """
+      <p><a target="_blank" rel="noopener noreferrer" href="\(base)/before/1.png?raw=true"><img \
+      src="\(base)/before/1.png?raw=true" alt="Before 1" style="max-width: 100%;"></a></p>
+      <p><a href="\(base)/after/1.png?raw=true&amp;x=1"><img src="https://camo.githubusercontent.com/abc" \
+      data-canonical-src="\(base)/after/1.png?raw=true" alt="After 1"></a></p>
+      <p><img src="\(base)/after/1.png?raw=true" alt="Repeated"></p>
+      <p><a href="\(base)/after/2.png"></a><img src="https://example.org/other.png" alt="Unrelated"></p>
+      """
+    let endpoints = PRScreenshotEvidence.imageEndpoints(html: html, pullRequest: pr, issueID: id)
+    XCTAssertEqual(endpoints.map { $0.removingPercentEncoding?.components(separatedBy: "/revision-1/").last },
+      ["before/1.png?ref=\(head)", "after/1.png?ref=\(head)"])
+    let rewritten = PRScreenshotEvidence.replacingImageSources(html: html, pullRequest: pr, issueID: id) {
+      $0 == endpoints[0] ? "local://0?a&b" : nil
+    }
+    XCTAssertTrue(rewritten.contains(#"<img src="local://0?a&amp;b" alt="Before 1""#))
+    XCTAssertTrue(rewritten.contains(#"href="\#(base)/before/1.png?raw=true""#), "Links still open GitHub")
+    XCTAssertTrue(rewritten.contains(#"<img src="https://camo.githubusercontent.com/abc""#))
+    XCTAssertTrue(rewritten.contains(#"<img src="https://example.org/other.png""#))
+    XCTAssertEqual(PRScreenshotEvidence.replacingImageSources(html: html, pullRequest: pr, issueID: UUID()) {
+      _ in "local://never"
+    }, html)
+  }
+
   func fixture() async throws -> (URL, Issue) {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-images-" + UUID().uuidString)
     try FileManager.default.createDirectory(at: root, withIntermediateDirectories: true)
