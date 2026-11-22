@@ -24,6 +24,54 @@ public enum PRScreenshotEvidence {
     return "repos/\(pr[1])/\(pr[2])/contents/\(encoded)?ref=\(path[4])"
   }
 
+  /// Contents endpoints of this report's evidence images in GitHub's rendered description, in
+  /// order and without duplicates, so they can be fetched before the description is shown.
+  public static func imageEndpoints(html: String, pullRequest: URL, issueID: UUID) -> [String] {
+    var seen = Set<String>()
+    return images(html, pullRequest, issueID).map(\.endpoint).filter { seen.insert($0).inserted }
+  }
+
+  /// Points each evidence `<img>` at `source(endpoint)`, leaving images it returns nil for.
+  public static func replacingImageSources(
+    html: String, pullRequest: URL, issueID: UUID, with source: (String) -> String?
+  ) -> String {
+    let text = NSMutableString(string: html)
+    for image in images(html, pullRequest, issueID).reversed() {
+      guard let value = source(image.endpoint) else { continue }
+      text.replaceCharacters(in: image.src, with: value
+        .replacingOccurrences(of: "&", with: "&amp;").replacingOccurrences(of: "\"", with: "&quot;"))
+    }
+    return text as String
+  }
+
+  private static let imageTag = try! NSRegularExpression(
+    pattern: #"(?:<a\b([^>]*)>\s*)?<img\b([^>]*)>"#, options: .caseInsensitive)
+  private static let attribute = try! NSRegularExpression(
+    pattern: #"(?<![\w-])(src|data-canonical-src|href)\s*=\s*"([^"]*)""#, options: .caseInsensitive)
+
+  /// GitHub may proxy an image through camo, so its canonical source and wrapping link count too.
+  private static func images(_ html: String, _ pullRequest: URL, _ issueID: UUID)
+    -> [(src: NSRange, endpoint: String)]
+  {
+    let text = html as NSString
+    return imageTag.matches(in: html, range: NSRange(location: 0, length: text.length)).compactMap { tag in
+      var src: NSRange?
+      var candidates: [String] = []
+      for group in [2, 1] where tag.range(at: group).location != NSNotFound {
+        for match in attribute.matches(in: html, range: tag.range(at: group)) {
+          let name = text.substring(with: match.range(at: 1)).lowercased()
+          if group == 2 && name == "src" { src = match.range(at: 2) }
+          if group == 1 && name != "href" { continue }
+          candidates.append(text.substring(with: match.range(at: 2)).replacingOccurrences(of: "&amp;", with: "&"))
+        }
+      }
+      guard let src, let endpoint = candidates.lazy.compactMap(URL.init(string:)).compactMap({
+        contentsEndpoint(image: $0, pullRequest: pullRequest, issueID: issueID)
+      }).first else { return nil }
+      return (src, endpoint)
+    }
+  }
+
   public static func directory(for issue: Issue) -> String {
     ".screenclip/pr/\(issue.id.uuidString.lowercased())/revision-\(issue.revision)"
   }

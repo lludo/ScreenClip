@@ -200,6 +200,13 @@ struct QueueView: View {
       } else {
         List(filtered, selection: $model.selectedIssueID) { issue in
           IssueRow(issue: issue, project: model.project(issue.projectID)).tag(issue.id)
+            .onAppear {
+              // Visible reports with a pull request open with their description ready.
+              if let url = issue.prURL.flatMap(URL.init(string:)) {
+                PullRequestPreviews.shared.prefetch(
+                  url, issueID: issue.id, gh: AgentDetector.ghPath(model.snapshot.settings))
+              }
+            }
             .contextMenu {
               Button {
                 model.setArchived(issue.id, archived: !issue.archived)
