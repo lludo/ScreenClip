@@ -32,7 +32,9 @@ if [[ -d "$sparkle" ]]; then
     "${sign[@]}" "$sparkle"
     "${sign[@]}" --preserve-metadata=entitlements,requirements,flags "$app"
     for nested in Versions/B/Autoupdate Versions/B/Updater.app Versions/B/XPCServices/Installer.xpc; do
-        if ! codesign -dvv "$sparkle/$nested" 2>&1 | grep -Fq "Authority=$APPLE_SIGNING_IDENTITY"; then
+        # Captured first: under pipefail, grep -q exiting early would fail codesign with SIGPIPE.
+        nested_signature=$(codesign -dvv "$sparkle/$nested" 2>&1 || true)
+        if ! printf '%s\n' "$nested_signature" | grep -Fq "Authority=$APPLE_SIGNING_IDENTITY"; then
             printf '%s\n' "Sparkle's $nested is not signed with the Developer ID." >&2
             exit 1
         fi
