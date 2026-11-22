@@ -202,6 +202,16 @@ import ScreenClipCore
       try model.updateIssue(id) {
         $0.record("Preparing isolated workspace", status: .working)
       }
+      if let path = issue.worktreePath, !FileManager.default.fileExists(atPath: path) {
+        // Removed outside ScreenClip, often by whoever carried the fix on by hand, with any work
+        // that was not pushed. Nothing runs until the tester decides, since the fix may already
+        // be merged. Continue checks the branch out in a new worktree, with the full prompt.
+        try model.updateIssue(id) {
+          $0.worktreePath = nil
+          $0.deliveredContext = nil
+        }
+        throw ScreenClipError.message(Self.removedWorktreeError)
+      }
       if issue.worktreePath == nil {
         let workspaceID = issue.workspaceID
         let workspace = try await serializedWorkspaceChange(project.id) { [model] in
@@ -246,6 +256,8 @@ import ScreenClipCore
       }
     }
   }
+  static let removedWorktreeError =
+    "This report’s worktree was removed outside ScreenClip, along with any changes that were not pushed. If the fix was merged another way, archive this report. Otherwise choose Continue to keep working in a new worktree."
   func reply(
     issueID: UUID, questionID: UUID, answers: [String: String], allow: Bool? = nil,
     approvalDecision: JSONValue? = nil

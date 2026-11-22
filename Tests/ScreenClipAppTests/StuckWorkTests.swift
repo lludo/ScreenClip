@@ -172,6 +172,58 @@ import XCTest
     XCTAssertEqual(relaunched.issue(busy)?.activities.last?.text, AppModel.restartActivity)
   }
 
+  /// The fix was carried on by hand and the worktree deleted; then a restart continued the session.
+  func testWorkDoesNotStartInAWorktreeRemovedOutsideScreenClip() async throws {
+    let claude = try script(
+      "fake-claude",
+      """
+      #!/usr/bin/python3
+      import sys,json,os
+      here=os.path.dirname(os.path.abspath(__file__))
+      text=json.loads(sys.stdin.readline())['message']['content'][0]['text']
+      with open(os.path.join(here,'runs'),'a') as log:
+          log.write(('full' if 'Resolve this ScreenClip issue' in text else 'follow-up')+'\\n')
+      def send(value): print(json.dumps(value),flush=True)
+      send({'type':'system','subtype':'init','session_id':'x'})
+      report={'outcome':'question','summary':'','question':'Which width?'}
+      send({'type':'result','subtype':'success','is_error':False,'result':'','usage':{'input_tokens':1,'output_tokens':2},'total_cost_usd':0.01,'structured_output':report})
+      """)
+    let model = try makeModel()
+    try model.commit { $0.settings.claudePath = claude }
+    let id = try submit(model, agent: .claude)
+    let project = try XCTUnwrap(model.snapshot.projects.first)
+    let workspace = try await GitWorkspace.prepare(
+      project: project, issueID: try XCTUnwrap(model.issue(id)?.workspaceID), root: model.store.root)
+    try FileManager.default.removeItem(atPath: workspace.path)
+    let session = UUID().uuidString.lowercased()
+    try model.updateIssue(id) {
+      $0.worktreePath = workspace.path
+      $0.branch = workspace.branch
+      $0.threadID = session
+      $0.coveredRevision = $0.revision
+      $0.deliveredContext = AgentPrompt.delivered($0, threadID: session)
+      $0.record("No Claude Code process survived the restart; continuing the same session", status: .queued)
+    }
+    try model.commit { $0.settings.paused = false }
+    model.worker.pump()
+    try await wait { model.issue(id)?.status == .failed }
+    let stopped = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(stopped.lastError, AgentWorker.removedWorktreeError)
+    XCTAssertNil(stopped.worktreePath)
+    XCTAssertEqual(runs(), 0, "Nothing runs before the tester decides; the fix may already be merged.")
+
+    // Continue checks the branch out in a new worktree, and the session gets the full prompt.
+    model.retry(id)
+    try await wait { model.issue(id)?.questions.count == 1 }
+    let continued = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(continued.worktreePath, workspace.path)
+    XCTAssertEqual(continued.branch, workspace.branch)
+    XCTAssertEqual(continued.threadID, session)
+    XCTAssertTrue(FileManager.default.fileExists(atPath: workspace.path))
+    XCTAssertEqual(
+      try String(contentsOf: root.appendingPathComponent("runs"), encoding: .utf8), "full\n")
+  }
+
   func testRestartReconcilesAcknowledgedCodexWorkWithoutReplayingUncertainOrManualWork() async throws {
     let repo = root.appendingPathComponent("repo")
     try FileManager.default.createDirectory(at: repo, withIntermediateDirectories: true)
@@ -278,6 +330,8 @@ import XCTest
       "body": "Fixes ScreenClip: #\(number)", "state": "OPEN",
     ]
     try JSONSerialization.data(withJSONObject: [pull]).write(to: output)
+    // Still found after the evidence worktree was removed: gh then runs in the project.
+    try model.updateIssue(id) { $0.worktreePath = self.root.appendingPathComponent("removed").path }
     await model.worker.discoverExternalPullRequests()
     XCTAssertEqual(model.issue(id)?.status, .prOpen)
     XCTAssertEqual(model.issue(id)?.prURL, "https://github.com/o/r/pull/7")

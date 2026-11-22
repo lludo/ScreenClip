@@ -161,6 +161,8 @@ enum AppChrome {
     "The pull request is closed.", "Merge will run the project’s validation command on this Mac.",
     "Local validation is required for this commit.", "Local validation passed. GitHub reports no checks.",
     "ScreenClip is busy with this project. Try the merge again in a moment.",
+    "The worktree for this fix was removed. Merge or close the PR on GitHub.",
+    "This report’s worktree was removed outside ScreenClip, along with any changes that were not pushed. If the fix was merged another way, archive this report. Otherwise choose Continue to keep working in a new worktree.",
     ExternalAssistant.validationNeedsAutoMerge,
   ]
 }

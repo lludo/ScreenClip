@@ -90,6 +90,8 @@ public enum GitWorkspace {
       }
       return (path, actual)
     }
+    // A worktree deleted outside ScreenClip stays registered, and git refuses to add it again.
+    _ = try? await CommandRunner.run(git, ["worktree", "remove", path], cwd: project.path)
     // Start from the latest remote base when there is one; fall back to the local branch.
     let hasOrigin =
       (try? await CommandRunner.run(git, ["remote", "get-url", "origin"], cwd: project.path))?
@@ -111,12 +113,13 @@ public enum GitWorkspace {
   }
 
   /// Removes a finished issue's worktree and local branch. A worktree with uncommitted
-  /// changes is kept (git refuses to remove it without --force).
+  /// changes is kept (git refuses to remove it without --force). One already deleted outside
+  /// ScreenClip, which git may no longer list, counts as removed.
   @discardableResult
   public static func remove(path: String, branch: String?, repository: String) async -> Bool {
     let removed = try? await CommandRunner.run(
       git, ["worktree", "remove", path], cwd: repository)
-    guard removed?.status == 0 else { return false }
+    guard removed?.status == 0 || !FileManager.default.fileExists(atPath: path) else { return false }
     if let branch, branch.hasPrefix(branchPrefix) || branch.hasPrefix(legacyBranchPrefix) {
       _ = try? await CommandRunner.run(git, ["branch", "-D", branch], cwd: repository)
     }

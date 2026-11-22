@@ -222,6 +222,40 @@ import XCTest
     XCTAssertFalse(issue.questions.contains { $0.reply == nil })
   }
 
+  func testAMergeIsRecordedAfterTheWorktreeWasRemoved() async throws {
+    // Whoever resolved and merged the pull request also removed the report's worktree, and gh
+    // cannot start in a directory that no longer exists.
+    try model.updateIssue(id) {
+      $0.worktreePath = self.root.appendingPathComponent("worktrees/removed").path
+      $0.lastError = "The base branch conflicts with this fix in: App.swift"
+      $0.record("The base update needs attention in Claude Code.", status: .needsYou)
+    }
+    try pullRequest(["state": .string("MERGED"), "mergeCommit": .object(["oid": .string("abc123")])])
+    await model.worker.refreshPRs()
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.status, .merged)
+    XCTAssertEqual(issue.mergeCommit, "abc123")
+    XCTAssertNil(issue.lastError)
+  }
+
+  func testAnOpenPullRequestWhoseWorktreeWasRemovedWaitsForAMergeOnGitHub() async throws {
+    try model.updateIssue(id) { $0.worktreePath = self.root.appendingPathComponent("worktrees/removed").path }
+    try pullRequest(["mergeable": .string("CONFLICTING"), "statusCheckRollup": failedChecks])
+    await model.worker.refreshPRs()
+    var issue = try XCTUnwrap(model.issue(id))
+    // Nothing can be updated, validated, or repaired without the worktree.
+    XCTAssertEqual(issue.status, .prOpen)
+    XCTAssertEqual(issue.checkSummary, AgentWorker.removedWorktreeSummary)
+    XCTAssertNil(issue.repairAttempts)
+    XCTAssertNil(issue.lastError)
+
+    try pullRequest(["state": .string("MERGED"), "mergeCommit": .object(["oid": .string("abc123")])])
+    await model.worker.refreshPRs()
+    issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.status, .merged)
+    XCTAssertEqual(issue.mergeCommit, "abc123")
+  }
+
   func testAMergedPullRequestDoesNotOverrideNewerEvidence() async throws {
     try model.updateIssue(id) {
       $0.worktreePath = nil
