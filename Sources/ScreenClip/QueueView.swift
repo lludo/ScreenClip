@@ -201,8 +201,10 @@ struct QueueView: View {
         List(filtered, selection: $model.selectedIssueID) { issue in
           IssueRow(issue: issue, project: model.project(issue.projectID)).tag(issue.id)
             .onAppear {
-              // Visible reports with a pull request open with their description ready.
-              if let url = issue.prURL.flatMap(URL.init(string:)) {
+              // Visible reports with an open pull request open with their description ready.
+              if [.prOpen, .merged].contains(issue.status), !issue.archived,
+                let url = issue.prURL.flatMap(URL.init(string:))
+              {
                 PullRequestPreviews.shared.prefetch(
                   url, issueID: issue.id, gh: AgentDetector.ghPath(model.snapshot.settings))
               }

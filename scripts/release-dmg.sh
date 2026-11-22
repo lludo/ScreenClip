@@ -19,6 +19,35 @@ if [[ ! -d "$app" ]]; then
     printf '%s\n' "Built app not found: $app" >&2
     exit 1
 fi
+# Sparkle ships its helpers ad-hoc signed, and a plain xcodebuild re-signs only the framework.
+# Notarization needs every nested executable signed with the Developer ID, a secure timestamp,
+# and the hardened runtime, so sign them from the inside out, then re-seal the app.
+sparkle="$app/Contents/Frameworks/Sparkle.framework"
+if [[ -d "$sparkle" ]]; then
+    sign=(codesign --force --sign "$APPLE_SIGNING_IDENTITY" --options runtime --timestamp)
+    "${sign[@]}" "$sparkle/Versions/B/XPCServices/Installer.xpc"
+    "${sign[@]}" --preserve-metadata=entitlements "$sparkle/Versions/B/XPCServices/Downloader.xpc"
+    "${sign[@]}" "$sparkle/Versions/B/Autoupdate"
+    "${sign[@]}" "$sparkle/Versions/B/Updater.app"
+    "${sign[@]}" "$sparkle"
+    "${sign[@]}" --preserve-metadata=entitlements,requirements,flags "$app"
+    for nested in Versions/B/Autoupdate Versions/B/Updater.app Versions/B/XPCServices/Installer.xpc; do
+        # Captured first: under pipefail, grep -q exiting early would fail codesign with SIGPIPE.
+        nested_signature=$(codesign -dvv "$sparkle/$nested" 2>&1 || true)
+        if ! printf '%s\n' "$nested_signature" | grep -Fq "Authority=$APPLE_SIGNING_IDENTITY"; then
+            printf '%s\n' "Sparkle's $nested is not signed with the Developer ID." >&2
+            exit 1
+        fi
+    done
+fi
+# Sparkle offers an update only when its build number is higher than the installed one.
+build=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Contents/Info.plist")
+published=$(curl -fsSL https://github.com/lludo/ScreenClip/releases/latest/download/appcast.xml 2>/dev/null \
+    | sed -n 's:.*<sparkle\:version>\([0-9]*\)</sparkle\:version>.*:\1:p' | head -1 || true)
+if [[ -n "$published" && "$build" -le "$published" ]]; then
+    printf '%s\n' "Build $build is not higher than the published build $published. Bump CURRENT_PROJECT_VERSION." >&2
+    exit 1
+fi
 codesign --verify --deep --strict "$app"
 entitlements=$(codesign -d --entitlements :- "$app" 2>/dev/null || true)
 if printf '%s\n' "$entitlements" | grep -q '<key>com.apple.security.app-sandbox</key>'; then

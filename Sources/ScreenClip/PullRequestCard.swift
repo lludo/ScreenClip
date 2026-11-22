@@ -62,6 +62,10 @@ struct PullRequestCard: View {
         } else {
           PullRequestHTML(preview: preview, url: url, issueID: issue.id, gh: gh)
         }
+        // A failed refresh keeps the last description, but says it may be out of date.
+        if let loadError {
+          Text(verbatim: loadError).font(.caption).foregroundStyle(.secondary).textSelection(.enabled)
+        }
       } else if let loadError {
         Text(verbatim: loadError).font(.callout).foregroundStyle(.secondary).textSelection(.enabled)
       } else {
@@ -165,7 +169,7 @@ private struct PullRequestHTML: View {
             .accessibilityLabel(Text(chrome: "Pull request description", comment: "Description loading indicator."))
         }
       }
-      .onChange(of: height) { PullRequestPreviews.shared.heights[url] = height }
+      .onChange(of: height) { PullRequestPreviews.shared.rememberHeight(height, for: url) }
       .task {
         // A slow external image must not keep the description hidden.
         try? await Task.sleep(for: .seconds(3))
@@ -202,8 +206,11 @@ private struct PullRequestHTML: View {
             img.style.visibility = 'hidden';
             const url = await window.webkit.messageHandlers.evidenceImage.postMessage(
               [img.src, img.closest('a')?.href || '']);
-            if (!url) return;
-            img.addEventListener('load', () => img.style.visibility = '', {once: true});
+            // An image that still can't load shows as broken, with its alt text, not as a blank gap.
+            if (!url) { img.style.visibility = ''; return; }
+            const show = () => img.style.visibility = '';
+            img.addEventListener('load', show, {once: true});
+            img.addEventListener('error', show, {once: true});
             img.src = url;
           };
           if (img.complete && !img.naturalWidth) retry();
