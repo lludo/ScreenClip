@@ -24,7 +24,9 @@ The one-off prompts once used to have each agent investigate its own integration
 
 ## Default prompt add-on
 
-**Settings → Connections → Agent instructions → Default prompt add-on** stores instructions shared by all projects and agents. Edit the multiline text and choose **Save settings**. Leave it empty to disable it, or choose **Restore default prompt** to restore the built-in text. Older queues use the built-in default automatically.
+**Settings → Connections → Agent instructions → Default prompt add-on** stores instructions shared by all projects and agents. Edit the multiline text and choose **Save settings**. Leave it empty to disable it, or choose **Restore default prompt** to restore the built-in text. Older queues use the built-in default automatically, and so does a queue that saved an earlier built-in text unchanged (`AppSettings.retiredPromptAddOnTexts`).
+
+The built-in text asks for a PR description a reviewer can scan: **What was the issue** (the reported problem and its root cause), **How we addressed it** (the approach and key changes), and **How we verified it** (checks, results, and the retest), followed by the **Before / After** comparison for visual fixes. For local agents ScreenClip appends that comparison right after the agent's summary, so the agent does not repeat the images.
 
 The original synthetic [Before](../screenshots/default-prompt-before.png) / [After](../screenshots/default-prompt-after.png) comparison for PR #47 is retained here so its evidence does not depend on a temporary branch. These are historical feature-introduction captures, not the current Settings layout.
 
