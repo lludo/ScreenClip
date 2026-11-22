@@ -123,12 +123,20 @@ final class PRScreenshotEvidenceTests: XCTestCase {
     XCTAssertFalse(markdown.contains(root.path))
   }
 
-  func testMissingInvalidAndOldRevisionImagesCannotBePublished() async throws {
+  func testMissingAfterPublishesBeforeImagesWithANote() async throws {
     let (root, issue) = try await fixture()
-    do {
-      try await PRScreenshotEvidence.prepare(issue: issue, worktree: root.path)
-      XCTFail("Missing After must fail")
-    } catch { XCTAssertTrue(error.localizedDescription.contains("Missing After")) }
+    try await PRScreenshotEvidence.prepare(issue: issue, worktree: root.path)
+    let tracked = try await CommandRunner.checked(GitWorkspace.git, ["ls-files"], cwd: root.path)
+    XCTAssertTrue(tracked.contains("before/1.png"))
+    XCTAssertFalse(tracked.contains("/after/"))
+    let markdown = try PRScreenshotEvidence.markdown(issue: issue, worktree: root.path, remote: "git@github.com:owner/demo.git", head: "abc123")
+    XCTAssertTrue(markdown.contains("![Before 1]"))
+    XCTAssertFalse(markdown.contains("![After"))
+    XCTAssertTrue(markdown.contains(PRScreenshotEvidence.missingAfterNote))
+  }
+
+  func testInvalidAndOldRevisionImagesCannotBePublished() async throws {
+    let (root, issue) = try await fixture()
     let after = root.appendingPathComponent(PRScreenshotEvidence.directory(for: issue) + "/after")
     try FileManager.default.createDirectory(at: after, withIntermediateDirectories: true)
     let file = after.appendingPathComponent("1.png")
@@ -140,10 +148,10 @@ final class PRScreenshotEvidenceTests: XCTestCase {
     try image.write(to: file)
     var next = issue
     next.revision += 1
-    do {
-      try await PRScreenshotEvidence.prepare(issue: next, worktree: root.path)
-      XCTFail("Previous revision must not count as a retest")
-    } catch { XCTAssertTrue(error.localizedDescription.contains("Missing After")) }
+    try await PRScreenshotEvidence.prepare(issue: next, worktree: root.path)
+    let markdown = try PRScreenshotEvidence.markdown(issue: next, worktree: root.path, remote: "git@github.com:owner/demo.git", head: "abc123")
+    XCTAssertFalse(markdown.contains("![After"), "Previous revision must not count as a retest")
+    XCTAssertTrue(markdown.contains(PRScreenshotEvidence.missingAfterNote))
   }
 
   func testEvidenceFolderSymlinksAreRejected() async throws {

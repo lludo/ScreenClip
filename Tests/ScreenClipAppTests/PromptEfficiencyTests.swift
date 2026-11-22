@@ -75,6 +75,9 @@ import XCTest
       let prompt = AgentPrompt.turn(for: issue, project: project, threadID: thread).text
       XCTAssertTrue(prompt.contains(PRScreenshotEvidence.directory(for: issue) + "/after/"))
       XCTAssertTrue(prompt.contains("Screenshot publication is authorized"))
+      // A missing retest capture is explained in the summary; it does not hold the report.
+      XCTAssertTrue(prompt.contains("do not return blocked for that alone"))
+      XCTAssertFalse(prompt.contains("return blocked with the specific obstacle"))
       XCTAssertFalse(prompt.contains("merge, publish screenshots"))
       XCTAssertFalse(prompt.contains("does not authorize publishing screenshots"))
     }

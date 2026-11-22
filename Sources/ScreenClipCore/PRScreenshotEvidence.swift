@@ -108,19 +108,20 @@ public enum PRScreenshotEvidence {
     return data
   }
 
+  /// A missing retest capture does not hold back the fix: the PR says so and the agent's
+  /// summary explains why. Files that are present must still be real PNGs.
   private static func afterFiles(_ issue: Issue, _ worktree: String) throws -> [URL] {
     let directory = try folder(issue, worktree, "after")
     let files = (try? FileManager.default.contentsOfDirectory(
       at: directory, includingPropertiesForKeys: nil)) ?? []
     let images = files.filter { $0.pathExtension.lowercased() == "png" }
       .sorted { $0.lastPathComponent < $1.lastPathComponent }
-    guard !images.isEmpty else {
-      throw ScreenClipError.message(
-        "Missing After screenshot. Rebuild and retest, then save actual PNG captures in \(self.directory(for: issue))/after/ before returning implemented.")
-    }
     for file in images { _ = try png(file) }
     return images
   }
+
+  static let missingAfterNote =
+    "_No After screenshot was captured for this revision. The summary above explains what is missing and why._"
 
   public static func prepare(issue: Issue, worktree: String) async throws {
     let screenshots = issue.captures.enumerated().compactMap { index, capture in
@@ -166,6 +167,6 @@ public enum PRScreenshotEvidence {
       image(directory(for: issue) + "/after/" + file.lastPathComponent, "After \(index + 1)")
     }
     return "## Before / After\n\n### Before\n\n" + beforeImages.joined(separator: "\n\n")
-      + "\n\n### After\n\n" + afterImages.joined(separator: "\n\n")
+      + "\n\n### After\n\n" + (afterImages.isEmpty ? missingAfterNote : afterImages.joined(separator: "\n\n"))
   }
 }
