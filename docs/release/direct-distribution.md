@@ -1,6 +1,6 @@
 # Direct distribution
 
-ScreenClip stays off the Mac App Store. The reason is [the sandbox study](app-store-sandbox.md). The release path is one tag-triggered GitHub Actions workflow: build the unsandboxed Release app, sign it with a Developer ID, notarize with `notarytool`, staple, write a DMG and `SHA256SUMS`, and attach both to a GitHub Release. The website's Download button points at that asset. A small tip window in the app opens GitHub Sponsors. Sparkle is not in this pipeline. A Homebrew cask formula is checked in for a personal tap; the release workflow does not publish or update that tap.
+ScreenClip stays off the Mac App Store. The reason is [the sandbox study](app-store-sandbox.md). The release path is one tag-triggered GitHub Actions workflow: build the unsandboxed Release app, sign it with a Developer ID, notarize with `notarytool`, staple, write a DMG and `SHA256SUMS`, and attach both to a GitHub Release. The website's Download button points at that asset. A small tip window in the app opens GitHub Sponsors. Installed copies update themselves through Sparkle from a signed `appcast.xml` attached to the same release. A Homebrew cask formula is checked in for a personal tap; the release workflow does not publish or update that tap.
 
 People who clone the repo can build it themselves. The DMG is for someone who wants a signed app without Xcode. The tip is optional.
 
@@ -18,6 +18,7 @@ People who clone the repo can build it themselves. The DMG is for someone who wa
    | `APPLE_NOTARY_KEY_P8_BASE64` | Base64 of the `AuthKey_XXXX.p8` file |
    | `APPLE_NOTARY_KEY_ID` | The Key ID |
    | `APPLE_NOTARY_ISSUER_ID` | The Issuer ID |
+   | `SPARKLE_ED_PRIVATE_KEY` | The Sparkle EdDSA private key. See [Updates](#updates) |
 
 4. Turn on [GitHub Sponsors](https://github.com/sponsors/lludo) for the `lludo` account and finish the payout and tax steps. `.github/FUNDING.yml` already names that account. The in-app buttons open `https://github.com/sponsors/lludo`. The profile is not ready, and the website `donateUrl` is empty. Status is in [Publishing checklist](publishing-checklist.md#github-sponsors-and-the-donate-url).
 5. `LICENSE.md` is the PolyForm Noncommercial License 1.0.0. Root [`CONTRIBUTING.md`](../../CONTRIBUTING.md) and [`SECURITY.md`](../../SECURITY.md) exist; the contributing workflow is in [Development](../development.md#contributing). Review the [publication audit](publication-audit.md) before publishing, and check anything committed after its date for private data. The checklist is in [Publishing checklist](publishing-checklist.md).
@@ -30,7 +31,8 @@ Push a tag `v1.2.3` (three numbers). [`.github/workflows/release.yml`](../../.gi
 2. Writes the tag into `CFBundleShortVersionString` for that build. `Resources/Info.plist` takes its version from `MARKETING_VERSION` and its build number from `CURRENT_PROJECT_VERSION` in the Xcode project. Before tagging, bump `MARKETING_VERSION` in a release commit so local builds match. `CURRENT_PROJECT_VERSION` is an integer that goes up by one with every build, and the release keeps the committed value. The tag must match `X.Y.Z` (three numbers); `v1.0.0-rc1` fails.
 3. Imports the Developer ID certificate into a temporary keychain, builds the Release scheme with `scripts/build.sh`, and passes `--timestamp` plus `CODE_SIGN_INJECT_BASE_ENTITLEMENTS=NO`.
 4. Runs `scripts/release-dmg.sh`. That script refuses an App Sandbox signature. It notarizes a zip of the app, staples the app, builds a UDZO disk image with an Applications shortcut, signs and notarizes the DMG, staples the DMG, and writes `SHA256SUMS`.
-5. Creates or updates the GitHub Release for that tag and uploads `ScreenClip.dmg` and `SHA256SUMS`.
+5. Signs the DMG with the Sparkle key and writes `appcast.xml` (`scripts/make_appcast.py`), with the release notes from `docs/release/<tag>.md`.
+6. Creates or updates the GitHub Release for that tag and uploads `ScreenClip.dmg`, `SHA256SUMS`, and `appcast.xml`.
 
 The asset name is always `ScreenClip.dmg`, so this URL tracks the newest tag:
 
@@ -46,9 +48,25 @@ Release builds already set `ENABLE_HARDENED_RUNTIME = YES`. Debug builds do not.
 
 ## Updates
 
-Sparkle 2 is the usual Mac auto-update library: an EdDSA key pair, `SUPublicEDKey` in the app, a signed appcast, and a feed URL. GitHub Releases can host the appcast, or it can live on screenclipai.com. The private key would be another Actions secret and must never be committed. Rotating it means shipping a new build that contains the new public key.
+ScreenClip updates itself with [Sparkle 2](https://sparkle-project.org/documentation/). The settings are in `Resources/Info.plist`:
 
-That is a second piece of signing machinery, a framework to embed, and an appcast to keep in sync with the DMG. The first release does not include it. Someone who wants an update downloads the latest DMG again. Add Sparkle later if install friction shows up. Sparkle's own guide: [Sparkle documentation](https://sparkle-project.github.io/documentation/).
+- `SUFeedURL` is `https://github.com/lludo/ScreenClip/releases/latest/download/appcast.xml`, so the feed always comes from the newest release.
+- `SUPublicEDKey` is the EdDSA public key. Sparkle refuses a DMG whose signature does not match it.
+- `SUEnableAutomaticChecks` and `SUAutomaticallyUpdate` are on: the app checks once a day without asking first, downloads a new version in the background, and installs it when ScreenClip quits. A menu bar app rarely quits, so a downloaded update also shows an **Update to X** button in the menu bar popover that installs and relaunches. Quitting goes through the usual checks, so an open capture or running work stops it.
+- Settings → General → Updates turns automatic installation off and has **Check for Updates…**; the popover's **⋯** menu has it too.
+
+Debug builds do not check unless launched with `--check-updates`, so a development copy is not replaced by the public release. `swift build` and `swift test` do not include Sparkle; `Updater.swift` compiles to a no-op there.
+
+`sparkle:version` is `CFBundleVersion`, so every release needs a higher `CURRENT_PROJECT_VERSION` than the one before. Copies older than the first Sparkle build (1.0.2 and earlier) have no updater and need one manual download.
+
+### The signing key
+
+The private key was generated with Sparkle's `generate_keys --account ScreenClip` and lives in the maintainer's login keychain (item "Private key for signing Sparkle updates"). Back it up: losing it means existing copies cannot verify new updates until people download a build with a new public key by hand.
+
+- **CI**: export it with `.local/XcodePackages/artifacts/sparkle/Sparkle/bin/generate_keys --account ScreenClip -x sparkle_key`, then `gh secret set SPARKLE_ED_PRIVATE_KEY < sparkle_key` and delete the file. The release job fails if the Apple secrets are set and this one is not.
+- **Local release**: `scripts/release-dmg.sh` signs with the keychain key when `SPARKLE_ED_PRIVATE_KEY` is unset, and writes `build/appcast.xml`. Upload it with the DMG: `gh release upload vX.Y.Z build/ScreenClip.dmg build/SHA256SUMS build/appcast.xml --clobber`.
+
+Never commit the private key.
 
 ## Homebrew
 
