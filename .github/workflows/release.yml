@@ -51,8 +51,8 @@ jobs:
             echo "Tag ${GITHUB_REF_NAME} is not a version. Use v1.2.3." >&2
             exit 1
           fi
+          # CFBundleVersion stays the integer build number committed as CURRENT_PROJECT_VERSION.
           /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${tag}" Resources/Info.plist
-          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${tag}" Resources/Info.plist
 
       - name: Import the Developer ID certificate
         if: steps.gate.outputs.ready == 'true'
