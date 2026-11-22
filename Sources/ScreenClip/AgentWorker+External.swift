@@ -372,13 +372,14 @@ extension AgentWorker {
         && !isActive($0.id)
     }
     for issue in pending {
-      guard let branch = issue.branch, let path = issue.worktreePath,
+      guard let branch = issue.branch, let project = model.project(issue.projectID),
         let number = issue.reportNumber
       else { continue }
       do {
         let repo = await repositorySlug(for: issue)
         let candidates = try await GitHubService.pullRequests(
-          head: branch, gh: AgentDetector.ghPath(model.snapshot.settings), cwd: path)
+          head: branch, gh: AgentDetector.ghPath(model.snapshot.settings),
+          cwd: Self.ghDirectory(issue, project: project))
         if let match = ExternalPullRequestFinder.match(
           reportNumber: number, issueID: issue.id, branch: branch, candidates: candidates, repo: repo)
         {
@@ -468,13 +469,16 @@ extension AgentWorker {
       return Self.awaitsExternalPullRequest(issue) && issue.prURL == nil
     }
     for issue in watching {
-      guard let commit = issue.handoffCommit, let path = issue.worktreePath else { continue }
+      guard let commit = issue.handoffCommit, let project = model.project(issue.projectID) else {
+        continue
+      }
       let repo = await repositorySlug(for: issue)
       guard GitHubService.isRepositorySlug(repo), GitHubService.isCommit(commit) else { continue }
       let status: ExternalStatus?
       do {
         status = try await GitHubService.externalStatus(
-          repo: repo, commit: commit, gh: AgentDetector.ghPath(model.snapshot.settings), cwd: path)
+          repo: repo, commit: commit, gh: AgentDetector.ghPath(model.snapshot.settings),
+          cwd: Self.ghDirectory(issue, project: project))
       } catch {
         continue
       }

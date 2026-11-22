@@ -193,6 +193,18 @@ extension AgentWorker {
     }
     for issue in model.snapshot.issues where issue.status == .prOpen { await refreshPR(issue.id) }
   }
+  /// Where gh runs for a report: its worktree, or the project's checkout, which has the same
+  /// GitHub remote. The worktree may have been removed outside ScreenClip, for example by
+  /// whoever resolved and merged the pull request, and gh cannot start in a missing directory.
+  static func ghDirectory(_ issue: Issue, project: Project) -> String {
+    guard let path = issue.worktreePath, FileManager.default.fileExists(atPath: path) else {
+      return project.path
+    }
+    return path
+  }
+  /// An open pull request whose worktree is gone cannot be updated, validated, or merged here.
+  static let removedWorktreeSummary =
+    "The worktree for this fix was removed. Merge or close the PR on GitHub."
   /// A report that stopped for attention (a base conflict, failing checks, a question) keeps
   /// its pull request, and the tester may resolve and merge that pull request on GitHub.
   /// An uncertain dispatch may still be running in the worktree; it waits for Reconcile.
@@ -209,7 +221,7 @@ extension AgentWorker {
     defer { refreshing.remove(id) }
     guard
       let pr = try? await GitHubService.state(
-        url: url, path: issue.worktreePath ?? project.path,
+        url: url, path: Self.ghDirectory(issue, project: project),
         gh: AgentDetector.ghPath(model.snapshot.settings)),
       pr.merged
     else { return }
@@ -239,7 +251,7 @@ extension AgentWorker {
     // The caller's list is a snapshot from before earlier refreshes were awaited; this report
     // may have been canceled or sent back to its agent since.
     guard let issue = model.issue(id), issue.status == .prOpen, !issue.archived, let url = issue.prURL,
-      let path = issue.worktreePath, let project = model.project(issue.projectID)
+      let project = model.project(issue.projectID)
     else { return }
     guard !refreshing.contains(id), !mergingProjects.contains(project.id) else {
       if mergeReviewedHead != nil {
@@ -260,7 +272,8 @@ extension AgentWorker {
     }
     do {
       let pr = try await GitHubService.state(
-        url: url, path: path, gh: AgentDetector.ghPath(model.snapshot.settings))
+        url: url, path: Self.ghDirectory(issue, project: project),
+        gh: AgentDetector.ghPath(model.snapshot.settings))
       guard pr.url == url, let current = model.issue(id), current.status == .prOpen,
         current.prURL == url, current.workspaceID == issue.workspaceID
       else { return }
@@ -272,6 +285,12 @@ extension AgentWorker {
       guard pr.open else {
         if current.checkSummary != "The pull request is closed." {
           try model.updateIssue(id) { $0.checkSummary = "The pull request is closed." }
+        }
+        return
+      }
+      guard let path = issue.worktreePath, FileManager.default.fileExists(atPath: path) else {
+        if current.checkSummary != Self.removedWorktreeSummary {
+          try model.updateIssue(id) { $0.checkSummary = Self.removedWorktreeSummary }
         }
         return
       }
