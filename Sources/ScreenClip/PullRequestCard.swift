@@ -169,7 +169,7 @@ private struct PullRequestHTML: View {
           else img.addEventListener('error', retry, {once: true});
         }
         """, injectionTime: .atDocumentEnd, forMainFrameOnly: true, in: .defaultClient))
-      let view = WKWebView(frame: .zero, configuration: config)
+      let view = FittingWebView(frame: .zero, configuration: config)
       view.navigationDelegate = context.coordinator
       view.setValue(false, forKey: "drawsBackground")
       return view
@@ -191,7 +191,7 @@ private struct PullRequestHTML: View {
           p, ul, ol, pre, blockquote, table { margin: .6em 0; }
           ul, ol { padding-left: 1.6em; }
           a { color: LinkText; } .anchor { display: none; }
-          img { max-width: 100%; height: auto; }
+          img { max-width: 100%; max-height: var(--fit-height, 80vh); width: auto; height: auto; object-fit: contain; }
           pre, code { font-family: ui-monospace, monospace; background: rgba(128,128,128,.12); border-radius: 4px; }
           code { padding: .1em .3em; } pre { padding: .65em; overflow-x: auto; }
           pre code { padding: 0; background: none; }
@@ -238,6 +238,10 @@ private struct PullRequestHTML: View {
         }
       }
 
+      func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+        (webView as? FittingWebView)?.applyFitHeight(force: true)
+      }
+
       func webView(_ webView: WKWebView, decidePolicyFor action: WKNavigationAction,
         decisionHandler: @escaping (WKNavigationActionPolicy) -> Void)
       {
@@ -254,3 +258,41 @@ private struct PullRequestHTML: View {
     }
   }
 }
+
+/// The description is sized to its content, so the report scroll view owns vertical scrolling.
+/// Images are capped at the visible height so a tall screenshot fits on screen.
+private final class FittingWebView: WKWebView {
+  private var forwardsGesture = false
+  private var fitHeight: CGFloat = 0
+
+  override func scrollWheel(with event: NSEvent) {
+    // Decide once per gesture so momentum stays with the view that started it; horizontal
+    // gestures still scroll wide code blocks and tables inside the description.
+    if event.phase == .began || event.phase == .mayBegin || (event.phase.isEmpty && event.momentumPhase.isEmpty) {
+      forwardsGesture = abs(event.scrollingDeltaY) >= abs(event.scrollingDeltaX)
+    }
+    if forwardsGesture, let outer = enclosingScrollView { outer.scrollWheel(with: event) }
+    else { super.scrollWheel(with: event) }
+  }
+
+  override func layout() {
+    super.layout()
+    applyFitHeight(force: false)
+  }
+
+  override func viewDidMoveToWindow() {
+    super.viewDidMoveToWindow()
+    applyFitHeight(force: true)
+  }
+
+  func applyFitHeight(force: Bool) {
+    guard let visible = enclosingScrollView?.contentView.bounds.height ?? window?.contentLayoutRect.height,
+      visible > 0 else { return }
+    let value = max(120, (visible - 32).rounded())
+    guard force || value != fitHeight else { return }
+    fitHeight = value
+    evaluateJavaScript("document.documentElement.style.setProperty('--fit-height', '\(Int(value))px')",
+      in: nil, in: .defaultClient) { _ in }
+  }
+}
+
