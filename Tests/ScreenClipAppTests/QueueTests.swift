@@ -47,4 +47,44 @@ final class QueueTests: XCTestCase {
     issue.agent = nil
     XCTAssertTrue(QueueFilter.active.includes(issue, agent: .codex))
   }
+
+  func testOpenReportPicksAListThatShowsIt() {
+    let project = UUID()
+    var issue = Issue(
+      projectID: project, title: "DNA matches",
+      capture: Capture(note: "Details", imagePath: "/tmp/test.png", context: CaptureContext()))
+    issue.status = .needsYou
+    XCTAssertEqual(QueueFilter.showing(issue), .active)
+    // A merged report opened from a notification belongs in To retest, not All open.
+    issue.status = .merged
+    XCTAssertEqual(QueueFilter.showing(issue), .retest)
+    XCTAssertEqual(QueueFilter.showing(issue, projectID: project), .retest)
+    issue.status = .draft
+    XCTAssertEqual(QueueFilter.showing(issue), .drafts)
+    issue.status = .canceled
+    XCTAssertEqual(QueueFilter.showing(issue), .history)
+    issue.archived = true
+    XCTAssertEqual(QueueFilter.showing(issue), .archived)
+    // No status list shows it under another project's filter or a search that misses it.
+    XCTAssertNil(QueueFilter.showing(issue, projectID: UUID()))
+    XCTAssertNil(QueueFilter.showing(issue, search: "nothing like it"))
+  }
+
+  func testMenuBarCountsMatchTheQueueLists() {
+    var state = StoreSnapshot()
+    for status in IssueStatus.allCases {
+      for archived in [false, true] {
+        var issue = Issue(
+          projectID: UUID(), title: "\(status)",
+          capture: Capture(note: "Details", imagePath: "/tmp/test.png", context: CaptureContext()))
+        issue.status = status
+        issue.archived = archived
+        state.issues.append(issue)
+      }
+    }
+    // The menu bar badge and the popover use these counts; the sidebar counts its lists.
+    XCTAssertEqual(state.issues.filter { QueueFilter.active.includes($0) }.count, state.activeCount)
+    XCTAssertEqual(
+      state.issues.filter { QueueFilter.attention.includes($0) }.count, state.attentionCount)
+  }
 }

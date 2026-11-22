@@ -39,6 +39,12 @@ enum QueueFilter: String, CaseIterable, Identifiable {
     case .archived: return true
     }
   }
+  /// The first status list that shows `issue` under the given filters, or nil when none does.
+  static func showing(
+    _ issue: Issue, projectID: UUID? = nil, agent: AgentKind? = nil, search: String = ""
+  ) -> QueueFilter? {
+    allCases.first { $0.includes(issue, projectID: projectID, agent: agent, search: search) }
+  }
 }
 /// The one thing selected in the sidebar: a report status or a project's settings.
 enum SidebarSelection: Hashable {
@@ -129,13 +135,63 @@ struct QueueView: View {
             20)
       }
     }
-    .onChange(of: model.selectedIssueID) { _, id in if let id { model.markRead(id) } }
+    .onChange(of: model.selectedIssueID) { _, id in
+      if let id { model.markRead(id) }
+      revealSelection()
+    }
+    // A report that leaves the list after its status changes stays open, with its list shown.
+    .onChange(of: selectedIssue?.status) { _, _ in revealSelection() }
+    .onChange(of: selectedIssue?.archived) { _, _ in revealSelection() }
+    // A list the person picks never keeps a report it doesn't show open beside it.
+    .onChange(of: selection) { _, _ in dropHiddenSelection() }
+    .onChange(of: projectFilter) { _, _ in dropHiddenSelection() }
+    .onChange(of: agentFilter) { _, _ in dropHiddenSelection() }
+    .onChange(of: search) { _, _ in dropHiddenSelection() }
+    .onChange(of: model.queueFilterRequest) { _, _ in applyQueueFilterRequest() }
+    .onAppear {
+      applyQueueFilterRequest()
+      revealSelection()
+    }
     .onChange(of: model.snapshot.projects.map(\.id)) { _, ids in
       // Drop a filter or selection that points at a project that no longer exists.
       if let id = projectFilter, !ids.contains(id) { projectFilter = nil }
       if case .project(let id) = selection, !ids.contains(id) { selection = .status(.active) }
     }
     .frame(minWidth: 1000, minHeight: 640)
+  }
+  private var selectedIssue: Issue? { model.selectedIssueID.flatMap(model.issue) }
+  /// The open report when the report list is on screen but doesn't include it.
+  private var hiddenSelection: Issue? {
+    guard case .status = selection, let issue = selectedIssue,
+      !filter.includes(issue, projectID: projectFilter, agent: agentFilter, search: search)
+    else { return nil }
+    return issue
+  }
+  /// Switches the list to one that shows the open report, e.g. after a notification opens it.
+  private func revealSelection() {
+    guard let issue = hiddenSelection else { return }
+    if let status = QueueFilter.showing(
+      issue, projectID: projectFilter, agent: agentFilter, search: search)
+    {
+      selection = .status(status)
+    } else {
+      projectFilter = nil
+      agentFilter = nil
+      search = ""
+      selection = .status(QueueFilter.showing(issue) ?? .active)
+    }
+  }
+  /// Shows the list the menu bar popover counted: that status, with no project, agent, or search.
+  private func applyQueueFilterRequest() {
+    guard let request = model.queueFilterRequest else { return }
+    model.queueFilterRequest = nil
+    projectFilter = nil
+    agentFilter = nil
+    search = ""
+    selection = .status(request)
+  }
+  private func dropHiddenSelection() {
+    if hiddenSelection != nil { model.selectedIssueID = nil }
   }
   private var reportList: some View {
     VStack(spacing: 0) {
