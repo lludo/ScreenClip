@@ -152,4 +152,37 @@ final class SafetyTests: XCTestCase {
     let branches = try await CommandRunner.checked("/usr/bin/git", ["branch"], cwd: repo)
     XCTAssertFalse(branches.contains(workspace.branch))
   }
+
+  /// Someone else may delete a report's worktree, for example after carrying its fix on by hand.
+  func testAWorktreeDeletedOutsideScreenClipIsPreparedAgainAndCleanedUp() async throws {
+    let root = FileManager.default.temporaryDirectory.appendingPathComponent(
+      "screenclip-deleted-" + UUID().uuidString)
+    defer { try? FileManager.default.removeItem(at: root) }
+    let repo = root.appendingPathComponent("repo").path
+    try FileManager.default.createDirectory(atPath: repo, withIntermediateDirectories: true)
+    _ = try await CommandRunner.checked("/usr/bin/git", ["init", "-b", "main"], cwd: repo)
+    _ = try await CommandRunner.checked(
+      "/usr/bin/git",
+      ["-c", "user.name=T", "-c", "user.email=t@example.invalid", "commit", "--allow-empty", "-m", "initial"],
+      cwd: repo)
+    let project = Project(name: "P", path: repo)
+    let issueID = UUID()
+    let queue = root.appendingPathComponent("queue")
+    let first = try await GitWorkspace.prepare(project: project, issueID: issueID, root: queue)
+    try FileManager.default.removeItem(atPath: first.path)
+
+    // git still lists the deleted worktree and would refuse to add it again.
+    let again = try await GitWorkspace.prepare(project: project, issueID: issueID, root: queue)
+    XCTAssertEqual(again.path, first.path)
+    XCTAssertEqual(again.branch, first.branch)
+    XCTAssertTrue(FileManager.default.fileExists(atPath: again.path))
+
+    // Deleted again and no longer listed: nothing is left to remove, and the branch still goes.
+    try FileManager.default.removeItem(atPath: again.path)
+    _ = try await CommandRunner.checked("/usr/bin/git", ["worktree", "prune"], cwd: repo)
+    let removed = await GitWorkspace.remove(path: again.path, branch: again.branch, repository: repo)
+    XCTAssertTrue(removed)
+    let branches = try await CommandRunner.checked("/usr/bin/git", ["branch"], cwd: repo)
+    XCTAssertFalse(branches.contains(again.branch))
+  }
 }

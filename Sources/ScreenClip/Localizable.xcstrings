@@ -43740,6 +43740,138 @@
           }
         }
       }
+    },
+    "The worktree for this fix was removed. Merge or close the PR on GitHub.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The worktree for this fix was removed. Merge or close the PR on GitHub."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此修复的工作区已被删除。请在 GitHub 上合并或关闭该 PR。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se eliminó el worktree de esta corrección. Fusiona o cierra el PR en GitHub."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この修正の worktree は削除されました。GitHub で PR をマージするかクローズしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O worktree desta correção foi removido. Faça o merge ou feche o PR no GitHub."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Worktree dieses Fixes wurde entfernt. Führe den PR auf GitHub zusammen oder schließe ihn."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le worktree de ce correctif a été supprimé. Fusionnez ou fermez la PR sur GitHub."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 수정의 worktree가 삭제되었습니다. GitHub에서 PR을 병합하거나 닫으세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рабочая копия этого исправления удалена. Слейте или закройте PR на GitHub."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此修正的工作區已被刪除。請在 GitHub 上合併或關閉該 PR。"
+          }
+        }
+      }
+    },
+    "This report’s worktree was removed outside ScreenClip, along with any changes that were not pushed. If the fix was merged another way, archive this report. Otherwise choose Continue to keep working in a new worktree.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This report’s worktree was removed outside ScreenClip, along with any changes that were not pushed. If the fix was merged another way, archive this report. Otherwise choose Continue to keep working in a new worktree."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此问题的工作区已在 ScreenClip 之外被删除，尚未推送的更改也随之丢失。如果修复已通过其他方式合并，请归档此问题；否则请选择“继续”，在新的工作区中接着处理。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El worktree de este informe se eliminó fuera de ScreenClip, junto con los cambios que no se habían enviado. Si la corrección se fusionó de otra forma, archiva este informe. Si no, elige Continuar para seguir trabajando en un worktree nuevo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このレポートの worktree は ScreenClip の外で削除され、プッシュしていない変更も失われました。修正が別の方法でマージ済みなら、このレポートをアーカイブしてください。そうでなければ「続行」を選ぶと、新しい worktree で作業を続けます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O worktree deste relatório foi removido fora do ScreenClip, junto com as alterações que não tinham sido enviadas. Se a correção foi mesclada de outra forma, arquive este relatório. Caso contrário, escolha Continuar para seguir trabalhando em um novo worktree."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Worktree dieses Berichts wurde außerhalb von ScreenClip entfernt, mitsamt allen Änderungen, die noch nicht gepusht waren. Wurde der Fix auf anderem Weg zusammengeführt, archiviere diesen Bericht. Andernfalls wähle Weiter, um in einem neuen Worktree weiterzuarbeiten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le worktree de ce rapport a été supprimé en dehors de ScreenClip, avec les modifications qui n’avaient pas été poussées. Si le correctif a été fusionné autrement, archivez ce rapport. Sinon, choisissez Continuer pour poursuivre dans un nouveau worktree."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 리포트의 worktree가 ScreenClip 밖에서 삭제되었고, 푸시하지 않은 변경 사항도 함께 사라졌습니다. 수정이 다른 방법으로 병합되었다면 이 리포트를 보관하세요. 그렇지 않다면 계속을 선택해 새 worktree에서 작업을 이어 가세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рабочая копия этого отчёта удалена вне ScreenClip вместе со всеми неотправленными изменениями. Если исправление уже слито другим способом, отправьте отчёт в архив. Иначе выберите «Продолжить», чтобы работать дальше в новой рабочей копии."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此問題的工作區已在 ScreenClip 之外被刪除，尚未推送的變更也隨之遺失。如果修正已透過其他方式合併，請封存此問題；否則請選擇「繼續」，在新的工作區中接著處理。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
