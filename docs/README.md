@@ -8,6 +8,7 @@ The [root README](../README.md) is the short introduction. This page is the map.
 
 - [Getting started](getting-started.md) — requirements, installing the release or building from source, and the first capture.
 - [User guide](user-guide.md) — capture, the queue, moving a report, agent permissions, what each agent can see, and screen-recording recovery.
+- [Release checklist](release/checklist.md) — every step for cutting a release.
 - [1.0.4 release notes](release/v1.0.4.md) — the popover lists the reports behind each count, review fixes, and the first automatic update.
 - [1.0.3 release notes](release/v1.0.3.md) — automatic updates, instant pull request previews, and fixes.
 - [1.0.2 release notes](release/v1.0.2.md) — text notes, merging from the report, and fixes.

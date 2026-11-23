@@ -2,6 +2,8 @@
 
 ScreenClip stays off the Mac App Store. The reason is [the sandbox study](app-store-sandbox.md). The release path is one tag-triggered GitHub Actions workflow: build the unsandboxed Release app, sign it with a Developer ID, notarize with `notarytool`, staple, write a DMG and `SHA256SUMS`, and attach both to a GitHub Release. The website's Download button points at that asset. A small tip window in the app opens GitHub Sponsors. Installed copies update themselves through Sparkle from a signed `appcast.xml` attached to the same release. A Homebrew cask formula is checked in for a personal tap; the release workflow does not publish or update that tap.
 
+The step-by-step process for a release, including docs and website updates, is the [Release checklist](checklist.md).
+
 People who clone the repo can build it themselves. The DMG is for someone who wants a signed app without Xcode. The tip is optional.
 
 ## Maintainer setup (one time)
