@@ -293,8 +293,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
   }
   func refreshBadge() {
-    let active = model.snapshot.activeCount
-    let attention = model.snapshot.attentionCount
+    // The same rules as the queue sidebar and the popover, so the badge never disagrees with them.
+    let active = model.snapshot.issues.filter { QueueFilter.active.includes($0) }.count
+    let attention = model.snapshot.issues.filter { QueueFilter.attention.includes($0) }.count
     statusItem.button?.image = NSImage(
       systemSymbolName: "viewfinder", accessibilityDescription: "ScreenClip")
     let count = active.formatted(.number)

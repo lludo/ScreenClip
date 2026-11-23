@@ -4,6 +4,8 @@ ScreenClip is not on the Mac App Store. The download, when a release exists, is 
 
 | Page | What it covers |
 | --- | --- |
+| [Release checklist](checklist.md) | Every step for cutting a release, from syncing and reviewing to publishing and verifying. Follow it for every release |
+| [v1.0.4 release notes](v1.0.4.md) | Popover lists the reports behind each count, newest-first queue, review fixes |
 | [v1.0.3 release notes](v1.0.3.md) | Automatic updates, instant pull request previews, and fixes |
 | [v1.0.2 release notes](v1.0.2.md) | Text notes, merging from the report, and fixes |
 | [v1.0.1 release notes](v1.0.1.md) | Fixes and improvements since 1.0.0 |

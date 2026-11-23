@@ -68,15 +68,27 @@ import ScreenClipCore
   /// The queue is capped at what the cache holds, so a long scroll can't fetch reports that would be
   /// evicted again before they are opened.
   func prefetch(_ url: URL, issueID: UUID, gh: String) {
+    // A failed prefetch (offline, gh signed out) waits a few minutes, so scrolling past the row
+    // again doesn't start another `gh` call. Opening the report still loads it right away.
+    if let failed = failures[url], Date().timeIntervalSince(failed) < Self.retryDelay { return }
     guard previews[url] == nil, loads[url] == nil, queued.count < limit, queued.insert(url).inserted
     else { return }
     let previous = prefetching
     prefetching = Task {
       await previous?.value
-      if previews[url] == nil { _ = try? await load(url, issueID: issueID, gh: gh) }
+      if previews[url] == nil {
+        do {
+          _ = try await load(url, issueID: issueID, gh: gh)
+          failures[url] = nil
+        } catch {
+          failures[url] = Date()
+        }
+      }
       queued.remove(url)
     }
   }
+  private var failures: [URL: Date] = [:]
+  private static let retryDelay: TimeInterval = 300
 
   private func finish(_ url: URL, _ task: Task<Preview, Error>, _ preview: Preview?) {
     guard loads[url] == task else { return }
@@ -107,7 +119,6 @@ import ScreenClipCore
       }
       for await (endpoint, data) in group { images[endpoint] = data }
     }
-    try Task.checkCancellation()
     // Images that could not be fetched keep their GitHub source and the page's fallback lookup.
     let html = PRScreenshotEvidence.replacingImageSources(
       html: description.bodyHTML, pullRequest: url, issueID: issueID

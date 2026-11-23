@@ -5,7 +5,25 @@ import SwiftUI
 struct MarkdownText: View {
   let blocks: [Block]
 
-  init(_ markdown: String) { blocks = Self.blocks(markdown) }
+  init(_ markdown: String) {
+    // The detail view re-renders on every queue change; parse each summary once.
+    if let cached = Self.cache.object(forKey: markdown as NSString) {
+      blocks = cached.blocks
+    } else {
+      blocks = Self.blocks(markdown)
+      Self.cache.setObject(Cached(blocks), forKey: markdown as NSString)
+    }
+  }
+
+  private final class Cached {
+    let blocks: [Block]
+    init(_ blocks: [Block]) { self.blocks = blocks }
+  }
+  private nonisolated(unsafe) static let cache: NSCache<NSString, Cached> = {
+    let cache = NSCache<NSString, Cached>()
+    cache.countLimit = 64
+    return cache
+  }()
 
   struct Block: Equatable {
     enum Kind: Equatable { case paragraph, heading(Int), code, rule, tableRow(header: Bool) }
@@ -66,10 +84,26 @@ struct MarkdownText: View {
     }
   }
 
+  /// Agents write one item per line ("Changed:\nA.swift\nB.swift"). Markdown would join those
+  /// lines into one; a hard break at the end of each line outside code fences keeps them.
+  static func keepingLineBreaks(_ markdown: String) -> String {
+    var fence: Substring?
+    return markdown.split(separator: "\n", omittingEmptySubsequences: false).map { line in
+      let trimmed = line.drop(while: { $0 == " " })
+      let marker = trimmed.prefix(3)
+      if marker == "```" || marker == "~~~" {
+        if fence == nil { fence = marker } else if fence == marker { fence = nil }
+        return String(line)
+      }
+      guard fence == nil, !trimmed.isEmpty else { return String(line) }
+      return line + "  "
+    }.joined(separator: "\n")
+  }
+
   static func blocks(_ markdown: String) -> [Block] {
     guard
       let parsed = try? AttributedString(
-        markdown: markdown,
+        markdown: keepingLineBreaks(markdown),
         options: .init(interpretedSyntax: .full, failurePolicy: .returnPartiallyParsedIfPossible))
     else { return [Block(kind: .paragraph, text: AttributedString(markdown))] }
     var blocks: [Block] = []

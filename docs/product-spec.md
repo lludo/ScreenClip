@@ -1,6 +1,6 @@
 # ScreenClip product specification
 
-Updated: November 15, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md). Closed product questions are under [Decisions](#decisions). The older open-question table is in the [archive](archive/remaining-decisions.md).
+Updated: November 22, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md). Closed product questions are under [Decisions](#decisions). The older open-question table is in the [archive](archive/remaining-decisions.md).
 
 ## Problem and intended outcome
 
@@ -86,10 +86,10 @@ Menu bar label: icon plus the count of submitted, unresolved issues. A separate 
 
 | Surface | Contents and actions |
 | --- | --- |
-| Menu bar popover | Current project/session, Screenshot task, Text task, Pause processing, status totals, recent issues, Open queue, Settings |
+| Menu bar popover | Current project/session, Screenshot task, Text task, status totals (Open, Needs you, To retest) that each list their reports newest first, Open queue, Settings, an Update to … button when an update is ready; the ⋯ menu has Pause/Resume and Check for Updates… |
 | Issue row | Permanent report number (for example, #234), thumbnail, short title, project, status, latest update, unread indicator |
 | Issue detail | Click-to-copy report number, ordered images and notes, captured context, concise activity, questions and replies, the agent's conversation link when it has one, PR link, validation result |
-| Queue window | All issues, project/status filters, search, drafts, archive |
+| Queue window | All issues newest first, project/status filters, search, drafts, archive |
 
 The queue has resizable panes with a status filter and feedback search above the report list. Search includes capture notes, questions, replies, results, and activity. Archive and Restore are available directly in report details and the report row's context menu; archiving retains screenshots, status, and PR/merge evidence. Active work and outstanding agent permission requests must be canceled or resolved before archiving. The composer uses the regular macOS close control with its existing discard confirmation.
 
@@ -136,7 +136,7 @@ Related captures received during work are appended to the same issue. Track thei
 
 Include region capture, a quick composer, core annotations, project mapping/inference, local persistence, issue grouping, immediate agent dispatch, status updates, inline questions, exact chat links, PR/merge tracking, retry/cancel/pause, and restart recovery.
 
-Codex, Claude Code, and Grok Bot are included. Defer video, voice notes, scrolling screenshots, browser DOM/console/network capture, automatic duplicate merging, other operating systems, further AI providers, and team assignment/shared queues. Public packaging is the notarized GitHub Release described in [Release and distribution](release/README.md). There is no automatic update feed.
+Codex, Claude Code, and Grok Bot are included. Defer video, voice notes, scrolling screenshots, browser DOM/console/network capture, automatic duplicate merging, other operating systems, further AI providers, and team assignment/shared queues. Public packaging is the notarized GitHub Release described in [Release and distribution](release/README.md). Installed copies update themselves with Sparkle from the release's signed `appcast.xml`; see [Direct distribution](release/direct-distribution.md#updates).
 
 ## Decisions
 
