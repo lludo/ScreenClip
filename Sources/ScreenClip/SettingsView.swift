@@ -371,6 +371,7 @@ struct SettingsView: View {
           } header: {
             Text(chrome: "AI agent", comment: "Settings section for the default agent.")
           }
+          AgentToolsSection(dataFolder: model.store.root, settings: settings)
           Section {
             VStack(alignment: .leading, spacing: 8) {
               Text(chrome: "Default prompt add-on", comment: "Label for shared agent instructions.")

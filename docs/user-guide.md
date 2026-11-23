@@ -108,4 +108,6 @@ The app owns dispatch. This command only reads:
 python3 scripts/review_queue.py --project ScreenClip --details
 ```
 
-The optional [MCP plugin](../plugins/screenclip/README.md) exposes the same queue to a Codex or Claude Code session. Grok Bot does not install it.
+### Check tasks from your agents
+
+Settings › Connections › **Check tasks from your agents** installs ScreenClip's read-only MCP server for Claude Code or Codex in one click. After that, a session in any project can answer “Check this project's ScreenClip tasks”: what is open, in progress, or blocked, and the details of each report. **Copy command** shows the Terminal equivalent, and **Copy JSON** configures other MCP apps. Grok Bot runs in the cloud and cannot use it. Details are in the [MCP plugin](../plugins/screenclip/README.md).

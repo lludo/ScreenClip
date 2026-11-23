@@ -40,6 +40,8 @@ def P(bundle, comment, forms):
 
 
 FORMATS = {
+    "menu.update.install": S("app", "Installs a downloaded app update. %@ is a version number and is not translated.",
+        "Update to %@", "更新到 %@", "Actualizar a %@", "%@ にアップデート", "Atualizar para %@", "Auf %@ aktualisieren", "Mettre à jour vers %@", "%@(으)로 업데이트", "Обновить до %@", "更新至 %@"),
     "metric.open.caption": S("app", "Caption under the open-report count.",
         "Open", "未完成", "En curso", "未完了", "Em aberto", "Offen", "En cours", "진행 중", "Открыто", "未完成"),
     "metric.open.phrase": P("app", "Accessibility phrase for open reports. %lld is the count.", {
