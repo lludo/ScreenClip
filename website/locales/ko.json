@@ -73,7 +73,7 @@
   },
   "download": {
     "eyebrow": "다운로드",
-    "title": "Mac용 ScreenClip 1.0.4.",
+    "title": "Mac용 ScreenClip 1.0.5.",
     "price": "비상업적 용도로 무료입니다.",
     "source": "ScreenClip은 소스 공개(source-available)이며 PolyForm Noncommercial 1.0.0을 따릅니다. 비상업적 사용은 무료입니다. 상업용 라이선스는 요청 시 제공합니다. {link:githubRead}. 이슈를 열거나 Xcode 16 이상으로 빌드할 수 있습니다.",
     "sourceMissing": "소스 코드는 아직 공개되지 않았습니다.",
@@ -81,7 +81,7 @@
     "headerButton": "무료 다운로드",
     "github": "GitHub에서 보기",
     "donate": "프로젝트 지원",
-    "noteReady": "ScreenClip 1.0.4 · Apple Silicon · macOS 14 이상",
+    "noteReady": "ScreenClip 1.0.5 · Apple Silicon · macOS 14 이상",
     "noteSoon": "Mac 다운로드가 곧 제공됩니다.",
     "macSoon": "Mac 다운로드는 곧 제공됩니다.",
     "needsTitle": "필요한 것",
@@ -113,6 +113,10 @@
       {
         "q": "어떤 코딩 에이전트를 지원하나요?",
         "a": "Codex, Claude Code, Grok Bot입니다. Codex와 Claude Code는 Mac의 격리된 Git worktree에서 실행되며, 직접 푸시하거나 pull request를 열지 않습니다. Grok Bot은 원격입니다. webhook을 저장하면 ScreenClip이 각 보고서의 승인된 스크린샷을 프로젝트 GitHub 저장소의 브랜치에 푸시합니다. Settings에서 기본 에이전트를 고르거나 새 보고서에서 바꿀 수 있습니다. 이어서 찍은 캡처는 그 보고서의 에이전트에 남습니다."
+      },
+      {
+        "q": "코딩 에이전트가 ScreenClip에서 열린 작업을 확인할 수 있나요?",
+        "a": "네, Claude Code와 Codex에서 됩니다. Settings › Connections의 Check tasks from your agents에서 ScreenClip MCP 서버를 클릭 한 번으로 설치합니다. 그러면 어느 프로젝트의 세션에서든 “Check this project’s ScreenClip tasks”라고 물어 열린 작업, 진행 중인 작업, 막힌 작업과 각 보고서의 세부 내용을 볼 수 있습니다. 도구는 대기열을 읽기만 합니다. Copy JSON으로 다른 MCP 앱도 설정할 수 있습니다."
       },
       {
         "q": "버그만 위한 건가요?",
@@ -183,13 +187,14 @@
       "선택적 메모, 그리기, 화살표, 도형, 글자, 불투명 가리기",
       "웹사이트와 네이티브 Mac 앱에서 캡처",
       "Codex, Claude Code, Grok Bot",
-      "프로젝트 검증, GitHub pull request, 선택적 병합, 재테스트 대기열"
+      "프로젝트 검증, GitHub pull request, 선택적 병합, 재테스트 대기열",
+      "Claude Code와 Codex가 프로젝트별 보고서를 확인하는 읽기 전용 MCP 서버"
     ]
   },
   "privacy": {
     "eyebrow": "개인정보 처리방침",
     "title": "개인정보 처리방침",
-    "updated": "2026년 11월 22일 업데이트.",
+    "updated": "2026년 11월 23일 업데이트.",
     "intro": "ScreenClip은 macOS 메뉴 막대 앱입니다. 고른 영역을 찍고, 원하면 표시와 메모를 더한 뒤, 설정한 코딩 에이전트에 그 보고서를 넘깁니다. 이 방침은 앱이 Mac에 저장하는 것, 밖으로 나갈 수 있는 것, 그리고 이 웹사이트가 하는 일을 설명합니다.",
     "staysTitle": "Mac에 남는 것",
     "stays1": "보고서, 스크린샷, 메모, 표시, 프로젝트 설정, 질문, 활동은 Mac의 {code:appSupport}에 저장됩니다. 대기열은 SQLite 데이터베이스와 이미지 파일입니다. 에이전트 작업은 같은 폴더의 Git worktree에서 실행됩니다. 내 프로젝트 체크아웃은 작업 디렉터리가 아닙니다.",
@@ -206,6 +211,7 @@
     "localTitle": "Codex와 Claude Code",
     "local1": "Codex와 Claude Code는 Mac에서 실행됩니다. ScreenClip은 승인된 스크린샷, 메모, 프롬프트를 그 로컬 에이전트에 넘깁니다. ScreenClip 서버는 관여하지 않습니다. 다만 ScreenClip은 아래 GitHub 항목에 설명한 대로 보고서의 스크린샷을 수정과 함께 프로젝트의 GitHub 저장소에 게시합니다.",
     "local2": "에이전트는 로그인한 계정을 사용합니다. Codex는 app-server를 통하고, Claude Code는 자체 로그인을 통합니다. 그 에이전트는 계정 조건에 따라 프롬프트와 이미지를 자기 제공자에게 보낼 수 있습니다. ScreenClip은 환경에 GitHub 토큰을 넣지 않고 이 에이전트를 시작합니다. 브랜치를 푸시하고 pull request를 여는 것은 에이전트가 아니라 ScreenClip입니다.",
+    "local3": "Claude Code나 Codex에 ScreenClip MCP 서버를 설치하면 그 에이전트의 세션이 보고서의 제목, 메모, 상태, 질문, 활동을 읽을 수 있습니다. 서버는 Mac에서 실행되며 스스로 아무것도 보내지 않지만, 에이전트는 프롬프트와 마찬가지로 읽은 내용을 자신의 제공업체에 보낼 수 있습니다. 중단하려면 에이전트에서 서버를 제거하세요.",
     "githubTitle": "GitHub",
     "github1": "pull request 자동화는 설치한 GitHub CLI와 그 CLI가 로그인한 GitHub 계정을 사용합니다. ScreenClip은 {code:branch} 브랜치를 푸시하고, Codex와 Claude Code에 대해서는 pull request를 엽니다. 검사 상태를 읽고, 그 프로젝트에서 자동 병합이 켜져 있으며 검사와 리뷰 규칙을 통과했을 때만 병합합니다.",
     "github2": "pull request 본문에는 에이전트 요약, 비밀처럼 보이는 값을 가린 프로젝트 검증 명령, 보고서 참조가 들어갑니다. Codex와 Claude Code의 경우 ScreenClip은 보고서의 스크린샷도 수정과 함께 커밋하고, Before / After 비교로 pull request에 삽입합니다. 주석과 가리기가 반영된 승인된 스크린샷과, 에이전트가 수정을 다시 테스트하며 찍은 스크린샷입니다. 이를 끄는 설정은 없습니다. 저장소를 읽을 수 있는 사람은 누구나 이 이미지를 볼 수 있으며, 공개 저장소라면 인터넷의 누구나 볼 수 있습니다. 나중 커밋에서 파일을 지워도 Git 기록에서는 사라지지 않습니다. 게시되는 것은 가리기가 반영된 스크린샷뿐이며, 가리기 전 잘라낸 이미지는 게시되지 않습니다.",
@@ -231,7 +237,7 @@
     "eyebrow": "지원",
     "title": "지원",
     "intro": "ScreenClip은 스크린샷, 메모, 표시를 Codex, Claude Code 또는 Grok Bot에 보낸 뒤 GitHub pull request를 추적하는 macOS 메뉴 막대 앱입니다.",
-    "statusReady": "ScreenClip 1.0.4은 비상업적 사용에 무료입니다. {link:download}에서 GitHub Releases의 최신 디스크 이미지를 엽니다.",
+    "statusReady": "ScreenClip 1.0.5은 비상업적 사용에 무료입니다. {link:download}에서 GitHub Releases의 최신 디스크 이미지를 엽니다.",
     "statusSoon": "ScreenClip이 곧 출시됩니다. 아직 다운로드할 수 없습니다.",
     "contactTitle": "연락",
     "issues": "버그, 설정 질문, 기능 요청은 {link:issues}를 사용하세요. macOS 버전, 고른 에이전트, 보고서에 ScreenClip이 보여 준 내용을 적어 주세요. 가리려던 것의 가리기 전 스크린샷은 첨부하지 마세요.",

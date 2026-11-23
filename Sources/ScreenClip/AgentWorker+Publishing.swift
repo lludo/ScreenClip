@@ -205,6 +205,8 @@ extension AgentWorker {
   /// An open pull request whose worktree is gone cannot be updated, validated, or merged here.
   static let removedWorktreeSummary =
     "The worktree for this fix was removed. Merge or close the PR on GitHub."
+  nonisolated static let closedPullRequestActivity =
+    "The pull request was closed without merging. Choose Continue to open a new one, or archive this report."
   /// A report that stopped for attention (a base conflict, failing checks, a question) keeps
   /// its pull request, and the tester may resolve and merge that pull request on GitHub.
   /// A report with no recorded pull request may still have had its branch merged outside
@@ -306,10 +308,19 @@ extension AgentWorker {
         model.notify(issue, text: "Fix merged. Ready to rebuild and retest.")
         return
       }
+      // Closed without merging: nothing will land, so the tester decides. Continue opens a new
+      // pull request from the branch, and Move to project is allowed again. The closed one stays
+      // in the activity ("PR opened: …").
       guard pr.open else {
-        if current.checkSummary != "The pull request is closed." {
-          try model.updateIssue(id) { $0.checkSummary = "The pull request is closed." }
+        try model.updateIssue(id) {
+          $0.checkSummary = nil
+          $0.prURL = nil
+          $0.prHead = nil
+          $0.prRevision = nil
+          $0.record(Self.closedPullRequestActivity, status: .needsYou)
+          $0.unread = true
         }
+        model.notify(current, text: Self.closedPullRequestActivity)
         return
       }
       guard let path = issue.worktreePath, FileManager.default.fileExists(atPath: path) else {

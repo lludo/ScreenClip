@@ -73,7 +73,7 @@
   },
   "download": {
     "eyebrow": "ダウンロード",
-    "title": "Mac向けScreenClip 1.0.4。",
+    "title": "Mac向けScreenClip 1.0.5。",
     "price": "非商用利用は無料です。",
     "source": "ScreenClipはソースアベイラブルです（PolyForm Noncommercial 1.0.0）。非商用の利用は無料です。商用ライセンスは依頼に応じて提供します。{link:githubRead}、issueを立てるか、Xcode 16以降でビルドできます。",
     "sourceMissing": "ソースコードはまだ公開されていません。",
@@ -81,7 +81,7 @@
     "headerButton": "無料ダウンロード",
     "github": "GitHubで見る",
     "donate": "プロジェクトを支援",
-    "noteReady": "ScreenClip 1.0.4 · Apple Silicon · macOS 14以降",
+    "noteReady": "ScreenClip 1.0.5 · Apple Silicon · macOS 14以降",
     "noteSoon": "Mac版のダウンロードは近日公開予定です。",
     "macSoon": "Mac版のダウンロードは近日公開です。",
     "needsTitle": "必要なもの",
@@ -113,6 +113,10 @@
       {
         "q": "どのコーディングエージェントに対応していますか？",
         "a": "Codex、Claude Code、Grok Botです。CodexとClaude CodeはこのMac上の隔離されたGit worktreeで動き、自分ではpushもプルリクエストも開きません。Grok Botはリモートです。webhookを保存すると、ScreenClipは各レポートの承認したスクリーンショットを、プロジェクトのGitHubリポジトリのブランチにpushします。既定はSettingsで選び、新しいレポートでは別のエージェントも選べます。追記のキャプチャは、そのレポートのエージェントのままです。"
+      },
+      {
+        "q": "コーディングエージェントから ScreenClip の未完了の作業を確認できますか？",
+        "a": "はい、Claude Code と Codex で使えます。Settings › Connections の Check tasks from your agents で、ScreenClip の MCP サーバーをワンクリックでインストールできます。その後はどのプロジェクトのセッションでも「Check this project’s ScreenClip tasks」と頼めば、未着手、進行中、ブロック中のものと、各レポートの詳細がわかります。ツールはキューを読むだけです。Copy JSON でほかの MCP アプリも設定できます。"
       },
       {
         "q": "バグ専用ですか？",
@@ -183,13 +187,14 @@
       "任意のメモ、描画、矢印、図形、テキスト、不透明な墨消し",
       "WebサイトとネイティブMacアプリからのキャプチャ",
       "Codex、Claude Code、Grok Bot",
-      "プロジェクトの検証、GitHubプルリクエスト、任意のマージ、再テストキュー"
+      "プロジェクトの検証、GitHubプルリクエスト、任意のマージ、再テストキュー",
+      "Claude Code と Codex が各プロジェクトのレポートを確認できる、読み取り専用の MCP サーバー"
     ]
   },
   "privacy": {
     "eyebrow": "プライバシーポリシー",
     "title": "プライバシーポリシー",
-    "updated": "2026年11月22日更新。",
+    "updated": "2026年11月23日更新。",
     "intro": "ScreenClipはmacOSのメニューバーアプリです。選んだ範囲をキャプチャし、必要なら注釈とメモを足して、設定したコーディングエージェントにそのレポートを渡します。このポリシーは、アプリがMacに保存するもの、外に出うるもの、そしてこのWebサイトがすることを説明します。",
     "staysTitle": "Macに残るもの",
     "stays1": "レポート、スクリーンショット、メモ、注釈、プロジェクト設定、質問、アクティビティは、Mac上の{code:appSupport}に保存されます。キューはSQLiteデータベースと画像ファイルです。エージェントの作業は、同じフォルダ内のGit worktreeで動きます。自分のプロジェクトのチェックアウトは作業ディレクトリではありません。",
@@ -206,6 +211,7 @@
     "localTitle": "CodexとClaude Code",
     "local1": "CodexとClaude CodeはこのMac上で動きます。ScreenClipは承認したスクリーンショット、メモ、プロンプトをそのローカルエージェントに渡します。ScreenClipのサーバーは介在しません。ただしScreenClipは、下の「GitHub」にあるとおり、レポートのスクリーンショットを修正と一緒にプロジェクトのGitHubリポジトリへ公開します。",
     "local2": "エージェントは、サインインしたアカウントを使います。Codexはapp-server経由、Claude Codeは自身のログインです。そのエージェントは、アカウントの条件に従ってプロンプトと画像を自分の提供者へ送ることがあります。ScreenClipは、環境にGitHubトークンを入れずにこれらのエージェントを起動します。ブランチのpushとプルリクエストを開くのはエージェントではなくScreenClipです。",
+    "local3": "Claude Code または Codex に ScreenClip の MCP サーバーをインストールすると、そのエージェントのセッションはレポートのタイトル、メモ、ステータス、質問、アクティビティを読めます。サーバーは Mac 上で動き、自分では何も送信しませんが、エージェントはプロンプトと同じように、読んだ内容を自社のプロバイダーに送ることがあります。止めるには、エージェントからサーバーを削除してください。",
     "githubTitle": "GitHub",
     "github1": "プルリクエストの自動化には、インストールしたGitHub CLIと、そのCLIがログインしているGitHubアカウントを使います。ScreenClipは{code:branch}ブランチをpushし、CodexとClaude Codeについてはプルリクエストを開きます。チェック状態を読み、そのプロジェクトで自動マージが有効で、チェックとレビュールールを通過したときだけマージします。",
     "github2": "プルリクエスト本文には、エージェントの要約、秘密らしい値を伏せたプロジェクトの検証コマンド、レポート参照が含まれます。CodexとClaude Codeでは、ScreenClipはレポートのスクリーンショットも修正と一緒にコミットし、Before / Afterの比較としてプルリクエストに埋め込みます。対象は、注釈と墨消しを焼き込んだ承認済みのスクリーンショットと、エージェントが修正を再テストしたときに撮ったスクリーンショットです。これをオフにする設定はありません。リポジトリを読める人なら誰でもこれらの画像を見られます。公開リポジトリでは、インターネット上の誰でも見られます。あとのコミットでファイルを削除しても、Gitの履歴からは消えません。公開されるのは焼き込み済みのスクリーンショットだけで、墨消し前の切り抜きは公開されません。",
@@ -231,7 +237,7 @@
     "eyebrow": "サポート",
     "title": "サポート",
     "intro": "ScreenClipは、スクリーンショット、メモ、マークアップをCodex、Claude Code、またはGrok Botに送り、GitHubのプルリクエストを追跡するためのmacOSメニューバーアプリです。",
-    "statusReady": "ScreenClip 1.0.4は非商用の利用は無料です。{link:download}からGitHub Releases上の最新のディスクイメージを開けます。",
+    "statusReady": "ScreenClip 1.0.5は非商用の利用は無料です。{link:download}からGitHub Releases上の最新のディスクイメージを開けます。",
     "statusSoon": "ScreenClipは近日公開予定です。現在ダウンロードは提供されていません。",
     "contactTitle": "連絡先",
     "issues": "バグ、セットアップの質問、機能要望は{link:issues}を使ってください。macOSのバージョン、選んだエージェント、レポートにScreenClipが表示した内容を書いてください。隠すつもりだったものの、墨消し前のスクリーンショットは添付しないでください。",

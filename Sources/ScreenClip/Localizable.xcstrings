@@ -44994,6 +44994,72 @@
           }
         }
       }
+    },
+    "The pull request was closed without merging. Choose Continue to open a new one, or archive this report.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The pull request was closed without merging. Choose Continue to open a new one, or archive this report."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拉取请求已关闭但未合并。选择“继续”打开新的拉取请求，或归档此报告。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El pull request se cerró sin fusionarse. Elige Continuar para abrir uno nuevo o archiva este informe."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プルリクエストはマージされずにクローズされました。「続行」で新しいプルリクエストを開くか、このレポートをアーカイブしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O pull request foi fechado sem ser mesclado. Escolha Continuar para abrir um novo ou arquive este relatório."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Pull Request wurde ohne Merge geschlossen. Wähle Weiter, um einen neuen zu öffnen, oder archiviere diesen Bericht."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La pull request a été fermée sans être fusionnée. Choisissez Continuer pour en ouvrir une nouvelle, ou archivez ce rapport."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "풀 리퀘스트가 병합되지 않고 닫혔습니다. 계속을 선택해 새 풀 리퀘스트를 열거나 이 보고서를 보관하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пул-реквест закрыт без слияния. Выберите «Продолжить», чтобы открыть новый, или архивируйте этот отчёт."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提取要求已關閉但未合併。選擇「繼續」開啟新的提取要求，或封存此報告。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
