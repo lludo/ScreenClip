@@ -207,13 +207,24 @@ extension AgentWorker {
     "The worktree for this fix was removed. Merge or close the PR on GitHub."
   /// A report that stopped for attention (a base conflict, failing checks, a question) keeps
   /// its pull request, and the tester may resolve and merge that pull request on GitHub.
-  /// A report with no recorded pull request may still have had its branch pushed and merged
-  /// outside ScreenClip, for example when it stopped before publishing and someone finished
-  /// the fix by hand. An uncertain dispatch may still be running in the worktree; it waits for
-  /// Reconcile.
+  /// A report with no recorded pull request may still have had its branch merged outside
+  /// ScreenClip (see `findsMergeByBranch`). An uncertain dispatch may still be running in the
+  /// worktree; it waits for Reconcile.
   nonisolated static func awaitsMergeOutsideScreenClip(_ issue: Issue) -> Bool {
-    [.needsYou, .failed].contains(issue.status) && (issue.prURL != nil || issue.branch != nil)
-      && !issue.archived && !issue.dispatchUncertain
+    [.needsYou, .failed].contains(issue.status)
+      && (issue.prURL != nil || findsMergeByBranch(issue)) && !issue.archived
+      && !issue.dispatchUncertain
+  }
+  /// A local agent's report that stopped before publishing, whose worktree was then removed
+  /// outside ScreenClip, usually by whoever pushed the branch and merged it by hand. With the
+  /// worktree gone there is no unpushed work to lose. Grok Bot reports reuse their branch
+  /// across revisions, so only discovery, which checks the report in the PR body, links them.
+  nonisolated static func findsMergeByBranch(_ issue: Issue) -> Bool {
+    guard issue.prURL == nil, issue.branch != nil, issue.resolvedAgent != .external else {
+      return false
+    }
+    guard let path = issue.worktreePath else { return true }
+    return !FileManager.default.fileExists(atPath: path)
   }
   /// Only watches for a merge: anything else about the pull request waits for Continue.
   func refreshStalledPR(_ id: UUID) async {
@@ -224,11 +235,11 @@ extension AgentWorker {
     defer { refreshing.remove(id) }
     let path = Self.ghDirectory(issue, project: project)
     let gh = AgentDetector.ghPath(model.snapshot.settings)
-    // Without a recorded pull request, the report's branch identifies it. Each dispatch after a
-    // merge gets a new workspace and branch, so a merged pull request from this branch holds
-    // this report's fix.
+    // Without a recorded pull request, the report's branch identifies it. Each local dispatch
+    // after a merge gets a new workspace and branch, so a merged pull request from this branch
+    // holds this report's fix.
     var found: String?
-    if issue.prURL == nil, let branch = issue.branch {
+    if Self.findsMergeByBranch(issue), let branch = issue.branch {
       found = try? await GitHubService.mergedPullRequest(
         branch: branch, base: project.baseBranch, path: path, gh: gh)
     }
