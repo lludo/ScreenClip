@@ -28,9 +28,16 @@ import XCTest
       try git.run()
       git.waitUntilExit()
     }
-    // A stand-in `gh` that answers every call with the pull request state the test wrote.
+    // A stand-in `gh` that answers `pr list` with the list the test wrote (empty by default)
+    // and every other call with the pull request state the test wrote.
     let gh = root.appendingPathComponent("gh")
-    try "#!/bin/sh\ncat \"$(dirname \"$0\")/state.json\"\n".write(
+    try """
+      #!/bin/sh
+      dir="$(dirname "$0")"
+      if [ "$2" = list ]; then cat "$dir/list.json" 2>/dev/null || echo '[]'; exit 0; fi
+      cat "$dir/state.json"
+
+      """.write(
       to: gh, atomically: true, encoding: .utf8)
     try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: gh.path)
     model = try AppModel(root: root.appendingPathComponent("queue"))
@@ -68,6 +75,11 @@ import XCTest
     state.merge(fields) { _, new in new }
     try JSONEncoder().encode(JSONValue.object(state)).write(
       to: root.appendingPathComponent("state.json"))
+  }
+
+  private func mergedList(_ entries: [[String: JSONValue]]) throws {
+    try JSONEncoder().encode(JSONValue.array(entries.map(JSONValue.object))).write(
+      to: root.appendingPathComponent("list.json"))
   }
 
   private let failedChecks = JSONValue.array([.object(["conclusion": .string("FAILURE")])])
@@ -325,5 +337,107 @@ import XCTest
     try pullRequest(["state": .string("MERGED")])
     await model.worker.refreshPRs()
     XCTAssertEqual(model.issue(id)?.status, .needsYou)
+  }
+
+  /// Restart recovery failed in a removed worktree before ScreenClip published, and the fix was
+  /// pushed and merged by hand from the report's branch.
+  private func stopBeforePublishing() throws {
+    try model.updateIssue(id) {
+      $0.worktreePath = self.root.appendingPathComponent("worktrees/removed").path
+      $0.branch = "screenclip/16781790"
+      $0.prURL = nil
+      $0.prHead = nil
+      $0.record("The file doesn't exist.", status: .needsYou, kind: "error")
+    }
+  }
+
+  func testAMergedPullRequestFromTheReportsBranchCompletesAReportWithoutAPullRequest() async throws {
+    try stopBeforePublishing()
+    try mergedList([[
+      "url": .string("https://github.com/example/app/pull/7"),
+      "headRefName": .string("screenclip/16781790"), "baseRefName": .string("main"),
+      "isCrossRepository": .bool(false),
+    ]])
+    try pullRequest([
+      "url": .string("https://github.com/example/app/pull/7"), "state": .string("MERGED"),
+      "mergeCommit": .object(["oid": .string("abc123")]),
+    ])
+    await model.worker.refreshPRs()
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.status, .merged)
+    XCTAssertEqual(issue.prURL, "https://github.com/example/app/pull/7")
+    XCTAssertEqual(issue.mergeCommit, "abc123")
+  }
+
+  func testAReportWithoutAPullRequestIgnoresAForkOrAnotherBranch() async throws {
+    try stopBeforePublishing()
+    try mergedList([
+      [
+        "url": .string("https://github.com/example/app/pull/8"),
+        "headRefName": .string("screenclip/16781790"), "baseRefName": .string("main"),
+        "isCrossRepository": .bool(true),
+      ],
+      [
+        "url": .string("https://github.com/example/app/pull/9"),
+        "headRefName": .string("screenclip/other"), "baseRefName": .string("main"),
+        "isCrossRepository": .bool(false),
+      ],
+    ])
+    try pullRequest(["state": .string("MERGED")])
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .needsYou)
+    XCTAssertNil(model.issue(id)?.prURL)
+  }
+
+  func testAReportWithoutAPullRequestWaitsWhileNothingIsMerged() async throws {
+    try stopBeforePublishing()
+    try pullRequest(["state": .string("MERGED")])
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .needsYou)
+    XCTAssertNil(model.issue(id)?.prURL)
+  }
+
+  private func mergedFromTheReportsBranch() throws {
+    try mergedList([[
+      "url": .string("https://github.com/example/app/pull/7"),
+      "headRefName": .string("screenclip/16781790"), "baseRefName": .string("main"),
+      "isCrossRepository": .bool(false),
+    ]])
+    try pullRequest([
+      "url": .string("https://github.com/example/app/pull/7"), "state": .string("MERGED"),
+      "mergeCommit": .object(["oid": .string("abc123")]),
+    ])
+  }
+
+  func testABranchMergeWithNewerEvidenceQueuesIt() async throws {
+    try stopBeforePublishing()
+    try model.updateIssue(id) { $0.revision = $0.coveredRevision + 1 }
+    try mergedFromTheReportsBranch()
+    await model.worker.refreshPRs()
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.status, .queued)
+    XCTAssertNil(issue.prURL)
+    XCTAssertNil(issue.branch)
+  }
+
+  func testABranchMergeIsIgnoredWhileTheWorktreeExists() async throws {
+    // The worktree may hold commits made after the merged push; removing it would lose them.
+    try stopBeforePublishing()
+    try model.updateIssue(id) { $0.worktreePath = self.root.appendingPathComponent("repo").path }
+    try mergedFromTheReportsBranch()
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .needsYou)
+    XCTAssertNil(model.issue(id)?.prURL)
+  }
+
+  func testABranchMergeIsIgnoredForGrokBot() async throws {
+    // Grok Bot reuses its branch across revisions; only discovery, which checks the report in
+    // the pull request body, links its pull requests.
+    try stopBeforePublishing()
+    try model.updateIssue(id) { $0.agent = .external }
+    try mergedFromTheReportsBranch()
+    await model.worker.refreshPRs()
+    XCTAssertNotEqual(model.issue(id)?.status, .merged)
+    XCTAssertNil(model.issue(id)?.prURL)
   }
 }

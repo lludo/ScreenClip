@@ -108,6 +108,23 @@ public enum GitHubService {
       ], cwd: path)
     return PRState.parse(try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)))
   }
+  /// The merged pull request opened from this repository's `branch` into `base`, if any. A
+  /// fork can open a pull request from a branch with the same name; that one is not ours.
+  public static func mergedPullRequest(branch: String, base: String, path: String, gh: String)
+    async throws -> String?
+  {
+    let text = try await CommandRunner.checked(
+      gh,
+      [
+        "pr", "list", "--head", branch, "--base", base, "--state", "merged", "--json",
+        "url,headRefName,baseRefName,isCrossRepository",
+      ], cwd: path)
+    return try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)).array.first {
+      $0["headRefName"].string == branch && $0["baseRefName"].string == base
+        && $0["isCrossRepository"].bool != true
+        && URL(string: $0["url"].string ?? "")?.host == "github.com"
+    }?["url"].string
+  }
   public struct PullRequestDescription: Decodable {
     public let bodyHTML: String
     public let headRefOid: String
