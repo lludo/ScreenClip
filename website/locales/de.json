@@ -107,6 +107,10 @@
         "a": "ScreenClip ist eine Menüleisten-App für macOS. Drücke Command-Shift-2, wähle einen Bereich einer Website oder einer Mac-App, füge bei Bedarf Notiz oder Markierung hinzu und sende ab. Der Bericht geht an Codex, Claude Code oder Grok Bot. Bei Codex und Claude Code führt ScreenClip den Validierungsbefehl des Projekts aus und öffnet den GitHub-Pull-Request. Grok Bot öffnet den Pull Request aus dem Branch, den ScreenClip gepusht hat, und ScreenClip verfolgt ihn. Mit automatischem Merge mergt ScreenClip, nachdem Validierung, Checks und Review-Regeln bestanden sind. Gemergte Berichte wandern nach To retest."
       },
       {
+        "q": "Was ist anders, als einen Screenshot in einen Agent-Chat einzufügen?",
+        "a": "Ein eingefügter Screenshot startet eine einzige Unterhaltung, die du dann von Hand verwaltest. ScreenClip legt jede Aufnahme als eigenen Bericht an, mit eigener Agent-Unterhaltung und einem isolierten Git-Worktree. So können mehrere Fixes laufen, während du weiter testest. Jeder Bericht bekommt einen GitHub-Pull-Request, den ScreenClip verfolgt, und gemergte Fixes wandern nach To retest."
+      },
+      {
         "q": "Welche Coding-Agenten werden unterstützt?",
         "a": "Codex, Claude Code und Grok Bot. Codex und Claude Code laufen auf deinem Mac in einem isolierten Git-Worktree und pushen nicht selbst und öffnen den Pull Request nicht. Grok Bot ist remote: Du speicherst einen Webhook, und ScreenClip pusht dafür die freigegebenen Screenshots jedes Berichts in einen Branch im GitHub-Repository des Projekts. Wähle einen Standardagenten in Settings oder einen für einen neuen Bericht. Eine Folgeaufnahme bleibt beim Agenten dieses Berichts."
       },
@@ -137,6 +141,22 @@
       {
         "q": "Wo erscheinen Fragen des Agenten?",
         "a": "Fragen von Codex und Claude Code erscheinen im Bericht, wo du antwortest. Grok-Bot-Fragen bleiben im Chat. Cancel stoppt den lokalen Eintrag und kann bei unterstützter Verbindung einen Abbruch anfragen; der Remote-Lauf kann weiterlaufen."
+      },
+      {
+        "q": "Bleibt der Screenshot beim Pull Request?",
+        "a": "Ja. Die zusammengeführten Berichts-Screenshots mit deinen Anmerkungen und Schwärzungen werden mit dem Fix committet und im Pull Request eingebettet, zusammen mit den Screenshots, die der Agent nach dem Fix aufnimmt. Ungeschwärzte Originale werden nie veröffentlicht."
+      },
+      {
+        "q": "Erfasst es die Browser-Konsole oder Netzwerkanfragen?",
+        "a": "Nein. Ein Bericht ist der Bereich, den du auswählst, plus Notiz und Markierungen. ScreenClip zeichnet weder Video noch Browser-Konsole, Netzwerkanfragen oder das DOM der Seite auf. Braucht der Agent mehr, füge demselben Bericht eine Notiz oder einen weiteren Screenshot hinzu."
+      },
+      {
+        "q": "Was, wenn mein Ausschnitt zu knapp ist?",
+        "a": "Füge demselben Bericht einen zweiten, größeren Screenshot hinzu. Es bleibt ein Bericht und zählt nicht doppelt. Eine Textnotiz kannst du jederzeit ergänzen, auch während der Agent arbeitet."
+      },
+      {
+        "q": "Öffnet ScreenClip nach einem Fix die App oder denselben Bildschirmbereich wieder?",
+        "a": "Nein. Ein gemergter Bericht wandert nach To retest. ScreenClip startet die getestete App nicht neu und kehrt nicht zum aufgenommenen Bereich zurück, und ein Merge ist kein Deploy. Ist es noch kaputt, nimm es im selben Bericht erneut auf, mit der getesteten Version, und die Arbeit geht in derselben Unterhaltung weiter."
       },
       {
         "id": "cost",
