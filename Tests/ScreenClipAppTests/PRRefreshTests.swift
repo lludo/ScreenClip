@@ -118,6 +118,12 @@ import XCTest
       ["statusCheckRollup": .null], ["statusCheckRollup": .array([.object(["status": .string("QUEUED")])])],
       ["statusCheckRollup": .array([]), "mergeStateStatus": .string("BLOCKED")],
     ] {
+      // A closed pull request moves the report to Needs you; each case starts from PR open.
+      try model.updateIssue(id) {
+        $0.status = .prOpen
+        $0.prURL = "https://github.com/example/app/pull/1"
+        $0.prHead = "pushed"
+      }
       try pullRequest(clean)
       await model.worker.refreshPR(id)
       XCTAssertEqual(model.worker.manualMergeHeads[id], "pushed")
@@ -309,6 +315,23 @@ import XCTest
     await model.worker.refreshPRs()
     XCTAssertEqual(model.issue(id)?.status, .needsYou)
     XCTAssertNotNil(model.issue(id)?.prURL)
+  }
+
+  func testAPullRequestClosedWithoutMergingMovesTheReportToNeedsYou() async throws {
+    try pullRequest(["state": .string("CLOSED")])
+    await model.worker.refreshPR(id)
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.status, .needsYou)
+    XCTAssertNil(issue.mergeCommit)
+    XCTAssertNil(issue.checkSummary)
+    XCTAssertTrue(issue.unread)
+    XCTAssertNil(issue.prURL, "Continue opens a new pull request; the closed one is in the activity.")
+    XCTAssertTrue(model.canMove(issue))
+    XCTAssertEqual(issue.activities.last?.text, AgentWorker.closedPullRequestActivity)
+    // It then waits for the tester; a closed pull request is never taken for a merge.
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .needsYou)
+    XCTAssertNil(model.issue(id)?.mergeCommit)
   }
 
   func testAClosedPullRequestLeavesTheReportWaiting() async throws {
