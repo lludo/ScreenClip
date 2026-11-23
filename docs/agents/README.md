@@ -10,7 +10,7 @@ ScreenClip captures an observation and hands it to a coding agent. Codex and Cla
 | Claude Code | `claude -p` (one stream-json process per turn) | Session UUID chosen by ScreenClip | Copy `cd <worktree> && claude --resume <id>` | `claude auth login` in Terminal | [claude-code.md](claude-code.md) |
 | Grok Bot | Webhook `screenclip.external.v1` after a Git push of approved screenshots | Report number and `screenclip/<number>-<slug>-<workspace>` branch | Pull request link, or a note that the chat is in Grok Bot | **Connect Grok Bot** with **POST to** and **key** (or **header**) from the ScreenClip reports routine. The address and secret stay in the Keychain | [external-assistant.md](external-assistant.md) |
 
-Separately from automatic dispatch, Codex and Claude Code can **read** the queue through the optional MCP plugin. See [the plugin README](../../plugins/screenclip/README.md).
+Separately from automatic dispatch, Codex and Claude Code can **read** the queue through the optional MCP plugin. Settings › Connections › **Check tasks from your agents** installs it for either agent. See [the plugin README](../../plugins/screenclip/README.md).
 
 The one-off prompts once used to have each agent investigate its own integration are archived in [Claude Code and Grok Bot handoffs](../archive/claude-grok-handoffs.md).
 

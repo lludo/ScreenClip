@@ -113,6 +113,68 @@ class PluginTests(unittest.TestCase):
         self.save()
         found = json.loads(plugin.call("get_issue", {"issue_id": self.id})["content"][0]["text"])
         self.assertEqual(found["contextNotes"], notes)
+    def save_state(self, projects, issues):
+        with sqlite3.connect(plugin.ROOT / "screenclip.sqlite") as db:
+            db.execute("INSERT OR REPLACE INTO state VALUES(1,?)", (json.dumps({"issues": issues, "projects": projects}).encode(),))
+    def make_projects(self):
+        self.app_repo = plugin.ROOT / "repos/App"
+        (self.app_repo / ".git/worktrees/feature").mkdir(parents=True)
+        (self.app_repo / "Sources").mkdir()
+        (self.app_repo / ".git/worktrees/feature/commondir").write_text("../..\n")
+        self.linked = plugin.ROOT / "repos/App-feature"
+        self.linked.mkdir()
+        (self.linked / ".git").write_text(f"gitdir: {self.app_repo}/.git/worktrees/feature\n")
+        self.own_worktree = plugin.ROOT / "worktrees/abc"
+        (self.own_worktree / "Sources").mkdir(parents=True)
+        app, site = str(uuid.uuid4()), str(uuid.uuid4())
+        projects = [{"id": app, "name": "App", "path": str(self.app_repo)}, {"id": site, "name": "Site", "path": str(plugin.ROOT / "repos/Site")}]
+        def issue(n, status, project, **extra):
+            return {"id": str(uuid.uuid4()), "reportNumber": n, "title": f"Report {n}", "status": status, "projectID": project, "updatedAt": n} | extra
+        issues = [issue(1, "queued", app), issue(2, "working", app, worktreePath=str(self.own_worktree)), issue(3, "needsYou", app), issue(4, "failed", site),
+                  issue(5, "merged", app), issue(6, "draft", None), issue(7, "needsYou", app, archived=True)]
+        self.save_state(projects, issues)
+    def test_task_summary_groups_statuses_per_project(self):
+        self.make_projects()
+        summary = json.loads(plugin.call("task_summary", {"project": "app"})["content"][0]["text"])
+        self.assertEqual(summary["project"], "App")
+        self.assertEqual(summary["counts"], {"open": 1, "in_progress": 1, "blocked": 1, "done": 1})
+        self.assertEqual([b["reportNumber"] for b in summary["blocked"]], [3])
+        everything = json.loads(plugin.call("task_summary", {})["content"][0]["text"])
+        self.assertEqual(everything["counts"], {"open": 2, "in_progress": 1, "blocked": 2, "done": 1})
+        self.assertEqual([(b["reportNumber"], b["project"]) for b in everything["blocked"]], [(4, "Site"), (3, "App")])
+    def test_project_matches_repository_worktrees_and_subfolders(self):
+        self.make_projects()
+        for path in [self.app_repo, self.app_repo / "Sources", self.linked, self.own_worktree / "Sources"]:
+            with self.subTest(path=path):
+                summary = json.loads(plugin.call("task_summary", {"project": str(path)})["content"][0]["text"])
+                self.assertEqual(summary["project"], "App")
+        with self.assertRaisesRegex(ValueError, "No ScreenClip project matches"):
+            plugin.call("task_summary", {"project": str(plugin.ROOT / "elsewhere")})
+        with self.assertRaisesRegex(ValueError, "Known projects: App, Site"):
+            plugin.call("list_issues", {"project": "Nope"})
+        result = plugin.handle({"method": "tools/call", "params": {"name": "list_issues", "arguments": {"project": "Nope"}}})
+        self.assertTrue(result["isError"])
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("list_issues", {"project": ""})
+    def test_list_issues_by_group_and_project(self):
+        self.make_projects()
+        def numbers(arguments):
+            return [i["reportNumber"] for i in json.loads(plugin.call("list_issues", arguments)["content"][0]["text"])]
+        self.assertEqual(numbers({"status": "blocked"}), [4, 3])
+        self.assertEqual(numbers({"status": "blocked", "project": "App"}), [3])
+        self.assertEqual(numbers({"status": "in_progress", "project": "App"}), [2])
+        self.assertEqual(numbers({"status": "done"}), [5])
+        self.assertEqual(numbers({"status": "queued"}), [1])
+        self.assertEqual(numbers({"project": "App"}), [3, 2, 1])
+        listed = json.loads(plugin.call("list_issues", {"status": "failed"})["content"][0]["text"])
+        self.assertEqual((listed[0]["project"], listed[0]["group"]), ("Site", "blocked"))
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("list_issues", {"status": "stuck"})
+    def test_list_projects_counts(self):
+        self.make_projects()
+        result = json.loads(plugin.call("list_projects", {})["content"][0]["text"])
+        self.assertEqual([(p["name"], p["counts"]["blocked"]) for p in result["projects"]], [("App", 1), ("Site", 1)])
+        self.assertEqual(result["withoutProject"]["open"], 1)
     def test_claude_code_plugin_manifests(self):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / "plugins/screenclip/.claude-plugin/plugin.json").read_text())
@@ -160,7 +222,7 @@ class PluginTests(unittest.TestCase):
         messages = [json.loads(line) for line in result.stdout.splitlines()]
         self.assertEqual(len(messages), 3)
         self.assertEqual(messages[0]["result"]["serverInfo"]["name"], "screenclip")
-        self.assertEqual(len(messages[1]["result"]["tools"]), 2)
+        self.assertEqual({t["name"] for t in messages[1]["result"]["tools"]}, {"task_summary", "list_issues", "get_issue", "list_projects"})
         self.assertEqual(json.loads(messages[2]["result"]["content"][0]["text"])["id"], self.id)
 
 if __name__ == "__main__":

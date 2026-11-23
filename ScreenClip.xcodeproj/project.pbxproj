@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		100000000000000000000001 /* ScreenClipCore in Frameworks */ = {isa = PBXBuildFile; productRef = 100000000000000000000002 /* ScreenClipCore */; };
+		10000000000000000000001D /* plugins/screenclip/server.py in Resources */ = {isa = PBXBuildFile; fileRef = 10000000000000000000001E /* plugins/screenclip/server.py */; };
 		100000000000000000000018 /* Resources/InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 100000000000000000000019 /* Resources/InfoPlist.xcstrings */; };
 		10000000000000000000001A /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = 10000000000000000000001B /* Sparkle */; };
 /* End PBXBuildFile section */
@@ -18,6 +19,7 @@
 		100000000000000000000005 /* Resources */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Resources; sourceTree = "<group>"; };
 		100000000000000000000006 /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		100000000000000000000017 /* Config/Signing.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Config/Signing.xcconfig; sourceTree = "<group>"; };
+		10000000000000000000001E /* plugins/screenclip/server.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = plugins/screenclip/server.py; sourceTree = "<group>"; };
 		100000000000000000000019 /* Resources/InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Resources/InfoPlist.xcstrings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -51,6 +53,7 @@
 				100000000000000000000006 /* README.md */,
 				100000000000000000000017 /* Config/Signing.xcconfig */,
 				100000000000000000000019 /* Resources/InfoPlist.xcstrings */,
+				10000000000000000000001E /* plugins/screenclip/server.py */,
 				10000000000000000000000A /* Products */,
 			);
 			sourceTree = "<group>";
@@ -144,6 +147,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				100000000000000000000018 /* Resources/InfoPlist.xcstrings in Resources */,
+				10000000000000000000001D /* plugins/screenclip/server.py in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,7 +215,7 @@
 			baseConfigurationReference = 100000000000000000000017 /* Config/Signing.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Resources/ScreenClip.entitlements;
-				CURRENT_PROJECT_VERSION = 50;
+				CURRENT_PROJECT_VERSION = 51;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -236,7 +240,7 @@
 			baseConfigurationReference = 100000000000000000000017 /* Config/Signing.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Resources/ScreenClip.entitlements;
-				CURRENT_PROJECT_VERSION = 50;
+				CURRENT_PROJECT_VERSION = 51;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;

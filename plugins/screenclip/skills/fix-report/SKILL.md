@@ -5,9 +5,9 @@ description: Fix a ScreenClip report interactively in this session. Use when the
 
 # Fix a ScreenClip report
 
-ScreenClip is a macOS app that captures screenshots with notes. Its MCP tools are read-only: `list_issues` and `get_issue`.
+ScreenClip is a macOS app that captures screenshots with notes. Its MCP tools are read-only: `task_summary`, `list_projects`, `list_issues`, and `get_issue`. Pass your working directory as `project` to see only this repository's reports.
 
-1. Find the report. If the user gave a number, call `get_issue` with it (`"#234"` or `"234"`) and `include_images: true`. Otherwise call `list_issues` (optionally with a `status` such as `failed` or `canceled`) and ask which report to work on.
+1. Find the report. If the user gave a number, call `get_issue` with it (`"#234"` or `"234"`) and `include_images: true`. Otherwise call `list_issues` with `project` set to your working directory (optionally with a `status` group such as `blocked` or `open`, or one status such as `failed`) and ask which report to work on.
 2. Check ownership before editing:
    - If `status` is `queued`, `working`, or `prOpen`, the ScreenClip app owns this report and may dispatch or publish work. Tell the user, and do not start a second fix unless they cancel it in ScreenClip first.
    - If `status` is `needsYou` and the report has a `threadID`, ScreenClip's agent is waiting for an answer in its own conversation and worktree. Suggest replying in ScreenClip instead; only work on it here if the user cancels it in ScreenClip first.
