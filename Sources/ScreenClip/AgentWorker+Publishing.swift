@@ -512,7 +512,8 @@ extension AgentWorker {
       let confirmed = try await GitHubService.state(
         url: url, path: path, gh: AgentDetector.ghPath(model.snapshot.settings))
       if confirmed.merged {
-        try recordMerge(id, commit: confirmed.mergeCommit, coveredRevision: issue.coveredRevision)
+        try recordMerge(
+          id, commit: confirmed.mergeCommit, coveredRevision: issue.prRevision ?? issue.coveredRevision)
         model.notify(issue, text: "Fix merged. Ready to rebuild and retest.")
       }
     } catch {

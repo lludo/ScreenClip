@@ -40,13 +40,31 @@ if [[ -d "$sparkle" ]]; then
         fi
     done
 fi
-# Sparkle offers an update only when its build number is higher than the installed one.
+# Sparkle offers an update only when its build number is higher than the installed one, and the
+# appcast names the release by the app's version, so both must move past the published release.
 build=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$app/Contents/Info.plist")
-published=$(curl -fsSL https://github.com/lludo/ScreenClip/releases/latest/download/appcast.xml 2>/dev/null \
-    | sed -n 's:.*<sparkle\:version>\([0-9]*\)</sparkle\:version>.*:\1:p' | head -1 || true)
-if [[ -n "$published" && "$build" -le "$published" ]]; then
-    printf '%s\n' "Build $build is not higher than the published build $published. Bump CURRENT_PROJECT_VERSION." >&2
+version=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")
+if [[ ! -s "docs/release/v$version.md" ]]; then
+    printf '%s\n' "docs/release/v$version.md is missing. Write the release notes first; they are the update's notes." >&2
     exit 1
+fi
+feed=$(curl -fsSL https://github.com/lludo/ScreenClip/releases/latest/download/appcast.xml 2>/dev/null || true)
+if [[ -z "$feed" ]]; then
+    if [[ "${SCREENCLIP_SKIP_FEED_CHECK:-}" != 1 ]]; then
+        printf '%s\n' 'Could not download the published appcast to compare build numbers. Retry online, or set SCREENCLIP_SKIP_FEED_CHECK=1.' >&2
+        exit 1
+    fi
+else
+    published=$(printf '%s\n' "$feed" | sed -n 's:.*<sparkle\:version>\([0-9]*\)</sparkle\:version>.*:\1:p' | head -1)
+    published_version=$(printf '%s\n' "$feed" | sed -n 's:.*<sparkle\:shortVersionString>\([^<]*\)</sparkle\:shortVersionString>.*:\1:p' | head -1)
+    if [[ -n "$published" && "$build" -le "$published" ]]; then
+        printf '%s\n' "Build $build is not higher than the published build $published. Bump CURRENT_PROJECT_VERSION." >&2
+        exit 1
+    fi
+    if [[ -n "$published_version" && "$version" == "$published_version" ]]; then
+        printf '%s\n' "Version $version is already published. Bump MARKETING_VERSION." >&2
+        exit 1
+    fi
 fi
 codesign --verify --deep --strict "$app"
 entitlements=$(codesign -d --entitlements :- "$app" 2>/dev/null || true)

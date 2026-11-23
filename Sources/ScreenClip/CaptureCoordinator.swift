@@ -62,7 +62,13 @@ import ScreenClipCore
   }
   func beginText(sourceOverride: NSRunningApplication?) {
     guard !model.captureBusy else { return }
-    model.composerAction?(nil, context(for: sourceApp(override: sourceOverride)), nil)
+    // A text note has nothing on screen to show, so ScreenClip itself is never its source app,
+    // whatever the hide-during-capture setting says.
+    let frontmost = NSWorkspace.shared.frontmostApplication
+    let source =
+      sourceOverride
+      ?? (frontmost?.bundleIdentifier == Bundle.main.bundleIdentifier ? lastExternalApp : frontmost)
+    model.composerAction?(nil, context(for: source), nil)
   }
   func begin(sourceOverride: NSRunningApplication? = nil) {
     guard !model.captureBusy else { return }

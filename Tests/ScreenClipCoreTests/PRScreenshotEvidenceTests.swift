@@ -21,6 +21,10 @@ final class PRScreenshotEvidenceTests: XCTestCase {
     ] {
       XCTAssertNil(try endpoint(image.replacingOccurrences(of: original, with: replacement)))
     }
+    // The remote's spelling of owner/repo may differ in case from GitHub's PR URL.
+    XCTAssertEqual(
+      try endpoint(image.replacingOccurrences(of: "example/app", with: "Example/App"))?.removingPercentEncoding,
+      "repos/example/app/contents/\(path)?ref=\(head)")
   }
 
   /// Evidence is prefetched and served locally, so the description never shows a broken image.

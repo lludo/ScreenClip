@@ -66,6 +66,13 @@ import XCTest
     XCTAssertTrue(intents.contains(.code))
   }
 
+  func testSingleLineBreaksAreKept() {
+    let blocks = MarkdownText.blocks("Changed:\nCartView.swift\nBadge.swift\n\n```\nlet a = 1\nlet b = 2\n```")
+    XCTAssertEqual(blocks.map { String($0.text.characters) },
+      ["Changed:\nCartView.swift\nBadge.swift", "let a = 1\nlet b = 2"])
+    XCTAssertEqual(blocks.map(\.kind), [.paragraph, .code])
+  }
+
   func testPlainTextIsOneParagraph() {
     let blocks = MarkdownText.blocks("The order summary now stays visible.")
     XCTAssertEqual(blocks.map(\.kind), [.paragraph])

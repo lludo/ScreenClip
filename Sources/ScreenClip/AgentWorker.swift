@@ -222,6 +222,15 @@ import ScreenClipCore
           $0.worktreePath = workspace.path
           $0.branch = workspace.branch
         }
+        // A recreated worktree for an open PR starts from the local branch, which may be behind
+        // commits pushed from elsewhere. Pick those up before the agent works, or its push fails.
+        if issue.prURL != nil {
+          do {
+            try await GitHubService.integrateRemoteBranch(workspace.branch, cwd: workspace.path)
+          } catch {
+            throw ScreenClipError.message(Self.divergedBranchError)
+          }
+        }
       }
       guard let current = model.issue(id), current.status == .working else {
         jobs.remove(id)
@@ -258,6 +267,8 @@ import ScreenClipCore
   }
   static let removedWorktreeError =
     "This report’s worktree was removed outside ScreenClip, along with any changes that were not pushed. If the fix was merged another way, archive this report. Otherwise choose Continue to keep working in a new worktree."
+  static let divergedBranchError =
+    "The pull request’s branch on GitHub has commits that conflict with this report’s local branch, so ScreenClip did not start the agent or overwrite either side. Bring the branch up to date by hand, then choose Continue."
   func reply(
     issueID: UUID, questionID: UUID, answers: [String: String], allow: Bool? = nil,
     approvalDecision: JSONValue? = nil

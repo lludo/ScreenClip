@@ -11,7 +11,9 @@ public enum PRScreenshotEvidence {
     let path = image.pathComponents
     guard image.scheme == "https", image.host == "github.com", pullRequest.host == "github.com",
       pr.count == 5, pr[3] == "pull", path.count == 11,
-      path[1...2] == pr[1...2], GitHubService.isRepositorySlug(path[1] + "/" + path[2]),
+      // GitHub owners and repositories are case-insensitive; the remote may differ from the PR URL.
+      zip(path[1...2], pr[1...2]).allSatisfy({ $0.caseInsensitiveCompare($1) == .orderedSame }),
+      GitHubService.isRepositorySlug(path[1] + "/" + path[2]),
       ["blob", "raw"].contains(path[3]), GitHubService.isCommit(path[4]),
       path[5] == ".screenclip", path[6] == "pr", UUID(uuidString: path[7]) == issueID,
       path[8].range(of: #"^revision-[1-9][0-9]*$"#, options: .regularExpression) != nil,

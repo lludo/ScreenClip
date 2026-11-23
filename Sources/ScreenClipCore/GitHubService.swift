@@ -124,7 +124,13 @@ public enum GitHubService {
       "api", "graphql", "--hostname", "github.com", "-f", "query=" + query,
       "-f", "url=" + url.absoluteString, "--jq", ".data.resource",
     ])
-    return try JSONDecoder().decode(PullRequestDescription.self, from: Data(result.utf8))
+    // `null` when the PR is gone or not visible to this account, `{}` when the URL is not a PR.
+    guard let description = try? JSONDecoder().decode(PullRequestDescription.self, from: Data(result.utf8))
+    else {
+      throw ScreenClipError.message(
+        "GitHub did not return this pull request. It may have been deleted, or this account cannot see it.")
+    }
+    return description
   }
   public static func merge(url: String, head: String, path: String, gh: String) async throws {
     _ = try await CommandRunner.checked(

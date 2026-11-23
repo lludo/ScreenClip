@@ -64,7 +64,9 @@ Debug builds do not check unless launched with `--check-updates`, so a developme
 The private key was generated with Sparkle's `generate_keys --account ScreenClip` and lives in the maintainer's login keychain (item "Private key for signing Sparkle updates"). Back it up: losing it means existing copies cannot verify new updates until people download a build with a new public key by hand.
 
 - **CI**: export it with `.local/XcodePackages/artifacts/sparkle/Sparkle/bin/generate_keys --account ScreenClip -x sparkle_key`, then `gh secret set SPARKLE_ED_PRIVATE_KEY < sparkle_key` and delete the file. The release job fails if the Apple secrets are set and this one is not.
-- **Local release**: `scripts/release-dmg.sh` signs with the keychain key when `SPARKLE_ED_PRIVATE_KEY` is unset, and writes `build/appcast.xml`. Upload it with the DMG: `gh release upload vX.Y.Z build/ScreenClip.dmg build/SHA256SUMS build/appcast.xml --clobber`.
+- **Local release**: `scripts/release-dmg.sh` signs with the keychain key when `SPARKLE_ED_PRIVATE_KEY` is unset, and writes `build/appcast.xml`. Before signing anything it checks that `docs/release/vX.Y.Z.md` exists for the app's version, and that the version and build number are both higher than the published appcast's; it stops if the appcast cannot be downloaded (set `SCREENCLIP_SKIP_FEED_CHECK=1` only for the very first release). Publish with `gh release create vX.Y.Z build/ScreenClip.dmg build/SHA256SUMS build/appcast.xml --title "ScreenClip X.Y.Z" --notes-file docs/release/vX.Y.Z.md`; use `gh release upload … --clobber` only to replace files on a release that already exists.
+
+So far every release has been published this way from the maintainer's Mac: the Apple secrets are not set in the repository, so the tag's workflow finishes without building.
 
 Never commit the private key.
 

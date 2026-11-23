@@ -23,7 +23,8 @@ def release_notes(version: str) -> str:
     """The release notes file without its title and install section, as Markdown for Sparkle."""
     path = ROOT / "docs" / "release" / f"v{version}.md"
     if not path.exists():
-        return f"[Release notes]({REPO}/releases/tag/v{version})"
+        # An update without notes is a mistake: release-dmg.sh checks this first.
+        raise SystemExit(f"{path} is missing; write the release notes before the appcast.")
     kept = []
     for line in path.read_text(encoding="utf-8").splitlines():
         if line.startswith("# "):

@@ -120,7 +120,7 @@ struct MenuPopover: View {
             ForEach(listed) { issue in
               Button {
                 model.selectedIssueID = issue.id
-                openQueue()
+                openQueue(on: list)
               } label: {
                 IssueRow(issue: issue, project: model.project(issue.projectID))
               }.buttonStyle(.plain)
@@ -131,7 +131,7 @@ struct MenuPopover: View {
       }
       HStack(alignment: .center) {
         Button {
-          openQueue()
+          openQueue(on: nil)
         } label: {
           Text(chrome: "Open queue", comment: "Opens the report queue window.")
             .fixedSize(horizontal: false, vertical: true)
@@ -189,10 +189,11 @@ struct MenuPopover: View {
     model.snapshot.issues.filter { filter.includes($0) }.count
   }
   /// The reports behind the selected count, newest first.
-  private var listed: [Issue] { model.snapshot.issues.filter { list.includes($0) }.reversed() }
-  /// The queue opens on the list shown here, so a row is never opened beside another list.
-  private func openQueue() {
-    model.queueFilterRequest = list
+  private var listed: [Issue] { Issue.newestFirst(model.snapshot.issues.filter { list.includes($0) }) }
+  /// A row opens the queue on the list it came from, so it is never shown beside another list.
+  /// "Open queue" alone leaves the queue's list, filters, and open report as they were.
+  private func openQueue(on request: QueueFilter?) {
+    model.queueFilterRequest = request
     model.queueAction?()
   }
   func metric(_ title: String, _ value: Int, list item: QueueFilter, phrase: String) -> some View {

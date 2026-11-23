@@ -1,6 +1,6 @@
 # Getting started
 
-ScreenClip runs on **macOS 14 or later**. A local build needs **Xcode 16 or later**. The Swift package uses tools version 6.0 and the Swift 5 language mode. There are no external Swift package dependencies. SQLite comes from the system through `Sources/CSQLite`.
+ScreenClip runs on **macOS 14 or later**. A local build needs **Xcode 16 or later**. The Swift package uses tools version 6.0 and the Swift 5 language mode. `Package.swift` has no external dependencies. The Xcode app target adds [Sparkle 2](https://sparkle-project.org) for automatic updates, which Xcode fetches on the first build. SQLite comes from the system through `Sources/CSQLite`.
 
 You also need a local Git repository for each project, and at least one agent:
 
@@ -12,7 +12,7 @@ You also need a local Git repository for each project, and at least one agent:
 
 ## Install the release build
 
-On an Apple Silicon Mac you do not need Xcode. Download `ScreenClip.dmg` from the [latest GitHub Release](https://github.com/lludo/ScreenClip/releases/latest), open it, and drag **ScreenClip** into **Applications**. The [1.0.0 release notes](release/v1.0.0.md) cover what is included (later changes are in the [1.0.1](release/v1.0.1.md), [1.0.2](release/v1.0.2.md) and [1.0.3](release/v1.0.3.md) notes) and how to verify the download. Then skip to [First capture](#first-capture).
+On an Apple Silicon Mac you do not need Xcode. Download `ScreenClip.dmg` from the [latest GitHub Release](https://github.com/lludo/ScreenClip/releases/latest), open it, and drag **ScreenClip** into **Applications**. The [1.0.0 release notes](release/v1.0.0.md) cover what is included (later changes are in the [1.0.1](release/v1.0.1.md), [1.0.2](release/v1.0.2.md), [1.0.3](release/v1.0.3.md) and [1.0.4](release/v1.0.4.md) notes) and how to verify the download. Then skip to [First capture](#first-capture).
 
 Intel Macs, and anyone working on ScreenClip itself, build from source.
 

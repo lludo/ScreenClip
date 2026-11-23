@@ -76,10 +76,11 @@ struct QueueView: View {
     if case .status(let item) = selection { return item }
     return .active
   }
+  /// Newest first, like the menu bar popover and the composer's Issue menu.
   var filtered: [Issue] {
-    model.snapshot.issues.filter {
+    Issue.newestFirst(model.snapshot.issues.filter {
       filter.includes($0, projectID: projectFilter, agent: agentFilter, search: search)
-    }
+    })
   }
   var body: some View {
     HSplitView {
@@ -139,9 +140,10 @@ struct QueueView: View {
       if let id { model.markRead(id) }
       revealSelection()
     }
-    // A report that leaves the list after its status changes stays open, with its list shown.
-    .onChange(of: selectedIssue?.status) { _, _ in revealSelection() }
-    .onChange(of: selectedIssue?.archived) { _, _ in revealSelection() }
+    // A report that leaves the list after its status changes (verified, archived, answered)
+    // closes, and the list the person was working through stays.
+    .onChange(of: selectedIssue?.status) { _, _ in dropHiddenSelection() }
+    .onChange(of: selectedIssue?.archived) { _, _ in dropHiddenSelection() }
     // A list the person picks never keeps a report it doesn't show open beside it.
     .onChange(of: selection) { _, _ in dropHiddenSelection() }
     .onChange(of: projectFilter) { _, _ in dropHiddenSelection() }
@@ -181,13 +183,18 @@ struct QueueView: View {
       selection = .status(QueueFilter.showing(issue) ?? .active)
     }
   }
-  /// Shows the list the menu bar popover counted: that status, with no project, agent, or search.
+  /// Shows the list a popover row came from. Filters are kept when that report passes them, so
+  /// opening a report never wipes a search or project filter it doesn't need to.
   private func applyQueueFilterRequest() {
     guard let request = model.queueFilterRequest else { return }
     model.queueFilterRequest = nil
-    projectFilter = nil
-    agentFilter = nil
-    search = ""
+    if let issue = selectedIssue,
+      !request.includes(issue, projectID: projectFilter, agent: agentFilter, search: search)
+    {
+      projectFilter = nil
+      agentFilter = nil
+      search = ""
+    }
     selection = .status(request)
   }
   private func dropHiddenSelection() {
