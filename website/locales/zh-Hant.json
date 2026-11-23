@@ -115,6 +115,10 @@
         "a": "Codex、Claude Code 和 Grok Bot。Codex 與 Claude Code 在你的 Mac 上、隔離的 Git worktree 中執行，它們自己不會推送或開啟拉取請求。Grok Bot 在遠端：你儲存 webhook 後，ScreenClip 會把每份報告已確認的截圖推送到專案 GitHub 儲存庫的一個分支，供它讀取。可以在 Settings 裡選預設代理，也可以為新報告另選。後續截圖仍使用該報告原來的代理。"
       },
       {
+        "q": "程式代理能查看 ScreenClip 裡有哪些未完成的報告嗎？",
+        "a": "可以，適用於 Claude Code 和 Codex。在 Settings › Connections 中，Check tasks from your agents 可一鍵安裝 ScreenClip 的 MCP 伺服器。之後，任何專案裡的工作階段都可以問「Check this project’s ScreenClip tasks」，查看哪些報告未開始、進行中或受阻，以及每份報告的詳細內容。這些工具只會讀取你的佇列。Copy JSON 可設定其他 MCP 應用程式。"
+      },
+      {
         "q": "只能用來回報缺陷嗎？",
         "a": "不是。被裁切的控制項、費解的文字、彆扭的間距，或以後再用的想法，都可以截下來。只有截圖也夠。"
       },
@@ -183,13 +187,14 @@
       "可選的備註、手繪、箭頭、形狀、文字和不透明遮蓋",
       "從網站和原生 Mac App 截取",
       "Codex、Claude Code 和 Grok Bot",
-      "專案驗證、GitHub 拉取請求、可選合併和再測佇列"
+      "專案驗證、GitHub 拉取請求、可選合併和再測佇列",
+      "唯讀的 MCP 伺服器，讓 Claude Code 和 Codex 查看每個專案的報告"
     ]
   },
   "privacy": {
     "eyebrow": "隱私權政策",
     "title": "隱私權政策",
-    "updated": "更新於 2026 年 11 月 22 日。",
+    "updated": "更新於 2026 年 11 月 23 日。",
     "intro": "ScreenClip 是 macOS 選單列 App。你截取選取的區域，可選擇標註並加備註，然後把報告交給你設定的程式代理。本政策說明 App 在 Mac 上保存什麼、什麼可能離開，以及這個網站做什麼。",
     "staysTitle": "留在 Mac 上的內容",
     "stays1": "報告、截圖、備註、標註、專案設定、問題和活動保存在 Mac 上的 {code:appSupport}。佇列是 SQLite 資料庫加上影像檔。代理的工作在同一資料夾下的 Git worktree 中進行。你自己的專案檢出目錄不是工作目錄。",
@@ -206,6 +211,7 @@
     "localTitle": "Codex 和 Claude Code",
     "local1": "Codex 與 Claude Code 在你的 Mac 上執行。ScreenClip 把已確認的截圖、備註和提示交給該本機代理。其中不涉及任何 ScreenClip 伺服器。不過，ScreenClip 會把報告的截圖隨修正一起發布到專案的 GitHub 儲存庫，詳見下文的 GitHub 部分。",
     "local2": "代理使用你登入的帳戶：Codex 透過 app-server，Claude Code 透過它自己的登入。該代理可能依該帳戶的條款把提示和影像傳給自己的提供方。ScreenClip 啟動這些代理時，環境裡沒有 GitHub 權杖。推送分支和開啟拉取請求的是 ScreenClip，不是代理。",
+    "local3": "如果你為 Claude Code 或 Codex 安裝 ScreenClip 的 MCP 伺服器，該代理的工作階段就能讀取你的報告：標題、備註、狀態、問題和活動記錄。伺服器在你的 Mac 上執行，本身不傳送任何內容，但代理可能像處理提示詞一樣，把讀到的內容傳送給它的服務供應商。從代理中移除該伺服器即可停止。",
     "githubTitle": "GitHub",
     "github1": "拉取請求自動化使用你安裝的 GitHub CLI，以及該 CLI 登入的 GitHub 帳戶。ScreenClip 推送 {code:branch} 分支，並為 Codex 與 Claude Code 開啟拉取請求。它讀取檢查狀態，並且只在該專案啟用自動合併、檢查和審查規則都通過時才合併。",
     "github2": "拉取請求正文包含代理的摘要、已塗掉疑似祕密值的專案驗證命令，以及報告引用。對 Codex 與 Claude Code，ScreenClip 還會把報告的截圖隨修正一起提交，並以 Before / After 對比的形式嵌入拉取請求：你已確認的最終截圖（含你的標註和遮蓋），以及代理重新測試修正時截取的截圖。沒有可以關閉這項行為的設定。任何能讀取該儲存庫的人都能看到這些圖片；在公開儲存庫中，這表示網際網路上的任何人。在後續提交中移除這些檔案，並不會把它們從 Git 歷史中抹去。發布的只有最終截圖，絕不包括未遮蓋的裁切。",

@@ -115,6 +115,10 @@
         "a": "Codex, Claude Code und Grok Bot. Codex und Claude Code laufen auf deinem Mac in einem isolierten Git-Worktree und pushen nicht selbst und öffnen den Pull Request nicht. Grok Bot ist remote: Du speicherst einen Webhook, und ScreenClip pusht dafür die freigegebenen Screenshots jedes Berichts in einen Branch im GitHub-Repository des Projekts. Wähle einen Standardagenten in Settings oder einen für einen neuen Bericht. Eine Folgeaufnahme bleibt beim Agenten dieses Berichts."
       },
       {
+        "q": "Kann mein Coding-Agent sehen, was in ScreenClip offen ist?",
+        "a": "Ja, bei Claude Code und Codex. Unter Settings › Connections installiert Check tasks from your agents den MCP-Server von ScreenClip mit einem Klick. Eine Sitzung in jedem Projekt kann dann fragen: „Check this project’s ScreenClip tasks“, und sieht, was offen, in Arbeit und blockiert ist, samt Details jedes Berichts. Die Tools lesen deine Warteschlange nur. Copy JSON richtet andere MCP-Apps ein."
+      },
+      {
         "q": "Ist das nur für Fehler?",
         "a": "Nein. Erfasse ein abgeschnittenes Element, unklaren Text, ungünstigen Abstand oder eine Idee für später. Ein Screenshot allein reicht."
       },
@@ -183,13 +187,14 @@
       "Optionale Notizen, Zeichnung, Pfeile, Formen, Text und deckendes Schwärzen",
       "Aufnahmen von Websites und nativen Mac-Apps",
       "Codex, Claude Code und Grok Bot",
-      "Projektvalidierung, GitHub-Pull-Requests, optionaler Merge und Retest-Warteschlange"
+      "Projektvalidierung, GitHub-Pull-Requests, optionaler Merge und Retest-Warteschlange",
+      "Ein schreibgeschützter MCP-Server, mit dem Claude Code und Codex die Berichte jedes Projekts prüfen"
     ]
   },
   "privacy": {
     "eyebrow": "Datenschutz",
     "title": "Datenschutzerklärung",
-    "updated": "Aktualisiert am 22. November 2026.",
+    "updated": "Aktualisiert am 23. November 2026.",
     "intro": "ScreenClip ist eine Menüleisten-App für macOS. Du erfasst einen Bereich, den du auswählst, versiehst ihn bei Bedarf mit Markierung und Notiz und übergibst den Bericht einem Agenten, den du eingerichtet hast. Diese Erklärung beschreibt, was die App auf dem Mac speichert, was ihn verlassen kann und was diese Website tut.",
     "staysTitle": "Was auf dem Mac bleibt",
     "stays1": "Berichte, Screenshots, Notizen, Markierungen, Projekteinstellungen, Fragen und Aktivität liegen auf dem Mac unter {code:appSupport}. Die Warteschlange ist eine SQLite-Datenbank plus Bilddateien. Die Arbeit des Agenten läuft in einem Git-Worktree in demselben Ordner. Dein eigener Projekt-Checkout ist nicht das Arbeitsverzeichnis.",
@@ -206,6 +211,7 @@
     "localTitle": "Codex und Claude Code",
     "local1": "Codex und Claude Code laufen auf deinem Mac. ScreenClip übergibt den freigegebenen Screenshot, deine Notiz und die Anweisung an diesen lokalen Agenten. Ein ScreenClip-Server ist nicht beteiligt. ScreenClip veröffentlicht die Screenshots des Berichts aber zusammen mit dem Fix im GitHub-Repository des Projekts, wie unten unter GitHub beschrieben.",
     "local2": "Der Agent nutzt das Konto, bei dem du angemeldet bist: Codex über seinen app-server, Claude Code über die eigene Anmeldung. Dieser Agent kann Anweisung und Bilder unter den Bedingungen dieses Kontos an seinen Anbieter senden. ScreenClip startet diese Agenten ohne GitHub-Tokens in ihrer Umgebung. Branches pusht und Pull Requests öffnet ScreenClip, nicht der Agent.",
+    "local3": "Wenn du den MCP-Server von ScreenClip für Claude Code oder Codex installierst, können Sitzungen dieses Agenten deine Berichte lesen: Titel, Notizen, Status, Fragen und Aktivität. Der Server läuft auf deinem Mac und sendet selbst nichts, aber der Agent kann das Gelesene wie den Prompt an seinen Anbieter senden. Entferne den Server aus dem Agenten, um das zu beenden.",
     "githubTitle": "GitHub",
     "github1": "Die Pull-Request-Automatisierung nutzt die GitHub CLI, die du installierst, und das GitHub-Konto, bei dem diese CLI angemeldet ist. ScreenClip pusht einen Branch {code:branch} und öffnet für Codex und Claude Code den Pull Request. Es liest den Check-Status und mergt nur, wenn der automatische Merge für das Projekt aktiv ist und Checks sowie Review-Regeln bestanden sind.",
     "github2": "Der Text des Pull Requests enthält die Zusammenfassung des Agenten, den Validierungsbefehl des Projekts mit geschwärzten geheimnisähnlichen Werten und den Berichtshinweis. Bei Codex und Claude Code committet ScreenClip außerdem die Screenshots des Berichts mit dem Fix und bettet sie als Before / After-Vergleich in den Pull Request ein: die fertigen Screenshots, die du freigegeben hast, samt deinen Markierungen und Schwärzungen, und die Screenshots, die der Agent beim erneuten Test des Fixes aufgenommen hat. Es gibt keine Einstellung, die das abschaltet. Wer das Repository lesen kann, kann diese Bilder sehen; bei einem öffentlichen Repository ist das jeder im Internet. Das Entfernen der Dateien in einem späteren Commit löscht sie nicht aus der Git-Historie. Veröffentlicht werden nur die fertigen Screenshots, nie der ungeschwärzte Ausschnitt.",

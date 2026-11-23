@@ -115,6 +115,10 @@
         "a": "Codex, Claude Code y Grok Bot. Codex y Claude Code se ejecutan en tu Mac, en un Git worktree aislado, y no envían la rama ni abren la pull request. Grok Bot es remoto: guardas un webhook y ScreenClip envía para él las capturas aprobadas de cada informe a una rama del repositorio de GitHub del proyecto. Elige un agente predeterminado en Settings, o uno para un informe nuevo. Una captura de seguimiento se queda con el agente de ese informe."
       },
       {
+        "q": "¿Puede mi agente de código ver lo que está abierto en ScreenClip?",
+        "a": "Sí, con Claude Code y Codex. En Settings › Connections, Check tasks from your agents instala el servidor MCP de ScreenClip con un clic. Después, una sesión en cualquier proyecto puede preguntar “Check this project’s ScreenClip tasks” y ver qué está abierto, en curso y bloqueado, además de los detalles de cada informe. Las herramientas solo leen tu cola. Copy JSON configura otras apps MCP."
+      },
+      {
         "q": "¿Solo sirve para errores?",
         "a": "No. Captura un control cortado, un texto confuso, un espacio incómodo o una idea para después. Con la captura basta."
       },
@@ -183,13 +187,14 @@
       "Notas, dibujo, flechas, formas, texto y tachado opaco, todo opcional",
       "Capturas de sitios y de apps nativas de Mac",
       "Codex, Claude Code y Grok Bot",
-      "Validación del proyecto, pull requests de GitHub, fusión opcional y cola de nuevas pruebas"
+      "Validación del proyecto, pull requests de GitHub, fusión opcional y cola de nuevas pruebas",
+      "Un servidor MCP de solo lectura para que Claude Code y Codex consulten los informes de cada proyecto"
     ]
   },
   "privacy": {
     "eyebrow": "Política de privacidad",
     "title": "Política de privacidad",
-    "updated": "Actualizada el 22 de noviembre de 2026.",
+    "updated": "Actualizada el 23 de noviembre de 2026.",
     "intro": "ScreenClip es una app de la barra de menús de macOS. Capturas una zona que eliges, la anotas y le añades una nota si quieres, y entregas ese informe a un agente que configuras. Esta política describe qué guarda la app en tu Mac, qué puede salir y qué hace este sitio.",
     "staysTitle": "Qué se queda en el Mac",
     "stays1": "Los informes, capturas, notas, anotaciones, ajustes de proyecto, preguntas y actividad se guardan en el Mac, en {code:appSupport}. La cola es una base SQLite más archivos de imagen. El trabajo del agente corre en un Git worktree dentro de esa misma carpeta. Tu propia copia del proyecto no es el directorio de trabajo.",
@@ -206,6 +211,7 @@
     "localTitle": "Codex y Claude Code",
     "local1": "Codex y Claude Code se ejecutan en tu Mac. ScreenClip pasa la captura aprobada, tu nota y la petición a ese agente local. No interviene ningún servidor de ScreenClip. ScreenClip sí publica las capturas del informe en el repositorio de GitHub del proyecto junto con el arreglo, como se describe más abajo en GitHub.",
     "local2": "El agente usa la cuenta con la que iniciaste sesión: Codex a través de su app-server, Claude Code con su propio inicio de sesión. Ese agente puede enviar la petición y las imágenes a su proveedor según las condiciones de esa cuenta. ScreenClip arranca estos agentes sin tokens de GitHub en su entorno. ScreenClip, no el agente, envía ramas y abre pull requests.",
+    "local3": "Si instalas el servidor MCP de ScreenClip para Claude Code o Codex, las sesiones de ese agente pueden leer tus informes: títulos, notas, estados, preguntas y actividad. El servidor se ejecuta en tu Mac y no envía nada por sí mismo, pero el agente puede enviar lo que lee a su proveedor, como hace con el prompt. Quita el servidor del agente para evitarlo.",
     "githubTitle": "GitHub",
     "github1": "La automatización de pull requests usa el GitHub CLI que instalas y la cuenta de GitHub con la que ese CLI ha iniciado sesión. ScreenClip envía una rama {code:branch} y, para Codex y Claude Code, abre la pull request. Lee el estado de las comprobaciones y fusiona solo cuando la fusión automática está activada en ese proyecto y pasan las comprobaciones y las reglas de revisión.",
     "github2": "El cuerpo de la pull request incluye el resumen del agente, el comando de validación del proyecto con los valores que parecen secretos ocultos y la referencia del informe. Con Codex y Claude Code, ScreenClip también incluye las capturas del informe en el commit del arreglo y las inserta en la pull request como una comparación Before / After: las capturas finales que aprobaste, con tus anotaciones y tachados, y las capturas que el agente tomó al volver a probar el arreglo. No hay ningún ajuste que lo desactive. Cualquiera que pueda leer el repositorio puede ver esas imágenes; en un repositorio público, eso incluye a cualquier persona en internet. Quitar los archivos en un commit posterior no los borra del historial de Git. Solo se publican las capturas finales, nunca el recorte sin tachar.",
