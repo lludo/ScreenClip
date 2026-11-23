@@ -62,6 +62,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
         throw ScreenClipError.message("Choose a new --data-dir for the integration check.")
       }
       model = try AppModel(root: root, recoverInterruptedWork: !screenshotMode)
+      if !screenshotMode && !previewMode {
+        // Agents launch the copy in the data folder; keep it in step with this build.
+        AgentMCPSetup.refreshInstalledServer(
+          from: Bundle.main.url(forResource: "server", withExtension: "py"), dataFolder: root)
+      }
       if screenshotMode { ScreenshotFixture.configure(model) }
       capture = CaptureCoordinator(model: model)
       capture.onAbandon = { [weak self] in self?.restoreHiddenWindows() }

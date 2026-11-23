@@ -26,8 +26,9 @@ MAX_LIST_LIMIT = 200
 DEFAULT_ACTIVITY_LIMIT = 20
 MAX_ACTIVITY_LIMIT = 500
 READ_ONLY = {"readOnlyHint": True, "openWorldHint": False}
-PROJECT_PARAMETER = {"type": "string", "description": "Project name, or a path inside its repository or one of its worktrees. Pass your working directory to see only this project's reports."}
+PROJECT_PARAMETER = {"type": "string", "description": "Project name, or an absolute path inside its repository or one of its worktrees. Pass your working directory to see only this project's reports."}
 STATUS_HELP = "A group (open, in_progress, blocked, done) or one status (draft, needsProject, queued, working, prOpen, needsYou, failed, merged, verified, canceled)"
+BLOCKED_SHOWN = 20
 TOOLS = [
     {"name": "task_summary", "description": "Count ScreenClip reports by group: open (not started), in_progress (an agent is working or a PR is open), blocked (needs the tester's answer or failed), and done. Lists the blocked reports. Start here to check a project's tasks.", "inputSchema": {"type": "object", "properties": {"project": PROJECT_PARAMETER}, "additionalProperties": False}, "annotations": READ_ONLY},
     {"name": "list_issues", "description": "List ScreenClip reports, most recently updated first. Finished reports (done) are left out unless include_closed is true or status names them. The native app dispatches work; do not start a second agent for a working issue.", "inputSchema": {"type": "object", "properties": {"project": PROJECT_PARAMETER, "status": {"type": "string", "description": STATUS_HELP}, "include_closed": {"type": "boolean", "default": False}, "limit": {"type": "integer", "minimum": 1, "maximum": MAX_LIST_LIMIT, "default": DEFAULT_LIST_LIMIT}}, "additionalProperties": False}, "annotations": READ_ONLY},
@@ -80,16 +81,24 @@ def resolve_project(state, reference):
     by_name = [p for p in projects if str(p.get("name", "")).casefold() == reference.casefold()]
     if by_name:
         return by_name[0]
-    if reference.startswith(("/", "~")):
+    # A relative path ("." or "Sources") resolves against the folder the agent started the server in.
+    if reference.startswith(("/", "~", ".")) or os.sep in reference:
         path = Path(reference).expanduser().resolve()
         candidates = [path]
         main = main_repository(path)
         if main is not None:
             candidates.append(main.resolve())
+        # The deepest root wins, so a project nested in another one's repository is found.
+        matches = []
         for project in projects:
-            root = Path(str(project.get("path", ""))).expanduser().resolve()
+            stored = str(project.get("path") or "")
+            if not stored:
+                continue
+            root = Path(stored).expanduser().resolve()
             if any(c == root or root in c.parents for c in candidates):
-                return project
+                matches.append((len(root.parts), project))
+        if matches:
+            return max(matches, key=lambda match: match[0])[1]
         # ScreenClip's own worktrees live in its data folder, linked to a report.
         for issue in state.get("issues") or []:
             worktree = issue.get("worktreePath")
@@ -102,21 +111,22 @@ def resolve_project(state, reference):
     names = ", ".join(sorted(str(p.get("name")) for p in projects)) or "none"
     raise ValueError(f"No ScreenClip project matches {reference}. Known projects: {names}. Add the repository in ScreenClip's Settings › Projects.")
 
-def statuses_for(status):
+def statuses_for(status, issues):
     if status is None:
         return None
     if status in STATUS_GROUPS:
         return set(STATUS_GROUPS[status])
-    if status in GROUP_OF:
+    # A status from a newer app is accepted once a report has it.
+    if status in GROUP_OF or any(issue.get("status") == status for issue in issues):
         return {status}
     raise InvalidParams(f"status must be {STATUS_HELP}")
 
 def counts(issues):
+    """Reports per group. A status this server does not know yet is counted as "other"."""
     result = {group: 0 for group in STATUS_GROUPS}
     for issue in issues:
-        group = GROUP_OF.get(issue.get("status"))
-        if group:
-            result[group] += 1
+        group = GROUP_OF.get(issue.get("status"), "other")
+        result[group] = result.get(group, 0) + 1
     return result
 
 def updated(issue):
@@ -161,12 +171,14 @@ def call(name, arguments):
         scope = {"project": project.get("name"), "path": project.get("path")} if project else {"project": "all projects"}
     if name == "task_summary":
         blocked = sorted((i for i in live if GROUP_OF.get(i.get("status")) == "blocked"), key=updated, reverse=True)
-        summary = scope | {"counts": counts(live), "blocked": [{"reportNumber": i.get("reportNumber"), "title": i.get("title"), "status": i.get("status")} | ({} if project else {"project": project_names.get(i.get("projectID"))}) for i in blocked[:20]], "groups": STATUS_GROUPS}
+        summary = scope | {"counts": counts(live), "blocked": [{"reportNumber": i.get("reportNumber"), "title": i.get("title"), "status": i.get("status")} | ({} if project else {"project": project_names.get(i.get("projectID"))}) for i in blocked[:BLOCKED_SHOWN]], "groups": STATUS_GROUPS}
+        if len(blocked) > BLOCKED_SHOWN:
+            summary["note"] = f"Showing {BLOCKED_SHOWN} of {len(blocked)} blocked reports. Call list_issues with status blocked to see all."
         return {"content": [{"type": "text", "text": json.dumps(summary)}]}
     if name == "list_issues":
         include_closed = boolean(arguments, "include_closed")
         limit = integer(arguments, "limit", DEFAULT_LIST_LIMIT, 1, MAX_LIST_LIMIT)
-        wanted = statuses_for(status)
+        wanted = statuses_for(status, live)
         matching = [issue for issue in live if (issue.get("status") in wanted if wanted else include_closed or issue.get("status") not in CLOSED_STATUSES)]
         matching.sort(key=updated, reverse=True)
         issues = [{k: issue.get(k) for k in ["id", "reportNumber", "title", "status", "projectID", "revision", "prURL"]} | {"group": GROUP_OF.get(issue.get("status")), "project": project_names.get(issue.get("projectID")), "agent": issue.get("agent") or "codex"} for issue in matching[:limit]]

@@ -4,7 +4,7 @@ This local MCP plugin lets a Codex or Claude Code session read the queue, notes,
 
 ## Install from ScreenClip (easiest)
 
-Open ScreenClip › Settings › Connections › **Check tasks from your agents** and click **Install** next to Claude Code or Codex. ScreenClip copies this server to `~/Library/Application Support/ScreenClip/mcp/server.py`, so the path survives app updates, and registers it at user level (`claude mcp add --scope user` or `codex mcp add`). Every project's sessions then have the tools. **Copy command** gives the same command for Terminal, and **Copy JSON** gives an `mcpServers` block for other MCP apps. Start a new agent session after installing, then ask: “Check this project's ScreenClip tasks.”
+Open ScreenClip › Settings › Connections › **Check tasks from your agents** and click **Install** next to Claude Code or Codex. ScreenClip copies this server to `~/Library/Application Support/ScreenClip/mcp/server.py`, so the path survives app updates (each launch refreshes that copy), and registers it at user level (`claude mcp add --scope user` or `codex mcp add`). Every project's sessions then have the tools. **Copy command** gives the same command for Terminal, and **Copy JSON** gives an `mcpServers` block for other MCP apps. Start a new agent session after installing, then ask: “Check this project's ScreenClip tasks.” A development instance started with `--data-dir` registers itself as `screenclip-dev`, so it never replaces the everyday entry. When the Claude Code plugin is enabled, it already provides the tools, so Install stays off for Claude Code.
 
 ## Install from the repository
 
@@ -26,7 +26,7 @@ The default data folder is `~/Library/Application Support/ScreenClip`. For a dev
 - `list_issues(project?, status?, include_closed=false, limit=50)`: non-archived reports with report numbers, project, group, agents, and statuses, most recently updated first. `status` takes a group (`open`, `in_progress`, `blocked`, `done`) or one status. Merged, verified, and canceled reports are left out unless `include_closed` is true or `status` names them. The `agent` value is `codex`, `claude`, or `external` (Grok Bot). Older issues with no agent field are reported as Codex.
 - `get_issue(issue_id, include_images=false, activity_limit=20)`: issue context, the most recent activity entries (with `activityCount` for the total), and optional approved images. Accepts a UUID or report number such as `#234` or `234`, including archived reports. Original captures and private settings are excluded.
 
-`project` takes a project name or any path inside the project's repository: a subfolder, a linked Git worktree, or a ScreenClip worktree. An agent passes its working directory. An unknown project returns the list of known names.
+`project` takes a project name or any path inside the project's repository: a subfolder, a linked Git worktree, or a ScreenClip worktree. An agent passes its working directory. Relative paths such as `.` resolve against the folder the agent started the server in. When projects are nested, the deepest one wins. An unknown project returns the list of known names.
 
 Image inclusion requires the JSON boolean `true`. Strings such as `"false"`, numeric flags, and other mistyped arguments return a parameter error; they never opt a request into screenshot delivery.
 

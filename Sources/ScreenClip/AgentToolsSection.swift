@@ -53,6 +53,10 @@ struct AgentToolsSection: View {
     let isInstalled = installed[kind] == true
     let executable = executablePath(kind)
     let available = FileManager.default.isExecutableFile(atPath: executable)
+    // The Claude Code plugin already provides the tools; a user-level entry would duplicate them.
+    let fromPlugin = kind == .claude && isInstalled
+      && AgentMCPSetup.name(dataFolder: dataFolder) == AgentMCPSetup.serverName
+      && AgentMCPSetup.installedThroughPlugin()
     return HStack(alignment: .firstTextBaseline) {
       Image(systemName: isInstalled ? "checkmark.circle.fill" : "circle.dashed")
         .foregroundStyle(isInstalled ? Color.green : Color.secondary)
@@ -82,7 +86,7 @@ struct AgentToolsSection: View {
           Text(chrome: "Install", comment: "Installs the MCP server for this agent.")
         }
       }
-      .disabled(!available || installing != nil)
+      .disabled(!available || installing != nil || fromPlugin)
       .modifier(InstallButtonStyle(prominent: available && !isInstalled))
     }
   }
@@ -111,7 +115,9 @@ struct AgentToolsSection: View {
   }
 
   private func refresh() {
-    for kind in AgentMCPSetup.supportedAgents { installed[kind] = AgentMCPSetup.isInstalled(kind) }
+    for kind in AgentMCPSetup.supportedAgents {
+      installed[kind] = AgentMCPSetup.isInstalled(kind, dataFolder: dataFolder)
+    }
   }
 
   /// Copies the bundled server into the data folder; the stored path then outlives app updates.
@@ -137,13 +143,19 @@ struct AgentToolsSection: View {
     Task {
       defer { installing = nil; refresh() }
       let environment = ProcessEnvironment.agent()
-      // `mcp add` refuses a name that exists; removing first makes Reinstall update the path.
-      _ = try? await CommandRunner.run(
-        executable, AgentMCPSetup.removeArguments(kind), timeout: 30, environment: environment)
+      let add = AgentMCPSetup.installArguments(kind, server: server, dataFolder: dataFolder)
       do {
-        let result = try await CommandRunner.run(
-          executable, AgentMCPSetup.installArguments(kind, server: server, dataFolder: dataFolder),
-          timeout: 30, environment: environment)
+        var result = try await CommandRunner.run(
+          executable, add, timeout: 30, environment: environment)
+        // Replace an existing entry only when the agent refuses the add because of it, so a
+        // failing CLI never leaves the agent without the tools it had.
+        if result.status != 0, AgentMCPSetup.isAlreadyConfigured(result.error + result.output) {
+          _ = try await CommandRunner.run(
+            executable, AgentMCPSetup.removeArguments(kind, dataFolder: dataFolder), timeout: 30,
+            environment: environment)
+          result = try await CommandRunner.run(
+            executable, add, timeout: 30, environment: environment)
+        }
         if result.status != 0 {
           let detail = [result.error, result.output]
             .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.first { !$0.isEmpty }
