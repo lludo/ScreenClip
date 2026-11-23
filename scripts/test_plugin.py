@@ -175,6 +175,32 @@ class PluginTests(unittest.TestCase):
         result = json.loads(plugin.call("list_projects", {})["content"][0]["text"])
         self.assertEqual([(p["name"], p["counts"]["blocked"]) for p in result["projects"]], [("App", 1), ("Site", 1)])
         self.assertEqual(result["withoutProject"]["open"], 1)
+    def test_nested_project_and_relative_paths(self):
+        outer, inner = plugin.ROOT / "repos/Mono", plugin.ROOT / "repos/Mono/website"
+        (inner / "src").mkdir(parents=True)
+        (outer / ".git").mkdir()
+        projects = [{"id": "outer", "name": "Mono", "path": str(outer)}, {"id": "inner", "name": "Web", "path": str(inner)}, {"id": "blank", "name": "Blank", "path": ""}]
+        self.save_state(projects, [])
+        def project(reference):
+            return json.loads(plugin.call("task_summary", {"project": reference})["content"][0]["text"])["project"]
+        self.assertEqual(project(str(inner / "src")), "Web")
+        self.assertEqual(project(str(outer)), "Mono")
+        cwd = os.getcwd()
+        self.addCleanup(os.chdir, cwd)
+        os.chdir(inner / "src")
+        self.assertEqual(project("."), "Web")
+        self.assertEqual(project("../.."), "Mono")
+    def test_new_statuses_and_blocked_cap(self):
+        issues = [{"id": str(uuid.uuid4()), "reportNumber": n, "title": "t", "status": "needsYou", "updatedAt": n} for n in range(25)]
+        issues.append({"id": str(uuid.uuid4()), "reportNumber": 99, "title": "t", "status": "paused", "updatedAt": 99})
+        self.save_state([], issues)
+        summary = json.loads(plugin.call("task_summary", {})["content"][0]["text"])
+        self.assertEqual(summary["counts"]["other"], 1)
+        self.assertEqual(sum(summary["counts"].values()), 26)
+        self.assertEqual(len(summary["blocked"]), 20)
+        self.assertIn("20 of 25", summary["note"])
+        listed = json.loads(plugin.call("list_issues", {"status": "paused"})["content"][0]["text"])
+        self.assertEqual([i["reportNumber"] for i in listed], [99])
     def test_claude_code_plugin_manifests(self):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / "plugins/screenclip/.claude-plugin/plugin.json").read_text())

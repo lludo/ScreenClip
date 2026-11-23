@@ -29,8 +29,8 @@ final class AgentMCPSetupTests: XCTestCase {
     XCTAssertEqual(
       AgentMCPSetup.installArguments(.codex, server: server, dataFolder: standardData, home: home),
       ["mcp", "add", "screenclip", "--", "/usr/bin/python3", server.path])
-    XCTAssertEqual(AgentMCPSetup.removeArguments(.claude), ["mcp", "remove", "--scope", "user", "screenclip"])
-    XCTAssertEqual(AgentMCPSetup.removeArguments(.codex), ["mcp", "remove", "screenclip"])
+    XCTAssertEqual(AgentMCPSetup.removeArguments(.claude, dataFolder: standardData, home: home), ["mcp", "remove", "--scope", "user", "screenclip"])
+    XCTAssertEqual(AgentMCPSetup.removeArguments(.codex, dataFolder: standardData, home: home), ["mcp", "remove", "screenclip"])
     XCTAssertEqual(AgentMCPSetup.installArguments(.external, server: server, dataFolder: standardData), [])
   }
 
@@ -39,13 +39,16 @@ final class AgentMCPSetupTests: XCTestCase {
     let server = AgentMCPSetup.serverURL(dataFolder: data)
     let claude = AgentMCPSetup.installArguments(.claude, server: server, dataFolder: data, home: home)
     XCTAssertEqual(claude[4...5], ["-e", "SCREENCLIP_DATA_DIR=\(data.path)"])
+    XCTAssertEqual(claude[6], "screenclip-dev")
+    XCTAssertEqual(
+      AgentMCPSetup.removeArguments(.codex, dataFolder: data, home: home), ["mcp", "remove", "screenclip-dev"])
     let codex = AgentMCPSetup.installArguments(.codex, server: server, dataFolder: data, home: home)
     XCTAssertEqual(codex[2...3], ["--env", "SCREENCLIP_DATA_DIR=\(data.path)"])
     let command = AgentMCPSetup.terminalCommand(.claude, server: server, dataFolder: data, home: home)
     XCTAssertTrue(command.hasPrefix("claude mcp add --scope user -e 'SCREENCLIP_DATA_DIR="), command)
     let json = AgentMCPSetup.genericConfiguration(server: server, dataFolder: data, home: home)
     let object = try? JSONSerialization.jsonObject(with: Data(json.utf8)) as? [String: Any]
-    let entry = (object?["mcpServers"] as? [String: Any])?["screenclip"] as? [String: Any]
+    let entry = (object?["mcpServers"] as? [String: Any])?["screenclip-dev"] as? [String: Any]
     XCTAssertEqual(entry?["command"] as? String, "/usr/bin/python3")
     XCTAssertEqual(entry?["args"] as? [String], [server.path])
     XCTAssertEqual((entry?["env"] as? [String: String])?["SCREENCLIP_DATA_DIR"], data.path)
@@ -69,26 +72,54 @@ final class AgentMCPSetupTests: XCTestCase {
   }
 
   func testDetectsClaudeServerOrPlugin() throws {
-    XCTAssertFalse(AgentMCPSetup.isInstalled(.claude, home: home))
+    XCTAssertFalse(AgentMCPSetup.isInstalled(.claude, dataFolder: standardData, home: home))
     try write(#"{"mcpServers": {"other": {}}}"#, to: ".claude.json")
-    XCTAssertFalse(AgentMCPSetup.isInstalled(.claude, home: home))
+    XCTAssertFalse(AgentMCPSetup.isInstalled(.claude, dataFolder: standardData, home: home))
     try write(#"{"mcpServers": {"screenclip": {"command": "python3"}}}"#, to: ".claude.json")
-    XCTAssertTrue(AgentMCPSetup.isInstalled(.claude, home: home))
+    XCTAssertTrue(AgentMCPSetup.isInstalled(.claude, dataFolder: standardData, home: home))
     try write("{}", to: ".claude.json")
     try write(#"{"enabledPlugins": {"screenclip@screenclip": false}}"#, to: ".claude/settings.json")
-    XCTAssertFalse(AgentMCPSetup.isInstalled(.claude, home: home))
+    XCTAssertFalse(AgentMCPSetup.isInstalled(.claude, dataFolder: standardData, home: home))
     try write(#"{"enabledPlugins": {"screenclip@screenclip": true}}"#, to: ".claude/settings.json")
-    XCTAssertTrue(AgentMCPSetup.isInstalled(.claude, home: home))
+    XCTAssertTrue(AgentMCPSetup.isInstalled(.claude, dataFolder: standardData, home: home))
   }
 
   func testDetectsCodexServer() throws {
-    XCTAssertFalse(AgentMCPSetup.isInstalled(.codex, home: home))
+    XCTAssertFalse(AgentMCPSetup.isInstalled(.codex, dataFolder: standardData, home: home))
     try write("[mcp_servers.screenclip_other]\n[mcp_servers.screenclip.env]\n", to: ".codex/config.toml")
-    XCTAssertFalse(AgentMCPSetup.isInstalled(.codex, home: home))
+    XCTAssertFalse(AgentMCPSetup.isInstalled(.codex, dataFolder: standardData, home: home))
     try write("model = \"o3\"\n\n[mcp_servers.screenclip]\ncommand = \"python3\"\n", to: ".codex/config.toml")
-    XCTAssertTrue(AgentMCPSetup.isInstalled(.codex, home: home))
+    XCTAssertTrue(AgentMCPSetup.isInstalled(.codex, dataFolder: standardData, home: home))
     try write("[mcp_servers.\"screenclip\"]\n", to: ".codex/config.toml")
-    XCTAssertTrue(AgentMCPSetup.isInstalled(.codex, home: home))
-    XCTAssertFalse(AgentMCPSetup.isInstalled(.external, home: home))
+    XCTAssertTrue(AgentMCPSetup.isInstalled(.codex, dataFolder: standardData, home: home))
+    XCTAssertFalse(AgentMCPSetup.isInstalled(.external, dataFolder: standardData, home: home))
+  }
+
+  func testDevelopmentQueueIsDetectedUnderItsOwnName() throws {
+    let data = home.appendingPathComponent("Dev Queue")
+    try write("[mcp_servers.screenclip]\n", to: ".codex/config.toml")
+    XCTAssertFalse(AgentMCPSetup.isInstalled(.codex, dataFolder: data, home: home))
+    try write("[mcp_servers.screenclip-dev]\n", to: ".codex/config.toml")
+    XCTAssertTrue(AgentMCPSetup.isInstalled(.codex, dataFolder: data, home: home))
+    try write(#"{"enabledPlugins": {"screenclip@screenclip": true}}"#, to: ".claude/settings.json")
+    XCTAssertFalse(AgentMCPSetup.isInstalled(.claude, dataFolder: data, home: home))
+    XCTAssertTrue(AgentMCPSetup.installedThroughPlugin(home: home))
+  }
+
+  func testRefreshOnlyUpdatesAnInstalledCopy() throws {
+    let bundled = home.appendingPathComponent("bundled.py")
+    try "print('v2')".write(to: bundled, atomically: true, encoding: .utf8)
+    let copy = AgentMCPSetup.serverURL(dataFolder: standardData)
+    AgentMCPSetup.refreshInstalledServer(from: bundled, dataFolder: standardData)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: copy.path))
+    try write("print('v1')", to: "Library/Application Support/ScreenClip/mcp/server.py")
+    AgentMCPSetup.refreshInstalledServer(from: bundled, dataFolder: standardData)
+    XCTAssertEqual(try String(contentsOf: copy, encoding: .utf8), "print('v2')")
+    AgentMCPSetup.refreshInstalledServer(from: nil, dataFolder: standardData)
+  }
+
+  func testAlreadyConfiguredMessages() {
+    XCTAssertTrue(AgentMCPSetup.isAlreadyConfigured("MCP server screenclip already exists in user config"))
+    XCTAssertFalse(AgentMCPSetup.isAlreadyConfigured("command not found"))
   }
 }
