@@ -107,6 +107,10 @@
         "a": "ScreenClip est une app de la barre des menus de macOS. Appuyez sur Command-Shift-2, sélectionnez une zone d’un site ou d’une app Mac, ajoutez une note ou des marques si vous voulez, puis envoyez. Le rapport part vers Codex, Claude Code ou Grok Bot. Pour Codex et Claude Code, ScreenClip lance la commande de validation du projet et ouvre la pull request GitHub. Grok Bot l’ouvre depuis la branche poussée par ScreenClip, et ScreenClip la suit. Avec la fusion automatique, ScreenClip fusionne après la validation, les checks et les règles de revue. Les rapports fusionnés passent dans To retest."
       },
       {
+        "q": "Quelle différence avec une capture collée dans le chat d’un agent ?",
+        "a": "Une capture collée ouvre une seule conversation, que vous gérez ensuite à la main. ScreenClip enregistre chaque capture comme un rapport distinct, avec sa propre conversation d’agent et un worktree Git isolé, ce qui permet de mener plusieurs correctifs pendant que vous continuez à tester. Chaque rapport reçoit une pull request GitHub suivie par ScreenClip, et les correctifs fusionnés passent dans To retest."
+      },
+      {
         "q": "Quels agents de code sont pris en charge ?",
         "a": "Codex, Claude Code et Grok Bot. Codex et Claude Code s’exécutent sur votre Mac, dans un Git worktree isolé, et ne poussent pas la branche ni n’ouvrent la pull request. Grok Bot est distant : vous enregistrez un webhook, et ScreenClip pousse pour lui les captures approuvées de chaque rapport vers une branche du dépôt GitHub du projet. Choisissez un agent par défaut dans Settings, ou un agent pour un nouveau rapport. Une capture de suivi reste avec l’agent de ce rapport."
       },
@@ -137,6 +141,22 @@
       {
         "q": "Où apparaissent les questions de l’agent ?",
         "a": "Les questions de Codex et Claude Code apparaissent dans le signalement, où vous pouvez répondre. Celles de Grok Bot restent dans son chat. Cancel arrête le suivi local et peut demander l’annulation si la connexion le permet, mais l’exécution distante peut se poursuivre."
+      },
+      {
+        "q": "La capture reste-t-elle dans la pull request ?",
+        "a": "Oui. Les captures du rapport, aplaties avec vos annotations et masquages, sont commitées avec le correctif et intégrées à la pull request, avec les captures que l’agent prend après le correctif. Les originaux non masqués ne sont jamais publiés."
+      },
+      {
+        "q": "Capture-t-il la console du navigateur ou les requêtes réseau ?",
+        "a": "Non. Un rapport contient la zone que vous sélectionnez, votre note et vos marques. ScreenClip n’enregistre ni vidéo, ni console du navigateur, ni requêtes réseau, ni DOM de la page. Si l’agent a besoin de plus, ajoutez une note ou une autre capture au même rapport."
+      },
+      {
+        "q": "Et si mon cadrage est trop serré ?",
+        "a": "Ajoutez une deuxième capture, plus large, au même rapport. Cela reste un seul rapport et ne change pas le compteur. Vous pouvez aussi ajouter une note texte à tout moment, y compris pendant que l’agent travaille."
+      },
+      {
+        "q": "Quand un correctif arrive, ScreenClip rouvre-t-il l’app ou la même zone de l’écran ?",
+        "a": "Non. Un rapport fusionné passe dans To retest. ScreenClip ne relance pas l’app que vous testez et ne revient pas sur la zone capturée, et une fusion n’est pas un déploiement. Si le problème persiste, capturez-le à nouveau dans le même rapport, avec la version testée, et le travail continue dans la même conversation."
       },
       {
         "id": "cost",

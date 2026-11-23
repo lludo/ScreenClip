@@ -107,6 +107,10 @@
         "a": "O ScreenClip é um app da barra de menus do macOS. Pressione Command-Shift-2, selecione uma região de um site ou de um app de Mac, acrescente uma nota ou marcas se quiser e envie. O relatório vai para o Codex, Claude Code ou Grok Bot. Para Codex e Claude Code, o ScreenClip executa o comando de validação do projeto e abre o pull request no GitHub. O Grok Bot abre o pull request a partir do branch que o ScreenClip enviou, e o ScreenClip acompanha. Com o merge automático ativado, o ScreenClip faz o merge depois da validação, das verificações e das regras de review. Relatórios com merge vão para To retest."
       },
       {
+        "q": "Qual a diferença de colar uma captura no chat de um agente?",
+        "a": "Uma captura colada abre uma única conversa, que você depois gerencia à mão. O ScreenClip registra cada captura como um relatório próprio, com a sua conversa com o agente e um worktree Git isolado, então várias correções podem andar enquanto você continua testando. Cada relatório ganha um pull request no GitHub acompanhado pelo ScreenClip, e as correções com merge vão para To retest."
+      },
+      {
         "q": "Quais agentes de código ele aceita?",
         "a": "Codex, Claude Code e Grok Bot. Codex e Claude Code rodam no seu Mac, em um Git worktree isolado, e não enviam o branch nem abrem o pull request. O Grok Bot é remoto: você salva um webhook, e o ScreenClip envia para ele as capturas aprovadas de cada relatório a um branch no repositório do projeto no GitHub. Escolha um agente padrão em Settings, ou um para um relatório novo. Uma captura de acompanhamento fica com o agente daquele relatório."
       },
@@ -137,6 +141,22 @@
       {
         "q": "Onde aparecem as perguntas do agente?",
         "a": "As perguntas do Codex e do Claude Code aparecem no relato, onde você responde. As do Grok Bot ficam no chat dele. Cancel interrompe o registro local e pode solicitar cancelamento em conexões compatíveis, mas a execução remota ainda pode terminar."
+      },
+      {
+        "q": "A captura fica junto do pull request?",
+        "a": "Sim. As capturas do relatório, achatadas com suas anotações e ocultações, são commitadas com a correção e incorporadas ao pull request, junto com as capturas que o agente faz depois da correção. Os originais sem ocultação nunca são publicados."
+      },
+      {
+        "q": "Ele captura o console do navegador ou as requisições de rede?",
+        "a": "Não. Um relatório é a região que você seleciona, mais a sua nota e marcações. O ScreenClip não grava vídeo, o console do navegador, requisições de rede nem o DOM da página. Se o agente precisar de mais, adicione uma nota ou outra captura ao mesmo relatório."
+      },
+      {
+        "q": "E se o recorte ficar apertado demais?",
+        "a": "Adicione uma segunda captura, mais ampla, ao mesmo relatório. Continua sendo um relatório só e não aumenta a contagem. Você também pode adicionar uma nota de texto a qualquer momento, inclusive enquanto o agente trabalha."
+      },
+      {
+        "q": "Quando a correção chega, o ScreenClip reabre o app ou a mesma região da tela?",
+        "a": "Não. Um relatório com merge vai para To retest. O ScreenClip não reabre o app que você está testando nem volta à região capturada, e merge não é deploy. Se ainda estiver quebrado, capture de novo no mesmo relatório, com a versão que você testou, e o trabalho continua na mesma conversa."
       },
       {
         "id": "cost",

@@ -107,6 +107,10 @@
         "a": "ScreenClip is a macOS menu bar app. Press Command-Shift-2, select a region of a website or a Mac app, add a note or markup if you want, and submit. The report goes to Codex, Claude Code, or Grok Bot. For Codex and Claude Code, ScreenClip runs your project’s validation command and opens the GitHub pull request. Grok Bot opens the pull request from the branch ScreenClip pushed, and ScreenClip tracks it. With automatic merge enabled, ScreenClip merges after validation, checks, and review rules pass. Merged reports move to To retest."
       },
       {
+        "q": "How is this different from pasting a screenshot into an agent chat?",
+        "a": "A pasted screenshot starts one conversation that you then manage by hand. ScreenClip files each capture as its own report, with its own agent conversation and an isolated Git worktree, so several fixes can run while you keep testing. Each report gets a GitHub pull request that ScreenClip tracks, and merged fixes move to To retest."
+      },
+      {
         "q": "Which coding agents does it support?",
         "a": "Codex, Claude Code, and Grok Bot. Codex and Claude Code run on your Mac, in an isolated Git worktree, and do not push or open the pull request themselves. Grok Bot is remote: you save a webhook, and ScreenClip pushes each report’s approved screenshots to a branch in the project’s GitHub repository for it. Choose a default agent in Settings, or pick one for a new report. A follow-up capture stays with that report’s agent."
       },
@@ -137,6 +141,22 @@
       {
         "q": "Where do agent questions show up?",
         "a": "Codex and Claude Code questions appear on the report, and you reply there. Grok Bot questions stay in its chat. Cancel stops the local record and can request cancellation from a supported Grok Bot connection, but the remote run may still finish."
+      },
+      {
+        "q": "Does the screenshot stay with the pull request?",
+        "a": "Yes. The flattened report screenshots, with your annotations and redactions, are committed with the fix and embedded in the pull request, together with the screenshots the agent captures after the fix. Unredacted originals are never published."
+      },
+      {
+        "q": "Does it capture the browser console or network requests?",
+        "a": "No. A report is the region you select, plus your note and markup. ScreenClip does not record video, the browser console, network requests, or the page’s DOM. If the agent needs more, add a note or another screenshot to the same report."
+      },
+      {
+        "q": "What if my crop is too tight?",
+        "a": "Add a second, wider screenshot to the same report. It stays one report and does not add to the count. You can also add a text note at any time, including while the agent is working."
+      },
+      {
+        "q": "When a fix lands, does ScreenClip reopen the app or the same screen region?",
+        "a": "No. A merged report moves to To retest. ScreenClip does not relaunch the app you are testing or return to the captured region, and a merge is not a deploy. If it is still broken, capture it again on the same report, with the version you tested, and the work continues in the same conversation."
       },
       {
         "id": "cost",
