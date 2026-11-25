@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Debug only: lets ScreenClipKit find ScreenClip on your Mac. Merged into the generated Info.plist. -->
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_screenclip._tcp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>ScreenClip sends the reports you capture in this debug build to ScreenClip on your Mac.</string>
+</dict>
+</plist>

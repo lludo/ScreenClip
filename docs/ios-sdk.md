@@ -1,0 +1,136 @@
+# ScreenClip for iOS (ScreenClipKit)
+
+ScreenClip captures anything on a Mac screen, but it cannot see a physical iPhone. ScreenClipKit is a small Swift package you add to the **Debug** build of your own iOS app. A tester shakes the device (or takes a screenshot), annotates the app's screen, adds a note, and taps **Send**. The report goes straight into ScreenClip on the Mac. If the Mac is not reachable, the report is saved on the device and sent later.
+
+## Install
+
+The fastest way is to let your coding agent do it. In ScreenClip, open **Settings > iOS** and click **Copy agent prompt**, then paste it into Claude Code or Codex in your iOS project. The agent follows the [install skill](../plugins/screenclip/skills/install-ios-sdk/SKILL.md). The skill also ships in the ScreenClip plugin.
+
+By hand:
+
+1. Add the package `https://github.com/lludo/ScreenClip` and link the product **ScreenClipKit** to your app target. It needs iOS 17 or later.
+2. Start it once:
+   ```swift
+   #if DEBUG
+   import ScreenClipKit
+   #endif
+
+   // In your App init, or application(_:didFinishLaunchingWithOptions:)
+   #if DEBUG
+   ScreenClipKit.start()
+   #endif
+   ```
+3. Add two keys to the **Debug** Info.plist only: `NSBonjourServices` = `["_screenclip._tcp"]` and `NSLocalNetworkUsageDescription`. With a generated Info.plist, put them in a small `ScreenClip-Debug-Info.plist` and set `INFOPLIST_FILE` for the Debug configuration only. Xcode merges it with the generated keys. [`Examples/ScreenClipKitDemo`](../Examples/ScreenClipKitDemo) is a complete project set up this way.
+
+### Nothing ships in Release
+
+There are two layers. Your `#if DEBUG` guards keep the call out, and the package compiles to an empty stub outside Debug, so even an unguarded call does nothing. In a Release build of the demo app, `nm` finds no capture, pairing, or network symbols, `strings` finds no `_screenclip._tcp`, and the Info.plist has no Bonjour or Local Network keys. Only the empty `ScreenClipKit` enum and options type remain. Xcode always links a package product, so the stub can't be dropped completely.
+
+## Use
+
+1. On the Mac, open **Settings > iOS**, turn on **Receive reports from iOS devices**, and click **Pair a device…**.
+2. On the device, run the Debug build and shake. Tap the gear in the report sheet, then tap **Pair** next to your Mac. Confirm that both screens show the same 6-digit code, then click **Confirm** on the Mac.
+3. From then on: shake, draw (arrow, rectangle, ellipse, pen, text, redact), write a note, and tap **Send**. The report gets the iPhone icon in the queue.
+
+### Which project gets the report
+
+1. A project whose **App bundle IDs** list the app's bundle ID.
+2. Otherwise, the one project whose source declares that bundle ID. ScreenClip reads `PRODUCT_BUNDLE_IDENTIFIER` in every target and configuration of each Xcode project, plus `.xcconfig` files, Info.plists, XcodeGen `project.yml`, Tuist `Project.swift`, and `Package.swift` app products. It resolves build-setting variables from the same settings or any xcconfig; `.git`, `build`, `DerivedData`, `Pods`, and `node_modules` are skipped. A source match beats a match by app name.
+3. Otherwise, the one project whose name or folder matches the app's display name.
+4. Otherwise **Needs project**. Choosing a project saves the bundle ID on it, so the next report routes itself.
+
+When ScreenClip finds bundle IDs in a project's repository, the project editor shows them under **App bundle IDs (Mac and iOS)** with an **Add** button.
+
+Reports from iOS use the **Agent for iOS reports** chosen in Settings > iOS (agent, model, and effort), or each project's default. Choosing it there never changes the agent a project remembers for Mac captures.
+
+| Situation | What happens |
+| --- | --- |
+| Mac reachable | Sent at once. The toast says "Sent to *Mac*". |
+| Mac asleep, server off, other network | Saved on the device. It is sent automatically when the app is open and finds the Mac again. |
+| Mac wants it now | **Fetch** in Settings > iOS asks every connected device to send its saved reports. iOS apps cannot listen in the background, so this reaches devices with the app open. |
+| No network at all | In the SDK's settings, **Export or AirDrop to your Mac** shares `.screenclipreport` files. Open one on the Mac, or use **Import report file…**. Each report imports once. |
+
+**Triggers.** By default the SDK listens for shake, and after a system screenshot it shows a small "Report this screen?" banner. Both can be turned off in the SDK's settings, or chosen in code: `ScreenClipKit.start(triggers: [.screenshot])`. To use your own debug menu, call `ScreenClipKit.capture()` or `ScreenClipKit.showSettings()`.
+
+**Other tools that use shake.** ScreenClipKit doesn't take the gesture over. It wraps `-[UIWindow motionEnded:withEvent:]` and always calls the previous implementation first, so the app's own handling, shake-to-undo, and other debugging tools still receive it. Tools that install the same kind of hook later chain to it. A shake doesn't open the report sheet while an alert or another tool's overlay window is on screen. If the app already uses shake, the cleanest setup is `triggers: [.screenshot]` plus `capture()` from your existing menu.
+
+## The loop: file from the couch, install the fix tomorrow
+
+1. **Mac, once:**
+   - Turn on **Open at login** (General) and **Receive reports from iOS devices** (iOS).
+   - Leave **Keep this Mac awake while receiving iOS reports** on.
+   - Pick the **Agent for iOS reports** (agent, model, effort), or keep **Project default**.
+   - Turn on the project's automatic merge if you want fixes merged without you. Its validation command (for example `xcodebuild test`) and GitHub checks still have to pass.
+2. **Phone, while testing:** shake, annotate, send.
+   - **Mac reachable:** the report goes straight into the queue, routed by bundle ID, and the agent starts.
+   - **Mac not reachable:** the report waits on the phone and goes out as soon as the app is open and finds the Mac.
+   - **Leaving the app right after Send:** the SDK asks iOS for a little background time to finish sending.
+3. **Phone, any time:** the SDK's settings show **Waiting to send** and **Sent to Mac**. Each sent report shows its number, project, agent, and live status: Queued, Agent working, Needs you, PR open, Merged, Verified, Failed. A merged report links its pull request.
+4. **Next day:** pull and install the new build from Xcode, retest, and on each merged report tap:
+   - **Looks fixed:** marks it Verified on the Mac.
+   - **Still broken:** your next capture is added to the same report and goes back to its agent in a fresh worktree.
+5. **Mac, at any time:** the iOS tab shows each paired device, what is still waiting on it, and **Fetch**.
+
+**What keeps the Mac working.** ScreenClip prevents idle sleep while the iOS server is on (this can be turned off), and always while a report is queued, an agent is working, or a pull request is waiting to merge automatically. The display can still sleep. A laptop with its lid closed sleeps unless it is on power with an external display.
+
+**What still needs you:**
+- Installing the new build on the phone.
+- Answering a report that stops at **Needs you**. The phone shows the status; you answer on the Mac.
+
+## Diagnostics
+
+**Attach logs and diagnostics**, under the note, is on by default and can be turned off for a sensitive report. The files are attached to the report, but agents don't receive them up front. The prompt lists them with a one-line summary each and says where they are. An agent opens them only when the screenshot and note aren't enough.
+
+| File | What | How |
+| --- | --- | --- |
+| `logs.txt` | The app's unified-log entries (`Logger`, `os_log`, `NSLog`) from the 2 minutes before the capture, at most 500 lines. `com.apple.*` entries are kept only at error or fault level, and repeated lines are collapsed | `OSLogStore` scoped to the app's own process, read in the background while you annotate. If reading takes more than 8 seconds after you tap Send, the report goes without it |
+| `view-tree.json` | The captured window's views and accessibility elements, with identifiers, labels, values, traits, and frames in points. SwiftUI content, such as a `Button` with `.accessibilityIdentifier`, appears as accessibility elements with its full, untruncated label | Walked on the main thread while the composer opens. SwiftUI only builds accessibility elements while app accessibility is on, so the SDK switches it on for that half second, the same switch UI tests and Accessibility Inspector use, then switches it back off if it was off |
+| `device-state.json` | Memory footprint, CPU, thermal state, Low Power Mode, battery, free disk, network type, color scheme, Dynamic Type, Reduce Motion, Bold Text, Increase Contrast, VoiceOver, time zone, languages | Read at the moment of capture |
+| `console.txt` | The last 300 lines printed to stdout and stderr (`print`) | Only with `ScreenClipKit.start(ScreenClipOptions(captureConsoleOutput: true))`. Output still reaches Xcode's console |
+
+On the Mac:
+- **Storage:** each report's files go in their own folder under `diagnostics/` in ScreenClip's data folder, deleted along with the report.
+- **Limits:** only plain `.txt` and `.json` names are accepted, 4 MB in total.
+- **Redaction:** token-like strings in text files are replaced with `…`.
+- **Viewing:** the report's **Captured context** lists the files and has **Show diagnostics in Finder**.
+- **Agents:** Claude Code gets the folder with `--add-dir`, so it can read it without a permission prompt.
+- **MCP:** `get_issue` lists the files by name and summary, and returns their contents only with `include_diagnostics: true`.
+
+Grok Bot does not receive diagnostics.
+
+## What the Mac receives
+
+Only the approved image leaves the device: the screenshot with annotations and redactions burned in, at full pixel size. The device keeps no unredacted original. Each report carries:
+
+- app name, bundle ID, version, build, and an optional git SHA (Info.plist key `ScreenClipGitSHA`)
+- device model, OS version, locale, orientation, screen size and scale
+- the visible view-controller chain and the innermost screen title
+- optional diagnostics, described above
+
+The issue detail shows the device and screen. Agents get them in the prompt, and the MCP `get_issue` returns them as `context.device`.
+
+## How it works
+
+```mermaid
+flowchart LR
+    A[Shake or screenshot] --> B[Snapshot of the app's windows]
+    B --> C[Composer overlay window]
+    C --> D[On-device outbox]
+    D -- Bonjour _screenclip._tcp, paired and encrypted --> E[IOSReceiver on the Mac]
+    E --> F[Same queue as Mac captures]
+    D -. .screenclipreport file .-> F
+```
+
+- **Targets.** `ScreenClipWire` holds the shared annotation model, the Core Graphics renderer (the Mac app draws with the same code), the report and device types, and the protocol. `ScreenClipKit` is the iOS SDK. `IOSReceiver` in `ScreenClipCore` is the Mac listener. Both SDK targets compile to nothing on iOS outside Debug.
+- **Isolation.** The SDK draws in its own `UIWindow` above the app, so the app's view hierarchy, navigation, and SwiftUI state are never touched. Preferences live in their own defaults suite. Pairings are kept in the Keychain on this device only. Saved reports are kept in Application Support, excluded from backups.
+- **Pairing is required.** Reports become prompts for agents that can write to your repositories, so an unpaired device can never deliver one. The Mac accepts pairing only while the **Pair a device** sheet is open. Pairing is an ephemeral P-256 key agreement. Both sides derive a 32-byte key and a 6-digit comparison code from the shared secret, both public keys, and both nonces. A relay that swaps keys would show different codes. The Mac sends its welcome only after you confirm.
+- **Transport.** Length-prefixed JSON frames over TCP. After the clear `hello` / `challenge` handshake, every frame is sealed with ChaCha20-Poly1305 under per-direction keys derived from the pairing key and both nonces, with counter nonces, so frames can't be read, forged, replayed, or reordered. A device that claims a paired id without the key fails at the first sealed frame, and nothing is imported.
+- **Delivery.** The device removes a report only after the Mac's `ack`, which comes after the store commit. The capture keeps the report's id, so a resend after a lost ack is recognized as a duplicate.
+- **Arrival.** Reports go through the same path as a Mac submit: queued for the project's agent, or **Needs project**. **Save iOS reports as drafts** holds them as drafts instead.
+
+## Limits
+
+- iPhone and Mac must be on the same network, and Bonjour must not be blocked. A firewall prompt may appear on the Mac the first time the server starts.
+- Only the app's own windows are captured: no status bar, system alerts, or other apps.
+- App extensions and widgets are not supported. iOS 17 or later.
+- TestFlight builds are Release builds, so the SDK is off there. Importing TestFlight feedback is a planned follow-up.

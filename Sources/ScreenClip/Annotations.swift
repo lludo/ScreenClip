@@ -90,101 +90,21 @@ final class AnnotationView: NSView {
   }
 }
 enum AnnotationRenderer {
+  /// Draws into the current, flipped AppKit context with the renderer shared with the iOS SDK.
   static func draw(_ marks: [Annotation], in rect: CGRect) {
-    NSGraphicsContext.saveGraphicsState()
-    NSBezierPath(rect: rect).addClip()
-    defer { NSGraphicsContext.restoreGraphicsState() }
-    // Redactions are opaque and rendered underneath all visible marks.
-    for mark in marks.sorted(by: { $0.kind == .redact && $1.kind != .redact }) {
-      guard let first = mark.points.first else { continue }
-      func p(_ point: MarkPoint) -> CGPoint {
-        CGPoint(x: rect.minX + point.x * rect.width, y: rect.minY + point.y * rect.height)
-      }
-      let start = p(first)
-      let end = p(mark.points.last ?? first)
-      let box = CGRect(
-        x: min(start.x, end.x), y: min(start.y, end.y), width: abs(end.x - start.x),
-        height: abs(end.y - start.y))
-      let color = mark.color?.nsColor ?? .systemOrange
-      color.setStroke()
-      color.setFill()
-      let path = NSBezierPath()
-      path.lineWidth =
-        mark.lineWidth.map { max(0.5, rect.width * min(0.04, max(0.0005, $0))) }
-        ?? max(2, rect.width / 350)
-      path.lineCapStyle = .round
-      path.lineJoinStyle = .round
-      switch mark.kind {
-      case .redact:
-        NSColor.black.setFill()
-        box.integral.fill()
-      case .rectangle:
-        path.appendRect(box)
-        path.stroke()
-      case .ellipse:
-        path.appendOval(in: box)
-        path.stroke()
-      case .pen:
-        path.move(to: start)
-        for point in mark.points.dropFirst() { path.line(to: p(point)) }
-        path.stroke()
-      case .arrow:
-        path.move(to: start)
-        path.line(to: end)
-        path.stroke()
-        let angle = atan2(end.y - start.y, end.x - start.x)
-        let length = max(path.lineWidth * 3, rect.width / 40)
-        let head = NSBezierPath()
-        head.move(to: end)
-        head.line(
-          to: CGPoint(x: end.x - length * cos(angle - 0.45), y: end.y - length * sin(angle - 0.45)))
-        head.line(
-          to: CGPoint(x: end.x - length * cos(angle + 0.45), y: end.y - length * sin(angle + 0.45)))
-        head.close()
-        head.fill()
-      case .text:
-        let font = NSFont.systemFont(ofSize: max(16, rect.width / 40), weight: .semibold)
-        mark.text.draw(
-          at: start,
-          withAttributes: [
-            .font: font, .foregroundColor: color,
-            .backgroundColor: NSColor.black.withAlphaComponent(0.8),
-          ])
-      }
-    }
+    guard let context = NSGraphicsContext.current?.cgContext else { return }
+    AnnotationDrawing.draw(marks, in: rect, context: context)
   }
   static func png(image: NSImage, marks: [Annotation]) throws -> Data {
-    guard let source = image.cgImage(forProposedRect: nil, context: nil, hints: nil),
-      let space = CGColorSpace(name: CGColorSpace.sRGB),
-      let graphics = CGContext(
-        data: nil, width: source.width, height: source.height, bitsPerComponent: 8,
-        bytesPerRow: source.width * 4, space: space,
-        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
-    else { throw ScreenClipError.message("Could not render the annotated image.") }
-    NSGraphicsContext.saveGraphicsState()
-    let size = CGSize(width: source.width, height: source.height)
-    graphics.draw(source, in: CGRect(origin: .zero, size: size))
-    graphics.translateBy(x: 0, y: size.height)
-    graphics.scaleBy(x: 1, y: -1)
-    NSGraphicsContext.current = NSGraphicsContext(cgContext: graphics, flipped: true)
-    draw(marks, in: CGRect(origin: .zero, size: size))
-    NSGraphicsContext.restoreGraphicsState()
-    guard let rendered = graphics.makeImage(),
-      let data = NSBitmapImageRep(cgImage: rendered).representation(using: .png, properties: [:])
-    else { throw ScreenClipError.message("Could not encode the screenshot.") }
+    guard let source = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+      throw ScreenClipError.message("Could not render the annotated image.")
+    }
+    guard let data = AnnotationDrawing.renderPNG(image: source, marks: marks) else {
+      throw ScreenClipError.message("Could not encode the screenshot.")
+    }
     return data
   }
 }
 extension MarkColor {
-  var nsColor: NSColor {
-    switch self {
-    case .red: return NSColor(srgbRed: 1, green: 0.22, blue: 0.1, alpha: 1)
-    case .orange: return NSColor(srgbRed: 1, green: 0.55, blue: 0, alpha: 1)
-    case .yellow: return NSColor(srgbRed: 1, green: 0.85, blue: 0, alpha: 1)
-    case .green: return NSColor(srgbRed: 0.2, green: 0.8, blue: 0.35, alpha: 1)
-    case .blue: return NSColor(srgbRed: 0.1, green: 0.5, blue: 1, alpha: 1)
-    case .white: return .white
-    case .black: return .black
-    }
-  }
+  var nsColor: NSColor { NSColor(cgColor: cgColor) ?? .systemOrange }
 }

@@ -10,7 +10,7 @@ Open ScreenClip › Settings › Connections › **Check tasks from your agents*
 
 Requires Python 3.9+ and local execution. Add this folder to a local plugin marketplace using the supported Codex plugin setup, or configure the MCP server directly in Codex with `python3 /absolute/path/to/plugins/screenclip/server.py`. No cloud service or lifecycle hook is required.
 
-Claude Code: the repository root is a local plugin marketplace (`.claude-plugin/marketplace.json`). Install the plugin, which bundles the same MCP server and a `fix-report` skill for interactive fixes:
+Claude Code: the repository root is a local plugin marketplace (`.claude-plugin/marketplace.json`). Install the plugin, which bundles the same MCP server, a `fix-report` skill for interactive fixes, and an `install-ios-sdk` skill that adds [ScreenClipKit](../../docs/ios-sdk.md) to an iOS app's Debug build:
 
 ```sh
 claude plugin marketplace add /absolute/path/to/ScreenClip

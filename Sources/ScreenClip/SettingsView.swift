@@ -28,7 +28,8 @@ struct SettingsView: View {
       Group {
         if tab == 0 { generalSettings }
         else if tab == 1 { projectSettings }
-        else { connectionSettings }
+        else if tab == 2 { connectionSettings }
+        else { IOSSettingsView(model: model, receiver: model.iosReceiver, settings: $settings) }
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
       Divider()
@@ -67,6 +68,8 @@ struct SettingsView: View {
               .tag(1)
             Text(verbatim: Chrome.text("Connections", locale: locale, comment: "Settings tab for agent connections."))
               .tag(2)
+            Text(verbatim: Chrome.text("iOS", locale: locale, comment: "Settings tab for the iOS SDK and local server."))
+              .tag(3)
           } label: {
             Text(verbatim: Chrome.text("Settings", locale: locale, comment: "Label for the Settings tab picker."))
           }

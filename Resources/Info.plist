@@ -27,6 +27,21 @@
 			</array>
 		</dict>
 	</array>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeName</key>
+			<string>ScreenClip Report</string>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>LSHandlerRank</key>
+			<string>Owner</string>
+			<key>LSItemContentTypes</key>
+			<array>
+				<string>com.mirageteam.screenclip.report</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSMinimumSystemVersion</key>
@@ -45,6 +60,27 @@
 	<string>https://github.com/lludo/ScreenClip/releases/latest/download/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>cSRCTXXubTc/1M5//+kIB8k7yS8n/ozAtC2+++Mto74=</string>
+	<key>UTExportedTypeDeclarations</key>
+	<array>
+		<dict>
+			<key>UTTypeIdentifier</key>
+			<string>com.mirageteam.screenclip.report</string>
+			<key>UTTypeDescription</key>
+			<string>ScreenClip Report</string>
+			<key>UTTypeConformsTo</key>
+			<array>
+				<string>public.json</string>
+				<string>public.data</string>
+			</array>
+			<key>UTTypeTagSpecification</key>
+			<dict>
+				<key>public.filename-extension</key>
+				<array>
+					<string>screenclipreport</string>
+				</array>
+			</dict>
+		</dict>
+	</array>
 	<key>NSScreenCaptureUsageDescription</key>
 	<string>Capture a region you select to report an app issue to your AI coding assistant.</string>
 </dict>

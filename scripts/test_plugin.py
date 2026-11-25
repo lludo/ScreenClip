@@ -34,6 +34,24 @@ class PluginTests(unittest.TestCase):
         self.assertEqual(result["content"][1]["data"], "YXBwcm92ZWQ=")
         self.assertNotIn("original", result["content"][0]["text"])
         self.assertNotIn("secret", result["content"][0]["text"])
+    def test_diagnostics_are_listed_and_returned_only_when_asked(self):
+        folder = plugin.ROOT / "diagnostics/abc"
+        folder.mkdir(parents=True)
+        (folder / "logs.txt").write_text("12:00 info [app] tapped checkout")
+        self.issue["captures"][0]["diagnostics"] = {"folder": str(folder), "files": [{"name": "logs.txt", "summary": "1 line", "bytes": 32}, {"name": "../../screenclip.sqlite", "summary": "x", "bytes": 1}]}
+        self.save()
+        plain = plugin.call("get_issue", {"issue_id": self.id})["content"]
+        self.assertEqual(len(plain), 1)
+        listed = json.loads(plain[0]["text"])["captures"][0]["diagnostics"]
+        self.assertEqual(listed[0], {"name": "logs.txt", "summary": "1 line", "bytes": 32})
+        self.assertNotIn(str(folder), plain[0]["text"])
+        full = plugin.call("get_issue", {"issue_id": self.id, "include_diagnostics": True})["content"]
+        self.assertEqual(len(full), 2)
+        self.assertIn("tapped checkout", full[1]["text"])
+        self.issue["captures"][0]["diagnostics"]["folder"] = str(plugin.ROOT / "assets")
+        self.save()
+        with self.assertRaises(ValueError):
+            plugin.call("get_issue", {"issue_id": self.id, "include_diagnostics": True})
     def test_text_capture_with_images_requested(self):
         self.issue["captures"].insert(0, {"id": "note", "note": "Text only", "context": {}})
         self.save()

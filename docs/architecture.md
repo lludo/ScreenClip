@@ -34,6 +34,7 @@ flowchart LR
     I --> J[Menu bar and issue detail]
     J --> K[Exact agent conversation]
     D -. read-only .-> L[Optional MCP plugin]
+    M[ScreenClipKit in an iOS app] -- paired local network --> D
 ```
 
 Grok Bot does not take the local edit turn. ScreenClip still uses a worktree, but only to commit and push approved screenshots, then it watches the pull request the assistant opens.
@@ -51,6 +52,7 @@ Grok Bot does not take the local edit turn. ScreenClip still uses a worktree, bu
 | Dispatcher | Outbox, one job per issue, retry, the per-project limit, worktrees |
 | Agents | Codex and Claude Code locally; Grok Bot as a webhook ([details](agents/README.md)) |
 | GitHub | PR identity, checks, mergeability, and confirmed merge, via `gh` |
+| iOS | `IOSReceiver`: Bonjour `_screenclip._tcp` listener, pairing, sealed frames, reports from ScreenClipKit ([details](ios-sdk.md)) |
 
 Permission is decided by the ScreenCaptureKit call, not by gating on `CGPreflightScreenCaptureAccess`. A monitor separates an actual macOS denial, an executable replaced since launch, and other capture errors. Diagnostics record API error codes and build metadata in a bounded log, without image content or captured source context. Ad-hoc signatures change identity across rebuilds and can drop screen-recording permission, which is why local installs use a development certificate.
 
@@ -97,6 +99,9 @@ Secrets ScreenClip stores for itself go in the Keychain. Pull requests include t
 | `Sources/ScreenClip/AgentPrompt.swift` | The prompt and result schema local agents receive |
 | `Sources/ScreenClip/Localization.swift` | String Catalog lookup. User-written report text is not translated |
 | `Sources/ScreenClipCore/` | Model, store, routing, agent clients and their model/effort catalog (`AgentModels`), processes, Git, GitHub, and `MergeGuard` |
-| `plugins/screenclip/` | Read-only MCP server and the Claude Code `fix-report` skill |
+| `Sources/ScreenClipWire/` | Shared with the iOS SDK: annotation model, Core Graphics renderer, iOS report types, and the local-network protocol |
+| `Sources/ScreenClipKit/` | The iOS SDK (Debug builds only) |
+| `Examples/ScreenClipKitDemo/` | A small iOS app with ScreenClipKit installed the Debug-only way |
+| `plugins/screenclip/` | Read-only MCP server, the Claude Code `fix-report` skill, and the `install-ios-sdk` skill |
 | `scripts/` | Build, install, package, test, localization (including the `CompileStringCatalog` SwiftPM build plugin), probes, and the read-only queue review |
 | `website/` | The static site deployed as the Vercel project `screenclip-website` |

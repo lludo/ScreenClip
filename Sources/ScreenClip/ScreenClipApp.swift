@@ -118,6 +118,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       if previewMode { try PreviewSupport.seed(model: model) } else {
         model.worker.start()
         Updater.shared.start()
+        model.startSleepGuard()
+        model.startIOSServerIfEnabled()
       }
       if arguments.contains("--recover-reports") {
         Task { @MainActor [self] in
@@ -216,7 +218,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     openLinkedURLs(urls)
   }
   func openLinkedURLs(_ urls: [URL]) {
-    for url in urls {
+    // Report files exported or AirDropped from ScreenClipKit on iOS.
+    let reportFiles = urls.filter { $0.isFileURL && $0.pathExtension == ReportFile.pathExtension }
+    if !reportFiles.isEmpty, model.importIOSReportFiles(reportFiles) > 0 { showQueue() }
+    for url in urls where !url.isFileURL {
       switch ScreenClipURL.route(url) {
       case .issue(let id):
         guard model.issue(id) != nil else { continue }

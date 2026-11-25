@@ -45,6 +45,27 @@ struct GrokConnectionCheck: Equatable {
   let captureDiagnostics: CaptureDiagnostics
   let capturePermission: ScreenCapturePermission
   lazy var worker = AgentWorker(model: self)
+  /// Receives reports from ScreenClipKit in iOS apps. Started only when enabled in Settings.
+  lazy var iosReceiver: IOSReceiver = makeIOSReceiver()
+  var iosStatusSubscription: AnyCancellable?
+  let sleepGuard = SleepGuard()
+  private var sleepSubscription: AnyCancellable?
+
+  /// Holds off idle sleep while reports are in flight or the iOS server waits for devices.
+  /// Not started for tests or previews.
+  func startSleepGuard() {
+    sleepSubscription = $snapshot
+      .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+      .sink { [weak self] snapshot in
+        guard let self else { return }
+        self.sleepGuard.update(SleepGuard.reason(for: snapshot, iosServerRunning: self.iosReceiver.isRunning))
+      }
+  }
+  func refreshSleepGuard() {
+    sleepGuard.update(SleepGuard.reason(for: snapshot, iosServerRunning: iosReceiver.isRunning))
+  }
+  /// Reads the bundle IDs a repository declares. Tests replace it to avoid scanning disks.
+  var scanBundleIDs: (String) -> [BundleIDScanner.Declaration] = BundleIDScanner.cachedScan
   /// Reads the Grok Bot connection from the Keychain. Tests replace this so they do not touch credentials.
   var loadExternalAssistant: () -> ExternalAssistantConfiguration = {
     ExternalAssistantKeychain.load()
@@ -224,7 +245,8 @@ struct GrokConnectionCheck: Equatable {
   func submit(
     imageData: Data?, originalData: Data?, annotations: [Annotation], note: String,
     context: CaptureContext, projectID: UUID?, existingID: UUID?, draft: Bool,
-    agent: AgentKind? = nil, agentModel: String? = nil, agentEffort: String? = nil
+    agent: AgentKind? = nil, agentModel: String? = nil, agentEffort: String? = nil,
+    captureID: UUID? = nil, diagnostics: ReportDiagnostics? = nil, remembersAgentChoice: Bool = true
   ) throws {
     guard imageData != nil || !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
       throw ScreenClipError.message("Enter some context before saving.")
@@ -250,11 +272,14 @@ struct GrokConnectionCheck: Equatable {
     let replacedDraft = target.flatMap { $0.status == .draft ? $0 : nil }
     do {
       if approved != nil { original = try originalData.map { try store.writeAsset($0, original: true) } }
-      let capture = Capture(
+      var capture = Capture(
         note: note, imagePath: approved, originalPath: original, annotations: annotations,
         context: context)
+      // Reports from iOS keep the device's id, so a resend is recognized as a duplicate.
+      if let captureID { capture.id = captureID }
+      capture.diagnostics = diagnostics
       try commit { state in
-        if !draft, target == nil || target?.status == .draft,
+        if !draft, remembersAgentChoice, target == nil || target?.status == .draft,
           let index = state.projects.firstIndex(where: { $0.id == projectID })
         {
           state.projects[index].lastAgentChoice = choice
@@ -373,9 +398,16 @@ struct GrokConnectionCheck: Equatable {
         if let original { copied.append(original) }
         var context = capture.context
         context.routingReason = "Moved from another project by tester"
-        return Capture(
+        var moved = Capture(
           note: capture.note, imagePath: image, originalPath: original,
           annotations: capture.annotations, context: context)
+        if let diagnostics = capture.diagnostics,
+          let folder = try? store.copyDiagnostics(diagnostics.folder)
+        {
+          copied.append(folder)
+          moved.diagnostics = ReportDiagnostics(folder: folder, files: diagnostics.files)
+        }
+        return moved
       }
       guard let first = captures.first else {
         throw ScreenClipError.message("This report has no captures to move.")
