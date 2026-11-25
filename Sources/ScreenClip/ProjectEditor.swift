@@ -13,6 +13,9 @@ struct ProjectEditor: View {
   @State private var bundles = ""
   /// App bundle IDs declared in the repository's source (Xcode projects, xcconfigs, manifests).
   @State private var detectedBundles: [String] = []
+  /// The repository's default branch, and whether the typed base branch exists in it.
+  @State private var defaultBranch: String?
+  @State private var baseBranchMissing = false
   @State private var error: String?
   @Environment(\.dismiss) var dismiss
   @Environment(\.locale) private var locale
@@ -49,6 +52,23 @@ struct ProjectEditor: View {
         }
         TextField(text: $project.baseBranch) {
           Text(chrome: "Base branch", comment: "Git base branch field. The branch name itself is not translated.")
+        }
+        if baseBranchMissing {
+          HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+            Text(verbatim: missingBranchText)
+              .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 4)
+            if let defaultBranch {
+              Button {
+                project.baseBranch = defaultBranch
+              } label: {
+                Text(verbatim: Chrome.format(
+                  "project.useBranch", "Use \(defaultBranch)", locale: locale,
+                  comment: "Sets the base branch to the repository's default. %@ is a branch name and stays unchanged."))
+              }.controlSize(.small)
+            }
+          }
         }
         TextField(
           text: $origins,
@@ -201,6 +221,7 @@ struct ProjectEditor: View {
       .frame(maxWidth: embedded ? .infinity : nil, alignment: .leading)
       .onAppear { load(project) }
       .task(id: project.path) { await detectBundles() }
+      .task(id: project.path + "\u{0}" + project.baseBranch) { await checkBaseBranch() }
   }
   private var providerChoices: [AgentKind] {
     let connected = AgentKind.allCases.filter { model.detection($0)?.usable == true }
@@ -212,6 +233,44 @@ struct ProjectEditor: View {
     let listed = Set(bundles.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
     return detectedBundles.filter { !listed.contains($0) }
   }
+  private var missingBranchText: String {
+    if let defaultBranch {
+      return Chrome.format(
+        "project.missingBranchDefault",
+        "This repository has no branch “\(project.baseBranch)”. Its default branch is “\(defaultBranch)”.",
+        locale: locale,
+        comment: "Base branch warning. The first %@ is the typed branch, the second the repository's default. Branch names stay unchanged.")
+    }
+    return Chrome.format(
+      "project.missingBranch", "This repository has no branch “\(project.baseBranch)”.", locale: locale,
+      comment: "Base branch warning. %@ is the typed branch name and stays unchanged.")
+  }
+
+  /// Picks up the repository's default branch for a new folder, and flags a base branch the
+  /// repository does not have, so a report never fails on git's "invalid reference".
+  private func checkBaseBranch() async {
+    let path = project.path
+    let base = project.baseBranch.trimmingCharacters(in: .whitespaces)
+    guard !path.isEmpty, FileManager.default.fileExists(atPath: path + "/.git") else {
+      defaultBranch = nil
+      baseBranchMissing = false
+      return
+    }
+    try? await Task.sleep(nanoseconds: 250_000_000)  // settle while typing
+    guard !Task.isCancelled else { return }
+    let detected = await GitWorkspace.defaultBranch(at: path)
+    let exists = base.isEmpty ? false : await GitWorkspace.branchExists(base, at: path)
+    guard path == project.path, base == project.baseBranch.trimmingCharacters(in: .whitespaces) else { return }
+    defaultBranch = detected
+    if !exists, !isExisting, base.isEmpty || base == Project.defaultBaseBranch, let detected {
+      // A new project takes the repository's default instead of assuming "main".
+      project.baseBranch = detected
+      baseBranchMissing = false
+    } else {
+      baseBranchMissing = !exists
+    }
+  }
+
   private func detectBundles() async {
     let path = project.path
     guard !path.isEmpty else { return detectedBundles = [] }
