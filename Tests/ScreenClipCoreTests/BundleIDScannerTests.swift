@@ -75,6 +75,17 @@ final class BundleIDScannerTests: XCTestCase {
     XCTAssertFalse(BundleIDScanner.matches(pattern: "$(A).$(B)", "com.anything"))
   }
 
+  func testScansOnlyProjectYAMLAndResolvesEachConfigurationsOwnVariables() throws {
+    let root = try makeRepo([
+      "Debug.xcconfig": "PREFIX = dev.example\nPRODUCT_BUNDLE_IDENTIFIER = $(PREFIX).shop\n",
+      "Release.xcconfig": "PREFIX = com.example\nPRODUCT_BUNDLE_IDENTIFIER = $(PREFIX).shop\n",
+      "ci.yml": "PRODUCT_BUNDLE_IDENTIFIER: com.unrelated.app\n",
+      "project.yaml": "PRODUCT_BUNDLE_IDENTIFIER: com.generated.app\n",
+    ])
+    XCTAssertEqual(Set(BundleIDScanner.scan(root: root).map(\.identifier)),
+      ["dev.example.shop", "com.example.shop", "com.generated.app"])
+  }
+
   func testPicksTheProjectWhoseSourceDeclaresTheApp() {
     let shop = Project(name: "Shop", path: "/repos/shop")
     let tools = Project(name: "Tools", path: "/repos/tools")

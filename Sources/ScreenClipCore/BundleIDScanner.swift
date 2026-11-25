@@ -87,21 +87,28 @@ public enum BundleIDScanner {
   }
 
   public static func scan(root: URL) -> [Declaration] {
-    let files = candidateFiles(root: root)
+    let files = candidateFiles(root: root).sorted { $0.path < $1.path }
     // xcconfig values first, so project files can resolve variables they define.
-    var configValues: [String: String] = [:]
+    var configValues: [String: Set<String>] = [:]
+    var configurations: [(URL, [String: String])] = []
     var declarations: [Declaration] = []
     for file in files where file.pathExtension == "xcconfig" {
       guard let text = read(file) else { continue }
-      for (key, value) in buildSettings(inXcconfig: text) {
-        if key == "PRODUCT_BUNDLE_IDENTIFIER" {
-          declarations.append(Declaration(identifier: value, source: relative(file, root)))
-        } else if configValues[key] == nil {
-          configValues[key] = value
-        }
+      let settings = Dictionary(buildSettings(inXcconfig: text), uniquingKeysWith: { _, last in last })
+      configurations.append((file, settings))
+      for (key, value) in settings {
+        configValues[key, default: []].insert(value)
       }
     }
-    for file in files {
+    // A project can have different Debug and Release values for the same variable.
+    // Only borrow values from other files when all their declarations agree.
+    let shared = configValues.compactMapValues { $0.count == 1 ? $0.first : nil }
+    for (file, settings) in configurations {
+      if let id = settings["PRODUCT_BUNDLE_IDENTIFIER"] {
+        declarations.append(Declaration(identifier: resolve(id, block: settings, config: shared), source: relative(file, root)))
+      }
+    }
+    for file in files where file.pathExtension != "xcconfig" {
       guard let text = read(file) else { continue }
       let source = relative(file, root)
       switch file.pathExtension {
@@ -109,15 +116,15 @@ public enum BundleIDScanner {
         for block in buildSettingBlocks(inPbxproj: text) {
           guard let identifier = block["PRODUCT_BUNDLE_IDENTIFIER"] else { continue }
           declarations.append(
-            Declaration(identifier: resolve(identifier, block: block, config: configValues), source: source))
+            Declaration(identifier: resolve(identifier, block: block, config: shared), source: source))
         }
       case "plist":
         if let identifier = plistBundleIdentifier(text), !identifier.hasPrefix("$(PRODUCT_BUNDLE_IDENTIFIER") {
-          declarations.append(Declaration(identifier: resolve(identifier, block: [:], config: configValues), source: source))
+          declarations.append(Declaration(identifier: resolve(identifier, block: [:], config: shared), source: source))
         }
       case "yml", "yaml":
         for identifier in xcodeGenIdentifiers(text) {
-          declarations.append(Declaration(identifier: resolve(identifier, block: [:], config: configValues), source: source))
+          declarations.append(Declaration(identifier: resolve(identifier, block: [:], config: shared), source: source))
         }
       case "swift":
         for identifier in swiftManifestIdentifiers(text) {
@@ -149,7 +156,10 @@ public enum BundleIDScanner {
         continue
       }
       if values?.isDirectory == true {
-        if skippedFolders.contains(name) || enumerator.level > maximumDepth { enumerator.skipDescendants() }
+        if skippedFolders.contains(name) || enumerator.level > maximumDepth {
+          enumerator.skipDescendants()
+          continue
+        }
         // .xcodeproj is a package: look inside for project.pbxproj.
         if url.pathExtension == "xcodeproj" {
           let project = url.appendingPathComponent("project.pbxproj")
@@ -160,7 +170,7 @@ public enum BundleIDScanner {
       switch url.pathExtension {
       case "xcconfig": files.append(url)
       case "plist" where name.lowercased().contains("info"): files.append(url)
-      case "yml", "yaml" where name == "project.yml" || name == "project.yaml": files.append(url)
+      case "yml" where name == "project.yml", "yaml" where name == "project.yaml": files.append(url)
       case "swift" where name == "Project.swift" || name == "Package.swift": files.append(url)
       default: break
       }

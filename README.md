@@ -46,6 +46,7 @@ The full map is the [documentation index](docs/README.md).
 
 - [Getting started](docs/getting-started.md) — requirements, install or build, first capture
 - [User guide](docs/user-guide.md) — the queue, moving a report, privacy, screen recording
+- [ScreenClip for iOS](docs/ios-sdk.md) — install ScreenClipKit in a Debug build and pair an iPhone or iPad with your Mac
 - [Coding agents](docs/agents/README.md) — Codex, Claude Code, and Grok Bot
 - [Architecture](docs/architecture.md) — the store, worktrees, and who owns merge
 - [Development](docs/development.md) — tests, CI, contributing

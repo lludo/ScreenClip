@@ -61,6 +61,7 @@ public final class LinkConnection: @unchecked Sendable {
     queue.async {
       do {
         let json = try Frame.json(message)
+        guard json.count <= Frame.maximumLength - Frame.sealedOverhead else { throw WireError.tooLarge }
         let frame: Data
         if var channel = self.channel {
           frame = Frame.encode(kind: .sealed, payload: try channel.seal(json))
@@ -91,6 +92,8 @@ public final class LinkConnection: @unchecked Sendable {
       guard let data, let length = Frame.length(header: data) else {
         return self.finish(done ? nil : WireError.malformed)
       }
+      // Hello, challenge and rejection only carry identity strings, keys and nonces.
+      if self.channel == nil, length > 64 * 1024 { return self.finish(WireError.tooLarge) }
       self.receiveBody(length)
     }
   }

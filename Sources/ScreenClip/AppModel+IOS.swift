@@ -13,7 +13,10 @@ extension AppModel {
       return try self.importIOSReport(report)
     }
     receiver.reportStates = { [weak self] ids in self?.iosReportStates(ids) ?? [] }
-    receiver.verifyReport = { [weak self] id in try self?.verifyIOSReport(id) }
+    receiver.verifyReport = { [weak self] id in
+      guard let self else { throw ScreenClipError.message("ScreenClip is closing.") }
+      try self.verifyIOSReport(id)
+    }
     // Devices show where their reports stand; push changes as the queue moves.
     iosStatusSubscription = $snapshot
       .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
@@ -27,7 +30,7 @@ extension AppModel {
       guard let issue = snapshot.issues.first(where: { $0.captures.contains { $0.id == id } }) else {
         return ReportState(
           id: id, reportNumber: nil, title: "", status: ReportState.removed, projectName: nil, agent: nil,
-          pullRequestURL: nil, updatedAt: Date())
+          pullRequestURL: nil, updatedAt: .distantPast)
       }
       return ReportState(
         id: id, reportNumber: issue.reportNumber, title: issue.title, status: issue.status.rawValue,
@@ -101,21 +104,38 @@ extension AppModel {
     if let image = report.image, PNG.decode(image) == nil {
       throw ScreenClipError.message("The screenshot in this report could not be read.")
     }
-    if let original = report.followUpOf,
-      let issue = snapshot.issues.first(where: { $0.captures.contains { $0.id == original } })
-    {
-      return try importIOSFollowUp(report, to: issue)
-    }
     var context = Self.captureContext(for: report, sessionName: snapshot.settings.sessionName)
-    let decision = Self.route(context, projects: snapshot.projects, scan: scanBundleIDs)
-    context.routingReason = decision.reason
-    let drafts = snapshot.settings.iosReportsAsDrafts == true
+    let existingID: UUID?
+    let projectID: UUID?
+    let notification: String
+    var note = report.note
+    if let original = report.followUpOf {
+      guard let issue = snapshot.issues.first(where: { $0.captures.contains { $0.id == original } }) else {
+        throw ScreenClipError.message("The original report for this follow-up could not be found on this Mac.")
+      }
+      existingID = issue.id
+      projectID = issue.projectID
+      context.routingReason = "Follow-up from iOS"
+      if note.isEmpty { note = "Still broken after the fix." }
+      notification = Chrome.format(
+        "ios.notification.followUp", "\(report.device.deviceName) says this is still broken",
+        comment: "Notification body when an iOS follow-up arrives. %@ is the device name.")
+    } else {
+      let decision = Self.route(context, projects: snapshot.projects, scan: scanBundleIDs)
+      existingID = nil
+      projectID = decision.projectID
+      context.routingReason = decision.reason
+      notification = Chrome.format(
+        "ios.notification.received", "New report from \(report.device.deviceName)",
+        comment: "Notification body when an iOS report arrives. %@ is the device name.")
+    }
+    let drafts = existingID == nil && snapshot.settings.iosReportsAsDrafts == true
     let diagnostics = try saveDiagnostics(report.diagnostics)
     do {
-      let choice = snapshot.settings.iosAgentChoice
+      let choice = existingID == nil ? snapshot.settings.iosAgentChoice : nil
       try submit(
-        imageData: report.image, originalData: nil, annotations: [], note: report.note,
-        context: context, projectID: decision.projectID, existingID: nil, draft: drafts,
+        imageData: report.image, originalData: nil, annotations: [], note: note,
+        context: context, projectID: projectID, existingID: existingID, draft: drafts,
         agent: choice?.agent, agentModel: choice?.model, agentEffort: choice?.effort,
         captureID: report.id, diagnostics: diagnostics,
         // An automatic iOS default is not the tester's pick for the project's next Mac capture.
@@ -125,12 +145,7 @@ extension AppModel {
       throw error
     }
     if let issue = snapshot.issues.first(where: { $0.captures.contains { $0.id == report.id } }) {
-      notify(
-        issue,
-        text: Chrome.format(
-          "ios.notification.received",
-          "New report from \(report.device.deviceName)",
-          comment: "Notification body when an iOS report arrives. %@ is the device name."))
+      notify(issue, text: notification)
     }
     return .imported
   }
@@ -151,43 +166,19 @@ extension AppModel {
     return RoutingDecision(projectID: declaring[0].id, reason: sourceMatchReason)
   }
 
-  /// "Still broken" from the device: the capture joins the original report, which goes back to
-  /// its agent. A merged or verified report starts a fresh worktree for the follow-up.
-  private func importIOSFollowUp(_ report: WireReport, to issue: Issue) throws -> IOSReceiver.ImportResult {
-    var context = Self.captureContext(for: report, sessionName: snapshot.settings.sessionName)
-    context.routingReason = "Follow-up from iOS"
-    let diagnostics = try saveDiagnostics(report.diagnostics)
-    do {
-      try submit(
-        imageData: report.image, originalData: nil, annotations: [],
-        note: report.note.isEmpty ? "Still broken after the fix." : report.note, context: context,
-        projectID: issue.projectID, existingID: issue.id, draft: false, captureID: report.id,
-        diagnostics: diagnostics, remembersAgentChoice: false)
-    } catch {
-      if let folder = diagnostics?.folder { try? FileManager.default.removeItem(atPath: folder) }
-      throw error
-    }
-    if let updated = self.issue(issue.id) {
-      notify(
-        updated,
-        text: Chrome.format(
-          "ios.notification.followUp", "\(report.device.deviceName) says this is still broken",
-          comment: "Notification body when an iOS follow-up arrives. %@ is the device name."))
-    }
-    return .imported
-  }
-
   /// Stores a report's optional diagnostic files. Only plain `.txt` and `.json` names are kept,
   /// within the size limit, and token-like strings in text files are hidden.
   func saveDiagnostics(_ files: [DiagnosticFile]?) throws -> ReportDiagnostics? {
     var seen = Set<String>()
     var total = 0
     var accepted: [DiagnosticFile] = []
-    for var file in files ?? [] where file.hasSafeName && seen.insert(file.name).inserted {
+    for var file in files ?? [] where file.hasSafeName && !seen.contains(file.name) {
+      guard file.data.count <= DiagnosticFile.maximumTotalBytes else { continue }
       if file.name.hasSuffix(".txt") {
         file.data = Data(GitHubService.redactTokens(String(decoding: file.data, as: UTF8.self)).utf8)
       }
       guard total + file.data.count <= DiagnosticFile.maximumTotalBytes else { continue }
+      seen.insert(file.name)
       total += file.data.count
       file.summary = String(file.summary.prefix(200))
       accepted.append(file)

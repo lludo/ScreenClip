@@ -10,8 +10,13 @@
 		5C0000000000000000000010 /* ScreenClipKit in Frameworks */ = {isa = PBXBuildFile; productRef = 5C0000000000000000000011 /* ScreenClipKit */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		5C0000000000000000000026 = {isa = PBXContainerItemProxy; containerPortal = 5C000000000000000000000C; proxyType = 1; remoteGlobalIDString = 5C0000000000000000000006; remoteInfo = ScreenClipKitDemo; };
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		5C0000000000000000000001 /* ScreenClipKitDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = ScreenClipKitDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		5C0000000000000000000020 /* ScreenClipKitDemoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = ScreenClipKitDemoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -20,6 +25,7 @@
 			path = ScreenClipKitDemo;
 			sourceTree = "<group>";
 		};
+		5C0000000000000000000021 /* ScreenClipKitDemoTests */ = {isa = PBXFileSystemSynchronizedRootGroup; path = ScreenClipKitDemoTests; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -38,6 +44,7 @@
 			isa = PBXGroup;
 			children = (
 				5C0000000000000000000002 /* ScreenClipKitDemo */,
+				5C0000000000000000000021 /* ScreenClipKitDemoTests */,
 				5C0000000000000000000005 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -45,6 +52,7 @@
 		5C0000000000000000000005 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				5C0000000000000000000020 /* ScreenClipKitDemoTests.xctest */,
 				5C0000000000000000000001 /* ScreenClipKitDemo.app */,
 			);
 			name = Products;
@@ -75,6 +83,18 @@
 			productName = ScreenClipKitDemo;
 			productReference = 5C0000000000000000000001 /* ScreenClipKitDemo.app */;
 			productType = "com.apple.product-type.application";
+		};
+		5C0000000000000000000022 /* ScreenClipKitDemoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5C0000000000000000000023;
+			buildPhases = (5C0000000000000000000024 /* Sources */);
+			buildRules = ();
+			dependencies = (5C0000000000000000000025 /* Demo host */);
+			fileSystemSynchronizedGroups = (5C0000000000000000000021 /* ScreenClipKitDemoTests */);
+			name = ScreenClipKitDemoTests;
+			productName = ScreenClipKitDemoTests;
+			productReference = 5C0000000000000000000020;
+			productType = "com.apple.product-type.bundle.unit-test";
 		};
 /* End PBXNativeTarget section */
 
@@ -108,6 +128,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				5C0000000000000000000022 /* ScreenClipKitDemoTests */,
 				5C0000000000000000000006 /* ScreenClipKitDemo */,
 			);
 		};
@@ -131,7 +152,12 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		5C0000000000000000000024 /* Sources */ = {isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = (); runOnlyForDeploymentPostprocessing = 0; };
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5C0000000000000000000025 = {isa = PBXTargetDependency; target = 5C0000000000000000000006; targetProxy = 5C0000000000000000000026; };
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		5C0000000000000000000012 /* Debug */ = {
@@ -180,6 +206,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "ScreenClip Demo";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -201,6 +228,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = "ScreenClip Demo";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -210,6 +238,32 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5C0000000000000000000027 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.ScreenClipKitDemoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ScreenClipKitDemo.app/ScreenClipKitDemo";
+			};
+			name = Debug;
+		};
+		5C0000000000000000000028 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.ScreenClipKitDemoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ScreenClipKitDemo.app/ScreenClipKitDemo";
 			};
 			name = Release;
 		};
@@ -234,6 +288,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		5C0000000000000000000023 = {isa = XCConfigurationList; buildConfigurations = (5C0000000000000000000027, 5C0000000000000000000028); defaultConfigurationIsVisible = 0; defaultConfigurationName = Release; };
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */

@@ -8,6 +8,7 @@ From the repository root:
 
 ```sh
 bash scripts/test.sh
+python3 scripts/test_ios_sdk.py
 python3 scripts/test_plugin.py
 python3 scripts/test_review_queue.py
 python3 scripts/test_external_assistant.py
@@ -16,6 +17,8 @@ node website/test_locale.mjs
 ```
 
 `bash scripts/test.sh` runs `python3 scripts/check_localizations.py` and then `swift test --disable-sandbox`. Extra arguments are passed through, for example `bash scripts/test.sh --filter SafetyTests`.
+
+The iOS check runs the SDK tests inside the demo app on an installed iPhone simulator. It then builds an unsigned Release app for iOS and inspects both products for the expected SDK symbols and network declarations. Set `SCREENCLIP_IOS_SIMULATOR_ID` to select a specific simulator.
 
 `bash scripts/build.sh debug` and `bash scripts/build.sh release` build the Xcode scheme without installing. Release builds enable the hardened runtime. Debug builds do not. Products land in `build/DerivedData/Build/Products/`.
 

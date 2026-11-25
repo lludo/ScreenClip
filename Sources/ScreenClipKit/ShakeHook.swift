@@ -10,10 +10,10 @@
   /// this one. If a view in the app consumes the shake without calling `super`, the window never
   /// sees it; use `ScreenClipKit.capture()` or the screenshot trigger then.
   enum ShakeHook {
-    nonisolated(unsafe) private static var handler: (() -> Void)?
+    nonisolated(unsafe) private static var handler: ((UIWindowScene) -> Void)?
     nonisolated(unsafe) private static var installed = false
 
-    static func install(_ action: @escaping () -> Void) {
+    static func install(_ action: @escaping (UIWindowScene) -> Void) {
       handler = action
       guard !installed else { return }
       installed = true
@@ -26,7 +26,9 @@
         receiver, motion, event in
         previous(receiver, selector, motion, event)
         guard motion == .motionShake else { return }
-        DispatchQueue.main.async { handler?() }
+        DispatchQueue.main.async {
+          if let scene = (receiver as? UIWindow)?.windowScene { handler?(scene) }
+        }
       }
       let implementation = imp_implementationWithBlock(block)
       // UIWindow usually inherits the method from UIResponder: add an override that calls the
