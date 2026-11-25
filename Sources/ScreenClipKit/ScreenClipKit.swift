@@ -33,7 +33,7 @@ public struct ScreenClipOptions: Sendable {
   /// ```
   /// The SDK compiles to an empty stub outside Debug builds.
   @MainActor public enum ScreenClipKit {
-    /// Starts ScreenClip. Safe to call more than once; later calls only update the triggers.
+    /// Starts ScreenClip. Later calls update the triggers. Once enabled, console capture lasts for the process lifetime.
     public static func start(_ options: ScreenClipOptions = ScreenClipOptions()) {
       KitRuntime.shared.start(options)
     }

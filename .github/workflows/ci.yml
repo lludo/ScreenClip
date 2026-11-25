@@ -19,6 +19,8 @@ jobs:
         run: bash scripts/sandbox-diagnostic.sh
       - name: Native tests
         run: bash scripts/test.sh
+      - name: iOS SDK tests and Release isolation
+        run: python3 scripts/test_ios_sdk.py
       - name: Python tests
         run: |
           python3 scripts/test_plugin.py

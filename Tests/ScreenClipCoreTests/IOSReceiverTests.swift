@@ -22,14 +22,16 @@ import XCTest
       exchange = pairing ? PairingExchange() : nil
       link = LinkConnection(
         connection: NWConnection(host: "127.0.0.1", port: port, using: LinkConnection.tcpParameters()))
-      link.onReady = { [unowned self] in
+      link.onReady = { [weak self] in
+        guard let self else { return }
         self.link.send(
           .hello(
             Hello(
               deviceID: self.deviceID, deviceName: "QA iPhone", deviceModel: "iPhone17,1", appName: "Shop",
               bundleID: "com.example.shop", nonce: self.nonce, pairingPublicKey: self.exchange?.publicKey)))
       }
-      link.onMessage = { [unowned self] message in
+      link.onMessage = { [weak self] message in
+        guard let self else { return }
         self.messages.append(message)
         if case .challenge(let challenge) = message {
           if let exchange = self.exchange, let serverKey = challenge.pairingPublicKey,
@@ -47,17 +49,20 @@ import XCTest
         }
         self.onMessage?(message)
       }
-      link.onClose = { [unowned self] _ in self.closed = true }
+      link.onClose = { [weak self] _ in self?.closed = true }
       link.start()
     }
   }
 
   private var saved: [IOSReceiver.DeviceRecord] = []
 
-  private func makeReceiver() throws -> (IOSReceiver, NWEndpoint.Port) {
+  private func makeReceiver(refuseSave: Bool = false) throws -> (IOSReceiver, NWEndpoint.Port) {
     saved = []
     let receiver = IOSReceiver(
-      macID: UUID(), macName: "Test Mac", loadRecords: { [] }, saveRecords: { [weak self] in self?.saved = $0 })
+      macID: UUID(), macName: "Test Mac", loadRecords: { [] }, saveRecords: { [weak self] records in
+        if refuseSave { throw CocoaError(.fileWriteNoPermission) }
+        self?.saved = records
+      })
     receiver.start(advertise: false)
     addTeardownBlock { await MainActor.run { receiver.stop() } }
     let deadline = Date().addingTimeInterval(5)
@@ -67,7 +72,9 @@ import XCTest
       }
       RunLoop.main.run(until: Date().addingTimeInterval(0.02))
     }
-    throw XCTSkip("Local listener did not start")
+    throw NSError(domain: "IOSReceiverTests", code: 1, userInfo: [
+      NSLocalizedDescriptionKey: "The loopback receiver did not start: \(receiver.state)"
+    ])
   }
 
   private func spin(until condition: () -> Bool, timeout: TimeInterval = 5) {
@@ -92,9 +99,12 @@ import XCTest
     let request = try XCTUnwrap(receiver.pairingRequest)
     XCTAssertEqual(request.code, device.code)
     XCTAssertEqual(request.deviceName, "QA iPhone")
-    // Before confirmation a report is not accepted and the connection is dropped.
+    // Opening the sheet again preserves the request already on screen.
+    receiver.openPairing()
+    XCTAssertEqual(receiver.pairingRequest, request)
+    receiver.confirmPairing(requestID: UUID())
     XCTAssertTrue(saved.isEmpty)
-    receiver.confirmPairing()
+    receiver.confirmPairing(requestID: request.id)
     spin { device.messages.contains { if case .welcome = $0 { return true } else { return false } } }
     XCTAssertEqual(saved.count, 1)
     XCTAssertEqual(saved.first?.device.id, device.deviceID)
@@ -117,14 +127,15 @@ import XCTest
     receiver.confirmPairing()
     spin { pairing.messages.contains { if case .welcome = $0 { return true } else { return false } } }
     pairing.link.cancel()
+    spin { receiver.connected[pairing.deviceID] == nil }
 
     // A later session with the stored key delivers a report and gets an ack.
     let key = try XCTUnwrap(pairing.key)
     let device = FakeDevice(port: port, deviceID: pairing.deviceID, key: key, pairing: false)
     let sent = report()
-    device.onMessage = { message in
-      if case .welcome = message { device.link.send(.report(sent)) }
-    }
+    spin { device.messages.contains { if case .welcome = $0 { return true } else { return false } } }
+    XCTAssertNil(receiver.connected[pairing.deviceID])
+    device.link.send(.report(sent))
     spin { device.messages.contains(.ack(id: sent.id)) }
     XCTAssertEqual(imported, [sent.id])
     XCTAssertNotNil(receiver.connected[pairing.deviceID])
@@ -179,5 +190,18 @@ import XCTest
     receiver.forget(device.deviceID)
     XCTAssertTrue(saved.isEmpty)
     XCTAssertTrue(receiver.devices.isEmpty)
+  }
+
+  func testPairingMustBeStoredBeforeWelcome() throws {
+    let (receiver, port) = try makeReceiver(refuseSave: true)
+    receiver.openPairing()
+    let device = FakeDevice(port: port, pairing: true)
+    spin { receiver.pairingRequest != nil }
+    receiver.confirmPairing()
+    spin { device.closed }
+    XCTAssertTrue(receiver.devices.isEmpty)
+    XCTAssertTrue(receiver.connected.isEmpty)
+    XCTAssertNotNil(receiver.storageError)
+    XCTAssertFalse(device.messages.contains { if case .welcome = $0 { return true } else { return false } })
   }
 }

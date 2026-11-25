@@ -23,7 +23,7 @@
 
     private(set) var phase: Phase = .idle
     private(set) var discovered: [DiscoveredMac] = []
-    private(set) var pairings: [Pairing] = PairingStore.load()
+    private(set) var pairings: [Pairing] = []
     private(set) var lastError: String?
     /// The Mac this device is connected to now.
     private(set) var connectedMacID: UUID?
@@ -36,15 +36,20 @@
     @ObservationIgnored private var exchange: PairingExchange?
     @ObservationIgnored private var pendingPairing: Pairing?
     @ObservationIgnored private var clientNonce = Data()
-    @ObservationIgnored private var inFlight: UUID?
+    private(set) var inFlight: UUID?
     @ObservationIgnored private var skipped: Set<UUID> = []
     @ObservationIgnored private var waiters: [UUID: [(token: UUID, done: (Bool) -> Void)]] = [:]
     @ObservationIgnored private var suspended = true
     @ObservationIgnored private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
 
-    init(outbox: Outbox, sent: SentLog) {
+    @ObservationIgnored private let pairingStore: PairingKeychain<Pairing>
+
+    init(outbox: Outbox, sent: SentLog, pairingStore: PairingKeychain<Pairing> = PairingKeychain(
+      service: "com.mirageteam.screenclip.kit", account: "pairings")
+    ) {
       self.outbox = outbox
       self.sent = sent
+      self.pairingStore = pairingStore
     }
 
     var isConnected: Bool {
@@ -75,6 +80,13 @@
     func resume() {
       finishBackgroundDelivery()
       suspended = false
+      do {
+        pairings = try pairingStore.load()
+      } catch {
+        stopConnections()
+        lastError = "Could not read Mac pairings: \(error.localizedDescription)"
+        return
+      }
       let missing = Self.missingInfoPlistKeys
       guard missing.isEmpty else {
         phase = .missingInfoPlist
@@ -89,7 +101,7 @@
 
     /// Going to the background: finish sending what is waiting first, within the time iOS gives.
     func suspend() {
-      if isConnected, inFlight != nil || !outbox.reports.isEmpty {
+      if isConnected, inFlight != nil || nextReport != nil {
         guard backgroundTask == .invalid else { return }
         backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "ScreenClip delivery") { [weak self] in
           MainActor.assumeIsolated { self?.finishBackgroundDelivery() }
@@ -123,25 +135,27 @@
       let browser = NWBrowser(
         for: .bonjourWithTXTRecord(type: LinkProtocol.serviceType, domain: nil),
         using: LinkConnection.tcpParameters())
-      browser.stateUpdateHandler = { [weak self] state in
-        DispatchQueue.main.async {
-          MainActor.assumeIsolated { self?.browserStateChanged(state) }
+      browser.stateUpdateHandler = { [weak self, weak browser] state in
+        MainActor.assumeIsolated {
+          guard let self, let browser, self.browser === browser else { return }
+          self.browserStateChanged(state)
         }
       }
-      browser.browseResultsChangedHandler = { [weak self] results, _ in
-        DispatchQueue.main.async {
-          MainActor.assumeIsolated { self?.resultsChanged(results) }
+      browser.browseResultsChangedHandler = { [weak self, weak browser] results, _ in
+        MainActor.assumeIsolated {
+          guard let self, let browser, self.browser === browser else { return }
+          self.resultsChanged(results)
         }
       }
-      browser.start(queue: .main)
       self.browser = browser
+      browser.start(queue: .main)
     }
 
     private func browserStateChanged(_ state: NWBrowser.State) {
       switch state {
       case .failed(let error), .waiting(let error):
         if case .dns(let code) = error, code == DNSServiceErrorType(kDNSServiceErr_PolicyDenied) {
-          phase = .localNetworkDenied
+          if link == nil { phase = .localNetworkDenied }
         } else {
           lastError = error.localizedDescription
         }
@@ -194,38 +208,113 @@
     }
 
     func forget(_ macID: UUID) {
-      pairings.removeAll { $0.macID == macID }
-      PairingStore.save(pairings)
-      if linkMac?.macID == macID { closeLink() }
-      if phase != .missingInfoPlist && !suspended { phase = .searching }
+      guard savePairings(pairings.filter { $0.macID != macID }) else { return }
+      if connectedMacID == macID || linkMac?.macID == macID {
+        closeLink()
+        phase = suspended ? .idle : .searching
+        autoConnect()
+      }
+    }
+
+    func switchTo(_ mac: DiscoveredMac) {
+      closeLink()
+      connect(to: mac, pairing: false)
+    }
+
+    private func savePairings(_ updated: [Pairing]) -> Bool {
+      do {
+        try pairingStore.save(updated)
+        pairings = updated
+        return true
+      } catch {
+        lastError = "Could not save Mac pairings: \(error.localizedDescription)"
+        return false
+      }
     }
 
     // MARK: Delivery
 
+    /// Earlier SDKs stored a name in history. Only use it if it identifies one paired Mac.
+    private var uniqueMacName: String? {
+      guard let name = connectedMacName, pairings.filter({ $0.macName == name }).count == 1 else { return nil }
+      return name
+    }
+
+    func isDestination(_ destination: ReportDestination?) -> Bool {
+      guard let id = connectedMacID else { return false }
+      return destination?.matches(macID: id, name: uniqueMacName) ?? true
+    }
+
+    func destination(of report: ReportFile.Summary) -> ReportDestination? {
+      report.destination ?? report.followUpOf.flatMap { original in sent.entries.first { $0.id == original }?.destination }
+    }
+
+    private var nextReport: ReportFile.Summary? {
+      outbox.reports.first { !skipped.contains($0.id) && isDestination(destination(of: $0)) }
+    }
+
     func flush() {
-      guard isConnected, inFlight == nil, let link else { return }
-      guard let next = outbox.reports.first(where: { !skipped.contains($0.id) }) else { return }
+      guard inFlight == nil, let link else { return }
+      guard let next = nextReport else { return finishBackgroundDelivery() }
       inFlight = next.id
-      link.send(.report(next))
+      let file = outbox.url(for: next.id)
+      Task { [self] in
+        do {
+          var report = try await Task.detached(priority: .utility) { try ReportFile.read(from: file) }.value
+          guard self.link === link, inFlight == next.id, let macID = connectedMacID, let name = connectedMacName else { return }
+          if report.destination?.macID == nil {
+            // Bind offline reports before the first send so a lost ack can only retry on that Mac.
+            report.destination = ReportDestination(macID: macID, name: name)
+            try outbox.add(report)
+          }
+          link.send(.report(report)) { [weak self] error in
+            guard let self, let error, self.link === link, self.inFlight == next.id else { return }
+            if error is NWError { link.cancel() } else { self.deliveryFailed(next.id, error.localizedDescription) }
+          }
+        } catch {
+          guard self.link === link, inFlight == next.id else { return }
+          deliveryFailed(next.id, error.localizedDescription)
+        }
+      }
+    }
+
+    private func deliveryFailed(_ id: UUID, _ message: String) {
+      lastError = message
+      guard id == inFlight else { return }
+      skipped.insert(id)
+      inFlight = nil
+      resolve(id, false)
+      flush()
+    }
+
+    func deleteSaved(_ id: UUID) {
+      guard id != inFlight else { return }
+      do {
+        try outbox.remove(id)
+        sendQueue()
+      } catch {
+        lastError = error.localizedDescription
+      }
     }
 
     /// Tells the Mac which reports are still waiting here.
     func sendQueue() {
       guard isConnected else { return }
-      link?.send(.queue(outbox.reports.map { QueuedReport(id: $0.id, note: $0.note, createdAt: $0.createdAt) }))
+      let waiting = outbox.reports.lazy.filter { self.isDestination(self.destination(of: $0)) }.prefix(200)
+      link?.send(.queue(waiting.map { QueuedReport(id: $0.id, note: $0.note, createdAt: $0.createdAt) }))
     }
 
     /// Tells the Mac a merged fix works. Returns false when the Mac is not connected.
     @discardableResult func verify(_ id: UUID) -> Bool {
-      guard isConnected, let link else { return false }
+      guard let entry = sent.entries.first(where: { $0.id == id }), isDestination(entry.destination), let link else { return false }
       link.send(.verify(id: id))
       return true
     }
 
     /// Asks the Mac again where the sent reports stand.
     func refreshStatuses() {
-      guard isConnected else { return }
-      link?.send(.track(ids: sent.trackedIDs))
+      guard let id = connectedMacID else { return }
+      link?.send(.track(ids: sent.trackedIDs(macID: id, name: uniqueMacName)))
     }
 
     func retryFailed() {
@@ -240,6 +329,7 @@
       DispatchQueue.main.asyncAfter(deadline: .now() + timeout) { [weak self] in
         guard let self, let index = self.waiters[id]?.firstIndex(where: { $0.token == token }) else { return }
         self.waiters[id]?.remove(at: index)
+        if self.waiters[id]?.isEmpty == true { self.waiters[id] = nil }
         done(false)
       }
     }
@@ -259,6 +349,7 @@
       clientNonce = Nonce.make()
       exchange = pairing ? PairingExchange() : nil
       pendingPairing = nil
+      skipped.removeAll()
       phase = .connecting(mac.name)
       link.onReady = { [weak self, weak link] in
         MainActor.assumeIsolated {
@@ -279,6 +370,11 @@
         }
       }
       link.start()
+      DispatchQueue.main.asyncAfter(deadline: .now() + 12) { [weak self, weak link] in
+        guard let self, let link, self.link === link, case .connecting = self.phase else { return }
+        self.lastError = "Your Mac did not finish connecting."
+        link.cancel()
+      }
     }
 
     private func hello() -> Hello {
@@ -294,12 +390,13 @@
     private func handle(_ message: LinkMessage, on link: LinkConnection) {
       switch message {
       case .challenge(let challenge):
+        guard case .connecting = phase, linkMac?.macID == nil || linkMac?.macID == challenge.macID else { return link.cancel() }
         if let exchange {
           guard let serverKey = challenge.pairingPublicKey,
             let result = try? exchange.complete(
               peerPublicKey: serverKey, clientPublicKey: exchange.publicKey, serverPublicKey: serverKey,
               clientNonce: clientNonce, serverNonce: challenge.nonce)
-          else { return closeLink() }
+          else { return link.cancel() }
           pendingPairing = Pairing(
             macID: challenge.macID, macName: challenge.macName, key: result.pairingKey.data, pairedAt: Date())
           link.secure(
@@ -307,7 +404,7 @@
               pairingKey: result.pairingKey, clientNonce: clientNonce, serverNonce: challenge.nonce, role: .client))
           phase = .pairing(code: result.code, macName: challenge.macName)
         } else {
-          guard let pairing = pairings.first(where: { $0.macID == challenge.macID }) else { return closeLink() }
+          guard let pairing = pairings.first(where: { $0.macID == challenge.macID }) else { return link.cancel() }
           link.secure(
             SecureChannel(
               pairingKey: SymmetricKey(data: pairing.key), clientNonce: clientNonce,
@@ -316,25 +413,26 @@
       case .welcome(let macID, let macName):
         if var pairing = pendingPairing, pairing.macID == macID {
           pairing.macName = macName
-          pairings.removeAll { $0.macID == macID }
-          pairings.append(pairing)
+          guard savePairings(pairings.filter { $0.macID != macID } + [pairing]) else { return link.cancel() }
           pendingPairing = nil
           exchange = nil
-        } else if let index = pairings.firstIndex(where: { $0.macID == macID }) {
-          pairings[index].macName = macName
-        }
-        PairingStore.save(pairings)
+        } else if exchange == nil, linkMac?.macID == macID, let index = pairings.firstIndex(where: { $0.macID == macID }) {
+          if pairings[index].macName != macName {
+            var updated = pairings
+            updated[index].macName = macName
+            guard savePairings(updated) else { return link.cancel() }
+          }
+        } else { return link.cancel() }
         lastError = nil
         connectedMacID = macID
         phase = .connected(macName)
         sendQueue()
-        link.send(.track(ids: sent.trackedIDs))
+        refreshStatuses()
         flush()
       case .rejected(let reason):
         switch reason {
         case .notPaired:
-          if let macID = linkMac?.macID { forget(macID) }
-          lastError = "Your Mac no longer knows this device. Pair again."
+          lastError = "Your Mac no longer knows this device. Forget it here and pair again."
         case .pairingClosed:
           lastError = "On your Mac, open ScreenClip Settings > iOS and click Pair a device, then try again."
         case .declined:
@@ -349,24 +447,24 @@
       case .sendPending:
         retryFailed()
       case .ack(let id):
-        if let report = outbox.reports.first(where: { $0.id == id }) {
-          sent.record(report, macName: connectedMacName ?? linkMac?.name ?? "")
+        guard inFlight == id, let macID = connectedMacID, let name = connectedMacName else { return }
+        do {
+          if let report = outbox.reports.first(where: { $0.id == id }) {
+            try sent.record(report, macID: macID, macName: name)
+          }
+          try outbox.remove(id)
+        } catch {
+          return deliveryFailed(id, error.localizedDescription)
         }
-        outbox.remove(id)
         skipped.remove(id)
-        if inFlight == id { inFlight = nil }
+        inFlight = nil
         resolve(id, true)
         sendQueue()
         flush()
-        if outbox.reports.isEmpty { finishBackgroundDelivery() }
       case .reportStates(let states):
-        sent.update(states)
+        if let id = connectedMacID { sent.update(states, macID: id, name: uniqueMacName) }
       case .failed(let id, let text):
-        skipped.insert(id)
-        if inFlight == id { inFlight = nil }
-        lastError = text
-        resolve(id, false)
-        flush()
+        deliveryFailed(id, text)
       case .hello, .report, .queue, .track, .verify, .ping:
         break
       }

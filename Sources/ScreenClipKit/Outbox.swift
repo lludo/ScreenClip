@@ -2,16 +2,14 @@
   import Foundation
   import Observation
   import ScreenClipWire
-  import Security
 
   /// Reports waiting for the Mac, one `.screenclipreport` file each, in Application Support
   /// (excluded from backups). A report is removed only after the Mac confirms it was saved.
   @MainActor @Observable final class Outbox {
-    private(set) var reports: [WireReport] = []
+    private(set) var reports: [ReportFile.Summary] = []
     let directory: URL
 
-    init() {
-      let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+    init(base: URL = URL.applicationSupportDirectory) {
       directory = base.appendingPathComponent("ScreenClipKit/Outbox", isDirectory: true)
       try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
       var values = URLResourceValues()
@@ -30,17 +28,23 @@
     func reload() {
       let files = (try? FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil)) ?? []
       reports = files.filter { $0.pathExtension == ReportFile.pathExtension }
-        .compactMap { try? ReportFile.read(from: $0) }
+        .compactMap { file in autoreleasepool { try? ReportFile.summary(from: file) } }
         .sorted { $0.createdAt < $1.createdAt }
     }
 
     func add(_ report: WireReport) throws {
       try ReportFile.write(report, to: url(for: report.id))
-      reports.append(report)
+      let summary = ReportFile.Summary(report)
+      if let index = reports.firstIndex(where: { $0.id == report.id }) {
+        reports[index] = summary
+      } else {
+        reports.append(summary)
+      }
     }
 
-    func remove(_ id: UUID) {
-      try? FileManager.default.removeItem(at: url(for: id))
+    func remove(_ id: UUID) throws {
+      do { try FileManager.default.removeItem(at: url(for: id)) }
+      catch let error as CocoaError where error.code == .fileNoSuchFile { }
       reports.removeAll { $0.id == id }
     }
   }
@@ -53,49 +57,57 @@
       var createdAt: Date
       var sentAt: Date
       var macName: String
+      var macID: UUID?
       var state: ReportState?
+      var destination: ReportDestination { ReportDestination(macID: macID, name: macName) }
     }
     private(set) var entries: [Entry] = []
     private let url: URL
 
-    init() {
-      let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+    init(base: URL = URL.applicationSupportDirectory) {
       url = base.appendingPathComponent("ScreenClipKit/sent.json")
       if let data = try? Data(contentsOf: url), let saved = try? JSONDecoder().decode([Entry].self, from: data) {
         entries = saved
       }
+      let before = entries.count
       prune()
+      if entries.count != before { try? save() }
     }
 
     /// Ids the Mac should report on, most recent first.
-    var trackedIDs: [UUID] { entries.map(\.id) }
-
-    func record(_ report: WireReport, macName: String) {
-      entries.removeAll { $0.id == report.id }
-      entries.insert(
-        Entry(id: report.id, note: report.note, createdAt: report.createdAt, sentAt: Date(), macName: macName), at: 0)
-      prune()
-      save()
+    func trackedIDs(macID: UUID, name: String?) -> [UUID] {
+      entries.filter { $0.destination.matches(macID: macID, name: name) }.map(\.id)
     }
 
-    func update(_ states: [ReportState]) {
+    func record(_ report: ReportFile.Summary, macID: UUID, macName: String) throws {
+      let previous = entries
+      entries.removeAll { $0.id == report.id }
+      entries.insert(
+        Entry(id: report.id, note: report.note, createdAt: report.createdAt, sentAt: Date(), macName: macName, macID: macID), at: 0)
+      prune()
+      do {
+        try save()
+      } catch {
+        entries = previous
+        throw error
+      }
+    }
+
+    func update(_ states: [ReportState], macID: UUID, name: String?) {
       var changed = false
       for state in states {
-        guard let index = entries.firstIndex(where: { $0.id == state.id }), entries[index].state != state else { continue }
+        guard let index = entries.firstIndex(where: { $0.id == state.id && $0.destination.matches(macID: macID, name: name) }),
+          entries[index].state != state || entries[index].macID == nil else { continue }
+        entries[index].macID = macID
         entries[index].state = state
         changed = true
       }
-      if changed { save() }
+      if changed { try? save() }
     }
 
     func remove(_ id: UUID) {
       entries.removeAll { $0.id == id }
-      save()
-    }
-
-    func clear() {
-      entries = []
-      save()
+      try? save()
     }
 
     private func prune() {
@@ -103,9 +115,8 @@
       entries = Array(entries.filter { $0.sentAt > cutoff }.prefix(50))
     }
 
-    private func save() {
-      guard let data = try? JSONEncoder().encode(entries) else { return }
-      try? data.write(to: url, options: .atomic)
+    private func save() throws {
+      try JSONEncoder().encode(entries).write(to: url, options: .atomic)
     }
   }
 
@@ -118,35 +129,4 @@
     var id: UUID { macID }
   }
 
-  enum PairingStore {
-    private static let service = "com.mirageteam.screenclip.kit"
-    private static let account = "pairings"
-
-    static func load() -> [Pairing] {
-      let query: [String: Any] = [
-        kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
-        kSecAttrAccount as String: account, kSecReturnData as String: true,
-        kSecMatchLimit as String: kSecMatchLimitOne,
-      ]
-      var item: CFTypeRef?
-      guard SecItemCopyMatching(query as CFDictionary, &item) == errSecSuccess, let data = item as? Data else {
-        return []
-      }
-      return (try? JSONDecoder().decode([Pairing].self, from: data)) ?? []
-    }
-
-    static func save(_ pairings: [Pairing]) {
-      guard let data = try? JSONEncoder().encode(pairings) else { return }
-      let query: [String: Any] = [
-        kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
-        kSecAttrAccount as String: account,
-      ]
-      SecItemDelete(query as CFDictionary)
-      guard !pairings.isEmpty else { return }
-      var add = query
-      add[kSecValueData as String] = data
-      add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-      SecItemAdd(add as CFDictionary, nil)
-    }
-  }
 #endif

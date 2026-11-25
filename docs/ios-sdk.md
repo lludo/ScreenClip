@@ -8,7 +8,7 @@ The fastest way is to let your coding agent do it. In ScreenClip, open **Setting
 
 By hand:
 
-1. Add the package `https://github.com/lludo/ScreenClip` and link the product **ScreenClipKit** to your app target. It needs iOS 17 or later.
+1. Add the package `https://github.com/lludo/ScreenClip` and link the product **ScreenClipKit** to your app target. It needs iOS 17 or later and a Swift 6 toolchain (Xcode 16 or newer). Select a version whose tag includes the SDK, or use the `main` branch until such a tag is published. On the Mac, use a ScreenClip build that includes **Settings > iOS**.
 2. Start it once:
    ```swift
    #if DEBUG
@@ -20,11 +20,11 @@ By hand:
    ScreenClipKit.start()
    #endif
    ```
-3. Add two keys to the **Debug** Info.plist only: `NSBonjourServices` = `["_screenclip._tcp"]` and `NSLocalNetworkUsageDescription`. With a generated Info.plist, put them in a small `ScreenClip-Debug-Info.plist` and set `INFOPLIST_FILE` for the Debug configuration only. Xcode merges it with the generated keys. [`Examples/ScreenClipKitDemo`](../Examples/ScreenClipKitDemo) is a complete project set up this way.
+3. Add two keys to the **Debug** Info.plist only: `NSBonjourServices` = `["_screenclip._tcp"]` and `NSLocalNetworkUsageDescription`. With a generated Info.plist, put them in a small `ScreenClip-Debug-Info.plist` and set `INFOPLIST_FILE` for the Debug configuration only. Xcode merges it with the generated keys. With a file-based plist, point Debug at a complete Debug variant and preserve the host’s existing Bonjour services and usage description. [`Examples/ScreenClipKitDemo`](../Examples/ScreenClipKitDemo) is a complete project set up this way.
 
 ### Nothing ships in Release
 
-There are two layers. Your `#if DEBUG` guards keep the call out, and the package compiles to an empty stub outside Debug, so even an unguarded call does nothing. In a Release build of the demo app, `nm` finds no capture, pairing, or network symbols, `strings` finds no `_screenclip._tcp`, and the Info.plist has no Bonjour or Local Network keys. Only the empty `ScreenClipKit` enum and options type remain. Xcode always links a package product, so the stub can't be dropped completely.
+There are two layers. Your `#if DEBUG` guards keep the call out, and the package compiles to an empty stub outside Debug, so even an unguarded call does nothing. In a Release build of the demo app, `nm` finds no capture, pairing, or network symbols, `strings` finds no `_screenclip._tcp`, and the Info.plist has no Bonjour or Local Network keys. The public API remains available as a no-op for callers that link it. Run `python3 scripts/test_ios_sdk.py` in this repository to verify both built products.
 
 ## Use
 
@@ -65,7 +65,7 @@ Reports from iOS use the **Agent for iOS reports** chosen in Settings > iOS (age
    - **Mac reachable:** the report goes straight into the queue, routed by bundle ID, and the agent starts.
    - **Mac not reachable:** the report waits on the phone and goes out as soon as the app is open and finds the Mac.
    - **Leaving the app right after Send:** the SDK asks iOS for a little background time to finish sending.
-3. **Phone, any time:** the SDK's settings show **Waiting to send** and **Sent to Mac**. Each sent report shows its number, project, agent, and live status: Queued, Agent working, Needs you, PR open, Merged, Verified, Failed. A merged report links its pull request.
+3. **Phone, any time:** the SDK's settings show **Waiting to send** and **Sent to Mac**. Each sent report shows its number, project, agent, and live status: Queued, Agent working, Needs you, PR open, Merged, Verified, Failed. A merged report links its pull request. With several Macs paired, tap **Connect** beside the one you want. Status, verification, and follow-ups belong to the Mac that received the original report.
 4. **Next day:** pull and install the new build from Xcode, retest, and on each merged report tap:
    - **Looks fixed:** marks it Verified on the Mac.
    - **Still broken:** your next capture is added to the same report and goes back to its agent in a fresh worktree.
@@ -79,12 +79,12 @@ Reports from iOS use the **Agent for iOS reports** chosen in Settings > iOS (age
 
 ## Diagnostics
 
-**Attach logs and diagnostics**, under the note, is on by default and can be turned off for a sensitive report. The files are attached to the report, but agents don't receive them up front. The prompt lists them with a one-line summary each and says where they are. An agent opens them only when the screenshot and note aren't enough.
+**Attach logs and diagnostics**, under the note, is on by default and can be turned off for a sensitive report. Adding a redaction switches diagnostics off for that capture. You can explicitly include them again if the logs and view tree are safe to share. The files are attached to the report, but agents don't receive them up front. The prompt lists them with a one-line summary each and says where they are. An agent opens them only when the screenshot and note aren't enough.
 
 | File | What | How |
 | --- | --- | --- |
 | `logs.txt` | The app's unified-log entries (`Logger`, `os_log`, `NSLog`) from the 2 minutes before the capture, at most 500 lines. `com.apple.*` entries are kept only at error or fault level, and repeated lines are collapsed | `OSLogStore` scoped to the app's own process, read in the background while you annotate. If reading takes more than 8 seconds after you tap Send, the report goes without it |
-| `view-tree.json` | The captured window's views and accessibility elements, with identifiers, labels, values, traits, and frames in points. SwiftUI content, such as a `Button` with `.accessibilityIdentifier`, appears as accessibility elements with its full, untruncated label | Walked on the main thread while the composer opens. SwiftUI only builds accessibility elements while app accessibility is on, so the SDK switches it on for that half second, the same switch UI tests and Accessibility Inspector use, then switches it back off if it was off |
+| `view-tree.json` | UIKit views and the accessibility elements the host exposes at capture time, with identifiers, labels, values, traits, and frames in points | Uses public APIs and preserves the device’s accessibility settings. The detail available for SwiftUI depends on which elements the app currently exposes. Secure text fields omit their values. |
 | `device-state.json` | Memory footprint, CPU, thermal state, Low Power Mode, battery, free disk, network type, color scheme, Dynamic Type, Reduce Motion, Bold Text, Increase Contrast, VoiceOver, time zone, languages | Read at the moment of capture |
 | `console.txt` | The last 300 lines printed to stdout and stderr (`print`) | Only with `ScreenClipKit.start(ScreenClipOptions(captureConsoleOutput: true))`. Output still reaches Xcode's console |
 
@@ -121,7 +121,7 @@ flowchart LR
     D -. .screenclipreport file .-> F
 ```
 
-- **Targets.** `ScreenClipWire` holds the shared annotation model, the Core Graphics renderer (the Mac app draws with the same code), the report and device types, and the protocol. `ScreenClipKit` is the iOS SDK. `IOSReceiver` in `ScreenClipCore` is the Mac listener. Both SDK targets compile to nothing on iOS outside Debug.
+- **Targets.** `ScreenClipWire` holds the shared annotation model, the Core Graphics renderer (the Mac app draws with the same code), the report and device types, and the protocol. `ScreenClipKit` is the iOS SDK. `IOSReceiver` in `ScreenClipCore` is the Mac listener. On iOS outside Debug, the wire implementation is excluded and the SDK exposes its no-op API.
 - **Isolation.** The SDK draws in its own `UIWindow` above the app, so the app's view hierarchy, navigation, and SwiftUI state are never touched. Preferences live in their own defaults suite. Pairings are kept in the Keychain on this device only. Saved reports are kept in Application Support, excluded from backups.
 - **Pairing is required.** Reports become prompts for agents that can write to your repositories, so an unpaired device can never deliver one. The Mac accepts pairing only while the **Pair a device** sheet is open. Pairing is an ephemeral P-256 key agreement. Both sides derive a 32-byte key and a 6-digit comparison code from the shared secret, both public keys, and both nonces. A relay that swaps keys would show different codes. The Mac sends its welcome only after you confirm.
 - **Transport.** Length-prefixed JSON frames over TCP. After the clear `hello` / `challenge` handshake, every frame is sealed with ChaCha20-Poly1305 under per-direction keys derived from the pairing key and both nonces, with counter nonces, so frames can't be read, forged, replayed, or reordered. A device that claims a paired id without the key fails at the first sealed frame, and nothing is imported.

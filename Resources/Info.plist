@@ -52,6 +52,12 @@
 	<string>Read the active Safari or Chrome tab URL when you capture, so ScreenClip can match the right project.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+	<key>NSBonjourServices</key>
+	<array>
+		<string>_screenclip._tcp</string>
+	</array>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Receive reports from your paired iPhone or iPad on the local network.</string>
 	<key>SUAutomaticallyUpdate</key>
 	<true/>
 	<key>SUEnableAutomaticChecks</key>

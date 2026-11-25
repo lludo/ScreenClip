@@ -54,7 +54,7 @@
       started = true
       startedAt = Date()
       NetworkWatcher.shared.start()
-      ShakeHook.install { [weak self] in self?.shakeDetected() }
+      ShakeHook.install { [weak self] scene in self?.shakeDetected(in: scene) }
       let center = NotificationCenter.default
       observers.append(
         center.addObserver(
@@ -72,27 +72,27 @@
       kitLog.info("ScreenClipKit started. Shake or take a screenshot to report.")
     }
 
-    private func shakeDetected() {
+    private func shakeDetected(in scene: UIWindowScene) {
       guard options.triggers.contains(.shake), KitPreferences.shakeEnabled else { return }
-      guard !overlay.isPresentingSheet, !Snapshot.anotherOverlayIsShowing(ignoring: overlay.windows) else {
+      guard !overlay.isPresentingSheet, !Snapshot.anotherOverlayIsShowing(in: scene, ignoring: overlay.windows) else {
         return
       }
-      capture()
+      capture(in: scene)
     }
 
     private func systemScreenshotTaken() {
       guard options.triggers.contains(.screenshot), KitPreferences.screenshotOfferEnabled,
         !overlay.isPresentingSheet
       else { return }
-      overlay.toast("Report this screen to ScreenClip?", action: "Report") { [weak self] in
-        self?.capture()
-      }
+      capture(in: Snapshot.activeScene(), offerFirst: true)
     }
 
-    func capture() {
-      guard !overlay.isPresentingSheet else { return }
+    func capture() { capture(in: Snapshot.activeScene()) }
+
+    private func capture(in scene: UIWindowScene?, offerFirst: Bool = false) {
+      guard !overlay.isPresentingSheet, let scene else { return }
       overlay.dismissToast()
-      guard let scene = Snapshot.activeScene(), let image = Snapshot.image(of: scene, excluding: overlay.windows)
+      guard let image = Snapshot.image(of: scene, excluding: overlay.windows)
       else {
         kitLog.error("ScreenClipKit could not find a visible window to capture.")
         return
@@ -102,37 +102,48 @@
       // read in the background while the tester annotates.
       let capturedAt = Date()
       var immediate: [DiagnosticFile] = []
-      // The app's views stay as they were under the composer window, so the tree can be read a
-      // moment later when SwiftUI needs time to build its accessibility elements.
-      let appWindow = Snapshot.appWindow(in: scene, excluding: overlay.windows)
-      let enabled = Diagnostics.AppAccessibility.enableTemporarily()
-      let tree = Task { @MainActor () -> DiagnosticFile? in
-        if enabled { try? await Task.sleep(nanoseconds: 500_000_000) }
-        defer { if enabled { Diagnostics.AppAccessibility.restore() } }
-        return appWindow.flatMap { Diagnostics.viewTree(of: $0) }
+      if let window = Snapshot.appWindow(in: scene, excluding: overlay.windows),
+        let tree = Diagnostics.viewTree(of: window)
+      {
+        immediate.append(tree)
       }
       if let state = Diagnostics.deviceState(scene: scene, startedAt: startedAt) { immediate.append(state) }
       if let console = ConsoleCapture.shared.file() { immediate.append(console) }
+      if offerFirst {
+        overlay.toast("Report this screen to ScreenClip?", in: scene, action: "Report") { [weak self] in
+          self?.compose(image: image, in: scene, device: device, capturedAt: capturedAt, immediate: immediate)
+        }
+      } else {
+        compose(image: image, in: scene, device: device, capturedAt: capturedAt, immediate: immediate)
+      }
+    }
+
+    private func compose(image: UIImage, in scene: UIWindowScene, device: DeviceContext, capturedAt: Date, immediate: [DiagnosticFile]) {
+      guard !overlay.isPresentingSheet, scene.activationState == .foregroundActive else { return }
       let logs = Task.detached(priority: .utility) { Diagnostics.recentLogs(until: capturedAt) }
       overlay.presentSheet(in: scene) { dismiss in
         ComposerView(
           image: image, link: self.link, outbox: self.outbox, followUp: self.followUp,
           stillBroken: { [weak self] entry in self?.followUp.entry = entry }
         ) { note, png, attach in
-          dismiss()
-          Task { @MainActor in
-            var files: [DiagnosticFile]?
-            if attach {
-              let log = await Self.value(of: logs, timeout: 8)
-              let viewTree = await tree.value
-              files = ([log, viewTree].compactMap { $0 } + immediate).fittingSizeLimit()
-            } else {
-              logs.cancel()
-            }
-            let followUpOf = self.followUp.entry?.id
-            self.followUp.entry = nil
-            self.submit(note: note, image: png, device: device, diagnostics: files, followUpOf: followUpOf)
+          let target = self.followUp.entry
+          var files: [DiagnosticFile]?
+          if attach {
+            let log = await Self.value(of: logs, timeout: 8)
+            files = ([log].compactMap { $0 } + immediate).fittingSizeLimit()
+          } else {
+            logs.cancel()
           }
+          var report = WireReport(createdAt: capturedAt, note: note, image: png, device: device, diagnostics: files)
+          report.followUpOf = target?.id
+          report.destination = target?.destination
+          if target == nil, let id = self.link.connectedMacID, let name = self.link.connectedMacName {
+            report.destination = ReportDestination(macID: id, name: name)
+          }
+          try self.outbox.add(report)
+          self.followUp.entry = nil
+          dismiss()
+          self.deliver(report)
         } cancel: {
           logs.cancel()
           dismiss()
@@ -142,16 +153,21 @@
 
     /// The task's value, or nil if it takes longer than `timeout`.
     static func value<T: Sendable>(of task: Task<T?, Never>, timeout: TimeInterval) async -> T? {
-      await withTaskGroup(of: T?.self) { group in
-        group.addTask { await task.value }
-        group.addTask {
-          try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-          return nil
-        }
-        let first = await group.next() ?? nil
-        group.cancelAll()
-        return first
+      // OSLogStore can block inside a synchronous system call. Finishing the stream lets Send
+      // proceed even while that call is still unwinding after cancellation.
+      let (stream, result) = AsyncStream<T>.makeStream()
+      Task {
+        if let value = await task.value { result.yield(value) }
+        result.finish()
       }
+      let deadline = Task {
+        try await Task.sleep(for: .seconds(timeout))
+        result.finish()
+        task.cancel()
+      }
+      defer { deadline.cancel() }
+      var iterator = stream.makeAsyncIterator()
+      return await iterator.next()
     }
 
     func showSettings() {
@@ -172,19 +188,9 @@
       }
     }
 
-    private func submit(
-      note: String, image: Data?, device: DeviceContext, diagnostics: [DiagnosticFile]?, followUpOf: UUID?
-    ) {
-      var report = WireReport(note: note, image: image, device: device, diagnostics: diagnostics)
-      report.followUpOf = followUpOf
-      do {
-        try outbox.add(report)
-        link.sendQueue()
-      } catch {
-        overlay.toast("Could not save the report: \(error.localizedDescription)")
-        return
-      }
-      guard link.isConnected else {
+    private func deliver(_ report: WireReport) {
+      link.sendQueue()
+      guard link.isDestination(report.destination) else {
         overlay.toast(
           link.hasPairing
             ? "Saved. It will be sent when your Mac is reachable."

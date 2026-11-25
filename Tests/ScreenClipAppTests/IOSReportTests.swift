@@ -105,6 +105,7 @@ import XCTest
       DiagnosticFile(name: "logs.txt", summary: "3 app log lines", data: Data("ok\nauth \(token)\nend".utf8)),
       DiagnosticFile(name: "view-tree.json", summary: "views", data: Data("{}".utf8)),
       DiagnosticFile(name: "../../escape.txt", summary: "nope", data: Data("x".utf8)),
+      DiagnosticFile(name: "extra.txt\n", summary: "invalid", data: Data("x".utf8)),
       DiagnosticFile(name: "logs.txt", summary: "duplicate", data: Data("y".utf8)),
     ]
     try model.importIOSReport(incoming)
@@ -178,6 +179,11 @@ import XCTest
     XCTAssertEqual(states[0].projectName, "Shop")
     XCTAssertNotNil(states[0].reportNumber)
     XCTAssertEqual(states[1].status, ReportState.removed)
+    XCTAssertEqual(model.iosReportStates([unknown]), [states[1]])
+    var followUp = try report(note: "Still broken")
+    followUp.followUpOf = unknown
+    XCTAssertThrowsError(try model.importIOSReport(followUp))
+    XCTAssertEqual(model.snapshot.issues.count, 1)
   }
 
   func testVerifyAndStillBrokenFromTheDevice() throws {

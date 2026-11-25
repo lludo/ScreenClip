@@ -617,6 +617,21 @@ FORMATS = {
 }
 
 INFO_PLIST = {
+    "NSLocalNetworkUsageDescription": {
+        "comment": "Local Network permission for receiving ScreenClipKit reports on this Mac.",
+        "values": V(
+            "Receive reports from your paired iPhone or iPad on the local network.",
+            "通过本地网络接收来自已配对 iPhone 或 iPad 的报告。",
+            "Recibe informes de tu iPhone o iPad enlazado a través de la red local.",
+            "ローカルネットワークで、ペアリング済みの iPhone や iPad からレポートを受信します。",
+            "Receba relatórios do iPhone ou iPad emparelhado pela rede local.",
+            "Empfange Berichte von deinem gekoppelten iPhone oder iPad über das lokale Netzwerk.",
+            "Recevez les rapports de votre iPhone ou iPad jumelé sur le réseau local.",
+            "로컬 네트워크에서 페어링된 iPhone 또는 iPad의 보고서를 받습니다.",
+            "Получайте отчёты с сопряжённого iPhone или iPad по локальной сети.",
+            "透過區域網路接收來自已配對 iPhone 或 iPad 的報告。",
+        ),
+    },
     "NSScreenCaptureUsageDescription": {
         "comment": "System prompt for Screen Recording permission.",
         "values": V(

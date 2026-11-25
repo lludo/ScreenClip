@@ -20,6 +20,8 @@ struct IOSSettingsView: View {
     "Install ScreenClipKit in this iOS app for Debug builds only, following \(skillURL)"
   static let setupCode = """
     // Package: https://github.com/lludo/ScreenClip  (product ScreenClipKit)
+    // Debug Info.plist: add _screenclip._tcp to NSBonjourServices
+    // and set NSLocalNetworkUsageDescription.
     #if DEBUG
     import ScreenClipKit
     #endif
@@ -172,6 +174,10 @@ struct IOSSettingsView: View {
 
   private var devicesSection: some View {
     Section {
+      if let error = receiver.storageError {
+        Label { Text(verbatim: error) } icon: { Image(systemName: "key.fill") }
+          .foregroundStyle(.red)
+      }
       if receiver.devices.isEmpty {
         Text(chrome: "No paired devices yet.", comment: "Empty list of paired iOS devices.")
           .foregroundStyle(.secondary)
@@ -365,7 +371,7 @@ struct PairDeviceSheet: View {
             Text(chrome: "Decline", comment: "Declines an iOS pairing request.")
           }
           Button {
-            receiver.confirmPairing()
+            receiver.confirmPairing(requestID: request.id)
             dismiss()
           } label: {
             Text(chrome: "Confirm", comment: "Confirms an iOS pairing request.")

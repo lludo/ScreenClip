@@ -13,6 +13,21 @@
     var pendingTextPoint: MarkPoint?
     var pendingText = ""
     private var redoMarks: [Annotation] = []
+    private var ordinaryDiagnostics = KitPreferences.attachDiagnostics
+    private var redactedDiagnostics = false
+
+    var hasRedactions: Bool { marks.contains { $0.kind == .redact } }
+    var attachDiagnostics: Bool {
+      get { hasRedactions ? redactedDiagnostics : ordinaryDiagnostics }
+      set {
+        if hasRedactions {
+          redactedDiagnostics = newValue
+        } else {
+          ordinaryDiagnostics = newValue
+          KitPreferences.attachDiagnostics = newValue
+        }
+      }
+    }
 
     var canUndo: Bool { !marks.isEmpty }
     var canRedo: Bool { !redoMarks.isEmpty }
@@ -30,11 +45,12 @@
     let outbox: Outbox
     let followUp: FollowUpTarget
     let stillBroken: (SentLog.Entry) -> Void
-    let send: (String, Data?, Bool) -> Void
+    let send: (String, Data, Bool) async throws -> Void
     let cancel: () -> Void
     @State private var model = ComposerModel()
     @State private var showingSettings = false
-    @State private var attachDiagnostics = KitPreferences.attachDiagnostics
+    @State private var saving = false
+    @State private var saveError: String?
     @FocusState private var noteFocused: Bool
 
     var body: some View {
@@ -66,12 +82,15 @@
             .padding(10)
             .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
             .padding(.horizontal, 12).padding(.bottom, 6)
-          Toggle(isOn: $attachDiagnostics) {
+          Toggle(isOn: $model.attachDiagnostics) {
             Text("Attach logs and diagnostics").font(.footnote)
           }
-          .onChange(of: attachDiagnostics) { _, value in KitPreferences.attachDiagnostics = value }
           .padding(.horizontal, 14).padding(.bottom, 10)
           .accessibilityHint("Recent app logs, the screen's layout, and device state. The agent reads them only if needed.")
+          if model.hasRedactions {
+            Text("Logs and diagnostics may contain text you covered in the screenshot.")
+              .font(.caption).foregroundStyle(.secondary).padding(.horizontal).padding(.bottom, 6)
+          }
         }
         .navigationTitle("Report")
         .navigationBarTitleDisplayMode(.inline)
@@ -86,7 +105,21 @@
             }
             .accessibilityLabel("ScreenClip settings")
             Button("Send") {
-              send(model.note.trimmingCharacters(in: .whitespacesAndNewlines), rendered(), attachDiagnostics)
+              guard !saving else { return }
+              saving = true
+              Task { @MainActor in
+                defer { saving = false }
+                guard let image = image.cgImage, let png = AnnotationDrawing.renderPNG(image: image, marks: model.marks) else {
+                  saveError = "Could not render the annotated screenshot."
+                  return
+                }
+                do {
+                  try await send(model.note.trimmingCharacters(in: .whitespacesAndNewlines), png,
+                    model.attachDiagnostics)
+                } catch {
+                  saveError = error.localizedDescription
+                }
+              }
             }
               .bold()
           }
@@ -102,6 +135,9 @@
               }
           }
         }
+        .alert("Could not save the report", isPresented: Binding(
+          get: { saveError != nil }, set: { if !$0 { saveError = nil } })
+        ) { Button("OK") {} } message: { Text(saveError ?? "") }
         .alert(
           "Add text",
           isPresented: Binding(
@@ -119,20 +155,17 @@
           Button("Cancel", role: .cancel) { model.pendingTextPoint = nil }
         }
       }
+      .disabled(saving)
+      .overlay { if saving { ProgressView("Saving report…").padding().background(.regularMaterial, in: Capsule()) } }
       .tint(.orange)
     }
 
     private func followUpTitle(_ entry: SentLog.Entry) -> String {
       let number = entry.state?.reportNumber.map { "#\($0) " } ?? ""
-      let title = entry.state?.title.isEmpty == false ? entry.state!.title : entry.note
-      return "Still broken: \(number)\(title)"
+      let title = entry.state?.title ?? ""
+      return "Still broken: \(number)\(title.isEmpty ? entry.note : title)"
     }
 
-    /// The approved image: annotations and redactions burned in at full resolution.
-    private func rendered() -> Data? {
-      guard let cgImage = image.cgImage else { return image.pngData() }
-      return AnnotationDrawing.renderPNG(image: cgImage, marks: model.marks)
-    }
   }
 
   struct ConnectionBadge: View {

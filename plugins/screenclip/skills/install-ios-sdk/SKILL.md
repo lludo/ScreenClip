@@ -65,7 +65,7 @@ Generate fresh object IDs: 24 uppercase hex characters each, not already present
    ```
    		<BUILD> /* ScreenClipKit in Frameworks */ = {isa = PBXBuildFile; productRef = <PROD> /* ScreenClipKit */; };
    ```
-   If the app target also builds for macOS (`SUPPORTED_PLATFORMS` includes `macosx`), link it for iOS only: `{isa = PBXBuildFile; platformFilters = (ios, ); productRef = …; }`, and guard the import and the call with `#if DEBUG && canImport(ScreenClipKit)`.
+   For a multiplatform target, set `platformFilters = (ios, );` on the build file and guard both the import and the call with `#if os(iOS) && DEBUG && canImport(ScreenClipKit)`.
 6. Validate: `plutil -lint <project>.xcodeproj/project.pbxproj` must pass, then `xcodebuild -resolvePackageDependencies -project <project>.xcodeproj` (or `-workspace … -scheme …`) must resolve `ScreenClip`.
 
 A working example lives in the ScreenClip repository at `Examples/ScreenClipKitDemo/ScreenClipKitDemo.xcodeproj/project.pbxproj` (it uses a local package reference instead of the remote one).
@@ -115,7 +115,7 @@ struct MyApp: App {
 ```
 If the `App` already has an `init()`, add the `#if DEBUG` block at its start.
 
-Do not start it under tests: UI tests on a device would otherwise meet the Local Network prompt. Use the project's existing test flag if it has one, or `ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil`.
+Use the app's existing test-launch flag to skip startup during unrelated automated tests, so Bonjour permission prompts cannot interrupt them. Hosted unit tests can check `XCTestConfigurationFilePath` in the environment. For UI tests, pass the app's test flag through `XCUIApplication.launchArguments` or `launchEnvironment`. SDK integration tests can explicitly start ScreenClipKit.
 
 UIKit app delegate: put the same `#if DEBUG ScreenClipKit.start() #endif` block at the top of `application(_:didFinishLaunchingWithOptions:)`.
 
@@ -123,7 +123,7 @@ Triggers: by default both shake and "offer after a system screenshot" are on. If
 
 Diagnostics: reports include recent app logs, the screen's view tree, and device state by default (testers can untick them per report). If the app logs mostly with `print`, use `ScreenClipKit.start(ScreenClipOptions(captureConsoleOutput: true))` to also attach the last printed lines; mention this to the user rather than turning it on silently, because it redirects stdout and stderr through a pipe (output still reaches Xcode's console).
 
-If the project uses a custom compilation condition instead of `DEBUG` for internal builds (check `SWIFT_ACTIVE_COMPILATION_CONDITIONS`), keep `DEBUG`; ScreenClipKit itself only activates under `DEBUG`.
+Check the effective Swift compilation conditions of the host and the package for custom configurations. The start call and SDK implementation both require `DEBUG`. Verify each archive/distribution configuration with the Release checks below.
 
 ## 4. Debug-only Info.plist keys
 
@@ -135,32 +135,22 @@ The SDK finds the Mac with Bonjour, which needs these keys in **Debug only**:
 Pick the case that matches the target, per configuration:
 
 - **Generated Info.plist and no `INFOPLIST_FILE` in Debug** (most new projects): create `ScreenClip-Debug-Info.plist` next to the project (outside any synchronized source folder, or excluded from the target's membership so it is not copied as a resource) with only those two keys, and set `INFOPLIST_FILE = "<relative path>/ScreenClip-Debug-Info.plist";` in the app target's **Debug** build configuration only. Xcode merges it with the generated keys. Example: `Examples/ScreenClipKitDemo/Config/ScreenClip-Debug-Info.plist` in the ScreenClip repository.
-- **A file-based Info.plist shared by all configurations** (common in older and multiplatform apps): do not add the keys to it. Add a Run Script build phase named "ScreenClipKit Debug Info.plist keys" as the **last** phase of the app target (before the embed phases it causes a dependency cycle), with input path `$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)`, no output paths, and `alwaysOutOfDate = 1`. This works with `ENABLE_USER_SCRIPT_SANDBOXING = YES`:
-  ```sh
-  [ "${CONFIGURATION}" = "Debug" ] || exit 0
-  case "${PLATFORM_NAME}" in iphoneos|iphonesimulator) ;; *) exit 0 ;; esac
-  PLIST="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
-  /usr/libexec/PlistBuddy -c "Print :NSBonjourServices" "$PLIST" >/dev/null 2>&1 || /usr/libexec/PlistBuddy -c "Add :NSBonjourServices array" "$PLIST"
-  /usr/libexec/PlistBuddy -c "Print :NSBonjourServices" "$PLIST" | grep -q _screenclip._tcp || /usr/libexec/PlistBuddy -c "Add :NSBonjourServices: string _screenclip._tcp" "$PLIST"
-  /usr/libexec/PlistBuddy -c "Print :NSLocalNetworkUsageDescription" "$PLIST" >/dev/null 2>&1 || /usr/libexec/PlistBuddy -c "Add :NSLocalNetworkUsageDescription string 'ScreenClip sends the reports you capture in this debug build to ScreenClip on your Mac.'" "$PLIST"
-  ```
-  `INFOPLIST_KEY_NSLocalNetworkUsageDescription` works as a Debug build setting only when `GENERATE_INFOPLIST_FILE = YES`; there is no build setting for `NSBonjourServices`, so the script is the reliable route.
-- **Already has `NSBonjourServices` or `NSLocalNetworkUsageDescription`** (the app uses the local network itself): add `_screenclip._tcp` to the existing array for Debug only using the script above (append instead of delete), and keep the app's own description.
+- **A file-based Info.plist shared by configurations**: use the project's existing manifest or plist generator to add the two keys to its Debug output. For a plain Xcode project, copy the complete source plist to a Debug-only sibling outside synchronized source folders, then point the app target's Debug `INFOPLIST_FILE` at that copy. Keep the original as the Release input and keep shared app keys in sync when editing either file. If a separate Debug plist already exists, edit it in place.
+- **Existing network settings**: preserve every service already in the Debug array, append `_screenclip._tcp` only once, and keep the host's usage description if it has one. With a generated plist, first check the effective build settings and built plist for inherited values. Configure the source inputs before Xcode processes and signs the app.
+- **Package.swift-only app**: check what its app manifest can express per configuration. If it supplies a single shared plist and lacks a configuration-specific generation step, explain that limitation before adding network declarations. An Xcode app target with separate plist inputs supports the documented Debug-only installation.
+
+For a multiplatform target, scope the Debug plist override to `sdk=iphoneos*` and `sdk=iphonesimulator*` so the existing Mac plist is still used.
 
 If the keys are missing, the SDK still saves reports on the device and logs a console message naming the missing keys.
 
 ## 5. Verify
 
-Commit `Package.resolved` with the project change so other machines resolve the same ScreenClip revision.
-
-
 1. `xcodebuild -resolvePackageDependencies …` resolves ScreenClip.
+   Include the app's updated `Package.resolved` in the project change so other machines use the tested revision.
 2. Build Debug for a simulator: `xcodebuild -scheme <Scheme> -configuration Debug -destination 'generic/platform=iOS Simulator' build`. It must succeed.
-3. Check the Debug Info.plist: `plutil -p <DerivedData>/…/Debug-iphonesimulator/<App>.app/Info.plist | grep -E "Bonjour|_screenclip|LocalNetwork"` shows both keys.
-4. Build Release: `xcodebuild -scheme <Scheme> -configuration Release -destination 'generic/platform=iOS Simulator' build CODE_SIGNING_ALLOWED=NO`. Then confirm nothing shipped:
-   - `plutil -p …/Release-iphonesimulator/<App>.app/Info.plist | grep -cE "Bonjour|LocalNetwork"` prints the same count as before the change (0 unless the app already had them).
-   - `strings …/Release-iphonesimulator/<App>.app/<App> | grep -c _screenclip._tcp` prints 0.
-   - `nm …/<App> | grep -cE "MacLink|ShakeHook|LinkConnection"` prints 0. Only an empty `ScreenClipKit` stub may remain.
+3. Read the built Debug plist with `plutil -p`. Confirm the array contains the exact service once, earlier services are still present, and the usage description is nonempty.
+4. Build Release for a device: `xcodebuild -scheme <Scheme> -configuration Release -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build`. Compare the built Release network declarations to the pre-install Release values. Check the app executable, any app debug dylib, and any embedded SDK framework with `nm` and `strings` for `ShakeHook`, `KitRuntime`, `MacLink`, and `_screenclip._tcp`. Inspect a Debug binary too to confirm the SDK is linked. ScreenClip's own demo runs these checks with `python3 scripts/test_ios_sdk.py`.
+
 5. If a simulator is available, run the Debug app and confirm the console shows `ScreenClipKit started`.
 
 Fix anything that fails before reporting success. Do not claim a check you did not run.

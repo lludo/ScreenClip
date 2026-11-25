@@ -144,6 +144,7 @@ public enum LinkMessage: Codable, Equatable, Sendable {
 /// Length-prefixed frames: a 4-byte big-endian length, one kind byte, then the payload.
 public enum Frame {
   public static let maximumLength = 48 * 1024 * 1024
+  static let sealedOverhead = 1 + 16
   public enum Kind: UInt8 { case plain = 0, sealed = 1 }
 
   public static func encode(kind: Kind, payload: Data) -> Data {
