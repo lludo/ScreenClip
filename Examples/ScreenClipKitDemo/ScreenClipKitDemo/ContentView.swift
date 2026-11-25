@@ -1,4 +1,7 @@
+import OSLog
 import SwiftUI
+
+private let log = Logger(subsystem: "com.example.ScreenClipKitDemo", category: "Menu")
 
 #if DEBUG
   import ScreenClipKit
@@ -61,7 +64,12 @@ struct DetailView: View {
         .buttonStyle(.borderedProminent)
         .frame(width: 180)
         .lineLimit(1)
+        .accessibilityIdentifier("detail.addToOrder")
     }
     .navigationTitle(item.name)
+    .onAppear {
+      log.info("Opened detail for \(item.name, privacy: .public)")
+      print("DetailView appeared: \(item.name)")
+    }
   }
 }

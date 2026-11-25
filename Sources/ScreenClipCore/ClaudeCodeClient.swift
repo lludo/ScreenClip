@@ -15,6 +15,8 @@ public struct ClaudeTurnRequest: Sendable {
   public var prompt: String
   public var images: [Data]
   public var schema: JSONValue
+  /// Extra folders the agent may read, such as an iOS report's diagnostics (`--add-dir`).
+  public var additionalDirectories: [String] = []
   /// A turn running longer than this is terminated.
   public var timeout: TimeInterval = 45 * 60
   public init(
@@ -101,6 +103,7 @@ public actor ClaudeCodeClient {
     if let name = request.name, !name.isEmpty { arguments += ["--name", name] }
     if let model = request.model, !model.isEmpty { arguments += ["--model", model] }
     if let effort = request.effort, !effort.isEmpty { arguments += ["--effort", effort] }
+    for directory in request.additionalDirectories { arguments += ["--add-dir", directory] }
     return arguments
   }
 

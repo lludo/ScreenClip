@@ -4,7 +4,8 @@
   import UIKit
   import os
 
-  let kitLog = Logger(subsystem: "ScreenClipKit", category: "ScreenClip")
+  let kitSubsystem = "ScreenClipKit"
+  let kitLog = Logger(subsystem: kitSubsystem, category: "ScreenClip")
 
   /// Persisted SDK preferences, kept apart from the host app's defaults.
   struct KitPreferences {
@@ -16,6 +17,10 @@
     static var screenshotOfferEnabled: Bool {
       get { defaults.object(forKey: "screenshotOffer") as? Bool ?? true }
       set { defaults.set(newValue, forKey: "screenshotOffer") }
+    }
+    static var attachDiagnostics: Bool {
+      get { defaults.object(forKey: "attachDiagnostics") as? Bool ?? true }
+      set { defaults.set(newValue, forKey: "attachDiagnostics") }
     }
     static var deviceID: UUID {
       if let text = defaults.string(forKey: "deviceID"), let id = UUID(uuidString: text) { return id }
@@ -33,11 +38,15 @@
     lazy var link = MacLink(outbox: outbox)
     let overlay = OverlayPresenter()
     private var observers: [NSObjectProtocol] = []
+    private(set) var startedAt = Date()
 
     func start(_ options: ScreenClipOptions) {
       self.options = options
+      if options.captureConsoleOutput { ConsoleCapture.shared.start() }
       guard !started else { return }
       started = true
+      startedAt = Date()
+      NetworkWatcher.shared.start()
       ShakeHook.install { [weak self] in self?.shakeDetected() }
       let center = NotificationCenter.default
       observers.append(
@@ -82,13 +91,54 @@
         return
       }
       let device = DeviceInfo.context(scene: scene)
+      // Quick, main-thread facts are taken now, as they were at the moment of capture. Logs are
+      // read in the background while the tester annotates.
+      let capturedAt = Date()
+      var immediate: [DiagnosticFile] = []
+      // The app's views stay as they were under the composer window, so the tree can be read a
+      // moment later when SwiftUI needs time to build its accessibility elements.
+      let appWindow = Snapshot.appWindow(in: scene, excluding: overlay.windows)
+      let enabled = Diagnostics.AppAccessibility.enableTemporarily()
+      let tree = Task { @MainActor () -> DiagnosticFile? in
+        if enabled { try? await Task.sleep(nanoseconds: 500_000_000) }
+        defer { if enabled { Diagnostics.AppAccessibility.restore() } }
+        return appWindow.flatMap { Diagnostics.viewTree(of: $0) }
+      }
+      if let state = Diagnostics.deviceState(scene: scene, startedAt: startedAt) { immediate.append(state) }
+      if let console = ConsoleCapture.shared.file() { immediate.append(console) }
+      let logs = Task.detached(priority: .utility) { Diagnostics.recentLogs(until: capturedAt) }
       overlay.presentSheet(in: scene) { dismiss in
-        ComposerView(image: image, link: self.link, outbox: self.outbox) { note, png in
+        ComposerView(image: image, link: self.link, outbox: self.outbox) { note, png, attach in
           dismiss()
-          self.submit(note: note, image: png, device: device)
+          Task { @MainActor in
+            var files: [DiagnosticFile]?
+            if attach {
+              let log = await Self.value(of: logs, timeout: 8)
+              let viewTree = await tree.value
+              files = ([log, viewTree].compactMap { $0 } + immediate).fittingSizeLimit()
+            } else {
+              logs.cancel()
+            }
+            self.submit(note: note, image: png, device: device, diagnostics: files)
+          }
         } cancel: {
+          logs.cancel()
           dismiss()
         }
+      }
+    }
+
+    /// The task's value, or nil if it takes longer than `timeout`.
+    static func value<T: Sendable>(of task: Task<T?, Never>, timeout: TimeInterval) async -> T? {
+      await withTaskGroup(of: T?.self) { group in
+        group.addTask { await task.value }
+        group.addTask {
+          try? await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+          return nil
+        }
+        let first = await group.next() ?? nil
+        group.cancelAll()
+        return first
       }
     }
 
@@ -104,8 +154,8 @@
       }
     }
 
-    private func submit(note: String, image: Data?, device: DeviceContext) {
-      let report = WireReport(note: note, image: image, device: device)
+    private func submit(note: String, image: Data?, device: DeviceContext, diagnostics: [DiagnosticFile]?) {
+      let report = WireReport(note: note, image: image, device: device, diagnostics: diagnostics)
       do {
         try outbox.add(report)
       } catch {
@@ -128,6 +178,19 @@
             ? "Sent to \(self.link.connectedMacName ?? "your Mac")."
             : "Saved. It will be sent when your Mac is reachable.")
       }
+    }
+  }
+
+  extension Array where Element == DiagnosticFile {
+    /// Drops the largest files until the total fits what the Mac accepts.
+    func fittingSizeLimit() -> [DiagnosticFile] {
+      var files = self
+      while files.reduce(0, { $0 + $1.data.count }) > DiagnosticFile.maximumTotalBytes,
+        let largest = files.indices.max(by: { files[$0].data.count < files[$1].data.count })
+      {
+        files.remove(at: largest)
+      }
+      return files
     }
   }
 #endif

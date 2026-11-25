@@ -47,6 +47,8 @@ struct GrokConnectionCheck: Equatable {
   lazy var worker = AgentWorker(model: self)
   /// Receives reports from ScreenClipKit in iOS apps. Started only when enabled in Settings.
   lazy var iosReceiver: IOSReceiver = makeIOSReceiver()
+  /// Reads the bundle IDs a repository declares. Tests replace it to avoid scanning disks.
+  var scanBundleIDs: (String) -> [BundleIDScanner.Declaration] = BundleIDScanner.cachedScan
   /// Reads the Grok Bot connection from the Keychain. Tests replace this so they do not touch credentials.
   var loadExternalAssistant: () -> ExternalAssistantConfiguration = {
     ExternalAssistantKeychain.load()
@@ -227,7 +229,7 @@ struct GrokConnectionCheck: Equatable {
     imageData: Data?, originalData: Data?, annotations: [Annotation], note: String,
     context: CaptureContext, projectID: UUID?, existingID: UUID?, draft: Bool,
     agent: AgentKind? = nil, agentModel: String? = nil, agentEffort: String? = nil,
-    captureID: UUID? = nil
+    captureID: UUID? = nil, diagnostics: ReportDiagnostics? = nil
   ) throws {
     guard imageData != nil || !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
       throw ScreenClipError.message("Enter some context before saving.")
@@ -258,6 +260,7 @@ struct GrokConnectionCheck: Equatable {
         context: context)
       // Reports from iOS keep the device's id, so a resend is recognized as a duplicate.
       if let captureID { capture.id = captureID }
+      capture.diagnostics = diagnostics
       try commit { state in
         if !draft, target == nil || target?.status == .draft,
           let index = state.projects.firstIndex(where: { $0.id == projectID })
@@ -378,9 +381,16 @@ struct GrokConnectionCheck: Equatable {
         if let original { copied.append(original) }
         var context = capture.context
         context.routingReason = "Moved from another project by tester"
-        return Capture(
+        var moved = Capture(
           note: capture.note, imagePath: image, originalPath: original,
           annotations: capture.annotations, context: context)
+        if let diagnostics = capture.diagnostics,
+          let folder = try? store.copyDiagnostics(diagnostics.folder)
+        {
+          copied.append(folder)
+          moved.diagnostics = ReportDiagnostics(folder: folder, files: diagnostics.files)
+        }
+        return moved
       }
       guard let first = captures.first else {
         throw ScreenClipError.message("This report has no captures to move.")

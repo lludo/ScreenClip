@@ -96,4 +96,51 @@ import XCTest
     let context = try JSONDecoder().decode(CaptureContext.self, from: old)
     XCTAssertNil(context.device)
   }
+
+  func testDiagnosticsAreStoredRedactedAndOfferedNotAttached() throws {
+    let (model, root) = try makeModel()
+    var incoming = try report()
+    let token = String(repeating: "a1B2", count: 12)
+    incoming.diagnostics = [
+      DiagnosticFile(name: "logs.txt", summary: "3 app log lines", data: Data("ok\nauth \(token)\nend".utf8)),
+      DiagnosticFile(name: "view-tree.json", summary: "views", data: Data("{}".utf8)),
+      DiagnosticFile(name: "../../escape.txt", summary: "nope", data: Data("x".utf8)),
+      DiagnosticFile(name: "logs.txt", summary: "duplicate", data: Data("y".utf8)),
+    ]
+    try model.importIOSReport(incoming)
+    let issue = try XCTUnwrap(try model.store.load().issues.first)
+    let diagnostics = try XCTUnwrap(issue.captures.first?.diagnostics)
+    XCTAssertEqual(diagnostics.files.map(\.name), ["logs.txt", "view-tree.json"])
+    XCTAssertTrue(diagnostics.folder.hasPrefix(root.appendingPathComponent("diagnostics").path))
+    let logs = try String(contentsOfFile: diagnostics.folder + "/logs.txt", encoding: .utf8)
+    XCTAssertFalse(logs.contains(token))
+    XCTAssertTrue(logs.contains("auth …"))
+    let prompt = AgentPrompt.text(for: issue, project: Project(name: "Shop", path: root.path))
+    XCTAssertTrue(prompt.contains("Optional diagnostics from the device, not included here"))
+    XCTAssertTrue(prompt.contains(diagnostics.folder))
+    XCTAssertTrue(prompt.contains("logs.txt (3 app log lines)"))
+    XCTAssertFalse(prompt.contains(token))
+    try model.store.deleteAssets(for: issue)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: diagnostics.folder))
+  }
+
+  func testUnknownBundleIDRoutesToTheProjectWhoseSourceDeclaresIt() throws {
+    let (model, root) = try makeModel()
+    // "Shop" matches the app name, but the source of "Storefront" declares the bundle ID.
+    let named = Project(name: "Shop", path: root.appendingPathComponent("shop").path)
+    let declaring = Project(name: "Storefront", path: root.appendingPathComponent("store").path)
+    try model.commit { $0.projects += [named, declaring] }
+    model.scanBundleIDs = { path in
+      path == declaring.path ? [.init(identifier: "com.example.shop", source: "Store.xcodeproj/project.pbxproj")] : []
+    }
+    try model.importIOSReport(report())
+    let issue = try XCTUnwrap(try model.store.load().issues.first)
+    XCTAssertEqual(issue.projectID, declaring.id)
+    XCTAssertEqual(issue.captures.first?.context.routingReason, AppModel.sourceMatchReason)
+    // The identifier is learned, so the next report matches without scanning.
+    XCTAssertEqual(model.project(declaring.id)?.bundleIDs, ["com.example.shop"])
+    model.scanBundleIDs = { _ in XCTFail("should not scan"); return [] }
+    try model.importIOSReport(report(note: "Second"))
+    XCTAssertEqual(try model.store.load().issues.filter { $0.projectID == declaring.id }.count, 2)
+  }
 }

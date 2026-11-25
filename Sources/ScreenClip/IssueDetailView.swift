@@ -302,6 +302,17 @@ struct IssueDetailView: View {
                     Chrome.text("Screen", locale: locale, comment: "Capture context label for the visible iOS screen."),
                     device.screenPath.joined(separator: " › "))
                 }
+                if let diagnostics = capture.diagnostics, !diagnostics.files.isEmpty {
+                  contextLine(
+                    Chrome.text("Diagnostics", locale: locale, comment: "Capture context label for optional iOS logs and device files."),
+                    diagnostics.files.map(\.name).joined(separator: ", "))
+                  Button {
+                    NSWorkspace.shared.activateFileViewerSelecting([URL(fileURLWithPath: diagnostics.folder)])
+                  } label: {
+                    Text(chrome: "Show diagnostics in Finder", comment: "Reveals an iOS report's diagnostic files.")
+                  }
+                  .buttonStyle(.link)
+                }
                 contextLine(
                   Chrome.text("Window", locale: locale, comment: "Capture context label."),
                   capture.context.windowTitle ?? Chrome.text(

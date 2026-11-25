@@ -56,6 +56,25 @@ public struct DeviceContext: Codable, Equatable, Sendable {
   public var screenName: String? { screenTitle ?? screenPath.last }
 }
 
+/// An optional file captured with a report: app logs, the view tree, or device state. Agents
+/// read these only when the screenshot and note are not enough.
+public struct DiagnosticFile: Codable, Equatable, Sendable {
+  /// A plain file name such as `logs.txt`; the Mac accepts only `[a-z0-9-]+.(txt|json)`.
+  public var name: String
+  /// One line for the prompt, such as "312 log lines from the last 2 minutes".
+  public var summary: String
+  public var data: Data
+  public init(name: String, summary: String, data: Data) {
+    self.name = name
+    self.summary = summary
+    self.data = data
+  }
+  public static let maximumTotalBytes = 4 * 1024 * 1024
+  public var hasSafeName: Bool {
+    name.range(of: #"^[a-z0-9-]{1,40}\.(txt|json)$"#, options: .regularExpression) != nil
+  }
+}
+
 /// One report as it travels from the phone to the Mac. The image is the approved, already
 /// annotated and redacted PNG; originals never leave the device.
 public struct WireReport: Codable, Equatable, Identifiable, Sendable {
@@ -64,12 +83,18 @@ public struct WireReport: Codable, Equatable, Identifiable, Sendable {
   public var note: String
   public var image: Data?
   public var device: DeviceContext
-  public init(id: UUID = UUID(), createdAt: Date = Date(), note: String, image: Data?, device: DeviceContext) {
+  /// Optional; reports from earlier SDK builds have none.
+  public var diagnostics: [DiagnosticFile]?
+  public init(
+    id: UUID = UUID(), createdAt: Date = Date(), note: String, image: Data?, device: DeviceContext,
+    diagnostics: [DiagnosticFile]? = nil
+  ) {
     self.id = id
     self.createdAt = createdAt
     self.note = note
     self.image = image
     self.device = device
+    self.diagnostics = diagnostics
   }
 }
 

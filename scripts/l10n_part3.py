@@ -374,3 +374,8 @@ A("Confirm", "确认", "Confirmar", "確認", "Confirmar", "Bestätigen", "Confi
 A("Captured on iOS", "在 iOS 上截取", "Capturado en iOS", "iOS でキャプチャ", "Capturado no iOS", "Auf iOS aufgenommen", "Capturé sur iOS", "iOS에서 캡처함", "Снято на iOS", "在 iOS 上擷取")
 A("Device", "设备", "Dispositivo", "デバイス", "Dispositivo", "Gerät", "Appareil", "기기", "Устройство", "裝置")
 A("Screen", "屏幕", "Pantalla", "画面", "Tela", "Bildschirm", "Écran", "화면", "Экран", "畫面")
+A("Add", "添加", "Añadir", "追加", "Adicionar", "Hinzufügen", "Ajouter", "추가", "Добавить", "加入")
+A("App bundle IDs (Mac and iOS)", "App bundle ID（Mac 和 iOS）", "Bundle ID de las apps (Mac e iOS)", "アプリの Bundle ID（Mac と iOS）", "Bundle IDs dos apps (Mac e iOS)", "App-Bundle-IDs (Mac und iOS)", "Bundle ID des apps (Mac et iOS)", "앱 번들 ID(Mac 및 iOS)", "Bundle ID приложений (Mac и iOS)", "App bundle ID（Mac 與 iOS）")
+A("Diagnostics", "诊断信息", "Diagnóstico", "診断情報", "Diagnóstico", "Diagnosedaten", "Diagnostics", "진단 정보", "Диагностика", "診斷資訊")
+A("Matched app identifier in project source", "在项目源代码中匹配到 App 标识符", "Coincide con el identificador de la app en el código del proyecto", "プロジェクトのソースでアプリ識別子に一致", "Correspondeu ao identificador do app no código do projeto", "App-Kennung im Projektquellcode gefunden", "Identifiant de l’app trouvé dans le code du projet", "프로젝트 소스에서 앱 식별자와 일치", "Идентификатор приложения найден в коде проекта", "在專案原始碼中符合 App 識別碼")
+A("Show diagnostics in Finder", "在访达中显示诊断信息", "Mostrar el diagnóstico en el Finder", "診断情報を Finder で表示", "Mostrar diagnóstico no Finder", "Diagnosedaten im Finder zeigen", "Afficher les diagnostics dans le Finder", "Finder에서 진단 정보 보기", "Показать диагностику в Finder", "在 Finder 中顯示診斷資訊")

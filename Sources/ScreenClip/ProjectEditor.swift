@@ -11,6 +11,8 @@ struct ProjectEditor: View {
   @State private var savedAt: Date?
   @State private var origins = ""
   @State private var bundles = ""
+  /// App bundle IDs declared in the repository's source (Xcode projects, xcconfigs, manifests).
+  @State private var detectedBundles: [String] = []
   @State private var error: String?
   @Environment(\.dismiss) var dismiss
   @Environment(\.locale) private var locale
@@ -65,8 +67,25 @@ struct ProjectEditor: View {
           prompt: Text(chrome: "One per line", comment: "Placeholder for a multiline list."),
           axis: .vertical
         ) {
-          Text(chrome: "Mac app bundle IDs", comment: "Native app bundle identifiers.")
-        }.lineLimit(1...3)
+          Text(chrome: "App bundle IDs (Mac and iOS)", comment: "Native app bundle identifiers used for routing.")
+        }.lineLimit(1...4)
+        if !suggestedBundles.isEmpty {
+          HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text(verbatim: Chrome.format(
+              "project.detectedBundles", "Found in this repository: \(suggestedBundles.joined(separator: ", "))",
+              locale: locale, comment: "App bundle IDs found in the project's source. %@ is a list of identifiers."))
+              .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+              .textSelection(.enabled)
+            Spacer(minLength: 4)
+            Button {
+              let current = bundles.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+              bundles = (current + suggestedBundles).joined(separator: "\n")
+            } label: {
+              Text(chrome: "Add", comment: "Adds the detected bundle IDs to the project.")
+            }.controlSize(.small)
+          }
+        }
         LabeledContent {
           TextField("", text: $project.validationCommand, axis: .vertical)
             .labelsHidden().lineLimit(2...4).font(.system(.body, design: .monospaced))
@@ -181,11 +200,26 @@ struct ProjectEditor: View {
     }.padding(24).frame(minWidth: embedded ? 0 : 620, idealWidth: embedded ? nil : 720)
       .frame(maxWidth: embedded ? .infinity : nil, alignment: .leading)
       .onAppear { load(project) }
+      .task(id: project.path) { await detectBundles() }
   }
   private var providerChoices: [AgentKind] {
     let connected = AgentKind.allCases.filter { model.detection($0)?.usable == true }
     guard let chosen = project.defaultAgent, !connected.contains(chosen) else { return connected }
     return connected + [chosen]
+  }
+  /// Detected identifiers not already listed. Only fully resolved ones are offered.
+  private var suggestedBundles: [String] {
+    let listed = Set(bundles.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
+    return detectedBundles.filter { !listed.contains($0) }
+  }
+  private func detectBundles() async {
+    let path = project.path
+    guard !path.isEmpty else { return detectedBundles = [] }
+    let found = await Task.detached(priority: .utility) {
+      BundleIDScanner.scan(root: URL(fileURLWithPath: path)).filter(\.isResolved).map(\.identifier)
+    }.value
+    guard path == project.path else { return }
+    detectedBundles = found.filter { !$0.hasSuffix("Tests") && !$0.hasSuffix("UITests") }.sorted()
   }
   private var isExisting: Bool { model.snapshot.projects.contains(where: { $0.id == project.id }) }
   private func load(_ value: Project) {

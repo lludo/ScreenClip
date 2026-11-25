@@ -118,6 +118,8 @@ UIKit app delegate: put the same `#if DEBUG ScreenClipKit.start() #endif` block 
 
 Triggers: by default both shake and "offer after a system screenshot" are on. If the app already uses shake (search for `motionEnded`, `motionShake`, `onShake`, FLEX, or another debug menu), use `ScreenClipKit.start(triggers: [.screenshot])` and tell the user they can call `ScreenClipKit.capture()` from their own debug menu. ScreenClipKit chains to existing shake handling and never consumes the event, so leaving shake on is also safe; the only cost is two sheets wanting the same gesture.
 
+Diagnostics: reports include recent app logs, the screen's view tree, and device state by default (testers can untick them per report). If the app logs mostly with `print`, use `ScreenClipKit.start(ScreenClipOptions(captureConsoleOutput: true))` to also attach the last printed lines; mention this to the user rather than turning it on silently, because it redirects stdout and stderr through a pipe (output still reaches Xcode's console).
+
 If the project uses a custom compilation condition instead of `DEBUG` for internal builds (check `SWIFT_ACTIVE_COMPILATION_CONDITIONS`), keep `DEBUG`; ScreenClipKit itself only activates under `DEBUG`.
 
 ## 4. Debug-only Info.plist keys
@@ -162,4 +164,4 @@ Fix anything that fails before reporting success. Do not claim a check you did n
 - On the device: run the Debug build, shake (or take a screenshot), tap the gear in the report sheet, tap **Pair** next to the Mac, and confirm the same 6-digit code on the Mac.
 - After that, shake, annotate, add a note, and tap **Send**. If the Mac is not reachable the report is saved and sent automatically later; **Fetch** on the Mac asks connected devices to send saved reports, and saved reports can also be exported and AirDropped to the Mac.
 - iPhone and Mac must be on the same network. iOS asks once for Local Network access.
-- Reports are routed to a ScreenClip project by the app's bundle ID; the first time, the user picks the project and ScreenClip remembers it.
+- Reports are routed to a ScreenClip project by the app's bundle ID. If the project is already in ScreenClip, the first report usually routes itself: ScreenClip finds the bundle ID in the repository's Xcode project. Otherwise the user picks the project once and ScreenClip remembers it.

@@ -11,8 +11,13 @@ public enum ScreenClipTrigger: Hashable, Sendable {
 
 public struct ScreenClipOptions: Sendable {
   public var triggers: Set<ScreenClipTrigger>
-  public init(triggers: Set<ScreenClipTrigger> = [.shake, .screenshot]) {
+  /// Also keep the last lines your app prints to stdout and stderr (`print`) and attach them to
+  /// reports as `console.txt`. Output still reaches Xcode's console. Off by default because it
+  /// redirects the process's standard output.
+  public var captureConsoleOutput: Bool
+  public init(triggers: Set<ScreenClipTrigger> = [.shake, .screenshot], captureConsoleOutput: Bool = false) {
     self.triggers = triggers
+    self.captureConsoleOutput = captureConsoleOutput
   }
 }
 

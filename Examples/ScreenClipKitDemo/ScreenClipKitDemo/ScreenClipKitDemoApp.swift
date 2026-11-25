@@ -8,7 +8,9 @@ import SwiftUI
 struct ScreenClipKitDemoApp: App {
   init() {
     #if DEBUG
-      ScreenClipKit.start()
+      // `-captureConsole` also attaches recent print() output to reports.
+      ScreenClipKit.start(
+        ScreenClipOptions(captureConsoleOutput: ProcessInfo.processInfo.arguments.contains("-captureConsole")))
       Self.simulateShakeIfAsked()
     #endif
   }

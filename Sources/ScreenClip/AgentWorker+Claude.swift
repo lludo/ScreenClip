@@ -49,6 +49,7 @@ extension AgentWorker {
       effort: issue.agentModel == nil ? nil : issue.agentEffort, prompt: turn.text,
       images: turn.captures.compactMap { allImages[$0.id] }, schema: AgentPrompt.resultSchema)
     request.timeout = turnTimeLimit
+    request.additionalDirectories = issue.captures.compactMap { $0.diagnostics?.folder }
     let progress: @Sendable (String) async -> Void = { [weak self] text in
       await self?.recordProgress(id, text: text)
     }

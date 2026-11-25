@@ -144,6 +144,32 @@ public final class IssueStore {
     }
     return path.path
   }
+  /// Writes diagnostic files into a new folder under `diagnostics/`. Names must already be plain
+  /// file names. Returns the folder.
+  public func writeDiagnostics(_ files: [(name: String, data: Data)]) throws -> String {
+    guard !readOnly else { throw ScreenClipError.message("This queue connection is read-only.") }
+    let folder = root.appendingPathComponent("diagnostics").appendingPathComponent(UUID().uuidString)
+    do {
+      try FileManager.default.createDirectory(
+        at: folder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+      for file in files {
+        guard !file.name.contains("/"), !file.name.hasPrefix(".") else { continue }
+        let url = folder.appendingPathComponent(file.name)
+        try file.data.write(to: url, options: .atomic)
+        try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: url.path)
+      }
+    } catch {
+      try? FileManager.default.removeItem(at: folder)
+      throw error
+    }
+    return folder.path
+  }
+  /// A copy of a diagnostics folder, so two reports never share files.
+  public func copyDiagnostics(_ folder: String) throws -> String {
+    let source = URL(fileURLWithPath: folder)
+    let names = try FileManager.default.contentsOfDirectory(atPath: source.path)
+    return try writeDiagnostics(names.map { ($0, try Data(contentsOf: source.appendingPathComponent($0))) })
+  }
   public func export(to directory: URL) throws {
     try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
     let snapshot = try load()
@@ -151,6 +177,7 @@ public final class IssueStore {
     for i in exported.issues.indices {
       for c in exported.issues[i].captures.indices {
         exported.issues[i].captures[c].originalPath = nil
+        exported.issues[i].captures[c].diagnostics = nil
         guard let path = exported.issues[i].captures[c].imagePath else { continue }
         let source = URL(fileURLWithPath: path)
         let filename = source.lastPathComponent
@@ -181,6 +208,14 @@ public final class IssueStore {
         else { continue }
         if FileManager.default.fileExists(atPath: url.path) {
           // Keep going so one stuck file does not orphan the rest.
+          do { try FileManager.default.removeItem(at: url) } catch { firstFailure = firstFailure ?? error }
+        }
+      }
+      if let folder = capture.diagnostics?.folder {
+        let url = URL(fileURLWithPath: folder).standardizedFileURL
+        if url.path.hasPrefix(root.standardizedFileURL.path + "/diagnostics/"),
+          FileManager.default.fileExists(atPath: url.path)
+        {
           do { try FileManager.default.removeItem(at: url) } catch { firstFailure = firstFailure ?? error }
         }
       }

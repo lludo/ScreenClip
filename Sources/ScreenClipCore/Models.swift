@@ -181,6 +181,27 @@ public struct CaptureContext: Codable, Equatable {
   }
 }
 
+/// Optional files sent with an iOS report (logs, view tree, device state), kept in their own
+/// folder. Agents are told where they are and read them only when needed.
+public struct ReportDiagnostics: Codable, Equatable {
+  public struct Entry: Codable, Equatable {
+    public var name: String
+    public var summary: String
+    public var bytes: Int
+    public init(name: String, summary: String, bytes: Int) {
+      self.name = name
+      self.summary = summary
+      self.bytes = bytes
+    }
+  }
+  public var folder: String
+  public var files: [Entry]
+  public init(folder: String, files: [Entry]) {
+    self.folder = folder
+    self.files = files
+  }
+}
+
 public struct Capture: Codable, Identifiable, Equatable {
   public var id: UUID
   public var note: String
@@ -188,6 +209,8 @@ public struct Capture: Codable, Identifiable, Equatable {
   public var originalPath: String?
   public var annotations: [Annotation]
   public var context: CaptureContext
+  /// Optional so older queues decode.
+  public var diagnostics: ReportDiagnostics?
   public init(
     note: String, imagePath: String?, originalPath: String? = nil, annotations: [Annotation] = [],
     context: CaptureContext

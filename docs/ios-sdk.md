@@ -30,7 +30,16 @@ There are two layers. Your `#if DEBUG` guards keep the call out, and the package
 
 1. On the Mac, open **Settings > iOS**, turn on **Receive reports from iOS devices**, and click **Pair a device…**.
 2. On the device, run the Debug build and shake. Tap the gear in the report sheet, then tap **Pair** next to your Mac. Confirm that both screens show the same 6-digit code, then click **Confirm** on the Mac.
-3. From then on: shake, draw (arrow, rectangle, ellipse, pen, text, redact), write a note, and tap **Send**. The report gets the iPhone icon in the queue and is routed like a Mac capture, by the app's bundle ID. The first time, choose the project and ScreenClip remembers it.
+3. From then on: shake, draw (arrow, rectangle, ellipse, pen, text, redact), write a note, and tap **Send**. The report gets the iPhone icon in the queue.
+
+### Which project gets the report
+
+1. A project whose **App bundle IDs** list the app's bundle ID.
+2. Otherwise, the one project whose source declares that bundle ID. ScreenClip reads `PRODUCT_BUNDLE_IDENTIFIER` in every target and configuration of each Xcode project, plus `.xcconfig` files, Info.plists, XcodeGen `project.yml`, Tuist `Project.swift`, and `Package.swift` app products. It resolves build-setting variables from the same settings or any xcconfig; `.git`, `build`, `DerivedData`, `Pods`, and `node_modules` are skipped. A source match beats a match by app name.
+3. Otherwise, the one project whose name or folder matches the app's display name.
+4. Otherwise **Needs project**. Choosing a project saves the bundle ID on it, so the next report routes itself.
+
+When ScreenClip finds bundle IDs in a project's repository, the project editor shows them under **App bundle IDs (Mac and iOS)** with an **Add** button.
 
 | Situation | What happens |
 | --- | --- |
@@ -43,6 +52,27 @@ There are two layers. Your `#if DEBUG` guards keep the call out, and the package
 
 **Other tools that use shake.** ScreenClipKit doesn't take the gesture over. It wraps `-[UIWindow motionEnded:withEvent:]` and always calls the previous implementation first, so the app's own handling, shake-to-undo, and other debugging tools still receive it. Tools that install the same kind of hook later chain to it. A shake doesn't open the report sheet while an alert or another tool's overlay window is on screen. If the app already uses shake, the cleanest setup is `triggers: [.screenshot]` plus `capture()` from your existing menu.
 
+## Diagnostics
+
+**Attach logs and diagnostics**, under the note, is on by default and can be turned off for a sensitive report. The files are attached to the report, but agents don't receive them up front. The prompt lists them with a one-line summary each and says where they are. An agent opens them only when the screenshot and note aren't enough.
+
+| File | What | How |
+| --- | --- | --- |
+| `logs.txt` | The app's unified-log entries (`Logger`, `os_log`, `NSLog`) from the 2 minutes before the capture, at most 500 lines. `com.apple.*` entries are kept only at error or fault level, and repeated lines are collapsed | `OSLogStore` scoped to the app's own process, read in the background while you annotate. If reading takes more than 8 seconds after you tap Send, the report goes without it |
+| `view-tree.json` | The captured window's views and accessibility elements, with identifiers, labels, values, traits, and frames in points. SwiftUI content, such as a `Button` with `.accessibilityIdentifier`, appears as accessibility elements with its full, untruncated label | Walked on the main thread while the composer opens. SwiftUI only builds accessibility elements while app accessibility is on, so the SDK switches it on for that half second, the same switch UI tests and Accessibility Inspector use, then switches it back off if it was off |
+| `device-state.json` | Memory footprint, CPU, thermal state, Low Power Mode, battery, free disk, network type, color scheme, Dynamic Type, Reduce Motion, Bold Text, Increase Contrast, VoiceOver, time zone, languages | Read at the moment of capture |
+| `console.txt` | The last 300 lines printed to stdout and stderr (`print`) | Only with `ScreenClipKit.start(ScreenClipOptions(captureConsoleOutput: true))`. Output still reaches Xcode's console |
+
+On the Mac:
+- **Storage:** each report's files go in their own folder under `diagnostics/` in ScreenClip's data folder, deleted along with the report.
+- **Limits:** only plain `.txt` and `.json` names are accepted, 4 MB in total.
+- **Redaction:** token-like strings in text files are replaced with `…`.
+- **Viewing:** the report's **Captured context** lists the files and has **Show diagnostics in Finder**.
+- **Agents:** Claude Code gets the folder with `--add-dir`, so it can read it without a permission prompt.
+- **MCP:** `get_issue` lists the files by name and summary, and returns their contents only with `include_diagnostics: true`.
+
+Grok Bot does not receive diagnostics.
+
 ## What the Mac receives
 
 Only the approved image leaves the device: the screenshot with annotations and redactions burned in, at full pixel size. The device keeps no unredacted original. Each report carries:
@@ -50,6 +80,7 @@ Only the approved image leaves the device: the screenshot with annotations and r
 - app name, bundle ID, version, build, and an optional git SHA (Info.plist key `ScreenClipGitSHA`)
 - device model, OS version, locale, orientation, screen size and scale
 - the visible view-controller chain and the innermost screen title
+- optional diagnostics, described above
 
 The issue detail shows the device and screen. Agents get them in the prompt, and the MCP `get_issue` returns them as `context.device`.
 

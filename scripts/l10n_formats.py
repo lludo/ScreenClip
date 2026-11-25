@@ -602,6 +602,10 @@ FORMATS = {
         "iPhone 또는 iPad에서 앱을 열고 흔들어 ScreenClip을 연 다음, 톱니바퀴를 탭하고 “%@” 옆의 페어링을 탭하세요.",
         "На iPhone или iPad откройте приложение, встряхните его, чтобы открыть ScreenClip, нажмите на шестерёнку, затем «Сопрячь» рядом с «%@».",
         "在 iPhone 或 iPad 上開啟 App，搖動裝置開啟 ScreenClip，點一下齒輪，然後點一下「%@」旁的「配對」。"),
+    "project.detectedBundles": S("app", "App bundle IDs found in the project's source. %@ is a list of identifiers and stays unchanged.",
+        "Found in this repository: %@", "在此仓库中找到：%@", "Encontrados en este repositorio: %@", "このリポジトリで見つかったもの: %@",
+        "Encontrados neste repositório: %@", "In diesem Repository gefunden: %@", "Trouvés dans ce dépôt : %@",
+        "이 저장소에서 찾음: %@", "Найдено в этом репозитории: %@", "在此儲存庫中找到：%@"),
 }
 
 INFO_PLIST = {

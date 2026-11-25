@@ -101,6 +101,7 @@ enum AppChrome {
     "Reconnect and reconcile the chat; the original request may no longer be pending.",
     "The conversation is in Grok Bot's chat. ScreenClip cannot open or reconcile it from here.",
     "Matched app identifier", "Matched website rule", "Matched app name",
+    "Matched app identifier in project source",
     "No matching project rule", "Multiple projects match; choose a project",
     "Moved from another project by tester",
     "Draft saved", "Capture submitted", "Draft updated", "Draft submitted", "Project assigned",

@@ -28,6 +28,12 @@
       }
     }
 
+    /// The app's main window in the scene: the key window unless it is ScreenClip's own.
+    static func appWindow(in scene: UIWindowScene, excluding ours: [UIWindow]) -> UIWindow? {
+      let candidates = scene.windows.filter { window in !window.isHidden && !ours.contains(where: { $0 === window }) }
+      return candidates.first(where: \.isKeyWindow) ?? candidates.first { $0.windowLevel == .normal }
+    }
+
     /// True when an alert or another tool's overlay is on screen, so a shake does not stack a
     /// second sheet on top of it. Keyboard windows do not count.
     static func anotherOverlayIsShowing(ignoring ours: [UIWindow]) -> Bool {

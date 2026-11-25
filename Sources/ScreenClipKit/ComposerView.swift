@@ -28,10 +28,11 @@
     let image: UIImage
     let link: MacLink
     let outbox: Outbox
-    let send: (String, Data?) -> Void
+    let send: (String, Data?, Bool) -> Void
     let cancel: () -> Void
     @State private var model = ComposerModel()
     @State private var showingSettings = false
+    @State private var attachDiagnostics = KitPreferences.attachDiagnostics
     @FocusState private var noteFocused: Bool
 
     var body: some View {
@@ -48,7 +49,13 @@
             .focused($noteFocused)
             .padding(10)
             .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
-            .padding(.horizontal, 12).padding(.bottom, 10)
+            .padding(.horizontal, 12).padding(.bottom, 6)
+          Toggle(isOn: $attachDiagnostics) {
+            Text("Attach logs and diagnostics").font(.footnote)
+          }
+          .onChange(of: attachDiagnostics) { _, value in KitPreferences.attachDiagnostics = value }
+          .padding(.horizontal, 14).padding(.bottom, 10)
+          .accessibilityHint("Recent app logs, the screen's layout, and device state. The agent reads them only if needed.")
         }
         .navigationTitle("Report")
         .navigationBarTitleDisplayMode(.inline)
@@ -62,7 +69,9 @@
               Image(systemName: "gearshape")
             }
             .accessibilityLabel("ScreenClip settings")
-            Button("Send") { send(model.note.trimmingCharacters(in: .whitespacesAndNewlines), rendered()) }
+            Button("Send") {
+              send(model.note.trimmingCharacters(in: .whitespacesAndNewlines), rendered(), attachDiagnostics)
+            }
               .bold()
           }
         }
