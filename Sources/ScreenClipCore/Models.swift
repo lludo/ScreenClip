@@ -59,6 +59,8 @@ public struct ReportAgentChoice: Codable, Equatable {
 }
 
 public struct Project: Codable, Identifiable, Equatable {
+  /// What a new project starts with until its repository's own default branch is detected.
+  public static let defaultBaseBranch = "main"
   public var id: UUID
   public var name: String
   public var path: String
@@ -82,7 +84,7 @@ public struct Project: Codable, Identifiable, Equatable {
     return symbol
   }
   public init(
-    id: UUID = UUID(), name: String, path: String, baseBranch: String = "main",
+    id: UUID = UUID(), name: String, path: String, baseBranch: String = Project.defaultBaseBranch,
     origins: [String] = [], bundleIDs: [String] = [], validationCommand: String = "",
     autoMerge: Bool = true
   ) {
