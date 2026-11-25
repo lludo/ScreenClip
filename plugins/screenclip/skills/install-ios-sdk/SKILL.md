@@ -65,6 +65,7 @@ Generate fresh object IDs: 24 uppercase hex characters each, not already present
    ```
    		<BUILD> /* ScreenClipKit in Frameworks */ = {isa = PBXBuildFile; productRef = <PROD> /* ScreenClipKit */; };
    ```
+   If the app target also builds for macOS (`SUPPORTED_PLATFORMS` includes `macosx`), link it for iOS only: `{isa = PBXBuildFile; platformFilters = (ios, ); productRef = …; }`, and guard the import and the call with `#if DEBUG && canImport(ScreenClipKit)`.
 6. Validate: `plutil -lint <project>.xcodeproj/project.pbxproj` must pass, then `xcodebuild -resolvePackageDependencies -project <project>.xcodeproj` (or `-workspace … -scheme …`) must resolve `ScreenClip`.
 
 A working example lives in the ScreenClip repository at `Examples/ScreenClipKitDemo/ScreenClipKitDemo.xcodeproj/project.pbxproj` (it uses a local package reference instead of the remote one).
@@ -114,6 +115,8 @@ struct MyApp: App {
 ```
 If the `App` already has an `init()`, add the `#if DEBUG` block at its start.
 
+Do not start it under tests: UI tests on a device would otherwise meet the Local Network prompt. Use the project's existing test flag if it has one, or `ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] == nil`.
+
 UIKit app delegate: put the same `#if DEBUG ScreenClipKit.start() #endif` block at the top of `application(_:didFinishLaunchingWithOptions:)`.
 
 Triggers: by default both shake and "offer after a system screenshot" are on. If the app already uses shake (search for `motionEnded`, `motionShake`, `onShake`, FLEX, or another debug menu), use `ScreenClipKit.start(triggers: [.screenshot])` and tell the user they can call `ScreenClipKit.capture()` from their own debug menu. ScreenClipKit chains to existing shake handling and never consumes the event, so leaving shake on is also safe; the only cost is two sheets wanting the same gesture.
@@ -132,20 +135,24 @@ The SDK finds the Mac with Bonjour, which needs these keys in **Debug only**:
 Pick the case that matches the target, per configuration:
 
 - **Generated Info.plist and no `INFOPLIST_FILE` in Debug** (most new projects): create `ScreenClip-Debug-Info.plist` next to the project (outside any synchronized source folder, or excluded from the target's membership so it is not copied as a resource) with only those two keys, and set `INFOPLIST_FILE = "<relative path>/ScreenClip-Debug-Info.plist";` in the app target's **Debug** build configuration only. Xcode merges it with the generated keys. Example: `Examples/ScreenClipKitDemo/Config/ScreenClip-Debug-Info.plist` in the ScreenClip repository.
-- **A file-based Info.plist shared by all configurations**: do not add the keys to it. Add a Run Script build phase to the app target, after "Copy Bundle Resources", named "ScreenClip Debug Info.plist keys":
+- **A file-based Info.plist shared by all configurations** (common in older and multiplatform apps): do not add the keys to it. Add a Run Script build phase named "ScreenClipKit Debug Info.plist keys" as the **last** phase of the app target (before the embed phases it causes a dependency cycle), with input path `$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)`, no output paths, and `alwaysOutOfDate = 1`. This works with `ENABLE_USER_SCRIPT_SANDBOXING = YES`:
   ```sh
   [ "${CONFIGURATION}" = "Debug" ] || exit 0
+  case "${PLATFORM_NAME}" in iphoneos|iphonesimulator) ;; *) exit 0 ;; esac
   PLIST="${TARGET_BUILD_DIR}/${INFOPLIST_PATH}"
-  /usr/libexec/PlistBuddy -c "Delete :NSBonjourServices" "$PLIST" 2>/dev/null || true
-  /usr/libexec/PlistBuddy -c "Add :NSBonjourServices array" -c "Add :NSBonjourServices:0 string _screenclip._tcp" "$PLIST"
-  /usr/libexec/PlistBuddy -c "Add :NSLocalNetworkUsageDescription string 'ScreenClip sends the reports you capture in this debug build to ScreenClip on your Mac.'" "$PLIST" 2>/dev/null || true
+  /usr/libexec/PlistBuddy -c "Print :NSBonjourServices" "$PLIST" >/dev/null 2>&1 || /usr/libexec/PlistBuddy -c "Add :NSBonjourServices array" "$PLIST"
+  /usr/libexec/PlistBuddy -c "Print :NSBonjourServices" "$PLIST" | grep -q _screenclip._tcp || /usr/libexec/PlistBuddy -c "Add :NSBonjourServices: string _screenclip._tcp" "$PLIST"
+  /usr/libexec/PlistBuddy -c "Print :NSLocalNetworkUsageDescription" "$PLIST" >/dev/null 2>&1 || /usr/libexec/PlistBuddy -c "Add :NSLocalNetworkUsageDescription string 'ScreenClip sends the reports you capture in this debug build to ScreenClip on your Mac.'" "$PLIST"
   ```
-  Set `inputPaths`/`outputPaths` empty and `alwaysOutOfDate = 1`; if `ENABLE_USER_SCRIPT_SANDBOXING = YES`, add `$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)` to both input and output files.
+  `INFOPLIST_KEY_NSLocalNetworkUsageDescription` works as a Debug build setting only when `GENERATE_INFOPLIST_FILE = YES`; there is no build setting for `NSBonjourServices`, so the script is the reliable route.
 - **Already has `NSBonjourServices` or `NSLocalNetworkUsageDescription`** (the app uses the local network itself): add `_screenclip._tcp` to the existing array for Debug only using the script above (append instead of delete), and keep the app's own description.
 
 If the keys are missing, the SDK still saves reports on the device and logs a console message naming the missing keys.
 
 ## 5. Verify
+
+Commit `Package.resolved` with the project change so other machines resolve the same ScreenClip revision.
+
 
 1. `xcodebuild -resolvePackageDependencies …` resolves ScreenClip.
 2. Build Debug for a simulator: `xcodebuild -scheme <Scheme> -configuration Debug -destination 'generic/platform=iOS Simulator' build`. It must succeed.
