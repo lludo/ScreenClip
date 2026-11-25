@@ -2,7 +2,7 @@
   "languageName": "日本語",
   "meta": {
     "homeTitle": "ScreenClip — AIコーディングエージェント向けのスクリーンショットフィードバック",
-    "homeDescription": "ScreenClipはMacのメニューバーアプリです。気づいたことをキャプチャしてコーディングエージェントに送り、作業の流れを止めずに修正を追跡できます。",
+    "homeDescription": "ScreenClip は Mac のメニューバーアプリ。iOS アプリ向けの ScreenClipKit も加わりました。Mac、iPhone、iPad で気づいたことをキャプチャしてコーディングエージェントに送り、作業の流れを止めずに修正を追えます。",
     "privacyTitle": "プライバシーポリシー — ScreenClip",
     "privacyDescription": "ScreenClipがMacに保存するもの、Codex、Claude Code、Grok Bot、GitHubに送られるもの、そして墨消しの仕組み。",
     "supportTitle": "サポート — ScreenClip",
@@ -16,6 +16,7 @@
     "primary": "メイン",
     "footer": "フッター",
     "how": "使い方",
+    "ios": "iPhone・iPad",
     "agents": "コーディングエージェント",
     "questions": "質問",
     "download": "無料ダウンロード",
@@ -34,9 +35,12 @@
     "support": "サポートページ",
     "site": "screenclipai.com",
     "privacyLead": "プライバシーポリシーを読む",
-    "author": "Ludo Landry"
+    "author": "Ludo Landry",
+    "iosGuide": "iOS ガイド"
   },
   "hero": {
+    "newTag": "新機能",
+    "newText": "iPhone・iPad アプリからもレポートできます",
     "eyebrow": "AIコーディングエージェント向けのスクリーンショットフィードバック",
     "title": "流れを止めずに、気づいた不具合を記録。",
     "lead": "気になる点を見つけたら、キャプチャして一言添えるだけ。あとは作業を続けてください。コーディングエージェントがバックグラウンドで修正し、再テストのタイミングはScreenClipがお知らせします。",
@@ -59,6 +63,18 @@
   "loop": {
     "eyebrow": "使い方",
     "title": "あなたの手間は数秒。あとはバックグラウンドで進みます。"
+  },
+  "ios": {
+    "eyebrow": "1.1 の新機能 · iPhone と iPad",
+    "title": "iPhone でテスト中？そのままレポートできます。",
+    "intro": "iOS アプリの Debug ビルドに ScreenClipKit を追加します。デバイスを振って、画面に書き込み、送信するだけ。レポートは Mac の ScreenClip に届き、ほかのレポートと同じようにコーディングエージェントが修正します。",
+    "shakeTitle": "振ってレポート",
+    "shakeBody": "デバイスを振るか、スクリーンショットを撮って「レポート」をタップ。Mac と同じツールで書き込み、メモを添えて送信します。",
+    "pairTitle": "Mac とペアリング",
+    "pairBody": "両方の画面に表示される同じ 6 桁のコードを確認します。レポートはローカルネットワーク経由で、ペアリングした Mac 向けに暗号化されて届き、Mac に届かないときは iPhone で待機します。",
+    "statusTitle": "ステータスと再テストも iPhone で",
+    "statusBody": "各レポートのエージェント、リアルタイムのステータス、プルリクエストを確認できます。修正がマージされたら、修正済みにするか、次のキャプチャを同じレポートに送り返します。",
+    "note": "アプリの Release ビルドには一切含まれません。iOS 17 以降。ScreenClip の設定 › iOS でコピーしたプロンプトを使えば、Claude Code や Codex がインストールしてくれます。{link:iosGuide}。"
   },
   "agents": {
     "eyebrow": "コーディングエージェント",
@@ -89,6 +105,7 @@
     "needGit": "テスト対象アプリのローカルGitリポジトリ",
     "needAgent": "Codex CLI、Claude Code、またはGrok Botのwebhook",
     "needGh": "GitHub CLI。プルリクエストとGrok Botの両方に使います",
+    "needIos": "iOS アプリの場合：Debug ビルドに ScreenClipKit、iOS 17 以降",
     "awake": "CodexまたはClaude Codeの作業中は、ScreenClipを起動したまま、Macをスリープさせないでください。Grok BotはMacがスリープしても作業を続けます。ScreenClipを次に開いたときに、そのプルリクエストの状態を更新します。",
     "privacy": "Macに残るものと外に出るものは、{link:privacyLead}。",
     "titleSoon": "Mac版は近日公開。"
@@ -175,6 +192,10 @@
         "a": "はい。WebサイトでもネイティブのMacアプリでも、範囲をキャプチャできます。リポジトリを登録し、Webサイトのアドレスかアプリのbundle IDを関連付けます。送信前にプロジェクトは変更できます。プロジェクトが曖昧なときは、リポジトリを推測せず、レポートを保存して待ちます。"
       },
       {
+        "q": "iPhone・iPad アプリでも使えますか？",
+        "a": "はい、ご自身で開発している iOS アプリで使えます。Swift パッケージ ScreenClipKit をアプリの Debug ビルドに追加してください（iOS 17 以降）。Release ビルドには一切含まれません。6 桁のコードを確認してデバイスを Mac の ScreenClip とペアリングしたら、デバイスを振るか、スクリーンショットを撮ってレポートします。書き込みをしたスクリーンショットとメモは、ペアリングした Mac 向けに暗号化され、ローカルネットワーク経由で Mac に届き、ほかのレポートと同じように整理されます。必要に応じて、最近のログ、画面のビュー、デバイスの状態も添付できます。iPhone では各レポートのステータスとプルリクエストを確認でき、マージされた修正を再テストできます。"
+      },
+      {
         "q": "ScreenClipは誰が作っていますか？",
         "a": "開発者ひとり（{link:author}）と、私がScreenClipで報告した不具合を直してくれるコーディングエージェントたちで作っています。ScreenClipは非商用の利用なら無料です。お返しにいただけるとうれしいのは、フィードバック、不具合の報告、GitHubでのプルリクエストです。午後がまるごと浮いたら、アプリのメニューにあるチップでコーヒーを1杯おごってください。そのコーヒーはそのままコードに還元されます。"
       }
@@ -188,7 +209,8 @@
       "WebサイトとネイティブMacアプリからのキャプチャ",
       "Codex、Claude Code、Grok Bot",
       "プロジェクトの検証、GitHubプルリクエスト、任意のマージ、再テストキュー",
-      "Claude Code と Codex が各プロジェクトのレポートを確認できる、読み取り専用の MCP サーバー"
+      "Claude Code と Codex が各プロジェクトのレポートを確認できる、読み取り専用の MCP サーバー",
+      "ScreenClipKit による、自作の iPhone・iPad アプリからのレポート（Debug ビルド）"
     ]
   },
   "privacy": {
@@ -282,7 +304,7 @@
     "agent": "エージェント",
     "background": "バックグラウンド",
     "s1Title": "キャプチャ",
-    "s1Body": "⌘⇧2を押して、MacアプリやWebサイトの気になる部分をドラッグします。",
+    "s1Body": "⌘⇧2 を押して、気になった部分をドラッグ。Mac アプリでもウェブサイトでも使えます。iPhone や iPad ではデバイスを振るだけ。",
     "s2Title": "一言添える",
     "s2Body": "短いメモを入力。必要なら注釈を加えたり、見せたくない部分を塗りつぶしたりして送信します。",
     "s3Title": "作業を続ける",

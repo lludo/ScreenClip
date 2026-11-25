@@ -2,7 +2,7 @@
   "languageName": "繁體中文",
   "meta": {
     "homeTitle": "ScreenClip — 給 AI 程式代理的截圖回饋",
-    "homeDescription": "ScreenClip 是 Mac 選單列 App。擷取發現的問題，傳送給程式代理，並追蹤修正，不打斷工作節奏。",
+    "homeDescription": "ScreenClip 是一款 Mac 選單列 App，現在還提供適用於 iOS App 的 ScreenClipKit。在 Mac、iPhone 或 iPad 上記錄發現的問題，交給程式碼代理，並在不中斷節奏的情況下追蹤修正。",
     "privacyTitle": "隱私權政策 — ScreenClip",
     "privacyDescription": "ScreenClip 存在 Mac 上的內容、可能傳給 Codex、Claude Code、Grok Bot 或 GitHub 的資料，以及遮蓋如何運作。",
     "supportTitle": "支援 — ScreenClip",
@@ -16,6 +16,7 @@
     "primary": "主要",
     "footer": "頁尾",
     "how": "如何使用",
+    "ios": "iPhone 與 iPad",
     "agents": "程式代理",
     "questions": "問題",
     "download": "免費下載",
@@ -34,9 +35,12 @@
     "support": "支援頁面",
     "site": "screenclipai.com",
     "privacyLead": "閱讀隱私權政策",
-    "author": "Ludo Landry"
+    "author": "Ludo Landry",
+    "iosGuide": "iOS 指南"
   },
   "hero": {
+    "newTag": "新功能",
+    "newText": "現在也能從你的 iPhone 與 iPad App 回報",
     "eyebrow": "給 AI 程式代理的截圖回饋",
     "title": "邊用邊記問題，不打斷你的節奏。",
     "lead": "發現問題？截個圖，寫幾個字，然後繼續手邊的事。AI 代理會在背景修復，ScreenClip 會在可以重新測試時通知你。",
@@ -59,6 +63,18 @@
   "loop": {
     "eyebrow": "如何使用",
     "title": "你只花幾秒鐘，其餘都在背景完成。"
+  },
+  "ios": {
+    "eyebrow": "1.1 新功能 · iPhone 與 iPad",
+    "title": "在 iPhone 上測試？直接在那裡回報。",
+    "intro": "將 ScreenClipKit 加入你的 iOS App 的 Debug 建置中。搖動裝置、在螢幕上標註，然後傳送。回報會進入你 Mac 上的 ScreenClip，由程式碼代理像處理其他回報一樣修正。",
+    "shakeTitle": "搖一搖即可回報",
+    "shakeBody": "搖動裝置，或截圖後點一下「回報」。使用與 Mac 上相同的工具標註，加上備註，然後傳送。",
+    "pairTitle": "與你的 Mac 配對",
+    "pairBody": "在兩個螢幕上確認相同的 6 位數代碼。回報透過區域網路傳輸，並為你的 Mac 加密；Mac 無法連線時，回報會在手機上等待。",
+    "statusTitle": "在手機上查看狀態並重新測試",
+    "statusBody": "查看每則回報的代理、即時狀態和提取要求。修正合併後，可將其標記為已修正，或將下一張截圖送回同一則回報。",
+    "note": "你的 App 的 Release 建置中完全不包含這些程式碼。需要 iOS 17 或以上版本。在 ScreenClip 的設定 › iOS 中複製一段提示詞，即可讓 Claude Code 或 Codex 替你完成安裝。{link:iosGuide}。"
   },
   "agents": {
     "eyebrow": "程式代理",
@@ -89,6 +105,7 @@
     "needGit": "正在測試的 App 的本機 Git 儲存庫",
     "needAgent": "Codex CLI、Claude Code，或 Grok Bot 的 webhook",
     "needGh": "GitHub CLI，用於拉取請求和 Grok Bot",
+    "needIos": "iOS App：在 Debug 建置中加入 ScreenClipKit，iOS 17 或以上版本",
     "awake": "Codex 或 Claude Code 工作時，請保持 ScreenClip 執行，並讓 Mac 保持喚醒。Mac 睡眠時 Grok Bot 仍會繼續。下次開啟 ScreenClip 時，它會更新該拉取請求。",
     "privacy": "{link:privacyLead}，了解哪些內容留在 Mac 上，哪些可能離開。",
     "titleSoon": "即將登陸 Mac。"
@@ -175,6 +192,10 @@
         "a": "可以。網站或原生 Mac App 都可以框選區域。註冊儲存庫，並把它和網站位址或 App bundle ID 關聯起來。送出前可以改專案。如果專案不明確，ScreenClip 會儲存報告並等待，而不是猜一個儲存庫。"
       },
       {
+        "q": "它支援 iPhone 與 iPad App 嗎？",
+        "a": "支援你自己開發的 iOS App。將 ScreenClipKit Swift 套件加入 App 的 Debug 建置中（iOS 17 或以上版本）；Release 建置中完全不包含它。透過確認 6 位數代碼將裝置與 Mac 上的 ScreenClip 配對，然後搖動裝置或截圖即可回報。標註後的截圖與備註會透過區域網路傳送到你的 Mac，並為已配對的 Mac 加密，接著像其他回報一樣歸檔。你也可以選擇附上最近的日誌、螢幕的視圖和裝置狀態。手機會顯示每則回報的狀態與提取要求，並讓你重新測試已合併的修正。"
+      },
+      {
         "q": "ScreenClip 是誰做的？",
         "a": "一名開發者（{link:author}），外加幾個程式代理，負責修正我用它記下的問題。ScreenClip 非商業使用免費。我希望得到的回報是：回饋、問題回報，以及 GitHub 上的拉取請求。如果它幫你省下一個下午，App 選單裡的打賞選項可以請我喝杯咖啡。咖啡會直接變回程式碼。"
       }
@@ -188,7 +209,8 @@
       "從網站和原生 Mac App 截取",
       "Codex、Claude Code 和 Grok Bot",
       "專案驗證、GitHub 拉取請求、可選合併和再測佇列",
-      "唯讀的 MCP 伺服器，讓 Claude Code 和 Codex 查看每個專案的報告"
+      "唯讀的 MCP 伺服器，讓 Claude Code 和 Codex 查看每個專案的報告",
+      "透過 ScreenClipKit 從你自己的 iPhone 與 iPad App 回報（Debug 建置）"
     ]
   },
   "privacy": {
@@ -282,7 +304,7 @@
     "agent": "你的代理",
     "background": "背景進行",
     "s1Title": "擷取",
-    "s1Body": "按 ⌘⇧2，在任何 Mac 應用程式或網站上框選你注意到的地方。",
+    "s1Body": "按下 ⌘⇧2，拖曳選取你注意到的內容，任何 Mac App 或網站都可以。在 iPhone 或 iPad 上，搖動裝置即可。",
     "s2Title": "寫幾個字",
     "s2Body": "輸入簡短備註。需要的話可以加入標記或塗黑隱私內容，然後傳送。",
     "s3Title": "繼續做你的事",

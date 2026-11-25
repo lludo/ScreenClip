@@ -388,6 +388,32 @@ kbd {
   border-radius: 16px;
 }
 .card p { margin: 0; color: var(--muted); }
+.section-note { margin: 1.25rem 0 0; max-width: 60rem; color: var(--muted); font-size: 0.975rem; }
+
+.hero-new { margin: 0 0 1.1rem; }
+.hero-new a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.3rem 0.85rem 0.3rem 0.3rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper-2);
+  color: var(--ink);
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+.hero-new a:hover { border-color: var(--orange-ink); }
+.hero-new-tag {
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--orange-ink);
+  color: var(--paper);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
 
 .band {
   display: grid;
