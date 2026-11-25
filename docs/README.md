@@ -10,6 +10,7 @@ The [root README](../README.md) is the short introduction. This page is the map.
 - [User guide](user-guide.md) — capture, the queue, moving a report, agent permissions, what each agent can see, and screen-recording recovery.
 - [ScreenClip for iOS](ios-sdk.md) — ScreenClipKit in your app's Debug build: shake to report, pairing, the local server, Fetch, and AirDrop.
 - [Release checklist](release/checklist.md) — every step for cutting a release.
+- [1.1.0 release notes](release/v1.1.0.md) — ScreenClip for iOS: ScreenClipKit in your app's Debug build, shake to report, live status and retest from the phone; new projects use the repository's default branch.
 - [1.0.5 release notes](release/v1.0.5.md) — Claude Code and Codex can check each project's reports, installed from Settings, and reports merged by hand are detected.
 - [1.0.4 release notes](release/v1.0.4.md) — the popover lists the reports behind each count, review fixes, and the first automatic update.
 - [1.0.3 release notes](release/v1.0.3.md) — automatic updates, instant pull request previews, and fixes.
