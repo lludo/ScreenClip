@@ -2,7 +2,7 @@
   "languageName": "Deutsch",
   "meta": {
     "homeTitle": "ScreenClip — Screenshot-Feedback für Coding-Agenten",
-    "homeDescription": "ScreenClip ist eine Mac-Menüleisten-App. Erfasse eine Beobachtung, sende sie an einen Coding-Agenten und verfolge die Korrektur, ohne deinen Arbeitsfluss zu unterbrechen.",
+    "homeDescription": "ScreenClip ist eine Menüleisten-App für den Mac, jetzt mit ScreenClipKit für deine iOS-Apps. Halte eine Beobachtung auf Mac, iPhone oder iPad fest, schick sie an einen Coding-Agent und verfolge den Fix, ohne den Fluss zu verlieren.",
     "privacyTitle": "Datenschutz — ScreenClip",
     "privacyDescription": "Was ScreenClip auf dem Mac speichert, was an Codex, Claude Code, Grok Bot oder GitHub gehen kann, und wie Schwärzen funktioniert.",
     "supportTitle": "Support — ScreenClip",
@@ -16,6 +16,7 @@
     "primary": "Hauptnavigation",
     "footer": "Fußzeile",
     "how": "So funktioniert’s",
+    "ios": "iPhone & iPad",
     "agents": "Agenten",
     "questions": "Fragen",
     "download": "Kostenloser Download",
@@ -34,9 +35,12 @@
     "support": "Support-Seite",
     "site": "screenclipai.com",
     "privacyLead": "Lies die Datenschutzerklärung",
-    "author": "Ludo Landry"
+    "author": "Ludo Landry",
+    "iosGuide": "iOS-Anleitung"
   },
   "hero": {
+    "newTag": "Neu",
+    "newText": "Jetzt auch aus deinen iPhone- und iPad-Apps melden",
     "eyebrow": "Screenshot-Feedback für Coding-Agenten",
     "title": "Melde Fehler im Vorbeigehen, ohne deinen Flow zu unterbrechen.",
     "lead": "Etwas entdeckt? Halte es fest, schreib ein paar Worte dazu und mach weiter. Dein Coding-Agent behebt es im Hintergrund, und ScreenClip meldet sich, wenn du erneut testen kannst.",
@@ -60,6 +64,18 @@
     "eyebrow": "So funktioniert’s",
     "title": "Ein paar Sekunden von dir. Der Rest läuft im Hintergrund."
   },
+  "ios": {
+    "eyebrow": "Neu in 1.1 · iPhone und iPad",
+    "title": "Du testest auf dem iPhone? Melde direkt von dort.",
+    "intro": "Füge ScreenClipKit zum Debug-Build deiner iOS-App hinzu. Schüttle das Gerät, markiere den Bildschirm und sende. Der Bericht landet in ScreenClip auf deinem Mac, wo dein Coding-Agent ihn wie jeden anderen behebt.",
+    "shakeTitle": "Schütteln zum Melden",
+    "shakeBody": "Schüttle das Gerät oder mach einen Screenshot und tippe auf Melden. Markiere mit denselben Werkzeugen wie auf dem Mac, füge eine Notiz hinzu und sende.",
+    "pairTitle": "Mit deinem Mac gekoppelt",
+    "pairBody": "Bestätige auf beiden Bildschirmen denselben 6-stelligen Code. Berichte gehen über dein lokales Netzwerk, verschlüsselt für deinen Mac, und warten auf dem Telefon, bis er erreichbar ist.",
+    "statusTitle": "Status und Retest auf dem Telefon",
+    "statusBody": "Sieh Agent, Live-Status und Pull Request jedes Berichts. Wenn ein Fix gemergt ist, markiere ihn als behoben oder schick deine nächste Aufnahme an denselben Bericht zurück.",
+    "note": "Release-Builds deiner App enthalten nichts davon. iOS 17 oder neuer. In den Einstellungen von ScreenClip › iOS bittet ein kopierter Prompt Claude Code oder Codex, es für dich einzurichten. {link:iosGuide}."
+  },
   "agents": {
     "eyebrow": "Agenten",
     "title": "Codex, Claude Code oder Grok Bot.",
@@ -73,7 +89,7 @@
   },
   "download": {
     "eyebrow": "Download",
-    "title": "ScreenClip 1.0.5 für deinen Mac.",
+    "title": "ScreenClip 1.1.0 für deinen Mac.",
     "price": "Für die nichtkommerzielle Nutzung kostenlos.",
     "source": "Der Quelltext von ScreenClip ist verfügbar (source-available) unter PolyForm Noncommercial 1.0.0, kostenlos für nicht-kommerzielle Nutzung. Eine kommerzielle Lizenz gibt es auf Anfrage. {link:githubRead}, lege ein Issue an oder baue es mit Xcode 16 oder neuer.",
     "sourceMissing": "Der Quellcode ist noch nicht öffentlich.",
@@ -81,7 +97,7 @@
     "headerButton": "Kostenloser Download",
     "github": "Auf GitHub ansehen",
     "donate": "Projekt unterstützen",
-    "noteReady": "ScreenClip 1.0.5 · Apple Silicon · macOS 14 oder neuer",
+    "noteReady": "ScreenClip 1.1.0 · Apple Silicon · macOS 14 oder neuer",
     "noteSoon": "Der Mac-Download kommt bald.",
     "macSoon": "Der Mac-Download kommt bald.",
     "needsTitle": "Was du brauchst",
@@ -89,6 +105,7 @@
     "needGit": "Ein lokales Git-Repository der App, die du testest",
     "needAgent": "Codex CLI, Claude Code oder einen Grok-Bot-Webhook",
     "needGh": "GitHub CLI, für Pull Requests und für Grok Bot",
+    "needIos": "Für iOS-Apps: ScreenClipKit im Debug-Build, iOS 17 oder neuer",
     "awake": "Lass ScreenClip laufen und den Mac wach, während Codex oder Claude Code arbeiten. Grok Bot arbeitet weiter, wenn der Mac schläft. ScreenClip aktualisiert diesen Pull Request, wenn du die App das nächste Mal öffnest.",
     "privacy": "{link:privacyLead}, um zu sehen, was auf dem Mac bleibt und was ihn verlassen kann.",
     "titleSoon": "Bald für deinen Mac."
@@ -175,6 +192,10 @@
         "a": "Ja. Erfasse einen Bereich einer Website oder einer nativen Mac-App. Registriere ein Repository und verknüpfe es mit Website-Adressen oder Bundle-IDs von Apps. Das Projekt kannst du vor dem Senden ändern. Ist das Projekt unklar, speichert ScreenClip den Bericht und wartet, statt ein Repository zu raten."
       },
       {
+        "q": "Funktioniert es mit iPhone- und iPad-Apps?",
+        "a": "Ja, für iOS-Apps, die du selbst entwickelst. Füge das Swift-Paket ScreenClipKit zum Debug-Build deiner App hinzu, ab iOS 17; Release-Builds enthalten nichts davon. Kopple das Gerät mit ScreenClip auf deinem Mac, indem du einen 6-stelligen Code bestätigst, und schüttle dann das Gerät oder mach einen Screenshot, um etwas zu melden. Der markierte Screenshot und deine Notiz gehen über dein lokales Netzwerk an deinen Mac, verschlüsselt für den gekoppelten Mac, und werden wie jeder andere Bericht abgelegt. Optional kannst du aktuelle Logs, die Ansichten des Bildschirms und den Gerätestatus anhängen. Das Telefon zeigt Status und Pull Request jedes Berichts und lässt dich einen gemergten Fix erneut testen."
+      },
+      {
         "q": "Wer macht ScreenClip?",
         "a": "Ein einzelner Entwickler ({link:author}), plus die Coding-Agenten, die die Fehler beheben, die ich damit melde. ScreenClip ist für nicht-kommerzielle Nutzung kostenlos. Was ich mir im Gegenzug wünsche: Feedback, Fehlermeldungen und Pull Requests auf GitHub. Und wenn es dir einen Nachmittag spart, spendiert mir die Trinkgeld-Option im Menü der App einen Kaffee. Der Kaffee fließt direkt zurück in den Code."
       }
@@ -188,13 +209,14 @@
       "Aufnahmen von Websites und nativen Mac-Apps",
       "Codex, Claude Code und Grok Bot",
       "Projektvalidierung, GitHub-Pull-Requests, optionaler Merge und Retest-Warteschlange",
-      "Ein schreibgeschützter MCP-Server, mit dem Claude Code und Codex die Berichte jedes Projekts prüfen"
+      "Ein schreibgeschützter MCP-Server, mit dem Claude Code und Codex die Berichte jedes Projekts prüfen",
+      "Berichte aus deinen eigenen iPhone- und iPad-Apps mit ScreenClipKit, in Debug-Builds"
     ]
   },
   "privacy": {
     "eyebrow": "Datenschutz",
     "title": "Datenschutzerklärung",
-    "updated": "Aktualisiert am 23. November 2026.",
+    "updated": "Aktualisiert am 24. November 2026.",
     "intro": "ScreenClip ist eine Menüleisten-App für macOS. Du erfasst einen Bereich, den du auswählst, versiehst ihn bei Bedarf mit Markierung und Notiz und übergibst den Bericht einem Agenten, den du eingerichtet hast. Diese Erklärung beschreibt, was die App auf dem Mac speichert, was ihn verlassen kann und was diese Website tut.",
     "staysTitle": "Was auf dem Mac bleibt",
     "stays1": "Berichte, Screenshots, Notizen, Markierungen, Projekteinstellungen, Fragen und Aktivität liegen auf dem Mac unter {code:appSupport}. Die Warteschlange ist eine SQLite-Datenbank plus Bilddateien. Die Arbeit des Agenten läuft in einem Git-Worktree in demselben Ordner. Dein eigener Projekt-Checkout ist nicht das Arbeitsverzeichnis.",
@@ -212,6 +234,8 @@
     "local1": "Codex und Claude Code laufen auf deinem Mac. ScreenClip übergibt den freigegebenen Screenshot, deine Notiz und die Anweisung an diesen lokalen Agenten. Ein ScreenClip-Server ist nicht beteiligt. ScreenClip veröffentlicht die Screenshots des Berichts aber zusammen mit dem Fix im GitHub-Repository des Projekts, wie unten unter GitHub beschrieben.",
     "local2": "Der Agent nutzt das Konto, bei dem du angemeldet bist: Codex über seinen app-server, Claude Code über die eigene Anmeldung. Dieser Agent kann Anweisung und Bilder unter den Bedingungen dieses Kontos an seinen Anbieter senden. ScreenClip startet diese Agenten ohne GitHub-Tokens in ihrer Umgebung. Branches pusht und Pull Requests öffnet ScreenClip, nicht der Agent.",
     "local3": "Wenn du den MCP-Server von ScreenClip für Claude Code oder Codex installierst, können Sitzungen dieses Agenten deine Berichte lesen: Titel, Notizen, Status, Fragen und Aktivität. Der Server läuft auf deinem Mac und sendet selbst nichts, aber der Agent kann das Gelesene wie den Prompt an seinen Anbieter senden. Entferne den Server aus dem Agenten, um das zu beenden.",
+    "iosTitle": "iOS-Apps mit ScreenClipKit",
+    "ios1": "Wenn du ScreenClipKit zum Debug-Build deiner eigenen iOS-App hinzufügst, geht ein Bericht vom iPhone (das markierte Bildschirmfoto, deine Notiz, Geräte- und App-Angaben und, sofern du sie nicht abschaltest, aktuelle App-Logs, der Bildschirmaufbau und der Gerätezustand) direkt über dein lokales Netzwerk an ScreenClip auf deinem Mac, verschlüsselt für einen gekoppelten Mac. Er läuft über keinen ScreenClip-Server. Berichte warten auf dem iPhone, bis der Mac erreichbar ist; der Mac speichert und bearbeitet sie dann wie jeden anderen Bericht. Release-Builds deiner App enthalten keinen ScreenClipKit-Code.",
     "githubTitle": "GitHub",
     "github1": "Die Pull-Request-Automatisierung nutzt die GitHub CLI, die du installierst, und das GitHub-Konto, bei dem diese CLI angemeldet ist. ScreenClip pusht einen Branch {code:branch} und öffnet für Codex und Claude Code den Pull Request. Es liest den Check-Status und mergt nur, wenn der automatische Merge für das Projekt aktiv ist und Checks sowie Review-Regeln bestanden sind.",
     "github2": "Der Text des Pull Requests enthält die Zusammenfassung des Agenten, den Validierungsbefehl des Projekts mit geschwärzten geheimnisähnlichen Werten und den Berichtshinweis. Bei Codex und Claude Code committet ScreenClip außerdem die Screenshots des Berichts mit dem Fix und bettet sie als Before / After-Vergleich in den Pull Request ein: die fertigen Screenshots, die du freigegeben hast, samt deinen Markierungen und Schwärzungen, und die Screenshots, die der Agent beim erneuten Test des Fixes aufgenommen hat. Es gibt keine Einstellung, die das abschaltet. Wer das Repository lesen kann, kann diese Bilder sehen; bei einem öffentlichen Repository ist das jeder im Internet. Das Entfernen der Dateien in einem späteren Commit löscht sie nicht aus der Git-Historie. Veröffentlicht werden nur die fertigen Screenshots, nie der ungeschwärzte Ausschnitt.",
@@ -237,7 +261,7 @@
     "eyebrow": "Support",
     "title": "Support",
     "intro": "ScreenClip ist eine Menüleisten-App für macOS: Sie schickt einen Screenshot, eine Notiz und Markierungen an Codex, Claude Code oder Grok Bot und verfolgt danach den GitHub-Pull-Request.",
-    "statusReady": "ScreenClip 1.0.5 ist für nicht-kommerzielle Nutzung kostenlos. {link:download} öffnet das neueste Disk-Image auf GitHub Releases.",
+    "statusReady": "ScreenClip 1.1.0 ist für nicht-kommerzielle Nutzung kostenlos. {link:download} öffnet das neueste Disk-Image auf GitHub Releases.",
     "statusSoon": "ScreenClip kommt bald. Ein Download ist noch nicht verfügbar.",
     "contactTitle": "Kontakt",
     "issues": "Nutze {link:issues} für Fehler, Einrichtungsfragen und Wünsche. Nenne die macOS-Version, den gewählten Agenten und was ScreenClip im Bericht angezeigt hat. Hänge keinen ungeschwärzten Screenshot von etwas an, das du verbergen wolltest.",
@@ -280,7 +304,7 @@
     "agent": "Dein Agent",
     "background": "Im Hintergrund",
     "s1Title": "Aufnehmen",
-    "s1Body": "Drücke ⌘⇧2 und ziehe einen Rahmen um das, was dir aufgefallen ist, in jeder Mac-App oder Website.",
+    "s1Body": "Drücke ⌘⇧2 und zieh über das, was dir aufgefallen ist, in jeder Mac-App oder Website. Auf iPhone oder iPad schüttelst du das Gerät.",
     "s2Title": "Ein paar Worte dazu",
     "s2Body": "Tippe eine kurze Notiz. Wenn du magst, markiere etwas oder schwärze Privates, dann senden.",
     "s3Title": "Mach weiter",

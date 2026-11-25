@@ -56,6 +56,8 @@ The normal path should not require a title, severity, reproduction template, rep
 
 Cancel after editing offers to save a draft when content would be lost. A second shortcut invocation must not overwrite an unfinished draft.
 
+On a physical iPhone or iPad, ScreenClipKit in the app's Debug build gives the same flow inside the app: shake (or take a screenshot), annotate with the same tools, write a note, and send. The report reaches the Mac over the local network from a paired device, or waits on the phone until it can. The phone shows each sent report's status, and a merged fix can be marked verified or reported as still broken from there. See [ScreenClip for iOS](ios-sdk.md).
+
 ## Preserving testing context
 
 Group captures into a lightweight testing session for a project. Project inference should reduce setup; a session name such as “Checkout on narrow window” is optional.
@@ -75,6 +77,8 @@ There is no continuous screen recording in the first version. ScreenClip cannot 
 ## Automatic project inference
 
 Register a local repository once, then associate it with website origins/path patterns, local development ports, or native app identifiers. Let the user teach or correct these mappings during setup and from the overlay.
+
+A report from an iOS app routes by its bundle ID. When no project lists it yet, the projects' source is searched for that bundle ID, and exactly one match routes the report and teaches the project.
 
 Show the inferred destination before submission. Prefer explicit saved mappings and a user-selected session over guesses from window titles. A browser's app identity alone cannot identify which web project is being tested.
 

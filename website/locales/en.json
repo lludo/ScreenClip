@@ -2,7 +2,7 @@
   "languageName": "English",
   "meta": {
     "homeTitle": "ScreenClip — Screenshot feedback for AI coding agents",
-    "homeDescription": "ScreenClip is a Mac menu bar app. Capture an observation, send it to a coding agent, and follow the fix without losing your flow.",
+    "homeDescription": "ScreenClip is a Mac menu bar app, now with ScreenClipKit for your iOS apps. Capture an observation on your Mac, iPhone, or iPad, send it to a coding agent, and follow the fix without losing your flow.",
     "privacyTitle": "Privacy policy — ScreenClip",
     "privacyDescription": "What ScreenClip stores on your Mac, what can be sent to Codex, Claude Code, Grok Bot, or GitHub, and how redaction works.",
     "supportTitle": "Support — ScreenClip",
@@ -16,6 +16,7 @@
     "primary": "Primary",
     "footer": "Footer",
     "how": "How it works",
+    "ios": "iPhone & iPad",
     "agents": "Coding agents",
     "questions": "Questions",
     "download": "Free Download",
@@ -34,9 +35,12 @@
     "support": "support page",
     "site": "screenclipai.com",
     "privacyLead": "Read the privacy policy",
-    "author": "Ludo Landry"
+    "author": "Ludo Landry",
+    "iosGuide": "iOS guide"
   },
   "hero": {
+    "newTag": "New",
+    "newText": "Report from your iPhone and iPad apps too",
     "eyebrow": "Screenshot feedback for AI coding agents",
     "title": "File bugs as you go, without breaking your flow.",
     "lead": "Notice something? Capture it, add a few words, and keep going. Your coding agent fixes it in the background, and ScreenClip tells you when to retest.",
@@ -60,6 +64,18 @@
     "eyebrow": "How it works",
     "title": "A few seconds from you. The rest runs in the background."
   },
+  "ios": {
+    "eyebrow": "New in 1.1 · iPhone and iPad",
+    "title": "Testing on iPhone? Report from there too.",
+    "intro": "Add ScreenClipKit to the Debug build of your iOS app. Shake the device, mark up the screen, and send. The report lands in ScreenClip on your Mac, where your coding agent fixes it like any other.",
+    "shakeTitle": "Shake to report",
+    "shakeBody": "Shake the device, or take a screenshot and tap Report. Mark it up with the same tools as on the Mac, add a note, and send.",
+    "pairTitle": "Paired with your Mac",
+    "pairBody": "Confirm the same 6-digit code on both screens. Reports travel over your local network, encrypted for your Mac, and wait on the phone until it is reachable.",
+    "statusTitle": "Status and retest on the phone",
+    "statusBody": "See each report’s agent, live status, and pull request. When a fix merges, mark it fixed, or send your next capture back to the same report.",
+    "note": "Release builds of your app contain none of it. iOS 17 or later. In ScreenClip’s Settings › iOS, one copied prompt asks Claude Code or Codex to install it for you. {link:iosGuide}."
+  },
   "agents": {
     "eyebrow": "Coding agents",
     "title": "Codex, Claude Code, or Grok Bot.",
@@ -73,7 +89,7 @@
   },
   "download": {
     "eyebrow": "Download",
-    "title": "ScreenClip 1.0.5 for your Mac.",
+    "title": "ScreenClip 1.1.0 for your Mac.",
     "price": "Free for noncommercial use.",
     "source": "ScreenClip is source-available under PolyForm Noncommercial 1.0.0, free for noncommercial use. Commercial licensing is available on request. {link:githubRead}, file an issue, or build it with Xcode 16 or later.",
     "sourceMissing": "The source is not public yet.",
@@ -81,7 +97,7 @@
     "headerButton": "Free Download",
     "github": "View on GitHub",
     "donate": "Support the project",
-    "noteReady": "ScreenClip 1.0.5 · Apple Silicon · macOS 14 or later",
+    "noteReady": "ScreenClip 1.1.0 · Apple Silicon · macOS 14 or later",
     "noteSoon": "Mac download coming soon.",
     "macSoon": "Mac download coming soon.",
     "needsTitle": "What you need",
@@ -89,6 +105,7 @@
     "needGit": "A local Git repository for the app you are testing",
     "needAgent": "Codex CLI, Claude Code, or a Grok Bot webhook",
     "needGh": "GitHub CLI, for pull requests and for Grok Bot",
+    "needIos": "For iOS apps: ScreenClipKit in the Debug build, iOS 17 or later",
     "awake": "Leave ScreenClip running, and the Mac awake, while Codex or Claude Code works. Grok Bot keeps working if the Mac sleeps. ScreenClip updates that pull request the next time it is open.",
     "privacy": "{link:privacyLead} for what stays on your Mac and what can leave.",
     "titleSoon": "Coming soon to your Mac."
@@ -175,6 +192,10 @@
         "a": "Yes. Capture a region of a website or a native Mac app. Register a repository and associate it with website addresses or app bundle IDs. You can change the project before you submit. If the project is ambiguous, ScreenClip saves the report and waits instead of guessing a repository."
       },
       {
+        "q": "Does it work with iPhone and iPad apps?",
+        "a": "Yes, for iOS apps you build. Add the ScreenClipKit Swift package to your app’s Debug build, iOS 17 or later; Release builds contain none of it. Pair the device with ScreenClip on your Mac by confirming a 6-digit code, then shake the device, or take a screenshot, to report. The annotated screenshot and your note go to your Mac over your local network, encrypted for the paired Mac, and are filed like any other report. You can optionally attach recent logs, the screen’s views, and device state. The phone shows each report’s status and pull request, and lets you retest a merged fix."
+      },
+      {
         "q": "Who makes ScreenClip?",
         "a": "One developer ({link:author}), plus the coding agents that fix the bugs I file with it. ScreenClip is free for noncommercial use. What I’d love in return is feedback, bug reports, and pull requests on GitHub. And if it saves you an afternoon, the tip option in the app’s menu buys me a coffee. The coffee goes straight back into the code."
       }
@@ -188,13 +209,14 @@
       "Capture from websites and native Mac apps",
       "Codex, Claude Code, and Grok Bot",
       "Project validation, GitHub pull requests, optional merge, and a retest queue",
-      "A read-only MCP server, so Claude Code and Codex can check each project’s reports"
+      "A read-only MCP server, so Claude Code and Codex can check each project’s reports",
+      "Reports from your own iPhone and iPad apps with ScreenClipKit, in Debug builds"
     ]
   },
   "privacy": {
     "eyebrow": "Privacy policy",
     "title": "Privacy policy",
-    "updated": "Updated November 23, 2026.",
+    "updated": "Updated November 24, 2026.",
     "intro": "ScreenClip is a macOS menu bar app. You capture a region you select, optionally annotate it and add a note, and hand that report to a coding agent you configure. This policy describes what the app stores on your Mac, what can leave it, and what this website does.",
     "staysTitle": "What stays on your Mac",
     "stays1": "Reports, screenshots, notes, annotations, project settings, questions, and activity are stored on your Mac under {code:appSupport}. The queue is a SQLite database plus image files. Agent work runs in a Git worktree under that same folder. Your own project checkout is not the working directory.",
@@ -212,6 +234,8 @@
     "local1": "Codex and Claude Code run on your Mac. ScreenClip passes the approved screenshot, your note, and the prompt to that local agent. No ScreenClip server is involved. ScreenClip does publish the report’s screenshots to the project’s GitHub repository with the fix, as described under GitHub below.",
     "local2": "The agent uses the account you signed into: Codex through its app-server, Claude Code through its own login. That agent may send the prompt and images to its own provider under that account’s terms. ScreenClip starts these agents without GitHub tokens in their environment. ScreenClip, not the agent, pushes branches and opens pull requests for them.",
     "local3": "If you install ScreenClip’s MCP server for Claude Code or Codex, that agent’s sessions can read your reports: titles, notes, statuses, questions, and activity. The server runs on your Mac and sends nothing itself, but the agent may send what it reads to its provider, as it does with the prompt. Remove the server from the agent to stop this.",
+    "iosTitle": "iOS apps with ScreenClipKit",
+    "ios1": "If you add ScreenClipKit to the Debug build of your own iOS app, a report you send from the phone (the annotated screenshot, your note, device and app details, and, unless you turn them off, recent app logs, the screen's layout and device state) goes directly to ScreenClip on your Mac over your local network, encrypted for a Mac you paired. It does not pass through any ScreenClip server. Reports wait on the phone until the Mac is reachable, and the Mac then stores and handles them like any other report. Release builds of your app contain no ScreenClipKit code.",
     "githubTitle": "GitHub",
     "github1": "Pull request automation uses the GitHub CLI you install and the GitHub account that CLI is logged into. ScreenClip pushes a {code:branch} branch, and for Codex and Claude Code it opens the pull request. It reads check status, and it merges only when automatic merge is enabled for that project and the checks and review rules pass.",
     "github2": "The pull request body includes the agent’s summary, the project’s validation command with secret-like values redacted, and the report reference. For Codex and Claude Code, ScreenClip also commits the report’s screenshots with the fix and embeds them in the pull request as a Before / After comparison: the flattened screenshots you approved, including your annotations and redactions, and the screenshots the agent captured when it retested the fix. There is no setting that turns this off. Anyone who can read the repository can see those images; in a public repository, that includes anyone on the internet. Removing the files in a later commit does not erase them from Git history. Only the flattened screenshots are published, never the unredacted crop.",
@@ -237,7 +261,7 @@
     "eyebrow": "Support",
     "title": "Support",
     "intro": "ScreenClip is a macOS menu bar app for sending a screenshot, a note, and markup to Codex, Claude Code, or Grok Bot, then tracking the GitHub pull request.",
-    "statusReady": "ScreenClip 1.0.5 is free for noncommercial use. {link:download} opens the latest disk image on GitHub Releases.",
+    "statusReady": "ScreenClip 1.1.0 is free for noncommercial use. {link:download} opens the latest disk image on GitHub Releases.",
     "statusSoon": "ScreenClip is coming soon. There is no download available yet.",
     "contactTitle": "Contact",
     "issues": "Use {link:issues} for bugs, setup questions, and feature requests. Include the macOS version, the agent you selected, and what ScreenClip showed in the report. Do not attach an unredacted screenshot of something you meant to hide.",
@@ -280,7 +304,7 @@
     "agent": "Your agent",
     "background": "In the background",
     "s1Title": "Capture",
-    "s1Body": "Press ⌘⇧2 and drag over what you noticed, in any Mac app or website.",
+    "s1Body": "Press ⌘⇧2 and drag over what you noticed, in any Mac app or website. On iPhone or iPad, shake the device.",
     "s2Title": "Add a few words",
     "s2Body": "Type a quick note. Mark it up or black out anything private if you want, then send.",
     "s3Title": "Keep going",

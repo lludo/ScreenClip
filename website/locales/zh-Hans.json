@@ -2,7 +2,7 @@
   "languageName": "简体中文",
   "meta": {
     "homeTitle": "ScreenClip — 面向 AI 编程代理的截图反馈",
-    "homeDescription": "ScreenClip 是 Mac 菜单栏应用。捕捉发现的问题，发送给编程代理，并跟进修复，不打断工作节奏。",
+    "homeDescription": "ScreenClip 是一款 Mac 菜单栏 App，现在还提供适用于 iOS App 的 ScreenClipKit。在 Mac、iPhone 或 iPad 上记录发现的问题，交给编码代理，并在不打断节奏的情况下跟进修复。",
     "privacyTitle": "隐私政策 — ScreenClip",
     "privacyDescription": "ScreenClip 在 Mac 上保存什么、可能发给 Codex、Claude Code、Grok Bot 或 GitHub 的内容，以及遮盖如何工作。",
     "supportTitle": "支持 — ScreenClip",
@@ -16,6 +16,7 @@
     "primary": "主导航",
     "footer": "页脚",
     "how": "如何使用",
+    "ios": "iPhone 和 iPad",
     "agents": "编程代理",
     "questions": "问题",
     "download": "免费下载",
@@ -34,9 +35,12 @@
     "support": "支持页面",
     "site": "screenclipai.com",
     "privacyLead": "阅读隐私政策",
-    "author": "Ludo Landry"
+    "author": "Ludo Landry",
+    "iosGuide": "iOS 指南"
   },
   "hero": {
+    "newTag": "新功能",
+    "newText": "现在也能从你的 iPhone 和 iPad App 提交报告",
     "eyebrow": "面向 AI 编程代理的截图反馈",
     "title": "边用边记问题，不打断你的节奏。",
     "lead": "发现问题？截个图，写几个字，然后继续手头的事。AI 代理会在后台修复，ScreenClip 会在可以复测时通知你。",
@@ -60,6 +64,18 @@
     "eyebrow": "如何使用",
     "title": "你只花几秒钟，其余都在后台完成。"
   },
+  "ios": {
+    "eyebrow": "1.1 新功能 · iPhone 和 iPad",
+    "title": "在 iPhone 上测试？直接在那里提交报告。",
+    "intro": "将 ScreenClipKit 添加到你的 iOS App 的 Debug 构建中。摇动设备，在屏幕上标注，然后发送。报告会进入你 Mac 上的 ScreenClip，由编码代理像处理其他报告一样修复。",
+    "shakeTitle": "摇一摇即可报告",
+    "shakeBody": "摇动设备，或截屏后轻点“报告”。使用与 Mac 上相同的工具标注，添加备注，然后发送。",
+    "pairTitle": "与你的 Mac 配对",
+    "pairBody": "在两个屏幕上确认相同的 6 位数代码。报告通过本地网络传输，并为你的 Mac 加密；Mac 无法连接时，报告会在手机上等待。",
+    "statusTitle": "在手机上查看状态并重新测试",
+    "statusBody": "查看每个报告的代理、实时状态和拉取请求。修复合并后，可将其标记为已修复，或将下一次截图发回同一个报告。",
+    "note": "你的 App 的 Release 构建中完全不包含这些代码。需要 iOS 17 或更高版本。在 ScreenClip 的设置 › iOS 中复制一段提示词，即可让 Claude Code 或 Codex 替你完成安装。{link:iosGuide}。"
+  },
   "agents": {
     "eyebrow": "编程代理",
     "title": "Codex、Claude Code 或 Grok Bot。",
@@ -73,7 +89,7 @@
   },
   "download": {
     "eyebrow": "下载",
-    "title": "适用于 Mac 的 ScreenClip 1.0.5。",
+    "title": "适用于 Mac 的 ScreenClip 1.1.0。",
     "price": "非商业用途免费。",
     "source": "ScreenClip 以源代码可用（source-available）方式发布，采用 PolyForm Noncommercial 1.0.0，非商业使用免费。商业许可可另行申请。{link:githubRead}，提交 issue，或用 Xcode 16 或更高版本构建。",
     "sourceMissing": "源代码尚未公开。",
@@ -81,7 +97,7 @@
     "headerButton": "免费下载",
     "github": "在 GitHub 上查看",
     "donate": "支持这个项目",
-    "noteReady": "ScreenClip 1.0.5 · Apple Silicon · macOS 14 或更高版本",
+    "noteReady": "ScreenClip 1.1.0 · Apple Silicon · macOS 14 或更高版本",
     "noteSoon": "Mac 版即将开放下载。",
     "macSoon": "Mac 版下载即将提供。",
     "needsTitle": "你需要",
@@ -89,6 +105,7 @@
     "needGit": "正在测试的应用的本地 Git 仓库",
     "needAgent": "Codex CLI、Claude Code，或 Grok Bot 的 webhook",
     "needGh": "GitHub CLI，用于拉取请求和 Grok Bot",
+    "needIos": "iOS App：在 Debug 构建中加入 ScreenClipKit，iOS 17 或更高版本",
     "awake": "Codex 或 Claude Code 工作时，请保持 ScreenClip 运行，并让 Mac 保持唤醒。Mac 睡眠时 Grok Bot 仍会继续。下次打开 ScreenClip 时，它会更新该拉取请求。",
     "privacy": "{link:privacyLead}，了解哪些内容留在 Mac 上，哪些可能离开。",
     "titleSoon": "即将登陆 Mac。"
@@ -175,6 +192,10 @@
         "a": "可以。网站或原生 Mac 应用都可以框选区域。注册仓库，并把它和网站地址或应用 bundle ID 关联起来。提交前可以改项目。如果项目不明确，ScreenClip 会保存报告并等待，而不是猜一个仓库。"
       },
       {
+        "q": "它支持 iPhone 和 iPad App 吗？",
+        "a": "支持你自己开发的 iOS App。将 ScreenClipKit Swift 包添加到 App 的 Debug 构建中（iOS 17 或更高版本）；Release 构建中完全不包含它。通过确认 6 位数代码将设备与 Mac 上的 ScreenClip 配对，然后摇动设备或截屏即可提交报告。标注后的截图和备注会通过本地网络发送到你的 Mac，并为已配对的 Mac 加密，随后像其他报告一样归档。你还可以选择附上最近的日志、屏幕的视图和设备状态。手机会显示每个报告的状态和拉取请求，并让你重新测试已合并的修复。"
+      },
+      {
         "q": "ScreenClip 是谁做的？",
         "a": "一名开发者（{link:author}），外加几个编程代理，负责修复我用它记下的问题。ScreenClip 非商业使用免费。我希望得到的回报是：反馈、问题报告，以及 GitHub 上的拉取请求。如果它帮你省下一个下午，App 菜单里的打赏选项可以请我喝杯咖啡。咖啡会直接变回代码。"
       }
@@ -188,13 +209,14 @@
       "从网站和原生 Mac 应用截取",
       "Codex、Claude Code 和 Grok Bot",
       "项目验证、GitHub 拉取请求、可选合并和复测队列",
-      "只读的 MCP 服务器，让 Claude Code 和 Codex 查看每个项目的报告"
+      "只读的 MCP 服务器，让 Claude Code 和 Codex 查看每个项目的报告",
+      "通过 ScreenClipKit 从你自己的 iPhone 和 iPad App 提交报告（Debug 构建）"
     ]
   },
   "privacy": {
     "eyebrow": "隐私政策",
     "title": "隐私政策",
-    "updated": "更新于 2026 年 11 月 23 日。",
+    "updated": "更新于 2026 年 11 月 24 日。",
     "intro": "ScreenClip 是 macOS 菜单栏应用。你截取选中的区域，可选地标注并加备注，然后把报告交给你配置的编程代理。本政策说明应用在 Mac 上保存什么、什么可能离开，以及这个网站做什么。",
     "staysTitle": "留在 Mac 上的内容",
     "stays1": "报告、截图、备注、标注、项目设置、问题和活动保存在 Mac 上的 {code:appSupport}。队列是 SQLite 数据库加上图像文件。代理的工作在同一文件夹下的 Git worktree 中进行。你自己的项目检出目录不是工作目录。",
@@ -212,6 +234,8 @@
     "local1": "Codex 和 Claude Code 在你的 Mac 上运行。ScreenClip 把已确认的截图、备注和提示交给该本地代理。其中不涉及任何 ScreenClip 服务器。不过，ScreenClip 会把报告的截图随修复一起发布到项目的 GitHub 仓库，详见下文的 GitHub 部分。",
     "local2": "代理使用你登录的账户：Codex 通过 app-server，Claude Code 通过它自己的登录。该代理可能按该账户的条款把提示和图像发给自己的提供方。ScreenClip 启动这些代理时，环境里没有 GitHub 令牌。推送分支和打开拉取请求的是 ScreenClip，不是代理。",
     "local3": "如果你为 Claude Code 或 Codex 安装 ScreenClip 的 MCP 服务器，该代理的会话就能读取你的报告：标题、备注、状态、问题和活动记录。服务器在你的 Mac 上运行，本身不发送任何内容，但代理可能像处理提示词一样，把读到的内容发送给它的服务提供方。从代理中移除该服务器即可停止。",
+    "iosTitle": "集成 ScreenClipKit 的 iOS 应用",
+    "ios1": "如果你将 ScreenClipKit 添加到自己 iOS 应用的 Debug 版本中，从手机发送的报告（带标注的截图、你的备注、设备和应用信息，以及除非你关闭，否则包括最近的应用日志、屏幕布局和设备状态）会通过本地网络直接发送到你 Mac 上的 ScreenClip，并为已配对的 Mac 加密。它不经过任何 ScreenClip 服务器。在 Mac 可连接之前，报告会保存在手机上，之后 Mac 会像处理其他报告一样存储和处理它们。应用的 Release 版本不包含 ScreenClipKit 代码。",
     "githubTitle": "GitHub",
     "github1": "拉取请求自动化使用你安装的 GitHub CLI，以及该 CLI 登录的 GitHub 账户。ScreenClip 推送 {code:branch} 分支，并为 Codex 和 Claude Code 打开拉取请求。它读取检查状态，并且只在该项目启用自动合并、检查和审查规则都通过时才合并。",
     "github2": "拉取请求正文包含代理的摘要、已涂掉疑似秘密值的项目验证命令，以及报告引用。对 Codex 和 Claude Code，ScreenClip 还会把报告的截图随修复一起提交，并以 Before / After 对比的形式嵌入拉取请求：你已确认的最终截图（含你的标注和遮盖），以及代理重新测试修复时截取的截图。没有可以关闭这一行为的设置。任何能读取该仓库的人都能看到这些图片；在公开仓库中，这意味着互联网上的任何人。在后续提交中移除这些文件，并不会把它们从 Git 历史中抹去。发布的只有最终截图，绝不包括未遮盖的裁切。",
@@ -237,7 +261,7 @@
     "eyebrow": "支持",
     "title": "支持",
     "intro": "ScreenClip 是 macOS 菜单栏应用，用来把截图、备注和标记发给 Codex、Claude Code 或 Grok Bot，然后跟踪 GitHub 拉取请求。",
-    "statusReady": "ScreenClip 1.0.5 非商业使用免费。{link:download} 打开 GitHub Releases 上最新的磁盘映像。",
+    "statusReady": "ScreenClip 1.1.0 非商业使用免费。{link:download} 打开 GitHub Releases 上最新的磁盘映像。",
     "statusSoon": "ScreenClip 即将推出，目前尚未开放下载。",
     "contactTitle": "联系",
     "issues": "缺陷、安装问题和功能请求请使用{link:issues}。请写上 macOS 版本、所选代理，以及 ScreenClip 在报告里显示的内容。不要附上你本想遮住的未遮盖截图。",
@@ -280,7 +304,7 @@
     "agent": "你的代理",
     "background": "后台进行",
     "s1Title": "截取",
-    "s1Body": "按 ⌘⇧2，在任意 Mac 应用或网站上框选你注意到的地方。",
+    "s1Body": "按下 ⌘⇧2，拖选你注意到的内容，任何 Mac App 或网站都可以。在 iPhone 或 iPad 上，摇动设备即可。",
     "s2Title": "写几个字",
     "s2Body": "输入简短备注。需要的话可以添加标记或涂黑隐私内容，然后发送。",
     "s3Title": "继续做你的事",

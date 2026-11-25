@@ -1,5 +1,6 @@
 <div class="intro wrap">
       <section class="hero" aria-labelledby="hero-title">
+        <p class="hero-new"><a href="#ios"><span class="hero-new-tag">{{hero.newTag}}</span>{{hero.newText}}</a></p>
         <p class="eyebrow">{{hero.eyebrow}}</p>
         <h1 id="hero-title">@@HERO_TITLE@@</h1>
         <p class="lead">{{hero.lead}}</p>
@@ -66,6 +67,20 @@
           </li>
         </ol>
       </div>
+    </section>
+
+    <section class="section wrap" id="ios" aria-labelledby="ios-title">
+      <div class="section-intro">
+        <p class="eyebrow">{{ios.eyebrow}}</p>
+        <h2 id="ios-title">{{ios.title}}</h2>
+        <p>{{ios.intro}}</p>
+      </div>
+      <div class="cards">
+        <article class="card"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.4"/><path d="M11 18.5h2"/><path d="M3.5 9c-.9 1.9-.9 4.1 0 6M20.5 9c.9 1.9.9 4.1 0 6"/></svg></span><h3>{{ios.shakeTitle}}</h3><p>{{ios.shakeBody}}</p></article>
+        <article class="card"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.3" fill="currentColor" stroke="none"/></svg></span><h3>{{ios.pairTitle}}</h3><p>{{ios.pairBody}}</p></article>
+        <article class="card"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4.5V9h-4.5"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></span><h3>{{ios.statusTitle}}</h3><p>{{ios.statusBody}}</p></article>
+      </div>
+      <p class="section-note">{{ios.note}}</p>
     </section>
 
     <section class="section wrap" id="benefits" aria-labelledby="benefits-title">
@@ -140,6 +155,7 @@
             <li>{{download.needGit}}</li>
             <li>{{download.needAgent}}</li>
             <li>{{download.needGh}}</li>
+            <li>{{download.needIos}}</li>
           </ul>
           <p class="band-note">{{download.awake}}</p>
           <p class="band-note">{{download.privacy}}</p>

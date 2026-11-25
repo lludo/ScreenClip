@@ -213,7 +213,7 @@ def structured_data(config, catalog=None):
         app["offers"] = offers
         app["isAccessibleForFree"] = True
         app["downloadUrl"] = config.download_url
-        app["softwareVersion"] = "1.0.5"
+        app["softwareVersion"] = "1.1.0"
     faq = {
         "@type": "FAQPage",
         "inLanguage": catalog.html_lang,
@@ -239,6 +239,7 @@ def fragment_href(catalog, slug, fragment):
 def nav(catalog, slug):
     items = [
         (fragment_href(catalog, slug, "loop"), catalog.get("nav.how"), ""),
+        (fragment_href(catalog, slug, "ios"), catalog.get("nav.ios"), ""),
         (fragment_href(catalog, slug, "agents"), catalog.get("nav.agents"), ""),
         (fragment_href(catalog, slug, "faq"), catalog.get("nav.questions"), ""),
     ]
