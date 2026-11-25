@@ -37,6 +37,7 @@ struct IssueRow: View {
       VStack(alignment: .leading, spacing: 6) {
         HStack {
           Text(issue.referencedTitle).font(.system(size: 13, weight: .medium)).lineLimit(2)
+          if issue.isFromIOS { IOSSourceIcon().font(.system(size: 11)) }
           if issue.unread { Circle().fill(.orange).frame(width: 6, height: 6) }
         }
         HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -74,5 +75,15 @@ struct StatusBadge: View {
         .fixedSize(horizontal: true, vertical: true)
     }.foregroundStyle(color).padding(.horizontal, 8).padding(.vertical, 4).background(
       color.opacity(0.10), in: Capsule())
+  }
+}
+
+/// Marks a report captured in an iOS app with ScreenClipKit.
+struct IOSSourceIcon: View {
+  @Environment(\.locale) private var locale
+  var body: some View {
+    let label = Chrome.text("Captured on iOS", locale: locale, comment: "Marks a report sent from an iOS app.")
+    Image(systemName: "iphone").foregroundStyle(.secondary)
+      .help(label).accessibilityLabel(Text(verbatim: label))
   }
 }

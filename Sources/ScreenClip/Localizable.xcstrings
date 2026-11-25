@@ -1520,7 +1520,7 @@
       }
     },
     "Authorization header": {
-      "comment": "Grok Bot Authorization header field. Keep Authorization.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -1916,7 +1916,7 @@
       }
     },
     "Cancel": {
-      "comment": "Dismisses saving a Codex command rule.",
+      "comment": "Dismisses the merge confirmation.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -7310,7 +7310,7 @@
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "거절"
+            "value": "거부"
           }
         },
         "ru": {
@@ -14390,7 +14390,7 @@
       }
     },
     "Not found": {
-      "comment": "ScreenClip interface text.",
+      "comment": "No Claude Code executable was found.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -16304,7 +16304,7 @@
       }
     },
     "Paste the Webhook URL and the Authorization header from the Grok Bot routine panel. ScreenClip sends that header value as the HTTP Authorization header and does not add a prefix. Both are stored in the Keychain, not in the queue database.": {
-      "comment": "Explains the Grok Bot connection fields. Keep HTTP, Authorization, and Keychain.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -21188,7 +21188,7 @@
       }
     },
     "Send test": {
-      "comment": "Posts a test webhook to Grok Bot.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -21254,7 +21254,7 @@
       }
     },
     "Send test posts {\"schema\":\"screenclip.external.v1.test\"} and shows the HTTP result. Grok Bot is listed as Detected once both values are saved; a successful test is optional.": {
-      "comment": "Explains the test payload. Keep the schema identifier and HTTP.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -27986,7 +27986,7 @@
       }
     },
     "Connect Grok Bot": {
-      "comment": "Title of the Grok Bot connection form.",
+      "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -36697,6 +36697,3966 @@
         }
       }
     },
+    "Screenshot task": {
+      "comment": "Menu bar button to start a task by capturing a screen region.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screenshot task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截图任务"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarea con captura"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スクリーンショットのタスク"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarefa com captura"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screenshot-Aufgabe"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tâche avec capture"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스크린샷 작업"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Задача со снимком"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截圖任務"
+          }
+        }
+      }
+    },
+    "Text task": {
+      "comment": "Menu bar button to start a task by writing a note.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text task"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本任务"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarea de texto"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テキストのタスク"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tarefa de texto"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Textaufgabe"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tâche texte"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "텍스트 작업"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Текстовая задача"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文字任務"
+          }
+        }
+      }
+    },
+    "Describe what you noticed…": {
+      "comment": "Placeholder for a text-only report.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe what you noticed…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "描述你注意到的情况…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Describe lo que has observado…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "気づいたことを書いてください…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descreva o que você percebeu…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beschreibe, was dir aufgefallen ist…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Décrivez ce que vous avez remarqué…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "발견한 내용을 적으세요…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Опишите, что вы заметили…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "描述你注意到的情況…"
+          }
+        }
+      }
+    },
+    "Use the last agent, model, and effort for new reports": {
+      "comment": "Project setting to start new reports with the last submitted agent choice.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the last agent, model, and effort for new reports"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新报告沿用上次的代理、模型和推理强度"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar el último agente, modelo y nivel de esfuerzo en los informes nuevos"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいレポートで前回のエージェント、モデル、推論の強度を使う"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usar o último agente, modelo e nível de esforço nos novos relatórios"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für neue Berichte den letzten Agenten, das Modell und den Denkaufwand übernehmen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réutiliser l’agent, le modèle et l’effort de raisonnement du dernier rapport"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 리포트에 마지막으로 사용한 에이전트, 모델 및 추론 강도 적용"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для новых отчётов использовать последние выбранные агент, модель и уровень усилий"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新報告沿用上次的代理程式、模型與推理強度"
+          }
+        }
+      }
+    },
+    "Pull request description": {
+      "comment": "Heading for the Markdown description from GitHub.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request description"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拉取请求说明"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descripción del pull request"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プルリクエストの説明"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descrição do pull request"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beschreibung des Pull Requests"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Description de la pull request"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "풀 리퀘스트 설명"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Описание пул-реквеста"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提取要求說明"
+          }
+        }
+      }
+    },
+    "No description provided.": {
+      "comment": "The pull request has an empty description.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No description provided."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未提供说明。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se ha añadido una descripción."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "説明はありません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma descrição fornecida."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Beschreibung vorhanden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune description fournie."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설명이 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Описание отсутствует."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未提供說明。"
+          }
+        }
+      }
+    },
+    "Merge pull request": {
+      "comment": "Merges the reviewed pull request in ScreenClip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge pull request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合并拉取请求"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fusionar pull request"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プルリクエストをマージ"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesclar pull request"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Request zusammenführen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fusionner la pull request"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "풀 리퀘스트 병합"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слить пул-реквест"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合併提取要求"
+          }
+        }
+      }
+    },
+    "Merge pull request?": {
+      "comment": "Asks for confirmation of a squash merge.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge pull request?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合并拉取请求？"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Fusionar el pull request?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プルリクエストをマージしますか？"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mesclar o pull request?"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Request zusammenführen?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fusionner la pull request ?"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "풀 리퀘스트를 병합할까요?"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Слить пул-реквест?"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合併提取要求？"
+          }
+        }
+      }
+    },
+    "The pull request is closed.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The pull request is closed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拉取请求已关闭。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El pull request está cerrado."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プルリクエストはクローズされています。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O pull request está fechado."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Pull Request ist geschlossen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La pull request est fermée."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "풀 리퀘스트가 닫혔습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пул-реквест закрыт."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提取要求已關閉。"
+          }
+        }
+      }
+    },
+    "Merge will run the project’s validation command on this Mac.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merge will run the project’s validation command on this Mac."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合并时将在此 Mac 上运行项目的验证命令。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al fusionar se ejecutará el comando de validación del proyecto en este Mac."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "マージ時にこの Mac でプロジェクトの検証コマンドを実行します。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A mesclagem executará o comando de validação do projeto neste Mac."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Zusammenführen wird der Validierungsbefehl des Projekts auf diesem Mac ausgeführt."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La fusion exécutera la commande de validation du projet sur ce Mac."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "병합하면 이 Mac에서 프로젝트의 검증 명령을 실행합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "При слиянии на этом Mac будет выполнена команда проверки проекта."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "合併時會在此 Mac 上執行專案的驗證指令。"
+          }
+        }
+      }
+    },
+    "Local validation is required for this commit.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local validation is required for this commit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此提交需要本地验证。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este commit requiere validación local."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このコミットにはローカル検証が必要です。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este commit exige validação local."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieser Commit muss lokal validiert werden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce commit doit être validé localement."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 커밋에는 로컬 검증이 필요합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для этого коммита требуется локальная проверка."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此提交需要本機驗證。"
+          }
+        }
+      }
+    },
+    "Local validation passed. GitHub reports no checks.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local validation passed. GitHub reports no checks."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地验证已通过。GitHub 未报告任何检查。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La validación local pasó. GitHub no indica comprobaciones."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカル検証に合格しました。GitHub のチェックはありません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A validação local passou. O GitHub não indica verificações."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokale Validierung bestanden. GitHub meldet keine Prüfungen."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La validation locale a réussi. GitHub ne signale aucune vérification."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 검증을 통과했습니다. GitHub에 보고된 검사가 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Локальная проверка пройдена. GitHub не сообщает о проверках."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本機驗證已通過。GitHub 未回報任何檢查。"
+          }
+        }
+      }
+    },
+    "ScreenClip is busy with this project. Try the merge again in a moment.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip is busy with this project. Try the merge again in a moment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 正在处理此项目。请稍后再尝试合并。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip está ocupado con este proyecto. Vuelve a intentar la fusión en un momento."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip はこのプロジェクトを処理中です。しばらくしてからもう一度マージしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O ScreenClip está ocupado com este projeto. Tente mesclar novamente em instantes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip ist mit diesem Projekt beschäftigt. Versuche das Zusammenführen gleich noch einmal."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip est occupé avec ce projet. Réessayez la fusion dans un instant."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip이 이 프로젝트를 처리하고 있습니다. 잠시 후 다시 병합해 보세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip занят этим проектом. Повторите слияние через минуту."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 正在處理此專案。請稍後再嘗試合併。"
+          }
+        }
+      }
+    },
+    "The worktree for this fix was removed. Merge or close the PR on GitHub.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The worktree for this fix was removed. Merge or close the PR on GitHub."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此修复的工作区已被删除。请在 GitHub 上合并或关闭该 PR。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se eliminó el worktree de esta corrección. Fusiona o cierra el PR en GitHub."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この修正の worktree は削除されました。GitHub で PR をマージするかクローズしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O worktree desta correção foi removido. Faça o merge ou feche o PR no GitHub."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Worktree dieses Fixes wurde entfernt. Führe den PR auf GitHub zusammen oder schließe ihn."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le worktree de ce correctif a été supprimé. Fusionnez ou fermez la PR sur GitHub."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 수정의 worktree가 삭제되었습니다. GitHub에서 PR을 병합하거나 닫으세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рабочая копия этого исправления удалена. Слейте или закройте PR на GitHub."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此修正的工作區已被刪除。請在 GitHub 上合併或關閉該 PR。"
+          }
+        }
+      }
+    },
+    "This report’s worktree was removed outside ScreenClip, along with any changes that were not pushed. If the fix was merged another way, archive this report. Otherwise choose Continue to keep working in a new worktree.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This report’s worktree was removed outside ScreenClip, along with any changes that were not pushed. If the fix was merged another way, archive this report. Otherwise choose Continue to keep working in a new worktree."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此问题的工作区已在 ScreenClip 之外被删除，尚未推送的更改也随之丢失。如果修复已通过其他方式合并，请归档此问题；否则请选择“继续”，在新的工作区中接着处理。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El worktree de este informe se eliminó fuera de ScreenClip, junto con los cambios que no se habían enviado. Si la corrección se fusionó de otra forma, archiva este informe. Si no, elige Continuar para seguir trabajando en un worktree nuevo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このレポートの worktree は ScreenClip の外で削除され、プッシュしていない変更も失われました。修正が別の方法でマージ済みなら、このレポートをアーカイブしてください。そうでなければ「続行」を選ぶと、新しい worktree で作業を続けます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O worktree deste relatório foi removido fora do ScreenClip, junto com as alterações que não tinham sido enviadas. Se a correção foi mesclada de outra forma, arquive este relatório. Caso contrário, escolha Continuar para seguir trabalhando em um novo worktree."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Worktree dieses Berichts wurde außerhalb von ScreenClip entfernt, mitsamt allen Änderungen, die noch nicht gepusht waren. Wurde der Fix auf anderem Weg zusammengeführt, archiviere diesen Bericht. Andernfalls wähle Weiter, um in einem neuen Worktree weiterzuarbeiten."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le worktree de ce rapport a été supprimé en dehors de ScreenClip, avec les modifications qui n’avaient pas été poussées. Si le correctif a été fusionné autrement, archivez ce rapport. Sinon, choisissez Continuer pour poursuivre dans un nouveau worktree."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 리포트의 worktree가 ScreenClip 밖에서 삭제되었고, 푸시하지 않은 변경 사항도 함께 사라졌습니다. 수정이 다른 방법으로 병합되었다면 이 리포트를 보관하세요. 그렇지 않다면 계속을 선택해 새 worktree에서 작업을 이어 가세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рабочая копия этого отчёта удалена вне ScreenClip вместе со всеми неотправленными изменениями. Если исправление уже слито другим способом, отправьте отчёт в архив. Иначе выберите «Продолжить», чтобы работать дальше в новой рабочей копии."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此問題的工作區已在 ScreenClip 之外被刪除，尚未推送的變更也隨之遺失。如果修正已透過其他方式合併，請封存此問題；否則請選擇「繼續」，在新的工作區中接著處理。"
+          }
+        }
+      }
+    },
+    "Check tasks from your agents": {
+      "comment": "Settings section for installing the ScreenClip MCP server.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check tasks from your agents"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从你的智能体查看任务"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consultar tareas desde tus agentes"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エージェントからタスクを確認"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificar tarefas pelos seus agentes"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aufgaben aus deinen Agents prüfen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consulter les tâches depuis vos agents"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "에이전트에서 작업 확인"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверка задач из ваших агентов"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "從你的代理程式查看工作"
+          }
+        }
+      }
+    },
+    "Lets Claude Code and Codex, in any project, check that project's ScreenClip reports: open, in progress, and blocked. The tools only read your queue.": {
+      "comment": "Explains the MCP server install. Keep Claude Code, Codex, ScreenClip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lets Claude Code and Codex, in any project, check that project's ScreenClip reports: open, in progress, and blocked. The tools only read your queue."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让任何项目中的 Claude Code 和 Codex 查看该项目的 ScreenClip 报告：待处理、进行中和受阻。这些工具只会读取你的队列。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite que Claude Code y Codex, en cualquier proyecto, consulten los informes de ScreenClip de ese proyecto: abiertos, en curso y bloqueados. Las herramientas solo leen tu cola."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "どのプロジェクトでも、Claude Code と Codex がそのプロジェクトの ScreenClip レポート（未着手、進行中、ブロック中）を確認できます。ツールはキューを読み取るだけです。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permite que o Claude Code e o Codex, em qualquer projeto, consultem os relatórios do ScreenClip desse projeto: abertos, em andamento e bloqueados. As ferramentas apenas leem sua fila."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Damit können Claude Code und Codex in jedem Projekt die ScreenClip-Berichte dieses Projekts prüfen: offen, in Arbeit und blockiert. Die Tools lesen deine Warteschlange nur."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permet à Claude Code et Codex, dans n’importe quel projet, de consulter les rapports ScreenClip de ce projet : ouverts, en cours et bloqués. Les outils ne font que lire votre file."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "어느 프로젝트에서든 Claude Code와 Codex가 해당 프로젝트의 ScreenClip 보고서(열림, 진행 중, 막힘)를 확인할 수 있습니다. 도구는 대기열을 읽기만 합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Позволяет Claude Code и Codex в любом проекте проверять отчёты ScreenClip этого проекта: открытые, в работе и заблокированные. Инструменты только читают вашу очередь."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "讓任何專案中的 Claude Code 和 Codex 查看該專案的 ScreenClip 報告：待處理、進行中和受阻。這些工具只會讀取你的佇列。"
+          }
+        }
+      }
+    },
+    "Start a new agent session, then ask: “Check this project's ScreenClip tasks.”": {
+      "comment": "Tells the user how to try the installed MCP server. Keep ScreenClip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start a new agent session, then ask: “Check this project's ScreenClip tasks.”"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开启新的智能体会话，然后问：“查看这个项目的 ScreenClip 任务。”"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicia una nueva sesión del agente y pregunta: «Consulta las tareas de ScreenClip de este proyecto»."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新しいエージェントセッションを開始して、「このプロジェクトの ScreenClip タスクを確認して」と頼んでください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inicie uma nova sessão do agente e peça: “Verifique as tarefas do ScreenClip deste projeto.”"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starte eine neue Agent-Sitzung und frage: „Prüfe die ScreenClip-Aufgaben dieses Projekts.“"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrez une nouvelle session de l’agent, puis demandez : « Consulte les tâches ScreenClip de ce projet. »"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "새 에이전트 세션을 시작한 다음 “이 프로젝트의 ScreenClip 작업을 확인해 줘.”라고 요청하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Начните новый сеанс агента и попросите: «Проверь задачи ScreenClip в этом проекте»."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開啟新的代理程式工作階段，然後問：「查看這個專案的 ScreenClip 工作。」"
+          }
+        }
+      }
+    },
+    "Installed": {
+      "comment": "The ScreenClip MCP server is installed for this agent.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安装"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インストール済み"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installiert"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installé"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설치됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Установлено"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已安裝"
+          }
+        }
+      }
+    },
+    "Not installed": {
+      "comment": "The ScreenClip MCP server is not installed for this agent.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not installed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未安装"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No instalado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未インストール"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não instalado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nicht installiert"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Non installé"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설치되지 않음"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не установлено"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未安裝"
+          }
+        }
+      }
+    },
+    "Install": {
+      "comment": "Installs the MCP server for this agent.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インストール"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installer"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설치"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Установить"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安裝"
+          }
+        }
+      }
+    },
+    "Reinstall": {
+      "comment": "Installs the MCP server again.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinstall"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新安装"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinstalar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再インストール"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reinstalar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neu installieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réinstaller"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "다시 설치"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Переустановить"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新安裝"
+          }
+        }
+      }
+    },
+    "Installing…": {
+      "comment": "The MCP server is being installed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installing…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在安装…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalando…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "インストール中…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalando…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird installiert…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설치 중…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Установка…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在安裝…"
+          }
+        }
+      }
+    },
+    "Copy command": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy command"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制命令"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar comando"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コマンドをコピー"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar comando"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Befehl kopieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier la commande"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "명령 복사"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать команду"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製指令"
+          }
+        }
+      }
+    },
+    "Copied": {
+      "comment": "Confirms text was copied to the clipboard.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiado"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "コピーしました"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kopiert"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copié"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "복사됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировано"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已複製"
+          }
+        }
+      }
+    },
+    "Other MCP apps": {
+      "comment": "Row for apps other than Claude Code and Codex.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other MCP apps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他 MCP 应用"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Otras apps MCP"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "その他の MCP アプリ"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outros apps MCP"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Andere MCP-Apps"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autres apps MCP"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기타 MCP 앱"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Другие приложения MCP"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他 MCP 應用程式"
+          }
+        }
+      }
+    },
+    "Copy JSON": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy JSON"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制 JSON"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar JSON"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON をコピー"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar JSON"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON kopieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le JSON"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "JSON 복사"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать JSON"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製 JSON"
+          }
+        }
+      }
+    },
+    "Check for Updates…": {
+      "comment": "Checks for a newer version of the app.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check for Updates…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查更新…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar actualizaciones…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを確認…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificar atualizações…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Updates suchen …"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher des mises à jour…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "업데이트 확인…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Проверить обновления…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "檢查更新項目…"
+          }
+        }
+      }
+    },
+    "Download and install updates automatically": {
+      "comment": "Lets ScreenClip install new versions without asking.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Download and install updates automatically"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动下载并安装更新"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Descargar e instalar actualizaciones automáticamente"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを自動的にダウンロードしてインストール"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Baixar e instalar atualizações automaticamente"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates automatisch laden und installieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Télécharger et installer les mises à jour automatiquement"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "업데이트 자동 다운로드 및 설치"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Автоматически загружать и устанавливать обновления"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動下載並安裝更新"
+          }
+        }
+      }
+    },
+    "ScreenClip checks for a new version once a day. A downloaded update installs the next time ScreenClip quits.": {
+      "comment": "Explains automatic updates. Keep ScreenClip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip checks for a new version once a day. A downloaded update installs the next time ScreenClip quits."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 每天检查一次新版本。下载的更新会在下次退出 ScreenClip 时安装。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip busca una versión nueva una vez al día. Una actualización descargada se instala la próxima vez que salgas de ScreenClip."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip は 1 日に 1 回新しいバージョンを確認します。ダウンロードしたアップデートは、次に ScreenClip を終了したときにインストールされます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O ScreenClip procura uma nova versão uma vez por dia. Uma atualização baixada é instalada na próxima vez que você encerrar o ScreenClip."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip sucht einmal täglich nach einer neuen Version. Ein geladenes Update wird beim nächsten Beenden von ScreenClip installiert."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip recherche une nouvelle version une fois par jour. Une mise à jour téléchargée s’installe la prochaine fois que vous quittez ScreenClip."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip은 하루에 한 번 새 버전을 확인합니다. 다운로드한 업데이트는 다음에 ScreenClip을 종료할 때 설치됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip проверяет наличие новой версии раз в день. Загруженное обновление устанавливается при следующем выходе из ScreenClip."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 每天檢查一次新版本。下載的更新會在下次結束 ScreenClip 時安裝。"
+          }
+        }
+      }
+    },
+    "Updates": {
+      "comment": "Settings section for app updates.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizaciones"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデート"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizações"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Updates"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mises à jour"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "업데이트"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновления"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新"
+          }
+        }
+      }
+    },
+    "The pull request was closed without merging. Choose Continue to open a new one, or archive this report.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The pull request was closed without merging. Choose Continue to open a new one, or archive this report."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拉取请求已关闭但未合并。选择“继续”打开新的拉取请求，或归档此报告。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El pull request se cerró sin fusionarse. Elige Continuar para abrir uno nuevo o archiva este informe."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プルリクエストはマージされずにクローズされました。「続行」で新しいプルリクエストを開くか、このレポートをアーカイブしてください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O pull request foi fechado sem ser mesclado. Escolha Continuar para abrir um novo ou arquive este relatório."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Pull Request wurde ohne Merge geschlossen. Wähle Weiter, um einen neuen zu öffnen, oder archiviere diesen Bericht."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La pull request a été fermée sans être fusionnée. Choisissez Continuer pour en ouvrir une nouvelle, ou archivez ce rapport."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "풀 리퀘스트가 병합되지 않고 닫혔습니다. 계속을 선택해 새 풀 리퀘스트를 열거나 이 보고서를 보관하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пул-реквест закрыт без слияния. Выберите «Продолжить», чтобы открыть новый, или архивируйте этот отчёт."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提取要求已關閉但未合併。選擇「繼續」開啟新的提取要求，或封存此報告。"
+          }
+        }
+      }
+    },
+    "iOS": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS"
+          }
+        }
+      }
+    },
+    "Add ScreenClipKit to the Debug build of your iOS app. Testers shake the device to capture a screen, annotate it, and send it here as a report.": {
+      "comment": "Explains the iOS SDK in Settings. Keep ScreenClipKit.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add ScreenClipKit to the Debug build of your iOS app. Testers shake the device to capture a screen, annotate it, and send it here as a report."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将 ScreenClipKit 添加到 iOS 应用的 Debug 版本中。测试人员摇动设备即可截取屏幕、添加标注，并作为报告发送到这里。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade ScreenClipKit a la compilación Debug de tu app de iOS. Quien prueba agita el dispositivo para capturar una pantalla, la anota y la envía aquí como informe."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS アプリの Debug ビルドに ScreenClipKit を追加します。テスターがデバイスを振ると画面をキャプチャし、注釈を付けてレポートとしてここに送れます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicione o ScreenClipKit ao build Debug do seu app iOS. Quem testa agita o dispositivo para capturar uma tela, anotá-la e enviá-la para cá como relatório."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge ScreenClipKit zum Debug-Build deiner iOS-App hinzu. Tester schütteln das Gerät, um einen Bildschirm aufzunehmen, ihn zu markieren und hierher als Bericht zu senden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutez ScreenClipKit à la version Debug de votre app iOS. Les testeurs secouent l’appareil pour capturer un écran, l’annoter et l’envoyer ici comme rapport."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 앱의 Debug 빌드에 ScreenClipKit을 추가하세요. 테스터가 기기를 흔들면 화면을 캡처하고 주석을 달아 리포트로 이곳에 보낼 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавьте ScreenClipKit в Debug-сборку iOS-приложения. Тестировщик встряхивает устройство, чтобы снять экран, сделать пометки и отправить сюда отчёт."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "將 ScreenClipKit 加入 iOS App 的 Debug 版本。測試人員搖動裝置即可擷取畫面、加上標註，並以報告形式傳送到這裡。"
+          }
+        }
+      }
+    },
+    "Copy agent prompt": {
+      "comment": "Copies a prompt that asks a coding agent to install the iOS SDK.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy agent prompt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制智能体提示"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar indicación para el agente"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エージェント用プロンプトをコピー"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar prompt para o agente"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agent-Prompt kopieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le prompt pour l’agent"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "에이전트 프롬프트 복사"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать запрос для агента"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製代理程式提示"
+          }
+        }
+      }
+    },
+    "Copy setup code": {
+      "comment": "Copies the iOS SDK setup code.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy setup code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制设置代码"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar código de configuración"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定コードをコピー"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copiar código de configuração"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einrichtungscode kopieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copier le code de configuration"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정 코드 복사"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Скопировать код настройки"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複製設定程式碼"
+          }
+        }
+      }
+    },
+    "Setup guide": {
+      "comment": "Opens the iOS SDK setup guide.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Setup guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设置指南"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guía de configuración"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定ガイド"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guia de configuração"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Einrichtungsanleitung"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guide de configuration"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "설정 가이드"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Руководство по настройке"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "設定指南"
+          }
+        }
+      }
+    },
+    "Paste the agent prompt into Claude Code or Codex in your iOS project; it adds the package, the start call, and the Debug-only network settings. Nothing is included in Release builds.": {
+      "comment": "Explains the agent prompt. Keep Claude Code and Codex.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paste the agent prompt into Claude Code or Codex in your iOS project; it adds the package, the start call, and the Debug-only network settings. Nothing is included in Release builds."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在你的 iOS 项目中，将智能体提示粘贴到 Claude Code 或 Codex；它会添加软件包、启动调用以及仅用于 Debug 的网络设置。Release 版本中不会包含任何内容。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pega la indicación en Claude Code o Codex dentro de tu proyecto de iOS; añade el paquete, la llamada de inicio y los ajustes de red solo para Debug. Nada se incluye en las compilaciones Release."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS プロジェクトで Claude Code または Codex にエージェント用プロンプトを貼り付けてください。パッケージ、開始呼び出し、Debug 専用のネットワーク設定が追加されます。Release ビルドには何も含まれません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cole o prompt no Claude Code ou no Codex no seu projeto iOS; ele adiciona o pacote, a chamada de início e as configurações de rede só para Debug. Nada entra nos builds Release."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge den Agent-Prompt in deinem iOS-Projekt in Claude Code oder Codex ein. Er ergänzt das Paket, den Startaufruf und die Netzwerkeinstellungen nur für Debug. Release-Builds enthalten nichts davon."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Collez le prompt dans Claude Code ou Codex dans votre projet iOS : il ajoute le paquet, l’appel de démarrage et les réglages réseau réservés au Debug. Rien n’est inclus dans les versions Release."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 프로젝트의 Claude Code 또는 Codex에 에이전트 프롬프트를 붙여 넣으세요. 패키지, 시작 호출, Debug 전용 네트워크 설정이 추가됩니다. Release 빌드에는 아무것도 포함되지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Вставьте запрос в Claude Code или Codex в iOS-проекте: агент добавит пакет, вызов запуска и сетевые настройки только для Debug. В Release-сборки ничего не попадёт."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在你的 iOS 專案中，將代理程式提示貼到 Claude Code 或 Codex；它會加入套件、啟動呼叫，以及僅用於 Debug 的網路設定。Release 版本不會包含任何內容。"
+          }
+        }
+      }
+    },
+    "Install the iOS SDK": {
+      "comment": "Settings section for installing the iOS SDK.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install the iOS SDK"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装 iOS SDK"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalar el SDK de iOS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS SDK をインストール"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Instalar o SDK do iOS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS SDK installieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installer le SDK iOS"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS SDK 설치"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Установка iOS SDK"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安裝 iOS SDK"
+          }
+        }
+      }
+    },
+    "Receive reports from iOS devices": {
+      "comment": "Turns on the local server for the iOS SDK.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receive reports from iOS devices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收来自 iOS 设备的报告"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recibir informes de dispositivos iOS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS デバイスからレポートを受信"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receber relatórios de dispositivos iOS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berichte von iOS-Geräten empfangen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recevoir les rapports des appareils iOS"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 기기에서 리포트 받기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Получать отчёты с iOS-устройств"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收來自 iOS 裝置的報告"
+          }
+        }
+      }
+    },
+    "Save iOS reports as drafts": {
+      "comment": "iOS reports wait as drafts instead of going to an agent.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save iOS reports as drafts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将 iOS 报告保存为草稿"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Guardar los informes de iOS como borradores"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS のレポートを下書きとして保存"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salvar relatórios do iOS como rascunhos"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS-Berichte als Entwürfe speichern"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistrer les rapports iOS comme brouillons"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 리포트를 초안으로 저장"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сохранять отчёты с iOS как черновики"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "將 iOS 報告儲存為草稿"
+          }
+        }
+      }
+    },
+    "Reports from iOS are filed like captures on this Mac: matched to a project by the app's bundle ID, then queued for its agent.": {
+      "comment": "Explains how iOS reports are routed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reports from iOS are filed like captures on this Mac: matched to a project by the app's bundle ID, then queued for its agent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自 iOS 的报告与此 Mac 上的截图一样归档：按应用的 bundle ID 匹配项目，然后排队交给该项目的智能体。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los informes de iOS se archivan como las capturas de este Mac: se asignan a un proyecto según el bundle ID de la app y se ponen en cola para su agente."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS からのレポートは、この Mac のキャプチャと同じように扱われます。アプリの bundle ID でプロジェクトを照合し、そのエージェントのキューに入ります。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os relatórios do iOS são arquivados como as capturas deste Mac: associados a um projeto pelo bundle ID do app e colocados na fila do agente dele."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berichte von iOS werden wie Aufnahmen auf diesem Mac abgelegt: über die Bundle-ID der App einem Projekt zugeordnet und dann für dessen Agenten eingereiht."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les rapports iOS sont classés comme les captures de ce Mac : associés à un projet d’après le bundle ID de l’app, puis mis en file pour son agent."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 리포트는 이 Mac의 캡처와 같은 방식으로 처리됩니다. 앱의 번들 ID로 프로젝트를 찾은 뒤 해당 에이전트의 대기열에 추가합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отчёты с iOS обрабатываются как снимки на этом Mac: проект определяется по bundle ID приложения, затем отчёт встаёт в очередь его агента."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "來自 iOS 的報告與此 Mac 上的擷取一樣歸檔：依 App 的 bundle ID 比對專案，然後排入該專案代理程式的佇列。"
+          }
+        }
+      }
+    },
+    "Local server": {
+      "comment": "Settings section for the iOS local server.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本地服务器"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Servidor local"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ローカルサーバ"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Servidor local"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lokaler Server"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serveur local"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "로컬 서버"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Локальный сервер"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本機伺服器"
+          }
+        }
+      }
+    },
+    "No paired devices yet.": {
+      "comment": "Empty list of paired iOS devices.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No paired devices yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无已配对的设备。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Todavía no hay dispositivos vinculados."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ペアリング済みのデバイスはまだありません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhum dispositivo pareado ainda."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Noch keine gekoppelten Geräte."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucun appareil jumelé pour l’instant."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "아직 페어링된 기기가 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сопряжённых устройств пока нет."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚無已配對的裝置。"
+          }
+        }
+      }
+    },
+    "Forget": {
+      "comment": "Removes a paired iOS device.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Forget"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "忘记"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Olvidar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "削除"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esquecer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entfernen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Oublier"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "삭제"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Забыть"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "忘記"
+          }
+        }
+      }
+    },
+    "Pair a device…": {
+      "comment": "Opens the iOS device pairing sheet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair a device…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配对设备…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vincular un dispositivo…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイスをペアリング…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parear um dispositivo…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerät koppeln …"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jumeler un appareil…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기기 페어링…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сопрячь устройство…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對裝置…"
+          }
+        }
+      }
+    },
+    "Pair a device": {
+      "comment": "Title of the iOS pairing sheet.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pair a device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配对设备"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vincular un dispositivo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイスをペアリング"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parear um dispositivo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerät koppeln"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jumeler un appareil"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기기 페어링"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сопряжение устройства"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "配對裝置"
+          }
+        }
+      }
+    },
+    "Fetch": {
+      "comment": "Asks connected iOS devices to send their saved reports.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fetch"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获取"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obtener"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取得"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrufen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Récupérer"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "가져오기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Получить"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取得"
+          }
+        }
+      }
+    },
+    "Ask connected devices to send the reports they saved while this Mac was unreachable.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ask connected devices to send the reports they saved while this Mac was unreachable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "让已连接的设备发送在此 Mac 无法访问时保存的报告。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pide a los dispositivos conectados que envíen los informes que guardaron mientras este Mac no estaba disponible."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この Mac に接続できなかった間に保存されたレポートを、接続中のデバイスに送信させます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pede aos dispositivos conectados que enviem os relatórios salvos enquanto este Mac estava inacessível."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bittet verbundene Geräte, die Berichte zu senden, die sie gespeichert haben, während dieser Mac nicht erreichbar war."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Demande aux appareils connectés d’envoyer les rapports enregistrés pendant que ce Mac était injoignable."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 Mac에 연결할 수 없는 동안 저장된 리포트를 연결된 기기에서 보내도록 요청합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Попросить подключённые устройства отправить отчёты, сохранённые, пока этот Mac был недоступен."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "要求已連線的裝置傳送在此 Mac 無法連線時儲存的報告。"
+          }
+        }
+      }
+    },
+    "Import report file…": {
+      "comment": "Imports a report file exported from an iOS device.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Import report file…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "导入报告文件…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importar archivo de informe…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "レポートファイルを読み込む…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importar arquivo de relatório…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berichtsdatei importieren …"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Importer un fichier de rapport…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "리포트 파일 가져오기…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Импортировать файл отчёта…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "匯入報告檔案…"
+          }
+        }
+      }
+    },
+    "Devices send saved reports automatically when they find this Mac. Fetch reaches devices with the app open; others can export reports and AirDrop them here.": {
+      "comment": "Explains automatic delivery, Fetch, and AirDrop. Keep AirDrop.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Devices send saved reports automatically when they find this Mac. Fetch reaches devices with the app open; others can export reports and AirDrop them here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备找到此 Mac 后会自动发送保存的报告。“获取”只能联系到已打开应用的设备；其他设备可以导出报告并通过 AirDrop 发送到这里。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los dispositivos envían los informes guardados automáticamente cuando encuentran este Mac. Obtener llega a los dispositivos con la app abierta; los demás pueden exportar los informes y enviarlos aquí por AirDrop."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイスはこの Mac を見つけると、保存したレポートを自動で送信します。「取得」はアプリを開いているデバイスにのみ届きます。それ以外は、レポートを書き出して AirDrop でここに送れます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os dispositivos enviam os relatórios salvos automaticamente quando encontram este Mac. Buscar alcança dispositivos com o app aberto; os outros podem exportar os relatórios e enviá-los para cá por AirDrop."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geräte senden gespeicherte Berichte automatisch, sobald sie diesen Mac finden. Abrufen erreicht Geräte mit geöffneter App; andere können Berichte exportieren und per AirDrop hierher senden."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les appareils envoient automatiquement les rapports enregistrés dès qu’ils trouvent ce Mac. Récupérer atteint les appareils dont l’app est ouverte ; les autres peuvent exporter les rapports et les envoyer ici par AirDrop."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기기는 이 Mac을 찾으면 저장된 리포트를 자동으로 보냅니다. 가져오기는 앱이 열려 있는 기기에만 닿으며, 다른 기기는 리포트를 내보내 AirDrop으로 이곳에 보낼 수 있습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Устройства автоматически отправляют сохранённые отчёты, когда находят этот Mac. «Получить» доходит до устройств с открытым приложением; с остальных отчёты можно экспортировать и отправить сюда через AirDrop."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝置找到此 Mac 後會自動傳送儲存的報告。「取得」只能聯繫已開啟 App 的裝置；其他裝置可以匯出報告並透過 AirDrop 傳送到這裡。"
+          }
+        }
+      }
+    },
+    "Devices": {
+      "comment": "Settings section listing paired iOS devices.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Devices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivos"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイス"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivos"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geräte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appareils"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Устройства"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝置"
+          }
+        }
+      }
+    },
+    "Stopped": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stopped"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detenido"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止中"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Parado"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gestoppt"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêté"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "중지됨"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Остановлен"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止"
+          }
+        }
+      }
+    },
+    "Starting…": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starting…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在启动…"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciando…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "起動中…"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciando…"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird gestartet …"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrage…"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시작하는 중…"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Запуск…"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在啟動…"
+          }
+        }
+      }
+    },
+    "Confirm only if your device shows the same code:": {
+      "comment": "Asks to compare pairing codes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm only if your device shows the same code:"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅当你的设备显示相同代码时才确认："
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirma solo si tu dispositivo muestra el mismo código:"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイスに同じコードが表示されている場合のみ確認してください:"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirme apenas se o seu dispositivo mostrar o mesmo código:"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestätige nur, wenn dein Gerät denselben Code zeigt:"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmez uniquement si votre appareil affiche le même code :"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기기에 같은 코드가 표시될 때만 확인하세요:"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подтверждайте, только если на устройстве тот же код:"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "僅當你的裝置顯示相同代碼時才確認："
+          }
+        }
+      }
+    },
+    "Confirm": {
+      "comment": "Confirms an iOS pairing request.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmar"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bestätigen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmer"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "확인"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подтвердить"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認"
+          }
+        }
+      }
+    },
+    "Captured on iOS": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captured on iOS"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 iOS 上截取"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturado en iOS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS でキャプチャ"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturado no iOS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf iOS aufgenommen"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capturé sur iOS"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS에서 캡처함"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Снято на iOS"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 iOS 上擷取"
+          }
+        }
+      }
+    },
+    "Device": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设备"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivo"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "デバイス"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispositivo"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gerät"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Appareil"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "기기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Устройство"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "裝置"
+          }
+        }
+      }
+    },
+    "Screen": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screen"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏幕"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pantalla"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "画面"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tela"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildschirm"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Écran"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "화면"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экран"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "畫面"
+          }
+        }
+      }
+    },
+    "menu.update.install": {
+      "comment": "Installs a downloaded app update. %@ is a version number and is not translated.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update to %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新到 %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actualizar a %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ にアップデート"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atualizar para %@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Auf %@ aktualisieren"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mettre à jour vers %@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@(으)로 업데이트"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Обновить до %@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新至 %@"
+          }
+        }
+      }
+    },
     "metric.open.caption": {
       "comment": "Caption under the open-report count.",
       "extractionState": "manual",
@@ -42883,2180 +46843,812 @@
         }
       }
     },
-    "Screenshot task": {
-      "comment": "Menu bar button to start a task by capturing a screen region.",
+    "ios.notification.received": {
+      "comment": "Notification body when an iOS report arrives. %@ is the device name.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Screenshot task"
+            "value": "New report from %@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "截图任务"
+            "value": "来自 %@ 的新报告"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tarea con captura"
+            "value": "Nuevo informe de %@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "スクリーンショットのタスク"
+            "value": "%@ からの新しいレポート"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tarefa com captura"
+            "value": "Novo relatório de %@"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Screenshot-Aufgabe"
+            "value": "Neuer Bericht von %@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tâche avec capture"
+            "value": "Nouveau rapport de %@"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "스크린샷 작업"
+            "value": "%@에서 보낸 새 리포트"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Задача со снимком"
+            "value": "Новый отчёт с %@"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "截圖任務"
+            "value": "來自 %@ 的新報告"
           }
         }
       }
     },
-    "Text task": {
-      "comment": "Menu bar button to start a task by writing a note.",
+    "ios.listening": {
+      "comment": "The iOS local server is running. %@ is this Mac's name; %lld is a port number.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Text task"
+            "value": "Listening as “%@” on port %lld"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "文本任务"
+            "value": "正在以“%@”的名称在端口 %lld 上监听"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tarea de texto"
+            "value": "Escuchando como «%@» en el puerto %lld"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "テキストのタスク"
+            "value": "「%@」としてポート %lld で待機中"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tarefa de texto"
+            "value": "Aguardando como “%@” na porta %lld"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Textaufgabe"
+            "value": "Empfangsbereit als „%@“ auf Port %lld"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tâche texte"
+            "value": "En écoute sous le nom « %@ » sur le port %lld"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "텍스트 작업"
+            "value": "“%@”(으)로 포트 %lld에서 대기 중"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Текстовая задача"
+            "value": "Ожидание подключений как «%@» на порту %lld"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "文字任務"
+            "value": "正以「%@」的名稱在連接埠 %lld 上監聽"
           }
         }
       }
     },
-    "Describe what you noticed…": {
-      "comment": "Placeholder for a text-only report.",
+    "ios.failed": {
+      "comment": "The iOS local server failed. %@ is the system error and stays unchanged. Keep macOS and ScreenClip.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Describe what you noticed…"
+            "value": "Could not start: %@. Check that the macOS firewall allows ScreenClip."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "描述你注意到的情况…"
+            "value": "无法启动：%@。请检查 macOS 防火墙是否允许 ScreenClip。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Describe lo que has observado…"
+            "value": "No se pudo iniciar: %@. Comprueba que el cortafuegos de macOS permite ScreenClip."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "気づいたことを書いてください…"
+            "value": "起動できませんでした: %@。macOS のファイアウォールが ScreenClip を許可しているか確認してください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Descreva o que você percebeu…"
+            "value": "Não foi possível iniciar: %@. Verifique se o firewall do macOS permite o ScreenClip."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Beschreibe, was dir aufgefallen ist…"
+            "value": "Start fehlgeschlagen: %@. Prüfe, ob die macOS-Firewall ScreenClip zulässt."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Décrivez ce que vous avez remarqué…"
+            "value": "Démarrage impossible : %@. Vérifiez que le pare-feu de macOS autorise ScreenClip."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "발견한 내용을 적으세요…"
+            "value": "시작할 수 없습니다: %@. macOS 방화벽이 ScreenClip을 허용하는지 확인하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Опишите, что вы заметили…"
+            "value": "Не удалось запустить: %@. Проверьте, что брандмауэр macOS разрешает ScreenClip."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "描述你注意到的情況…"
+            "value": "無法啟動：%@。請檢查 macOS 防火牆是否允許 ScreenClip。"
           }
         }
       }
     },
-    "Use the last agent, model, and effort for new reports": {
-      "comment": "Project setting to start new reports with the last submitted agent choice.",
+    "ios.connected": {
+      "comment": "A paired iOS device is connected. %lld is how many reports it still holds.",
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Use the last agent, model, and effort for new reports"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Connected, %lld saved"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Connected, %lld saved"
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "新报告沿用上次的代理、模型和推理强度"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已连接，%lld 个已保存"
+                }
+              }
+            }
           }
         },
         "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usar el último agente, modelo y nivel de esfuerzo en los informes nuevos"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Conectado, %lld guardado"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Conectado, %lld guardados"
+                }
+              }
+            }
           }
         },
         "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "新しいレポートで前回のエージェント、モデル、推論の強度を使う"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "接続中、保存済み %lld 件"
+                }
+              }
+            }
           }
         },
         "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Usar o último agente, modelo e nível de esforço nos novos relatórios"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Conectado, %lld salvo"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Conectado, %lld salvos"
+                }
+              }
+            }
           }
         },
         "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Für neue Berichte den letzten Agenten, das Modell und den Denkaufwand übernehmen"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Verbunden, %lld gespeichert"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Verbunden, %lld gespeichert"
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réutiliser l’agent, le modèle et l’effort de raisonnement du dernier rapport"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Connecté, %lld enregistré"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Connecté, %lld enregistrés"
+                }
+              }
+            }
           }
         },
         "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "새 리포트에 마지막으로 사용한 에이전트, 모델 및 추론 강도 적용"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "연결됨, 저장된 항목 %lld개"
+                }
+              }
+            }
           }
         },
         "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Для новых отчётов использовать последние выбранные агент, модель и уровень усилий"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Подключено, сохранён %lld"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Подключено, сохранено %lld"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Подключено, сохранено %lld"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Подключено, сохранено %lld"
+                }
+              }
+            }
           }
         },
         "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "新報告沿用上次的代理程式、模型與推理強度"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已連線，%lld 個已儲存"
+                }
+              }
+            }
           }
         }
       }
     },
-    "Pull request description": {
-      "comment": "Heading for the Markdown description from GitHub.",
+    "ios.event.fetched": {
+      "comment": "After Fetch. %lld is the number of devices asked.",
       "extractionState": "manual",
       "localizations": {
         "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Pull request description"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Asked %lld device to send saved reports."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Asked %lld devices to send saved reports."
+                }
+              }
+            }
           }
         },
         "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "拉取请求说明"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已请求 %lld 台设备发送保存的报告。"
+                }
+              }
+            }
           }
         },
         "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Descripción del pull request"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Se pidió a %lld dispositivo que envíe sus informes guardados."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Se pidió a %lld dispositivos que envíen sus informes guardados."
+                }
+              }
+            }
           }
         },
         "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "プルリクエストの説明"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld 台のデバイスに保存済みレポートの送信を依頼しました。"
+                }
+              }
+            }
           }
         },
         "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Descrição do pull request"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Pedimos a %lld dispositivo que envie os relatórios salvos."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Pedimos a %lld dispositivos que enviem os relatórios salvos."
+                }
+              }
+            }
           }
         },
         "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beschreibung des Pull Requests"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Gerät wurde gebeten, gespeicherte Berichte zu senden."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld Geräte wurden gebeten, gespeicherte Berichte zu senden."
+                }
+              }
+            }
           }
         },
         "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Description de la pull request"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld appareil a été invité à envoyer ses rapports enregistrés."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "%lld appareils ont été invités à envoyer leurs rapports enregistrés."
+                }
+              }
+            }
           }
         },
         "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "풀 리퀘스트 설명"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "기기 %lld대에 저장된 리포트를 보내도록 요청했습니다."
+                }
+              }
+            }
           }
         },
         "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Описание пул-реквеста"
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Запрошены сохранённые отчёты с %lld устройства."
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Запрошены сохранённые отчёты с %lld устройств."
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Запрошены сохранённые отчёты с %lld устройств."
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Запрошены сохранённые отчёты с %lld устройства."
+                }
+              }
+            }
           }
         },
         "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提取要求說明"
+          "variations": {
+            "plural": {
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "已要求 %lld 台裝置傳送儲存的報告。"
+                }
+              }
+            }
           }
         }
       }
     },
-    "No description provided.": {
-      "comment": "The pull request has an empty description.",
+    "ios.event.received": {
+      "comment": "An iOS report arrived. %@ is the device name.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No description provided."
+            "value": "Received a report from %@."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未提供说明。"
+            "value": "已收到来自 %@ 的报告。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No se ha añadido una descripción."
+            "value": "Se recibió un informe de %@."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "説明はありません。"
+            "value": "%@ からレポートを受信しました。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nenhuma descrição fornecida."
+            "value": "Relatório recebido de %@."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keine Beschreibung vorhanden."
+            "value": "Bericht von %@ empfangen."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aucune description fournie."
+            "value": "Rapport reçu de %@."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "설명이 없습니다."
+            "value": "%@에서 리포트를 받았습니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Описание отсутствует."
+            "value": "Получен отчёт с %@."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "未提供說明。"
+            "value": "已收到來自 %@ 的報告。"
           }
         }
       }
     },
-    "Merge pull request": {
-      "comment": "Merges the reviewed pull request in ScreenClip.",
+    "ios.event.paired": {
+      "comment": "An iOS device was paired. %@ is the device name.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Merge pull request"
+            "value": "Paired with %@."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "合并拉取请求"
+            "value": "已与 %@ 配对。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fusionar pull request"
+            "value": "Vinculado con %@."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "プルリクエストをマージ"
+            "value": "%@ とペアリングしました。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mesclar pull request"
+            "value": "Pareado com %@."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pull Request zusammenführen"
+            "value": "Mit %@ gekoppelt."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fusionner la pull request"
+            "value": "Jumelé avec %@."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "풀 리퀘스트 병합"
+            "value": "%@와(과) 페어링했습니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Слить пул-реквест"
+            "value": "Сопряжено с %@."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "合併提取要求"
+            "value": "已與 %@ 配對。"
           }
         }
       }
     },
-    "Merge pull request?": {
-      "comment": "Asks for confirmation of a squash merge.",
+    "ios.pair.request": {
+      "comment": "Pairing request. The first %@ is the device name, the second the app name.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Merge pull request?"
+            "value": "%@ wants to send reports from %@."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "合并拉取请求？"
+            "value": "%@ 想要发送来自 %@ 的报告。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "¿Fusionar el pull request?"
+            "value": "%@ quiere enviar informes desde %@."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "プルリクエストをマージしますか？"
+            "value": "%@ が %@ からレポートを送信しようとしています。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mesclar o pull request?"
+            "value": "%@ quer enviar relatórios do %@."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pull Request zusammenführen?"
+            "value": "%@ möchte Berichte aus %@ senden."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Fusionner la pull request ?"
+            "value": "%@ souhaite envoyer des rapports depuis %@."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "풀 리퀘스트를 병합할까요?"
+            "value": "%@에서 %@의 리포트를 보내려고 합니다."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Слить пул-реквест?"
+            "value": "%@ хочет отправлять отчёты из %@."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "合併提取要求？"
+            "value": "%@ 想要傳送來自 %@ 的報告。"
           }
         }
       }
     },
-    "The pull request is closed.": {
-      "comment": "ScreenClip interface text.",
+    "ios.pair.instructions": {
+      "comment": "Pairing instructions. %@ is this Mac's name. Keep ScreenClip.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The pull request is closed."
+            "value": "On your iPhone or iPad, open the app, shake to open ScreenClip, tap the gear, then tap Pair next to “%@”."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "拉取请求已关闭。"
+            "value": "在 iPhone 或 iPad 上打开应用，摇动设备打开 ScreenClip，轻点齿轮图标，然后轻点“%@”旁边的“配对”。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El pull request está cerrado."
+            "value": "En tu iPhone o iPad, abre la app, agítalo para abrir ScreenClip, toca el engranaje y luego Vincular junto a «%@»."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "プルリクエストはクローズされています。"
+            "value": "iPhone または iPad でアプリを開き、振って ScreenClip を開いたら、歯車をタップし、「%@」の横の「ペアリング」をタップしてください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O pull request está fechado."
+            "value": "No iPhone ou iPad, abra o app, agite para abrir o ScreenClip, toque na engrenagem e depois em Parear ao lado de “%@”."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Pull Request ist geschlossen."
+            "value": "Öffne auf deinem iPhone oder iPad die App, schüttle es, um ScreenClip zu öffnen, tippe auf das Zahnrad und dann neben „%@“ auf Koppeln."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La pull request est fermée."
+            "value": "Sur votre iPhone ou iPad, ouvrez l’app, secouez pour ouvrir ScreenClip, touchez la roue dentée, puis Jumeler à côté de « %@ »."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "풀 리퀘스트가 닫혔습니다."
+            "value": "iPhone 또는 iPad에서 앱을 열고 흔들어 ScreenClip을 연 다음, 톱니바퀴를 탭하고 “%@” 옆의 페어링을 탭하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Пул-реквест закрыт."
+            "value": "На iPhone или iPad откройте приложение, встряхните его, чтобы открыть ScreenClip, нажмите на шестерёнку, затем «Сопрячь» рядом с «%@»."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "提取要求已關閉。"
-          }
-        }
-      }
-    },
-    "Merge will run the project’s validation command on this Mac.": {
-      "comment": "ScreenClip interface text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Merge will run the project’s validation command on this Mac."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "合并时将在此 Mac 上运行项目的验证命令。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Al fusionar se ejecutará el comando de validación del proyecto en este Mac."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "マージ時にこの Mac でプロジェクトの検証コマンドを実行します。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A mesclagem executará o comando de validação do projeto neste Mac."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Beim Zusammenführen wird der Validierungsbefehl des Projekts auf diesem Mac ausgeführt."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La fusion exécutera la commande de validation du projet sur ce Mac."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "병합하면 이 Mac에서 프로젝트의 검증 명령을 실행합니다."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "При слиянии на этом Mac будет выполнена команда проверки проекта."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "合併時會在此 Mac 上執行專案的驗證指令。"
-          }
-        }
-      }
-    },
-    "Local validation is required for this commit.": {
-      "comment": "ScreenClip interface text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Local validation is required for this commit."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此提交需要本地验证。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Este commit requiere validación local."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "このコミットにはローカル検証が必要です。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Este commit exige validação local."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dieser Commit muss lokal validiert werden."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ce commit doit être validé localement."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이 커밋에는 로컬 검증이 필요합니다."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Для этого коммита требуется локальная проверка."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此提交需要本機驗證。"
-          }
-        }
-      }
-    },
-    "Local validation passed. GitHub reports no checks.": {
-      "comment": "ScreenClip interface text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Local validation passed. GitHub reports no checks."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本地验证已通过。GitHub 未报告任何检查。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La validación local pasó. GitHub no indica comprobaciones."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ローカル検証に合格しました。GitHub のチェックはありません。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "A validação local passou. O GitHub não indica verificações."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lokale Validierung bestanden. GitHub meldet keine Prüfungen."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La validation locale a réussi. GitHub ne signale aucune vérification."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "로컬 검증을 통과했습니다. GitHub에 보고된 검사가 없습니다."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Локальная проверка пройдена. GitHub не сообщает о проверках."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "本機驗證已通過。GitHub 未回報任何檢查。"
-          }
-        }
-      }
-    },
-    "ScreenClip is busy with this project. Try the merge again in a moment.": {
-      "comment": "Shown when a confirmed merge cannot start because ScreenClip is already updating the pull request or project.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip is busy with this project. Try the merge again in a moment."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip 正在处理此项目。请稍后再尝试合并。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip está ocupado con este proyecto. Vuelve a intentar la fusión en un momento."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip はこのプロジェクトを処理中です。しばらくしてからもう一度マージしてください。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O ScreenClip está ocupado com este projeto. Tente mesclar novamente em instantes."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip ist mit diesem Projekt beschäftigt. Versuche das Zusammenführen gleich noch einmal."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip est occupé avec ce projet. Réessayez la fusion dans un instant."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip이 이 프로젝트를 처리하고 있습니다. 잠시 후 다시 병합해 보세요."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip занят этим проектом. Повторите слияние через минуту."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip 正在處理此專案。請稍後再嘗試合併。"
-          }
-        }
-      }
-    },
-    "Download and install updates automatically": {
-      "comment": "Lets ScreenClip install new versions without asking.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Download and install updates automatically"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "自动下载并安装更新"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Descargar e instalar actualizaciones automáticamente"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アップデートを自動的にダウンロードしてインストール"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Baixar e instalar atualizações automaticamente"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Updates automatisch laden und installieren"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Télécharger et installer les mises à jour automatiquement"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "업데이트 자동 다운로드 및 설치"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Автоматически загружать и устанавливать обновления"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "自動下載並安裝更新"
-          }
-        }
-      }
-    },
-    "ScreenClip checks for a new version once a day. A downloaded update installs the next time ScreenClip quits.": {
-      "comment": "Explains automatic updates. Keep ScreenClip.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip checks for a new version once a day. A downloaded update installs the next time ScreenClip quits."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip 每天检查一次新版本。下载的更新会在下次退出 ScreenClip 时安装。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip busca una versión nueva una vez al día. Una actualización descargada se instala la próxima vez que salgas de ScreenClip."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip は 1 日に 1 回新しいバージョンを確認します。ダウンロードしたアップデートは、次に ScreenClip を終了したときにインストールされます。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O ScreenClip procura uma nova versão uma vez por dia. Uma atualização baixada é instalada na próxima vez que você encerrar o ScreenClip."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip sucht einmal täglich nach einer neuen Version. Ein geladenes Update wird beim nächsten Beenden von ScreenClip installiert."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip recherche une nouvelle version une fois par jour. Une mise à jour téléchargée s’installe la prochaine fois que vous quittez ScreenClip."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip은 하루에 한 번 새 버전을 확인합니다. 다운로드한 업데이트는 다음에 ScreenClip을 종료할 때 설치됩니다."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip проверяет наличие новой версии раз в день. Загруженное обновление устанавливается при следующем выходе из ScreenClip."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip 每天檢查一次新版本。下載的更新會在下次結束 ScreenClip 時安裝。"
-          }
-        }
-      }
-    },
-    "Check for Updates…": {
-      "comment": "Checks for a newer version of the app.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check for Updates…"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "检查更新…"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Buscar actualizaciones…"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アップデートを確認…"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verificar atualizações…"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nach Updates suchen …"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rechercher des mises à jour…"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "업데이트 확인…"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Проверить обновления…"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "檢查更新項目…"
-          }
-        }
-      }
-    },
-    "Updates": {
-      "comment": "Settings section for app updates.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Updates"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "更新"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Actualizaciones"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アップデート"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Atualizações"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Updates"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mises à jour"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "업데이트"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Обновления"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "更新"
-          }
-        }
-      }
-    },
-    "menu.update.install": {
-      "comment": "Installs a downloaded app update. %@ is a version number and is not translated.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Update to %@"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "更新到 %@"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Actualizar a %@"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@ にアップデート"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Atualizar para %@"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Auf %@ aktualisieren"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mettre à jour vers %@"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "%@(으)로 업데이트"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Обновить до %@"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "更新至 %@"
-          }
-        }
-      }
-    },
-    "The worktree for this fix was removed. Merge or close the PR on GitHub.": {
-      "comment": "ScreenClip interface text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The worktree for this fix was removed. Merge or close the PR on GitHub."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此修复的工作区已被删除。请在 GitHub 上合并或关闭该 PR。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Se eliminó el worktree de esta corrección. Fusiona o cierra el PR en GitHub."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "この修正の worktree は削除されました。GitHub で PR をマージするかクローズしてください。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O worktree desta correção foi removido. Faça o merge ou feche o PR no GitHub."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Das Worktree dieses Fixes wurde entfernt. Führe den PR auf GitHub zusammen oder schließe ihn."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le worktree de ce correctif a été supprimé. Fusionnez ou fermez la PR sur GitHub."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이 수정의 worktree가 삭제되었습니다. GitHub에서 PR을 병합하거나 닫으세요."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Рабочая копия этого исправления удалена. Слейте или закройте PR на GitHub."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此修正的工作區已被刪除。請在 GitHub 上合併或關閉該 PR。"
-          }
-        }
-      }
-    },
-    "This report’s worktree was removed outside ScreenClip, along with any changes that were not pushed. If the fix was merged another way, archive this report. Otherwise choose Continue to keep working in a new worktree.": {
-      "comment": "ScreenClip interface text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "This report’s worktree was removed outside ScreenClip, along with any changes that were not pushed. If the fix was merged another way, archive this report. Otherwise choose Continue to keep working in a new worktree."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此问题的工作区已在 ScreenClip 之外被删除，尚未推送的更改也随之丢失。如果修复已通过其他方式合并，请归档此问题；否则请选择“继续”，在新的工作区中接着处理。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El worktree de este informe se eliminó fuera de ScreenClip, junto con los cambios que no se habían enviado. Si la corrección se fusionó de otra forma, archiva este informe. Si no, elige Continuar para seguir trabajando en un worktree nuevo."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "このレポートの worktree は ScreenClip の外で削除され、プッシュしていない変更も失われました。修正が別の方法でマージ済みなら、このレポートをアーカイブしてください。そうでなければ「続行」を選ぶと、新しい worktree で作業を続けます。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O worktree deste relatório foi removido fora do ScreenClip, junto com as alterações que não tinham sido enviadas. Se a correção foi mesclada de outra forma, arquive este relatório. Caso contrário, escolha Continuar para seguir trabalhando em um novo worktree."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Das Worktree dieses Berichts wurde außerhalb von ScreenClip entfernt, mitsamt allen Änderungen, die noch nicht gepusht waren. Wurde der Fix auf anderem Weg zusammengeführt, archiviere diesen Bericht. Andernfalls wähle Weiter, um in einem neuen Worktree weiterzuarbeiten."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Le worktree de ce rapport a été supprimé en dehors de ScreenClip, avec les modifications qui n’avaient pas été poussées. Si le correctif a été fusionné autrement, archivez ce rapport. Sinon, choisissez Continuer pour poursuivre dans un nouveau worktree."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "이 리포트의 worktree가 ScreenClip 밖에서 삭제되었고, 푸시하지 않은 변경 사항도 함께 사라졌습니다. 수정이 다른 방법으로 병합되었다면 이 리포트를 보관하세요. 그렇지 않다면 계속을 선택해 새 worktree에서 작업을 이어 가세요."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Рабочая копия этого отчёта удалена вне ScreenClip вместе со всеми неотправленными изменениями. Если исправление уже слито другим способом, отправьте отчёт в архив. Иначе выберите «Продолжить», чтобы работать дальше в новой рабочей копии."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此問題的工作區已在 ScreenClip 之外被刪除，尚未推送的變更也隨之遺失。如果修正已透過其他方式合併，請封存此問題；否則請選擇「繼續」，在新的工作區中接著處理。"
-          }
-        }
-      }
-    },
-    "Check tasks from your agents": {
-      "comment": "Settings section for installing the ScreenClip MCP server.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Check tasks from your agents"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "从你的智能体查看任务"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Consultar tareas desde tus agentes"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "エージェントからタスクを確認"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Verificar tarefas pelos seus agentes"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Aufgaben aus deinen Agents prüfen"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Consulter les tâches depuis vos agents"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "에이전트에서 작업 확인"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Проверка задач из ваших агентов"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "從你的代理程式查看工作"
-          }
-        }
-      }
-    },
-    "Lets Claude Code and Codex, in any project, check that project's ScreenClip reports: open, in progress, and blocked. The tools only read your queue.": {
-      "comment": "Explains the MCP server install. Keep Claude Code, Codex, ScreenClip.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lets Claude Code and Codex, in any project, check that project's ScreenClip reports: open, in progress, and blocked. The tools only read your queue."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "让任何项目中的 Claude Code 和 Codex 查看该项目的 ScreenClip 报告：待处理、进行中和受阻。这些工具只会读取你的队列。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permite que Claude Code y Codex, en cualquier proyecto, consulten los informes de ScreenClip de ese proyecto: abiertos, en curso y bloqueados. Las herramientas solo leen tu cola."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "どのプロジェクトでも、Claude Code と Codex がそのプロジェクトの ScreenClip レポート（未着手、進行中、ブロック中）を確認できます。ツールはキューを読み取るだけです。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permite que o Claude Code e o Codex, em qualquer projeto, consultem os relatórios do ScreenClip desse projeto: abertos, em andamento e bloqueados. As ferramentas apenas leem sua fila."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Damit können Claude Code und Codex in jedem Projekt die ScreenClip-Berichte dieses Projekts prüfen: offen, in Arbeit und blockiert. Die Tools lesen deine Warteschlange nur."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Permet à Claude Code et Codex, dans n’importe quel projet, de consulter les rapports ScreenClip de ce projet : ouverts, en cours et bloqués. Les outils ne font que lire votre file."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "어느 프로젝트에서든 Claude Code와 Codex가 해당 프로젝트의 ScreenClip 보고서(열림, 진행 중, 막힘)를 확인할 수 있습니다. 도구는 대기열을 읽기만 합니다."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Позволяет Claude Code и Codex в любом проекте проверять отчёты ScreenClip этого проекта: открытые, в работе и заблокированные. Инструменты только читают вашу очередь."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "讓任何專案中的 Claude Code 和 Codex 查看該專案的 ScreenClip 報告：待處理、進行中和受阻。這些工具只會讀取你的佇列。"
-          }
-        }
-      }
-    },
-    "Start a new agent session, then ask: “Check this project's ScreenClip tasks.”": {
-      "comment": "Tells the user how to try the installed MCP server. Keep ScreenClip.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Start a new agent session, then ask: “Check this project's ScreenClip tasks.”"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "开启新的智能体会话，然后问：“查看这个项目的 ScreenClip 任务。”"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inicia una nueva sesión del agente y pregunta: «Consulta las tareas de ScreenClip de este proyecto»."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "新しいエージェントセッションを開始して、「このプロジェクトの ScreenClip タスクを確認して」と頼んでください。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Inicie uma nova sessão do agente e peça: “Verifique as tarefas do ScreenClip deste projeto.”"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Starte eine neue Agent-Sitzung und frage: „Prüfe die ScreenClip-Aufgaben dieses Projekts.“"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Ouvrez une nouvelle session de l’agent, puis demandez : « Consulte les tâches ScreenClip de ce projet. »"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "새 에이전트 세션을 시작한 다음 “이 프로젝트의 ScreenClip 작업을 확인해 줘.”라고 요청하세요."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Начните новый сеанс агента и попросите: «Проверь задачи ScreenClip в этом проекте»."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "開啟新的代理程式工作階段，然後問：「查看這個專案的 ScreenClip 工作。」"
-          }
-        }
-      }
-    },
-    "Installed": {
-      "comment": "The ScreenClip MCP server is installed for this agent.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已安装"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instalado"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "インストール済み"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instalado"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installiert"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installé"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "설치됨"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Установлено"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已安裝"
-          }
-        }
-      }
-    },
-    "Not installed": {
-      "comment": "The ScreenClip MCP server is not installed for this agent.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Not installed"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未安装"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "No instalado"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未インストール"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Não instalado"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Nicht installiert"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Non installé"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "설치되지 않음"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Не установлено"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "未安裝"
-          }
-        }
-      }
-    },
-    "Install": {
-      "comment": "Installs the MCP server for this agent.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Install"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "安装"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instalar"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "インストール"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instalar"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installieren"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installer"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "설치"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Установить"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "安裝"
-          }
-        }
-      }
-    },
-    "Reinstall": {
-      "comment": "Installs the MCP server again.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reinstall"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新安装"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reinstalar"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "再インストール"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reinstalar"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Neu installieren"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réinstaller"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "다시 설치"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Переустановить"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "重新安裝"
-          }
-        }
-      }
-    },
-    "Installing…": {
-      "comment": "The MCP server is being installed.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installing…"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在安装…"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instalando…"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "インストール中…"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Instalando…"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Wird installiert…"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Installation…"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "설치 중…"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Установка…"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "正在安裝…"
-          }
-        }
-      }
-    },
-    "Copy command": {
-      "comment": "ScreenClip interface text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy command"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "复制命令"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiar comando"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "コマンドをコピー"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiar comando"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Befehl kopieren"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copier la commande"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "명령 복사"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Скопировать команду"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "複製指令"
-          }
-        }
-      }
-    },
-    "Copied": {
-      "comment": "Confirms text was copied to the clipboard.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copied"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已复制"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiado"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "コピーしました"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiado"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Kopiert"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copié"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "복사됨"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Скопировано"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已複製"
-          }
-        }
-      }
-    },
-    "Other MCP apps": {
-      "comment": "Row for apps other than Claude Code and Codex.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Other MCP apps"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "其他 MCP 应用"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Otras apps MCP"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "その他の MCP アプリ"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Outros apps MCP"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Andere MCP-Apps"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Autres apps MCP"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "기타 MCP 앱"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Другие приложения MCP"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "其他 MCP 應用程式"
-          }
-        }
-      }
-    },
-    "Copy JSON": {
-      "comment": "ScreenClip interface text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copy JSON"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "复制 JSON"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiar JSON"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON をコピー"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copiar JSON"
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON kopieren"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copier le JSON"
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JSON 복사"
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Скопировать JSON"
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "複製 JSON"
-          }
-        }
-      }
-    },
-    "The pull request was closed without merging. Choose Continue to open a new one, or archive this report.": {
-      "comment": "ScreenClip interface text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "The pull request was closed without merging. Choose Continue to open a new one, or archive this report."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "拉取请求已关闭但未合并。选择“继续”打开新的拉取请求，或归档此报告。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "El pull request se cerró sin fusionarse. Elige Continuar para abrir uno nuevo o archiva este informe."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "プルリクエストはマージされずにクローズされました。「続行」で新しいプルリクエストを開くか、このレポートをアーカイブしてください。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O pull request foi fechado sem ser mesclado. Escolha Continuar para abrir um novo ou arquive este relatório."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Der Pull Request wurde ohne Merge geschlossen. Wähle Weiter, um einen neuen zu öffnen, oder archiviere diesen Bericht."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La pull request a été fermée sans être fusionnée. Choisissez Continuer pour en ouvrir une nouvelle, ou archivez ce rapport."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "풀 리퀘스트가 병합되지 않고 닫혔습니다. 계속을 선택해 새 풀 리퀘스트를 열거나 이 보고서를 보관하세요."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Пул-реквест закрыт без слияния. Выберите «Продолжить», чтобы открыть новый, или архивируйте этот отчёт."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提取要求已關閉但未合併。選擇「繼續」開啟新的提取要求，或封存此報告。"
+            "value": "在 iPhone 或 iPad 上開啟 App，搖動裝置開啟 ScreenClip，點一下齒輪，然後點一下「%@」旁的「配對」。"
           }
         }
       }

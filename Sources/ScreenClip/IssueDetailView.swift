@@ -29,6 +29,7 @@ struct IssueDetailView: View {
                 comment: "Accessibility label. %@ is the report number, such as #26.")))
           }
           StatusBadge(status: issue.status)
+          if issue.isFromIOS { IOSSourceIcon().font(.caption) }
           Spacer()
           Text(issue.createdAt, style: .date).font(.caption).foregroundStyle(.secondary)
         }
@@ -293,6 +294,14 @@ struct IssueDetailView: View {
                 contextLine(
                   Chrome.text("App", locale: locale, comment: "Capture context label."),
                   capture.context.appName)
+                if let device = capture.context.device {
+                  contextLine(
+                    Chrome.text("Device", locale: locale, comment: "Capture context label for an iOS device."),
+                    "\(device.deviceModel) · \(device.platform) \(device.osVersion)")
+                  contextLine(
+                    Chrome.text("Screen", locale: locale, comment: "Capture context label for the visible iOS screen."),
+                    device.screenPath.joined(separator: " › "))
+                }
                 contextLine(
                   Chrome.text("Window", locale: locale, comment: "Capture context label."),
                   capture.context.windowTitle ?? Chrome.text(

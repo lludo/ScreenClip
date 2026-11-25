@@ -14,6 +14,10 @@ New reports start with the project default. Enable **Use the last agent, model, 
 
 Redaction is only the black rectangles you draw with the redact tool. Those pixels are flattened to opaque black in the saved screenshot. Arrows, pen strokes, shapes, and text do not hide what is underneath. When a capture has a redaction, ScreenClip does not keep the unredacted crop.
 
+### From an iOS app
+
+On a physical iPhone or iPad, add ScreenClipKit to your app's Debug build, then shake the device to report a screen. Reports arrive in the queue with an iPhone icon. Setup, pairing, and Fetch are in [ScreenClip for iOS](ios-sdk.md).
+
 ## The queue
 
 Captures are stored under `~/Library/Application Support/ScreenClip` before any agent runs. Each report has a permanent number such as **#234**. Click the number to copy a reference. Search for `#234` or `234` finds that report across projects, statuses, and the archive.

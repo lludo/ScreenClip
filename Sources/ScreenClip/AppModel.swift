@@ -45,6 +45,8 @@ struct GrokConnectionCheck: Equatable {
   let captureDiagnostics: CaptureDiagnostics
   let capturePermission: ScreenCapturePermission
   lazy var worker = AgentWorker(model: self)
+  /// Receives reports from ScreenClipKit in iOS apps. Started only when enabled in Settings.
+  lazy var iosReceiver: IOSReceiver = makeIOSReceiver()
   /// Reads the Grok Bot connection from the Keychain. Tests replace this so they do not touch credentials.
   var loadExternalAssistant: () -> ExternalAssistantConfiguration = {
     ExternalAssistantKeychain.load()
@@ -224,7 +226,8 @@ struct GrokConnectionCheck: Equatable {
   func submit(
     imageData: Data?, originalData: Data?, annotations: [Annotation], note: String,
     context: CaptureContext, projectID: UUID?, existingID: UUID?, draft: Bool,
-    agent: AgentKind? = nil, agentModel: String? = nil, agentEffort: String? = nil
+    agent: AgentKind? = nil, agentModel: String? = nil, agentEffort: String? = nil,
+    captureID: UUID? = nil
   ) throws {
     guard imageData != nil || !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
       throw ScreenClipError.message("Enter some context before saving.")
@@ -250,9 +253,11 @@ struct GrokConnectionCheck: Equatable {
     let replacedDraft = target.flatMap { $0.status == .draft ? $0 : nil }
     do {
       if approved != nil { original = try originalData.map { try store.writeAsset($0, original: true) } }
-      let capture = Capture(
+      var capture = Capture(
         note: note, imagePath: approved, originalPath: original, annotations: annotations,
         context: context)
+      // Reports from iOS keep the device's id, so a resend is recognized as a duplicate.
+      if let captureID { capture.id = captureID }
       try commit { state in
         if !draft, target == nil || target?.status == .draft,
           let index = state.projects.firstIndex(where: { $0.id == projectID })

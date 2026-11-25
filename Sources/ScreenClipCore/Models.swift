@@ -159,10 +159,13 @@ public struct CaptureContext: Codable, Equatable {
   public var sessionName: String
   public var testedVersion: String
   public var routingReason: String
+  /// Set for reports sent from an iOS app with ScreenClipKit. Optional so older queues decode.
+  public var device: DeviceContext?
   public init(
     appName: String = "", bundleID: String = "", windowTitle: String? = nil,
     browserURL: String? = nil, selection: [Double] = [], scale: Double = 1,
-    sessionName: String = "", testedVersion: String = "", routingReason: String = ""
+    sessionName: String = "", testedVersion: String = "", routingReason: String = "",
+    device: DeviceContext? = nil
   ) {
     capturedAt = Date()
     self.appName = appName
@@ -174,43 +177,10 @@ public struct CaptureContext: Codable, Equatable {
     self.sessionName = sessionName
     self.testedVersion = testedVersion
     self.routingReason = routingReason
+    self.device = device
   }
 }
 
-public enum MarkKind: String, Codable, CaseIterable {
-  case pen, arrow, rectangle, ellipse, text, redact
-}
-public enum MarkColor: String, Codable, CaseIterable {
-  case red, orange, yellow, green, blue, white, black
-}
-public struct MarkPoint: Codable, Equatable {
-  public var x: Double
-  public var y: Double
-  public init(_ x: Double, _ y: Double) {
-    self.x = x
-    self.y = y
-  }
-}
-public struct Annotation: Codable, Identifiable, Equatable {
-  public var id: UUID
-  public var kind: MarkKind
-  public var points: [MarkPoint]
-  public var text: String
-  // Optional style keeps captures from earlier versions readable. Width is a fraction of image width.
-  public var color: MarkColor?
-  public var lineWidth: Double?
-  public init(
-    kind: MarkKind, points: [MarkPoint], text: String = "", color: MarkColor? = nil,
-    lineWidth: Double? = nil
-  ) {
-    id = UUID()
-    self.kind = kind
-    self.points = points
-    self.text = text
-    self.color = color
-    self.lineWidth = lineWidth
-  }
-}
 public struct Capture: Codable, Identifiable, Equatable {
   public var id: UUID
   public var note: String
@@ -502,6 +472,8 @@ public struct Issue: Codable, Identifiable, Equatable {
     validationFeedback = feedback
     deliveredContext?.validationFeedback = nil
   }
+  /// True when any capture came from an iOS app through ScreenClipKit.
+  public var isFromIOS: Bool { captures.contains { $0.context.device != nil } }
   public mutating func record(_ text: String, status: IssueStatus? = nil, kind: String = "update") {
     if let status { self.status = status }
     activities.append(Activity(text, kind: kind))
@@ -587,6 +559,10 @@ public struct AppSettings: Codable, Equatable {
   /// This Grok Bot connection has posted a `screenclip/grok-bot` status. Optional so old queues decode.
   /// While it is unset, a missing status keeps the 2-hour reminder and does not warn at 15 minutes.
   public var externalStatusSeen: Bool? = nil
+  /// Run the local server that receives reports from ScreenClipKit in iOS apps. Optional so old queues decode.
+  public var iosServerEnabled: Bool?
+  /// Save reports from iOS as drafts instead of queuing them for an agent.
+  public var iosReportsAsDrafts: Bool?
   public init() {}
 }
 

@@ -92,8 +92,14 @@ enum AgentPrompt {
     let header = capture.imagePath == nil
       ? "Text note \(number) (no screenshot) at \(c.capturedAt.formatted(.iso8601)): \(capture.note)\nSource: \(c.appName); window: \(c.windowTitle ?? "unknown"); URL: \(c.browserURL ?? "unavailable")"
       : "Capture \(number) (screenshot attached) at \(c.capturedAt.formatted(.iso8601)): \(capture.note)\nSource: \(c.appName); window: \(c.windowTitle ?? "unknown"); URL: \(c.browserURL ?? "unavailable"); selection: \(c.selection); scale: \(c.scale)"
-    return
+    var text =
       "\(header)\nTesting session: \(c.sessionName); tested version: \(c.testedVersion.isEmpty ? "unknown; do not assume current HEAD" : c.testedVersion)"
+    if let device = c.device {
+      // Sent from ScreenClipKit inside the iOS app: the screenshot is the app's own windows.
+      text +=
+        "\niOS app capture: \(device.appName) (\(device.bundleID)) on \(device.deviceModel), \(device.platform) \(device.osVersion), \(device.orientation), \(Int(device.screenWidth))x\(Int(device.screenHeight)) pt @\(Int(device.screenScale))x, locale \(device.locale); visible view controllers: \(device.screenPath.isEmpty ? "unknown" : device.screenPath.joined(separator: " > "))"
+    }
+    return text
   }
   private static func describe(_ note: ContextNote) -> String {
     "Context added at \(note.date.formatted(.iso8601)):\n\(note.text)"
