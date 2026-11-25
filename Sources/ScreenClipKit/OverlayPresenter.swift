@@ -30,19 +30,18 @@
 
     func dismissSheet() {
       guard let window = sheetWindow else { return }
-      sheetWindow = nil
       window.endEditing(true)
-      UIView.animate(withDuration: 0.2, animations: { window.alpha = 0 }) { _ in
-        window.isHidden = true
-        window.rootViewController = nil
-      }
+      window.isHidden = true
+      window.rootViewController = nil
+      sheetWindow = nil
       previousKeyWindow?.makeKey()
+      previousKeyWindow = nil
     }
 
     /// A short message at the top of the screen, with an optional action button.
-    func toast(_ text: String, action: String? = nil, perform: (() -> Void)? = nil) {
+    func toast(_ text: String, in suppliedScene: UIWindowScene? = nil, action: String? = nil, perform: (() -> Void)? = nil) {
       dismissToast()
-      guard let scene = Snapshot.activeScene() else { return }
+      guard let scene = suppliedScene ?? Snapshot.activeScene() else { return }
       toastGeneration += 1
       let generation = toastGeneration
       let bounds = scene.coordinateSpace.bounds

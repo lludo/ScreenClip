@@ -6,7 +6,7 @@
     static func activeScene() -> UIWindowScene? {
       let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
       return scenes.first { $0.activationState == .foregroundActive }
-        ?? scenes.first { $0.activationState == .foregroundInactive } ?? scenes.first
+        ?? scenes.first { $0.activationState == .foregroundInactive }
     }
 
     /// The app's windows in the scene, composited bottom to top, without ScreenClip's own.
@@ -45,8 +45,7 @@
 
     /// True when an alert or another tool's overlay is on screen, so a shake does not stack a
     /// second sheet on top of it. Keyboard windows do not count.
-    static func anotherOverlayIsShowing(ignoring ours: [UIWindow]) -> Bool {
-      guard let scene = activeScene() else { return false }
+    static func anotherOverlayIsShowing(in scene: UIWindowScene, ignoring ours: [UIWindow]) -> Bool {
       for window in scene.windows where !window.isHidden && !ours.contains(where: { $0 === window }) {
         let name = String(describing: type(of: window))
         if name.contains("Keyboard") || name.contains("TextEffects") { continue }

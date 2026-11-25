@@ -7,7 +7,7 @@
   import UIKit
 
   /// Optional files sent with a report. Everything here is read from the app's own process, needs
-  /// no permission, and takes well under a second. Agents read these only when they need them.
+  /// no additional permission. Agents read these only when they need them.
   enum Diagnostics {
     static let logWindow: TimeInterval = 120
     static let logLineLimit = 500
@@ -28,14 +28,16 @@
       var lines: [String] = []
       var repeats = 0
       for case let entry as OSLogEntryLog in entries {
-        guard entry.date <= end, entry.subsystem != kitSubsystem else { continue }
+        if Task.isCancelled { return nil }
+        if entry.date > end { break }
+        guard entry.subsystem != kitSubsystem else { continue }
         if entry.subsystem.hasPrefix("com.apple."), entry.level != .error, entry.level != .fault { continue }
         let origin = entry.subsystem.isEmpty ? entry.process : "\(entry.subsystem)/\(entry.category)"
         var line = "\(formatter.string(from: entry.date)) \(levelName(entry.level)) [\(origin)] \(entry.composedMessage)"
         if line.count > 600 { line = String(line.prefix(600)) + "…" }
         // Frameworks repeat themselves; one line with a count reads better than fifty.
         let body = line.drop(while: { $0 != " " })
-        if let last = lines.last, last.drop(while: { $0 != " " }).hasPrefix(body) {
+        if let last = lines.last, last.drop(while: { $0 != " " }) == body {
           repeats += 1
           continue
         }
@@ -67,34 +69,13 @@
       var data = Data(text.utf8)
       if data.count > maximumFileBytes {
         // Keep the end: the moments right before the capture matter most.
-        data = Data("…\n".utf8) + data.suffix(maximumFileBytes)
+        let prefix = Data("…\n".utf8)
+        data = prefix + data.suffix(maximumFileBytes - prefix.count)
       }
       return data
     }
 
     // MARK: View tree
-
-    /// SwiftUI vends its accessibility elements only while app accessibility is on, the switch
-    /// UI tests and Accessibility Inspector use. It is a device-wide setting, so it is turned on
-    /// only for the moment the tree is read, and only if it was off.
-    enum AppAccessibility {
-      typealias Getter = @convention(c) () -> Bool
-      typealias Setter = @convention(c) (Bool) -> Void
-      static let library = dlopen("/usr/lib/libAccessibility.dylib", RTLD_NOW)
-      static let getter = library.flatMap { dlsym($0, "_AXSApplicationAccessibilityEnabled") }
-        .map { unsafeBitCast($0, to: Getter.self) }
-      static let setter = library.flatMap { dlsym($0, "_AXSApplicationAccessibilitySetEnabled") }
-        .map { unsafeBitCast($0, to: Setter.self) }
-
-      /// Turns it on if needed. Returns true when it was off, so the caller waits a moment for
-      /// SwiftUI and calls `restore()` afterwards.
-      static func enableTemporarily() -> Bool {
-        guard let getter, let setter, !getter() else { return false }
-        setter(true)
-        return true
-      }
-      static func restore() { setter?(false) }
-    }
 
     struct Node: Encodable {
       var type: String
@@ -129,7 +110,7 @@
         type: String(describing: type(of: view)).components(separatedBy: "<").first ?? "UIView",
         id: nonEmpty(view.accessibilityIdentifier),
         label: nonEmpty(view.isAccessibilityElement ? view.accessibilityLabel : nil),
-        value: nonEmpty(view.isAccessibilityElement ? view.accessibilityValue : nil),
+        value: nonEmpty(view.isAccessibilityElement && (view as? UITextField)?.isSecureTextEntry != true ? view.accessibilityValue : nil),
         traits: view.isAccessibilityElement ? traitNames(view.accessibilityTraits) : nil,
         frame: rounded(frame), hidden: view.isHidden || view.alpha < 0.01 ? true : nil,
         disabled: (view as? UIControl).map { $0.isEnabled ? nil : true } ?? nil)
@@ -145,11 +126,14 @@
 
     /// Accessibility elements a view vends without being views, as SwiftUI hosting views do.
     @MainActor static func elements(of container: NSObject, depth: Int, budget: inout Int) -> [Node] {
-      let count = container.accessibilityElementCount()
-      guard count != NSNotFound, count > 0, depth < 60 else { return [] }
+      guard depth < 60, budget > 0 else { return [] }
+      let explicit = container.accessibilityElements
+      let count = explicit?.count ?? container.accessibilityElementCount()
+      guard count != NSNotFound, count > 0 else { return [] }
       var nodes: [Node] = []
       for index in 0..<min(count, 400) where budget > 0 {
-        guard let element = container.accessibilityElement(at: index) as? NSObject, !(element is UIView) else {
+        let item = explicit.map { $0[index] } ?? container.accessibilityElement(at: index)
+        guard let element = item as? NSObject, !(element is UIView) else {
           continue
         }
         budget -= 1
@@ -185,10 +169,7 @@
     }
 
     static func rounded(_ rect: CGRect) -> [Int] {
-      guard rect.origin.x.isFinite, rect.origin.y.isFinite, rect.width.isFinite, rect.height.isFinite else {
-        return [0, 0, 0, 0]
-      }
-      return [Int(rect.minX.rounded()), Int(rect.minY.rounded()), Int(rect.width.rounded()), Int(rect.height.rounded())]
+      return [rect.minX, rect.minY, rect.width, rect.height].map { Int(exactly: $0.rounded()) ?? 0 }
     }
 
     static func nonEmpty(_ text: String?) -> String? {
@@ -256,6 +237,7 @@
       }
       var total = 0.0
       for index in 0..<Int(count) {
+        defer { mach_port_deallocate(mach_task_self_, threads[index]) }
         var info = thread_basic_info()
         var infoCount = mach_msg_type_number_t(THREAD_INFO_MAX)
         let result = withUnsafeMutablePointer(to: &info) {
@@ -344,7 +326,7 @@
     static let shared = ConsoleCapture()
     private let lock = NSLock()
     private var lines: [String] = []
-    private var partial = ""
+    private var partial: [Int32: String] = [:]
     private var started = false
     private var pipes: [Pipe] = []
     static let lineLimit = 300
@@ -360,24 +342,39 @@
         let original = dup(descriptor)
         guard original >= 0 else { continue }
         let pipe = Pipe()
-        guard dup2(pipe.fileHandleForWriting.fileDescriptor, descriptor) >= 0 else { continue }
+        guard dup2(pipe.fileHandleForWriting.fileDescriptor, descriptor) >= 0 else {
+          close(original)
+          continue
+        }
         pipe.fileHandleForReading.readabilityHandler = { [weak self] handle in
           let data = handle.availableData
           guard !data.isEmpty else { return }
-          data.withUnsafeBytes { buffer in _ = write(original, buffer.baseAddress, buffer.count) }
-          self?.append(data)
+          data.withUnsafeBytes { buffer in
+            var offset = 0
+            while offset < buffer.count {
+              let written = write(original, buffer.baseAddress!.advanced(by: offset), buffer.count - offset)
+              if written < 0, errno == EINTR { continue }
+              guard written > 0 else { break }
+              offset += written
+            }
+          }
+          self?.append(data, descriptor: descriptor)
         }
         pipes.append(pipe)
       }
     }
 
-    private func append(_ data: Data) {
+    private func append(_ data: Data, descriptor: Int32) {
       lock.lock()
       defer { lock.unlock() }
-      partial += String(decoding: data, as: UTF8.self)
-      var pieces = partial.components(separatedBy: "\n")
-      partial = pieces.removeLast()
-      lines += pieces.map { $0.count > 600 ? String($0.prefix(600)) + "…" : $0 }
+      var pieces = String(decoding: data, as: UTF8.self).components(separatedBy: "\n")
+      pieces[0] = (partial[descriptor] ?? "") + pieces[0]
+      // Bound unfinished lines too. Apps can print large payloads without a newline.
+      func clipped(_ line: String) -> String {
+        line.utf8.count <= 600 ? line : String(decoding: line.utf8.prefix(600), as: UTF8.self) + "…"
+      }
+      partial[descriptor] = clipped(pieces.removeLast())
+      lines += pieces.map(clipped)
       if lines.count > Self.lineLimit { lines.removeFirst(lines.count - Self.lineLimit) }
     }
 
@@ -385,7 +382,8 @@
       lock.lock()
       defer { lock.unlock() }
       guard started else { return nil }
-      let all = lines + (partial.isEmpty ? [] : [partial])
+      let tails = [STDOUT_FILENO, STDERR_FILENO].compactMap { partial[$0] }.filter { !$0.isEmpty }
+      let all = (lines + tails).suffix(Self.lineLimit)
       guard !all.isEmpty else { return nil }
       return DiagnosticFile(
         name: "console.txt", summary: "last \(all.count) lines printed to stdout and stderr",

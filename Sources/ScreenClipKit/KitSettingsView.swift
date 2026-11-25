@@ -15,10 +15,14 @@
         macSection
         savedSection
         Section {
-          Toggle("Shake to report", isOn: $shake)
-            .onChange(of: shake) { _, value in KitPreferences.shakeEnabled = value }
-          Toggle("Offer to report after a screenshot", isOn: $screenshotOffer)
-            .onChange(of: screenshotOffer) { _, value in KitPreferences.screenshotOfferEnabled = value }
+          if KitRuntime.shared.options.triggers.contains(.shake) {
+            Toggle("Shake to report", isOn: $shake)
+              .onChange(of: shake) { _, value in KitPreferences.shakeEnabled = value }
+          }
+          if KitRuntime.shared.options.triggers.contains(.screenshot) {
+            Toggle("Offer to report after a screenshot", isOn: $screenshotOffer)
+              .onChange(of: screenshotOffer) { _, value in KitPreferences.screenshotOfferEnabled = value }
+          }
         } header: {
           Text("Capture")
         } footer: {
@@ -71,6 +75,8 @@
             Spacer()
             if link.connectedMacID == pairing.macID {
               Image(systemName: "checkmark.circle.fill").foregroundStyle(.green)
+            } else if let mac = link.discovered.first(where: { $0.macID == pairing.macID }) {
+              Button("Connect") { link.switchTo(mac) }.buttonStyle(.bordered)
             }
           }
           .swipeActions {
@@ -111,7 +117,7 @@
 
     private func status(for pairing: Pairing) -> String {
       if link.connectedMacID == pairing.macID { return "Connected" }
-      if link.discovered.contains(where: { $0.macID == pairing.macID }) { return "Connecting…" }
+      if link.discovered.contains(where: { $0.macID == pairing.macID }) { return "Available" }
       return "Not on this network"
     }
 
@@ -127,13 +133,12 @@
               Text(report.createdAt, style: .relative).font(.caption).foregroundStyle(.secondary)
             }
             Spacer()
-            StatusPill(text: link.isConnected ? "Sending" : "Waiting", color: .orange)
+            StatusPill(text: link.inFlight == report.id ? "Sending" : "Waiting", color: .orange)
           }
           .swipeActions {
             Button("Delete", role: .destructive) {
-              outbox.remove(report.id)
-              link.sendQueue()
-            }
+              link.deleteSaved(report.id)
+            }.disabled(link.inFlight == report.id)
           }
         }
         if !outbox.reports.isEmpty {
@@ -155,7 +160,7 @@
         }
         ForEach(link.sent.entries) { entry in
           SentRow(
-            entry: entry, connected: link.isConnected,
+            entry: entry, connected: link.isDestination(entry.destination),
             verify: { link.verify(entry.id) }, stillBroken: { stillBroken(entry) }
           )
             .swipeActions {

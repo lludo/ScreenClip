@@ -2,7 +2,6 @@ import Combine
 import CryptoKit
 import Foundation
 import Network
-import Security
 
 /// The Mac side of ScreenClipKit: advertises ScreenClip on the local network with Bonjour,
 /// pairs iOS devices, and accepts reports from paired devices only.
@@ -69,14 +68,20 @@ import Security
   public let macID: UUID
   public let macName: String
   /// Saves one report into the queue. Throws to refuse it; the device keeps it and retries.
-  public var importReport: (WireReport) throws -> ImportResult = { _ in .imported }
+  public var importReport: (WireReport) throws -> ImportResult = { _ in
+    throw ScreenClipError.message("The report queue is unavailable.")
+  }
   /// The current state of delivered reports, by report id, for devices' Sent lists.
   public var reportStates: ([UUID]) -> [ReportState] = { _ in [] }
   /// Marks a merged report verified. Throws when it cannot be.
-  public var verifyReport: (UUID) throws -> Void = { _ in }
-  private let loadRecords: () -> [DeviceRecord]
-  private let saveRecords: ([DeviceRecord]) -> Void
-  private var records: [DeviceRecord]
+  public var verifyReport: (UUID) throws -> Void = { _ in
+    throw ScreenClipError.message("The report queue is unavailable.")
+  }
+  private let loadRecords: () throws -> [DeviceRecord]
+  private let saveRecords: ([DeviceRecord]) throws -> Void
+  @Published public private(set) var storageError: String?
+  private var records: [DeviceRecord] = []
+  private weak var pairingSession: Session?
   private var listener: NWListener?
   private var sessions: [ObjectIdentifier: Session] = [:]
   static let maximumSessions = 16
@@ -85,6 +90,7 @@ import Security
     let link: LinkConnection
     var hello: Hello?
     var ready = false
+    var awaitingProof = false
     var pendingKey: SymmetricKey?
     /// Reports this device shows in its Sent list, and the states it last received.
     var tracked: [UUID] = []
@@ -94,15 +100,14 @@ import Security
 
   public init(
     macID: UUID = IOSReceiver.storedMacID(), macName: String = IOSReceiver.defaultMacName(),
-    loadRecords: @escaping () -> [DeviceRecord] = IOSReceiverKeychain.load,
-    saveRecords: @escaping ([DeviceRecord]) -> Void = IOSReceiverKeychain.save
+    loadRecords: @escaping () throws -> [DeviceRecord] = IOSReceiverKeychain.store.load,
+    saveRecords: @escaping ([DeviceRecord]) throws -> Void = IOSReceiverKeychain.store.save
   ) {
     self.macID = macID
     self.macName = macName
     self.loadRecords = loadRecords
     self.saveRecords = saveRecords
-    records = loadRecords()
-    devices = records.map(\.device)
+    reloadRecords()
   }
 
   nonisolated public static func storedMacID(defaults: UserDefaults = .standard) -> UUID {
@@ -151,9 +156,10 @@ import Security
           }
         }
       }
-      listener.newConnectionHandler = { [weak self] connection in
-        DispatchQueue.main.async {
-          MainActor.assumeIsolated { self?.accept(connection) }
+      listener.newConnectionHandler = { [weak self, weak listener] connection in
+        MainActor.assumeIsolated {
+          guard let self, let listener, listener === self.listener else { return connection.cancel() }
+          self.accept(connection)
         }
       }
       self.listener = listener
@@ -170,6 +176,7 @@ import Security
     sessions = [:]
     connected = [:]
     deviceQueues = [:]
+    pairingSession = nil
     pairingRequest = nil
     pairingOpen = false
     state = .stopped
@@ -193,7 +200,6 @@ import Security
 
   public func openPairing() {
     pairingOpen = true
-    pairingRequest = nil
   }
 
   public func closePairing() {
@@ -201,47 +207,76 @@ import Security
     if pairingRequest != nil { declinePairing() }
   }
 
-  public func confirmPairing() {
-    guard let (id, session) = sessions.first(where: { $0.value.pendingKey != nil }),
-      let hello = session.hello, let key = session.pendingKey
+  public func confirmPairing(requestID: UUID? = nil) {
+    guard pairingOpen, let request = pairingRequest, requestID == nil || request.id == requestID,
+      let session = pairingSession, let hello = session.hello, let key = session.pendingKey
     else { return }
-    _ = id
     let device = Device(
       id: hello.deviceID, name: hello.deviceName, model: hello.deviceModel,
       apps: hello.appName.isEmpty ? [] : [hello.appName], pairedAt: Date(), lastSeen: Date())
-    records.removeAll { $0.device.id == hello.deviceID }
-    records.append(DeviceRecord(device: device, key: key.data))
-    persist()
+    guard persist(records.filter { $0.device.id != hello.deviceID } + [DeviceRecord(device: device, key: key.data)]) else {
+      declinePairing()
+      return
+    }
+    for other in sessions.values where other !== session && other.hello?.deviceID == hello.deviceID {
+      disconnect(other)
+    }
     session.pendingKey = nil
     session.ready = true
     session.link.send(.welcome(macID: macID, macName: macName))
     connected[hello.deviceID] = 0
+    pairingSession = nil
     pairingRequest = nil
     pairingOpen = false
     lastEvent = .paired(deviceName: hello.deviceName)
   }
 
   public func declinePairing() {
-    if let session = sessions.values.first(where: { $0.pendingKey != nil }) {
-      session.link.send(.rejected(.declined)) { _ in session.link.cancel() }
+    if let session = pairingSession {
       session.pendingKey = nil
+      reject(session, .declined)
     }
+    pairingSession = nil
     pairingRequest = nil
   }
 
   public func forget(_ deviceID: UUID) {
-    records.removeAll { $0.device.id == deviceID }
-    persist()
+    if storageError != nil { reloadRecords() }
+    guard storageError == nil else { return }
+    guard persist(records.filter { $0.device.id != deviceID }) else { return }
     for session in sessions.values where session.hello?.deviceID == deviceID {
-      session.link.cancel()
+      disconnect(session)
     }
     connected[deviceID] = nil
     deviceQueues[deviceID] = nil
   }
 
-  private func persist() {
-    saveRecords(records)
-    devices = records.map(\.device)
+  private func disconnect(_ session: Session) {
+    closed(session, key: ObjectIdentifier(session))
+    session.link.cancel()
+  }
+
+  private func reloadRecords() {
+    do {
+      records = try loadRecords()
+      devices = records.map(\.device)
+      storageError = nil
+    } catch {
+      storageError = error.localizedDescription
+    }
+  }
+
+  @discardableResult private func persist(_ updated: [DeviceRecord]) -> Bool {
+    do {
+      try saveRecords(updated)
+      records = updated
+      devices = updated.map(\.device)
+      storageError = nil
+      return true
+    } catch {
+      storageError = error.localizedDescription
+      return false
+    }
   }
 
   // MARK: Connections
@@ -257,7 +292,7 @@ import Security
     sessions[key] = session
     link.onMessage = { [weak self, weak session] message in
       MainActor.assumeIsolated {
-        guard let self, let session else { return }
+        guard let self, let session, self.sessions[key] === session else { return }
         self.handle(message, from: session)
       }
     }
@@ -270,13 +305,16 @@ import Security
     link.start()
     // A connection that never says hello does not hold a slot.
     DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak session] in
-      if let session, session.hello == nil { session.link.cancel() }
+      if let session, session.hello == nil || session.awaitingProof { session.link.cancel() }
     }
   }
 
   private func closed(_ session: Session, key: ObjectIdentifier) {
-    sessions[key] = nil
-    if session.pendingKey != nil { pairingRequest = nil }
+    guard sessions.removeValue(forKey: key) != nil else { return }
+    if pairingSession === session {
+      pairingSession = nil
+      pairingRequest = nil
+    }
     if let id = session.hello?.deviceID, session.ready,
       !sessions.values.contains(where: { $0.ready && $0.hello?.deviceID == id })
     {
@@ -305,9 +343,19 @@ import Security
   }
 
   private func handle(_ message: LinkMessage, from session: Session) {
+    if session.awaitingProof {
+      // LinkConnection has authenticated this first sealed frame with the stored device key.
+      guard !message.isHandshake, let hello = session.hello else { return session.link.cancel() }
+      session.awaitingProof = false
+      session.ready = true
+      connected[hello.deviceID] = connected[hello.deviceID] ?? 0
+      seen(hello)
+    }
     switch message {
     case .hello(let hello):
       guard session.hello == nil else { return session.link.cancel() }
+      if storageError != nil { reloadRecords() }
+      guard storageError == nil else { return reject(session, .busy) }
       session.hello = hello
       guard hello.protocolVersion == LinkProtocol.version else { return reject(session, .unsupportedVersion) }
       let serverNonce = Nonce.make()
@@ -326,6 +374,7 @@ import Security
         session.link.secure(
           SecureChannel(pairingKey: result.pairingKey, clientNonce: hello.nonce, serverNonce: serverNonce, role: .server))
         session.pendingKey = result.pairingKey
+        pairingSession = session
         pairingRequest = PairingRequest(deviceName: hello.deviceName, appName: hello.appName, code: result.code)
       } else {
         guard let record = records.first(where: { $0.device.id == hello.deviceID }) else {
@@ -336,17 +385,18 @@ import Security
           SecureChannel(
             pairingKey: SymmetricKey(data: record.key), clientNonce: hello.nonce, serverNonce: serverNonce,
             role: .server))
-        session.ready = true
+        session.awaitingProof = true
         session.link.send(.welcome(macID: macID, macName: macName))
-        connected[hello.deviceID] = connected[hello.deviceID] ?? 0
-        seen(hello)
       }
     case .report(let report):
       guard session.ready else { return session.link.cancel() }
       do {
         let result = try importReport(report)
         session.link.send(.ack(id: report.id))
-        if !session.tracked.contains(report.id) { session.tracked.append(report.id) }
+        if !session.tracked.contains(report.id) {
+          session.tracked.insert(report.id, at: 0)
+          if session.tracked.count > 100, let removed = session.tracked.popLast() { session.sentStates[removed] = nil }
+        }
         sendStates(to: session, ids: [report.id])
         if result == .imported {
           lastEvent = .received(deviceName: session.hello?.deviceName ?? "")
@@ -362,6 +412,7 @@ import Security
     case .track(let ids):
       guard session.ready else { return }
       session.tracked = Array(ids.prefix(100))
+      session.sentStates.removeAll()
       sendStates(to: session, ids: session.tracked, force: true)
     case .verify(let id):
       guard session.ready else { return session.link.cancel() }
@@ -381,43 +432,19 @@ import Security
 
   private func seen(_ hello: Hello) {
     guard let index = records.firstIndex(where: { $0.device.id == hello.deviceID }) else { return }
-    records[index].device.lastSeen = Date()
-    records[index].device.name = hello.deviceName
-    if !hello.appName.isEmpty, !records[index].device.apps.contains(hello.appName) {
-      records[index].device.apps.append(hello.appName)
+    var updated = records
+    updated[index].device.lastSeen = Date()
+    updated[index].device.name = hello.deviceName
+    if !hello.appName.isEmpty, !updated[index].device.apps.contains(hello.appName) {
+      updated[index].device.apps.append(hello.appName)
     }
-    persist()
+    persist(updated)
   }
 }
 
 /// Paired iOS devices and their keys, in the login Keychain.
 public enum IOSReceiverKeychain {
-  private static let service = "com.screenclip.app.ios-devices"
-  private static let account = "devices"
-  private static var query: [String: Any] {
-    [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service, kSecAttrAccount as String: account]
-  }
-  public static func load() -> [IOSReceiver.DeviceRecord] {
-    var read = query
-    read[kSecReturnData as String] = true
-    read[kSecMatchLimit as String] = kSecMatchLimitOne
-    var item: CFTypeRef?
-    guard SecItemCopyMatching(read as CFDictionary, &item) == errSecSuccess, let data = item as? Data else {
-      return []
-    }
-    return (try? JSONDecoder().decode([IOSReceiver.DeviceRecord].self, from: data)) ?? []
-  }
-  public static func save(_ records: [IOSReceiver.DeviceRecord]) {
-    guard !records.isEmpty, let data = try? JSONEncoder().encode(records) else {
-      SecItemDelete(query as CFDictionary)
-      return
-    }
-    if SecItemUpdate(query as CFDictionary, [kSecValueData as String: data] as CFDictionary) == errSecSuccess {
-      return
-    }
-    var add = query
-    add[kSecValueData as String] = data
-    add[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
-    SecItemAdd(add as CFDictionary, nil)
-  }
+  public static let store = PairingKeychain<IOSReceiver.DeviceRecord>(service: "com.screenclip.app.ios-devices", account: "devices")
+  public static func load() -> [IOSReceiver.DeviceRecord] { (try? store.load()) ?? [] }
+  public static func save(_ records: [IOSReceiver.DeviceRecord]) { try? store.save(records) }
 }

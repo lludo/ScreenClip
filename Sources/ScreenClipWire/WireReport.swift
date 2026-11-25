@@ -71,7 +71,7 @@ public struct DiagnosticFile: Codable, Equatable, Sendable {
   }
   public static let maximumTotalBytes = 4 * 1024 * 1024
   public var hasSafeName: Bool {
-    name.range(of: #"^[a-z0-9-]{1,40}\.(txt|json)$"#, options: .regularExpression) != nil
+    name.range(of: #"\A[a-z0-9-]{1,40}\.(txt|json)\z"#, options: .regularExpression) != nil
   }
 }
 
@@ -88,6 +88,8 @@ public struct WireReport: Codable, Equatable, Identifiable, Sendable {
   /// Set when the tester says an earlier report is still broken: this capture is added to that
   /// report on the Mac, which sends it back to the agent.
   public var followUpOf: UUID?
+  /// Follow-ups wait for the Mac holding the original report. Older sent histories only recorded its name.
+  public var destination: ReportDestination?
   public init(
     id: UUID = UUID(), createdAt: Date = Date(), note: String, image: Data?, device: DeviceContext,
     diagnostics: [DiagnosticFile]? = nil
@@ -101,33 +103,75 @@ public struct WireReport: Codable, Equatable, Identifiable, Sendable {
   }
 }
 
+public struct ReportDestination: Codable, Equatable, Sendable {
+  public var macID: UUID?
+  public var name: String
+  public init(macID: UUID?, name: String) {
+    self.macID = macID
+    self.name = name
+  }
+  public func matches(macID: UUID, name: String?) -> Bool {
+    self.macID.map { $0 == macID } ?? (self.name == name)
+  }
+}
+
 /// A `.screenclipreport` file: one JSON document holding the report and its image. Used for the
 /// on-device outbox and for AirDrop or file export to the Mac.
 public enum ReportFile {
   public static let pathExtension = "screenclipreport"
   public static let typeIdentifier = "com.mirageteam.screenclip.report"
-  struct Envelope: Codable {
+  struct Envelope<Report: Codable>: Codable {
     var format: Int
-    var report: WireReport
+    var report: Report
+  }
+  /// The fields needed to list the outbox, without decoding every screenshot at app startup.
+  public struct Summary: Codable, Identifiable, Sendable {
+    public var id: UUID
+    public var note: String
+    public var createdAt: Date
+    public var followUpOf: UUID?
+    public var destination: ReportDestination?
+    public init(_ report: WireReport) {
+      id = report.id
+      note = report.note
+      createdAt = report.createdAt
+      followUpOf = report.followUpOf
+      destination = report.destination
+    }
   }
   public static func encode(_ report: WireReport) throws -> Data {
-    return try WireJSON.encoder().encode(Envelope(format: 1, report: report))
+    let data = try WireJSON.encoder().encode(Envelope(format: 1, report: report))
+    // Leave room for the sealed frame's kind and authentication tag on delivery.
+    guard data.count <= Frame.maximumLength - Frame.sealedOverhead else { throw WireError.tooLarge }
+    return data
   }
   public static func decode(_ data: Data) throws -> WireReport {
+    try decode(WireReport.self, from: data)
+  }
+  private static func decode<T: Codable>(_ type: T.Type, from data: Data) throws -> T {
     guard data.count <= Frame.maximumLength else { throw WireError.tooLarge }
     let decoder = WireJSON.decoder()
-    struct Header: Decodable { var format: Int }
     guard let header = try? decoder.decode(Header.self, from: data) else { throw WireError.malformed }
     guard header.format == 1 else { throw WireError.unsupportedFormat }
-    do { return try decoder.decode(Envelope.self, from: data).report } catch {
+    do { return try decoder.decode(Envelope<T>.self, from: data).report } catch {
       throw WireError.malformed
     }
   }
+  private struct Header: Decodable { var format: Int }
   public static func write(_ report: WireReport, to url: URL) throws {
     try encode(report).write(to: url, options: .atomic)
   }
   public static func read(from url: URL) throws -> WireReport {
-    try decode(Data(contentsOf: url))
+    try decode(contents(of: url))
+  }
+  public static func summary(from url: URL) throws -> Summary {
+    try decode(Summary.self, from: contents(of: url))
+  }
+  private static func contents(of url: URL) throws -> Data {
+    let values = try url.resourceValues(forKeys: [.isRegularFileKey, .fileSizeKey])
+    guard values.isRegularFile == true else { throw WireError.malformed }
+    guard let size = values.fileSize, size <= Frame.maximumLength else { throw WireError.tooLarge }
+    return try Data(contentsOf: url, options: .mappedIfSafe)
   }
 }
 
