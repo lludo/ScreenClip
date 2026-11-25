@@ -239,6 +239,7 @@ def fragment_href(catalog, slug, fragment):
 def nav(catalog, slug):
     items = [
         (fragment_href(catalog, slug, "loop"), catalog.get("nav.how"), ""),
+        (fragment_href(catalog, slug, "ios"), catalog.get("nav.ios"), ""),
         (fragment_href(catalog, slug, "agents"), catalog.get("nav.agents"), ""),
         (fragment_href(catalog, slug, "faq"), catalog.get("nav.questions"), ""),
     ]

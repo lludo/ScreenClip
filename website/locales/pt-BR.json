@@ -2,7 +2,7 @@
   "languageName": "Português (Brasil)",
   "meta": {
     "homeTitle": "ScreenClip — Feedback por captura para agentes de código",
-    "homeDescription": "ScreenClip é um app de Mac na barra de menus. Capture uma observação, envie para um agente de código e acompanhe a correção sem perder o ritmo.",
+    "homeDescription": "ScreenClip é um app de barra de menus para Mac, agora com o ScreenClipKit para seus apps iOS. Capture uma observação no Mac, iPhone ou iPad, envie a um agente de código e acompanhe a correção sem perder o ritmo.",
     "privacyTitle": "Política de privacidade — ScreenClip",
     "privacyDescription": "O que o ScreenClip guarda no Mac, o que pode ir para o Codex, Claude Code, Grok Bot ou GitHub, e como a redação funciona.",
     "supportTitle": "Suporte — ScreenClip",
@@ -16,6 +16,7 @@
     "primary": "Principal",
     "footer": "Rodapé",
     "how": "Como funciona",
+    "ios": "iPhone e iPad",
     "agents": "Agentes",
     "questions": "Perguntas",
     "download": "Download grátis",
@@ -34,9 +35,12 @@
     "support": "página de suporte",
     "site": "screenclipai.com",
     "privacyLead": "Leia a política de privacidade",
-    "author": "Ludo Landry"
+    "author": "Ludo Landry",
+    "iosGuide": "Guia do iOS"
   },
   "hero": {
+    "newTag": "Novo",
+    "newText": "Relate também a partir dos seus apps de iPhone e iPad",
     "eyebrow": "Feedback por captura para agentes de código",
     "title": "Registre bugs no fluxo, sem interromper o ritmo.",
     "lead": "Notou algo? Capture, escreva algumas palavras e siga em frente. Seu agente de programação corrige em segundo plano, e o ScreenClip avisa quando for hora de testar de novo.",
@@ -59,6 +63,18 @@
   "loop": {
     "eyebrow": "Como funciona",
     "title": "Alguns segundos do seu tempo. O resto acontece em segundo plano."
+  },
+  "ios": {
+    "eyebrow": "Novo na 1.1 · iPhone e iPad",
+    "title": "Testando no iPhone? Relate de lá também.",
+    "intro": "Adicione o ScreenClipKit ao build Debug do seu app iOS. Agite o aparelho, marque a tela e envie. O relatório chega ao ScreenClip no seu Mac, onde seu agente de código o corrige como qualquer outro.",
+    "shakeTitle": "Agite para relatar",
+    "shakeBody": "Agite o aparelho, ou faça uma captura de tela e toque em Relatar. Marque com as mesmas ferramentas do Mac, adicione uma nota e envie.",
+    "pairTitle": "Pareado com o seu Mac",
+    "pairBody": "Confirme o mesmo código de 6 dígitos nas duas telas. Os relatórios passam pela sua rede local, criptografados para o seu Mac, e esperam no telefone até o Mac estar acessível.",
+    "statusTitle": "Status e novo teste no telefone",
+    "statusBody": "Veja o agente, o status ao vivo e a pull request de cada relatório. Quando uma correção é mesclada, marque como corrigida ou envie sua próxima captura de volta ao mesmo relatório.",
+    "note": "Os builds Release do seu app não contêm nada disso. iOS 17 ou posterior. Nos Ajustes do ScreenClip › iOS, um prompt copiado pede ao Claude Code ou ao Codex que instale para você. {link:iosGuide}."
   },
   "agents": {
     "eyebrow": "Agentes",
@@ -89,6 +105,7 @@
     "needGit": "Um repositório Git local do app que você está testando",
     "needAgent": "Codex CLI, Claude Code ou um webhook do Grok Bot",
     "needGh": "GitHub CLI, para pull requests e para o Grok Bot",
+    "needIos": "Para apps iOS: ScreenClipKit no build Debug, iOS 17 ou posterior",
     "awake": "Deixe o ScreenClip em execução e o Mac acordado enquanto Codex ou Claude Code trabalham. O Grok Bot continua se o Mac dormir. O ScreenClip atualiza esse pull request na próxima vez que você abrir o app.",
     "privacy": "{link:privacyLead} para ver o que fica no Mac e o que pode sair.",
     "titleSoon": "Em breve no seu Mac."
@@ -175,6 +192,10 @@
         "a": "Sim. Capture uma região de um site ou de um app nativo de Mac. Cadastre um repositório e associe endereços de sites ou bundle IDs de apps. Você pode trocar o projeto antes de enviar. Se o projeto for ambíguo, o ScreenClip salva o relatório e espera, em vez de adivinhar um repositório."
       },
       {
+        "q": "Funciona com apps de iPhone e iPad?",
+        "a": "Sim, com os apps iOS que você desenvolve. Adicione o pacote Swift ScreenClipKit ao build Debug do seu app, iOS 17 ou posterior; os builds Release não contêm nada disso. Pareie o aparelho com o ScreenClip no seu Mac confirmando um código de 6 dígitos e depois agite o aparelho, ou faça uma captura de tela, para relatar. A captura marcada e sua nota vão para o seu Mac pela rede local, criptografadas para o Mac pareado, e são arquivadas como qualquer outro relatório. Opcionalmente, você pode anexar logs recentes, as views da tela e o estado do aparelho. O telefone mostra o status e a pull request de cada relatório e permite testar de novo uma correção mesclada."
+      },
+      {
         "q": "Quem faz o ScreenClip?",
         "a": "Um único desenvolvedor ({link:author}), mais os agentes de código que corrigem os bugs que eu registro com ele. O ScreenClip é grátis para uso não comercial. O que eu adoraria em troca: feedback, relatos de bugs e pull requests no GitHub. E se ele poupar uma tarde sua, a opção de gorjeta no menu do app me paga um café. O café volta direto para o código."
       }
@@ -188,7 +209,8 @@
       "Capturas de sites e de apps nativos de Mac",
       "Codex, Claude Code e Grok Bot",
       "Validação do projeto, pull requests no GitHub, merge opcional e fila de reteste",
-      "Um servidor MCP somente leitura para o Claude Code e o Codex consultarem os relatórios de cada projeto"
+      "Um servidor MCP somente leitura para o Claude Code e o Codex consultarem os relatórios de cada projeto",
+      "Relatórios dos seus próprios apps de iPhone e iPad com o ScreenClipKit, em builds Debug"
     ]
   },
   "privacy": {
@@ -282,7 +304,7 @@
     "agent": "Seu agente",
     "background": "Em segundo plano",
     "s1Title": "Capture",
-    "s1Body": "Pressione ⌘⇧2 e arraste sobre o que você notou, em qualquer app Mac ou site.",
+    "s1Body": "Pressione ⌘⇧2 e arraste sobre o que você notou, em qualquer app do Mac ou site. No iPhone ou iPad, agite o aparelho.",
     "s2Title": "Escreva algumas palavras",
     "s2Body": "Digite uma nota rápida. Se quiser, faça marcações ou cubra o que for privado, e envie.",
     "s3Title": "Siga em frente",
