@@ -161,5 +161,24 @@ import UIKit
     next.undo()
     XCTAssertTrue(next.attachDiagnostics)
   }
+
+  func testDeviceIDSurvivesReinstallAndKeepsTheExistingID() throws {
+    let store = PairingKeychain<UUID>(service: "com.example.ScreenClipKitDemo.tests", account: UUID().uuidString)
+    defer { try? store.save([]) }
+    let suite = "ScreenClipKitDemo.tests.\(UUID().uuidString)"
+    let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+    defer { defaults.removePersistentDomain(forName: suite) }
+
+    // An id from an earlier SDK version moves into the Keychain unchanged.
+    let existing = UUID()
+    defaults.set(existing.uuidString, forKey: "deviceID")
+    XCTAssertEqual(KitPreferences.deviceID(store: store, defaults: defaults), existing)
+    XCTAssertEqual(try store.load(), [existing])
+
+    // Deleting the app wipes UserDefaults but not the Keychain: the id stays the same.
+    defaults.removePersistentDomain(forName: suite)
+    XCTAssertEqual(KitPreferences.deviceID(store: store, defaults: defaults), existing)
+    XCTAssertEqual(defaults.string(forKey: "deviceID"), existing.uuidString)
+  }
 }
 #endif
