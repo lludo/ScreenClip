@@ -58,7 +58,13 @@ final class WireTests: XCTestCase {
       .challenge(Challenge(macID: UUID(), macName: "Mac", nonce: Nonce.make())),
       .rejected(.notPaired), .welcome(macID: UUID(), macName: "Mac"),
       .report(WireReport(note: "n", image: nil, device: device())), .ack(id: UUID()),
-      .failed(id: UUID(), message: "x"), .sendPending, .status(pending: 3), .ping,
+      .failed(id: UUID(), message: "x"), .sendPending,
+      .queue([QueuedReport(id: UUID(), note: "n", createdAt: Date())]), .track(ids: [UUID()]),
+      .reportStates([
+        ReportState(
+          id: UUID(), reportNumber: 7, title: "t", status: "prOpen", projectName: "Shop", agent: "Codex",
+          pullRequestURL: "https://github.com/o/r/pull/1", updatedAt: Date())
+      ]), .ping,
     ]
     for message in messages {
       XCTAssertEqual(try Frame.message(Frame.json(message)), message)

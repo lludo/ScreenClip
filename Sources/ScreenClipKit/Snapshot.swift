@@ -23,7 +23,16 @@
         UIColor.black.setFill()
         context.fill(bounds)
         for window in windows {
-          window.drawHierarchy(in: window.frame, afterScreenUpdates: false)
+          // drawHierarchy can decline (it returns false, leaving nothing drawn), for example
+          // right after accessibility settings change. Retry with a fresh frame, then fall
+          // back to rendering the layer tree.
+          if window.drawHierarchy(in: window.frame, afterScreenUpdates: false) { continue }
+          kitLog.debug("drawHierarchy declined for \(String(describing: type(of: window)), privacy: .public); retrying")
+          if window.drawHierarchy(in: window.frame, afterScreenUpdates: true) { continue }
+          context.cgContext.saveGState()
+          context.cgContext.translateBy(x: window.frame.minX, y: window.frame.minY)
+          window.layer.render(in: context.cgContext)
+          context.cgContext.restoreGState()
         }
       }
     }

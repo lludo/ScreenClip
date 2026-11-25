@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import ScreenClipCore
 
@@ -11,11 +12,50 @@ extension AppModel {
       guard let self else { throw ScreenClipError.message("ScreenClip is closing.") }
       return try self.importIOSReport(report)
     }
+    receiver.reportStates = { [weak self] ids in self?.iosReportStates(ids) ?? [] }
+    receiver.verifyReport = { [weak self] id in try self?.verifyIOSReport(id) }
+    // Devices show where their reports stand; push changes as the queue moves.
+    iosStatusSubscription = $snapshot
+      .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+      .sink { [weak receiver] _ in receiver?.reportsChanged() }
     return receiver
+  }
+
+  /// Report states for devices' Sent lists. A report id is its capture id.
+  func iosReportStates(_ ids: [UUID]) -> [ReportState] {
+    ids.map { id in
+      guard let issue = snapshot.issues.first(where: { $0.captures.contains { $0.id == id } }) else {
+        return ReportState(
+          id: id, reportNumber: nil, title: "", status: ReportState.removed, projectName: nil, agent: nil,
+          pullRequestURL: nil, updatedAt: Date())
+      }
+      return ReportState(
+        id: id, reportNumber: issue.reportNumber, title: issue.title, status: issue.status.rawValue,
+        projectName: project(issue.projectID)?.name, agent: issue.resolvedAgent.title,
+        pullRequestURL: issue.prURL, updatedAt: issue.updatedAt)
+    }
+  }
+
+  /// The tester confirmed on the device that a merged fix works.
+  func verifyIOSReport(_ id: UUID) throws {
+    guard let issue = snapshot.issues.first(where: { $0.captures.contains { $0.id == id } }) else {
+      throw ScreenClipError.message("This report is no longer in ScreenClip.")
+    }
+    guard issue.status == .merged else {
+      throw ScreenClipError.message("Only a merged report can be marked verified.")
+    }
+    try updateIssue(issue.id) { $0.record("Tester verified the fix on iOS", status: .verified) }
+  }
+
+  func setIOSAgentChoice(_ choice: ReportAgentChoice?) {
+    var settings = snapshot.settings
+    settings.iosAgentChoice = choice
+    saveSettings(settings)
   }
 
   func startIOSServerIfEnabled() {
     if snapshot.settings.iosServerEnabled == true { iosReceiver.start() }
+    refreshSleepGuard()
   }
 
   func setIOSServer(enabled: Bool) {
@@ -23,6 +63,14 @@ extension AppModel {
     settings.iosServerEnabled = enabled
     saveSettings(settings)
     if enabled { iosReceiver.start() } else { iosReceiver.stop() }
+    refreshSleepGuard()
+  }
+
+  func setKeepAwakeForIOS(_ keepAwake: Bool) {
+    var settings = snapshot.settings
+    settings.keepAwakeForIOS = keepAwake
+    saveSettings(settings)
+    refreshSleepGuard()
   }
 
   func setIOSReportsAsDrafts(_ drafts: Bool) {
@@ -53,16 +101,25 @@ extension AppModel {
     if let image = report.image, PNG.decode(image) == nil {
       throw ScreenClipError.message("The screenshot in this report could not be read.")
     }
+    if let original = report.followUpOf,
+      let issue = snapshot.issues.first(where: { $0.captures.contains { $0.id == original } })
+    {
+      return try importIOSFollowUp(report, to: issue)
+    }
     var context = Self.captureContext(for: report, sessionName: snapshot.settings.sessionName)
     let decision = Self.route(context, projects: snapshot.projects, scan: scanBundleIDs)
     context.routingReason = decision.reason
     let drafts = snapshot.settings.iosReportsAsDrafts == true
     let diagnostics = try saveDiagnostics(report.diagnostics)
     do {
+      let choice = snapshot.settings.iosAgentChoice
       try submit(
         imageData: report.image, originalData: nil, annotations: [], note: report.note,
         context: context, projectID: decision.projectID, existingID: nil, draft: drafts,
-        captureID: report.id, diagnostics: diagnostics)
+        agent: choice?.agent, agentModel: choice?.model, agentEffort: choice?.effort,
+        captureID: report.id, diagnostics: diagnostics,
+        // An automatic iOS default is not the tester's pick for the project's next Mac capture.
+        remembersAgentChoice: false)
     } catch {
       if let folder = diagnostics?.folder { try? FileManager.default.removeItem(atPath: folder) }
       throw error
@@ -92,6 +149,32 @@ extension AppModel {
     let declaring = BundleIDScanner.projects(declaring: context.bundleID, in: projects, scan: scan)
     guard declaring.count == 1 else { return decision }
     return RoutingDecision(projectID: declaring[0].id, reason: sourceMatchReason)
+  }
+
+  /// "Still broken" from the device: the capture joins the original report, which goes back to
+  /// its agent. A merged or verified report starts a fresh worktree for the follow-up.
+  private func importIOSFollowUp(_ report: WireReport, to issue: Issue) throws -> IOSReceiver.ImportResult {
+    var context = Self.captureContext(for: report, sessionName: snapshot.settings.sessionName)
+    context.routingReason = "Follow-up from iOS"
+    let diagnostics = try saveDiagnostics(report.diagnostics)
+    do {
+      try submit(
+        imageData: report.image, originalData: nil, annotations: [],
+        note: report.note.isEmpty ? "Still broken after the fix." : report.note, context: context,
+        projectID: issue.projectID, existingID: issue.id, draft: false, captureID: report.id,
+        diagnostics: diagnostics, remembersAgentChoice: false)
+    } catch {
+      if let folder = diagnostics?.folder { try? FileManager.default.removeItem(atPath: folder) }
+      throw error
+    }
+    if let updated = self.issue(issue.id) {
+      notify(
+        updated,
+        text: Chrome.format(
+          "ios.notification.followUp", "\(report.device.deviceName) says this is still broken",
+          comment: "Notification body when an iOS follow-up arrives. %@ is the device name."))
+    }
+    return .imported
   }
 
   /// Stores a report's optional diagnostic files. Only plain `.txt` and `.json` names are kept,

@@ -606,6 +606,14 @@ FORMATS = {
         "Found in this repository: %@", "在此仓库中找到：%@", "Encontrados en este repositorio: %@", "このリポジトリで見つかったもの: %@",
         "Encontrados neste repositório: %@", "In diesem Repository gefunden: %@", "Trouvés dans ce dépôt : %@",
         "이 저장소에서 찾음: %@", "Найдено в этом репозитории: %@", "在此儲存庫中找到：%@"),
+    "ios.deviceQueue": S("app", "Reports saved on an iOS device, not sent yet. %@ is the device name; %lld is the count.",
+        "Waiting on %@: %lld", "%@ 上等待发送：%lld", "En espera en %@: %lld", "%@ で送信待ち: %lld",
+        "Aguardando em %@: %lld", "Wartend auf %@: %lld", "En attente sur %@ : %lld",
+        "%@에서 대기 중: %lld", "Ожидают на %@: %lld", "%@ 上等待傳送：%lld"),
+    "ios.notification.followUp": S("app", "Notification body when an iOS follow-up arrives. %@ is the device name.",
+        "%@ says this is still broken", "%@ 表示问题仍未解决", "%@ indica que sigue sin funcionar", "%@ によると、まだ直っていません",
+        "%@ informa que ainda não está corrigido", "%@ meldet: immer noch fehlerhaft", "%@ indique que le problème persiste",
+        "%@에서 아직 고쳐지지 않았다고 합니다", "%@: всё ещё не исправлено", "%@ 表示問題仍未解決"),
 }
 
 INFO_PLIST = {

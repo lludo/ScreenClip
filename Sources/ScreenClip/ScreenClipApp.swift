@@ -118,6 +118,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       if previewMode { try PreviewSupport.seed(model: model) } else {
         model.worker.start()
         Updater.shared.start()
+        model.startSleepGuard()
         model.startIOSServerIfEnabled()
       }
       if arguments.contains("--recover-reports") {

@@ -45,6 +45,70 @@
     }
   }
 
+  /// Reports already delivered, with where each stands on the Mac. Kept for 30 days, at most 50.
+  @MainActor @Observable final class SentLog {
+    struct Entry: Codable, Identifiable, Equatable {
+      var id: UUID
+      var note: String
+      var createdAt: Date
+      var sentAt: Date
+      var macName: String
+      var state: ReportState?
+    }
+    private(set) var entries: [Entry] = []
+    private let url: URL
+
+    init() {
+      let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+      url = base.appendingPathComponent("ScreenClipKit/sent.json")
+      if let data = try? Data(contentsOf: url), let saved = try? JSONDecoder().decode([Entry].self, from: data) {
+        entries = saved
+      }
+      prune()
+    }
+
+    /// Ids the Mac should report on, most recent first.
+    var trackedIDs: [UUID] { entries.map(\.id) }
+
+    func record(_ report: WireReport, macName: String) {
+      entries.removeAll { $0.id == report.id }
+      entries.insert(
+        Entry(id: report.id, note: report.note, createdAt: report.createdAt, sentAt: Date(), macName: macName), at: 0)
+      prune()
+      save()
+    }
+
+    func update(_ states: [ReportState]) {
+      var changed = false
+      for state in states {
+        guard let index = entries.firstIndex(where: { $0.id == state.id }), entries[index].state != state else { continue }
+        entries[index].state = state
+        changed = true
+      }
+      if changed { save() }
+    }
+
+    func remove(_ id: UUID) {
+      entries.removeAll { $0.id == id }
+      save()
+    }
+
+    func clear() {
+      entries = []
+      save()
+    }
+
+    private func prune() {
+      let cutoff = Date().addingTimeInterval(-30 * 24 * 3600)
+      entries = Array(entries.filter { $0.sentAt > cutoff }.prefix(50))
+    }
+
+    private func save() {
+      guard let data = try? JSONEncoder().encode(entries) else { return }
+      try? data.write(to: url, options: .atomic)
+    }
+  }
+
   /// Pairings with Macs, kept in the Keychain (this device only).
   struct Pairing: Codable, Equatable, Identifiable {
     var macID: UUID

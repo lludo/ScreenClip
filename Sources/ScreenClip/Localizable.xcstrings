@@ -29966,7 +29966,7 @@
       }
     },
     "Project default": {
-      "comment": "Picker for this project's default provider.",
+      "comment": "iOS reports use each project's default agent.",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -39403,72 +39403,6 @@
         }
       }
     },
-    "Reports from iOS are filed like captures on this Mac: matched to a project by the app's bundle ID, then queued for its agent.": {
-      "comment": "Explains how iOS reports are routed.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Reports from iOS are filed like captures on this Mac: matched to a project by the app's bundle ID, then queued for its agent."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "来自 iOS 的报告与此 Mac 上的截图一样归档：按应用的 bundle ID 匹配项目，然后排队交给该项目的智能体。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Los informes de iOS se archivan como las capturas de este Mac: se asignan a un proyecto según el bundle ID de la app y se ponen en cola para su agente."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iOS からのレポートは、この Mac のキャプチャと同じように扱われます。アプリの bundle ID でプロジェクトを照合し、そのエージェントのキューに入ります。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Os relatórios do iOS são arquivados como as capturas deste Mac: associados a um projeto pelo bundle ID do app e colocados na fila do agente dele."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Berichte von iOS werden wie Aufnahmen auf diesem Mac abgelegt: über die Bundle-ID der App einem Projekt zugeordnet und dann für dessen Agenten eingereiht."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Les rapports iOS sont classés comme les captures de ce Mac : associés à un projet d’après le bundle ID de l’app, puis mis en file pour son agent."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "iOS 리포트는 이 Mac의 캡처와 같은 방식으로 처리됩니다. 앱의 번들 ID로 프로젝트를 찾은 뒤 해당 에이전트의 대기열에 추가합니다."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Отчёты с iOS обрабатываются как снимки на этом Mac: проект определяется по bundle ID приложения, затем отчёт встаёт в очередь его агента."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "來自 iOS 的報告與此 Mac 上的擷取一樣歸檔：依 App 的 bundle ID 比對專案，然後排入該專案代理程式的佇列。"
-          }
-        }
-      }
-    },
     "Local server": {
       "comment": "Settings section for the iOS local server.",
       "extractionState": "manual",
@@ -40917,6 +40851,468 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 Finder 中顯示診斷資訊"
+          }
+        }
+      }
+    },
+    "Reports from iOS are filed like captures on this Mac: matched to a project by the app's bundle ID, then queued for the agent above.": {
+      "comment": "Explains how iOS reports are routed.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reports from iOS are filed like captures on this Mac: matched to a project by the app's bundle ID, then queued for the agent above."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自 iOS 的报告与此 Mac 上的截图一样归档：按应用的 bundle ID 匹配项目，然后排队交给上面选择的智能体。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los informes de iOS se archivan como las capturas de este Mac: se asignan a un proyecto según el bundle ID de la app y se ponen en cola para el agente de arriba."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS からのレポートは、この Mac のキャプチャと同じように扱われます。アプリの bundle ID でプロジェクトを照合し、上で選んだエージェントのキューに入ります。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os relatórios do iOS são arquivados como as capturas deste Mac: associados a um projeto pelo bundle ID do app e colocados na fila do agente acima."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berichte von iOS werden wie Aufnahmen auf diesem Mac abgelegt: über die Bundle-ID der App einem Projekt zugeordnet und dann für den oben gewählten Agenten eingereiht."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les rapports iOS sont classés comme les captures de ce Mac : associés à un projet d’après le bundle ID de l’app, puis mis en file pour l’agent ci-dessus."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 리포트는 이 Mac의 캡처와 같은 방식으로 처리됩니다. 앱의 번들 ID로 프로젝트를 찾은 뒤 위에서 선택한 에이전트의 대기열에 추가합니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Отчёты с iOS обрабатываются как снимки на этом Mac: проект определяется по bundle ID приложения, затем отчёт встаёт в очередь выбранного выше агента."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "來自 iOS 的報告與此 Mac 上的擷取一樣歸檔：依 App 的 bundle ID 比對專案，然後排入上方選擇的代理程式佇列。"
+          }
+        }
+      }
+    },
+    "Agent for iOS reports": {
+      "comment": "Picker for the agent, model, and effort used for reports from iOS.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agent for iOS reports"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 报告使用的智能体"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agente para los informes de iOS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS レポートのエージェント"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agente para relatórios do iOS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agent für iOS-Berichte"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agent pour les rapports iOS"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 리포트용 에이전트"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Агент для отчётов с iOS"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 報告使用的代理程式"
+          }
+        }
+      }
+    },
+    "Screenshot": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Screenshot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截图"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura de pantalla"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スクリーンショット"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Captura de tela"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildschirmfoto"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capture d’écran"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "스크린샷"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Снимок экрана"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "截圖"
+          }
+        }
+      }
+    },
+    "Follow-up from iOS": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow-up from iOS"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自 iOS 的跟进"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Seguimiento desde iOS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS からのフォローアップ"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acompanhamento do iOS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nachtrag von iOS"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suivi depuis iOS"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS에서 보낸 후속 조치"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продолжение с iOS"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "來自 iOS 的後續"
+          }
+        }
+      }
+    },
+    "Keep this Mac awake while receiving iOS reports": {
+      "comment": "Prevents idle sleep while the iOS local server is on.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep this Mac awake while receiving iOS reports"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收 iOS 报告时让此 Mac 保持唤醒"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener este Mac activo mientras recibe informes de iOS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS レポートを受信する間、この Mac をスリープさせない"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manter este Mac ativo enquanto recebe relatórios do iOS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diesen Mac wach halten, während iOS-Berichte empfangen werden"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Garder ce Mac éveillé pendant la réception des rapports iOS"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "iOS 리포트를 받는 동안 이 Mac을 깨어 있게 유지"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не давать Mac засыпать, пока принимаются отчёты с iOS"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接收 iOS 報告時讓此 Mac 保持喚醒"
+          }
+        }
+      }
+    },
+    "Tester verified the fix on iOS": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tester verified the fix on iOS"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试者已在 iOS 上验证修复"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quien prueba verificó la corrección en iOS"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "テスターが iOS で修正を確認しました"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quem testa verificou a correção no iOS"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tester hat den Fix auf iOS geprüft"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La personne qui teste a vérifié le correctif sur iOS"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "테스터가 iOS에서 수정을 확인했습니다"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тестирующий проверил исправление на iOS"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "測試者已在 iOS 上驗證修復"
+          }
+        }
+      }
+    },
+    "The display can still sleep. ScreenClip also stays awake while an agent works on a report. A laptop with its lid closed sleeps unless it is on power with a display attached.": {
+      "comment": "Explains the keep-awake setting.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The display can still sleep. ScreenClip also stays awake while an agent works on a report. A laptop with its lid closed sleeps unless it is on power with a display attached."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "显示器仍可进入睡眠。智能体处理报告期间，ScreenClip 也会保持唤醒。合上盖子的笔记本电脑会睡眠，除非接通电源并连接了显示器。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La pantalla puede seguir apagándose. ScreenClip también se mantiene activo mientras un agente trabaja en un informe. Un portátil con la tapa cerrada entra en reposo salvo que esté enchufado y con una pantalla conectada."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディスプレイはスリープできます。エージェントがレポートを処理している間も ScreenClip はスリープを防ぎます。ノートブックは蓋を閉じるとスリープします（電源とディスプレイに接続している場合を除く）。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A tela ainda pode entrar em repouso. O ScreenClip também fica ativo enquanto um agente trabalha em um relatório. Um notebook com a tampa fechada entra em repouso, a menos que esteja na tomada e com um monitor conectado."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Bildschirm kann weiterhin in den Ruhezustand gehen. ScreenClip bleibt auch wach, während ein Agent an einem Bericht arbeitet. Ein Notebook mit geschlossenem Deckel schläft, außer es hängt am Strom und an einem Bildschirm."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "L’écran peut toujours se mettre en veille. ScreenClip reste aussi éveillé pendant qu’un agent travaille sur un rapport. Un portable dont l’écran est rabattu se met en veille, sauf s’il est branché et relié à un écran."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "디스플레이는 계속 잠자기에 들어갈 수 있습니다. 에이전트가 리포트를 처리하는 동안에도 ScreenClip은 깨어 있습니다. 덮개를 닫은 노트북은 전원과 디스플레이에 연결되어 있지 않으면 잠자기에 들어갑니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Экран по-прежнему может засыпать. ScreenClip также не даёт Mac засыпать, пока агент работает над отчётом. Ноутбук с закрытой крышкой засыпает, если он не подключён к питанию и внешнему дисплею."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "顯示器仍可進入睡眠。代理程式處理報告期間，ScreenClip 也會保持喚醒。闔上螢幕的筆記型電腦會進入睡眠，除非接上電源並連接顯示器。"
           }
         }
       }
@@ -48045,6 +48441,138 @@
           "stringUnit": {
             "state": "translated",
             "value": "在此儲存庫中找到：%@"
+          }
+        }
+      }
+    },
+    "ios.deviceQueue": {
+      "comment": "Reports saved on an iOS device, not sent yet. %@ is the device name; %lld is the count.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting on %@: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 上等待发送：%lld"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En espera en %@: %lld"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ で送信待ち: %lld"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aguardando em %@: %lld"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wartend auf %@: %lld"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "En attente sur %@ : %lld"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@에서 대기 중: %lld"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ожидают на %@: %lld"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 上等待傳送：%lld"
+          }
+        }
+      }
+    },
+    "ios.notification.followUp": {
+      "comment": "Notification body when an iOS follow-up arrives. %@ is the device name.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ says this is still broken"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 表示问题仍未解决"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ indica que sigue sin funcionar"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ によると、まだ直っていません"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ informa que ainda não está corrigido"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ meldet: immer noch fehlerhaft"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ indique que le problème persiste"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@에서 아직 고쳐지지 않았다고 합니다"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@: всё ещё не исправлено"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 表示問題仍未解決"
           }
         }
       }

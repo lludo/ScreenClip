@@ -71,6 +71,46 @@ public enum RejectReason: String, Codable, Sendable {
   case busy
 }
 
+/// A report still waiting on the device, as the Mac lists it.
+public struct QueuedReport: Codable, Equatable, Identifiable, Sendable {
+  public var id: UUID
+  public var note: String
+  public var createdAt: Date
+  public init(id: UUID, note: String, createdAt: Date) {
+    self.id = id
+    self.note = String(note.prefix(160))
+    self.createdAt = createdAt
+  }
+}
+
+/// Where a delivered report stands on the Mac, for the device's Sent list.
+public struct ReportState: Codable, Equatable, Identifiable, Sendable {
+  /// The report's id, which is also its capture id on the Mac.
+  public var id: UUID
+  public var reportNumber: Int?
+  public var title: String
+  /// An `IssueStatus` raw value, or `removed` when the report was deleted on the Mac.
+  public var status: String
+  public var projectName: String?
+  public var agent: String?
+  public var pullRequestURL: String?
+  public var updatedAt: Date
+  public init(
+    id: UUID, reportNumber: Int?, title: String, status: String, projectName: String?, agent: String?,
+    pullRequestURL: String?, updatedAt: Date
+  ) {
+    self.id = id
+    self.reportNumber = reportNumber
+    self.title = title
+    self.status = status
+    self.projectName = projectName
+    self.agent = agent
+    self.pullRequestURL = pullRequestURL
+    self.updatedAt = updatedAt
+  }
+  public static let removed = "removed"
+}
+
 public enum LinkMessage: Codable, Equatable, Sendable {
   // In clear, during the handshake.
   case hello(Hello)
@@ -82,7 +122,15 @@ public enum LinkMessage: Codable, Equatable, Sendable {
   case ack(id: UUID)
   case failed(id: UUID, message: String)
   case sendPending
-  case status(pending: Int)
+  /// Device → Mac: the reports still saved on the device.
+  case queue([QueuedReport])
+  /// Device → Mac: delivered reports whose status the device shows; the Mac answers with
+  /// `reportStates` and sends updates while connected.
+  case track(ids: [UUID])
+  /// Mac → device.
+  case reportStates([ReportState])
+  /// Device → Mac: the tester checked a merged fix and it works.
+  case verify(id: UUID)
   case ping
 
   public var isHandshake: Bool {

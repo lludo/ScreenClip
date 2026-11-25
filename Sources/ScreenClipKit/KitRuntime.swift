@@ -30,12 +30,19 @@
     }
   }
 
+  /// The sent report the next capture follows up on ("Still broken").
+  @MainActor @Observable final class FollowUpTarget {
+    var entry: SentLog.Entry?
+  }
+
   @MainActor final class KitRuntime {
     static let shared = KitRuntime()
     private(set) var options = ScreenClipOptions()
     private var started = false
     let outbox = Outbox()
-    lazy var link = MacLink(outbox: outbox)
+    let sent = SentLog()
+    let followUp = FollowUpTarget()
+    lazy var link = MacLink(outbox: outbox, sent: sent)
     let overlay = OverlayPresenter()
     private var observers: [NSObjectProtocol] = []
     private(set) var startedAt = Date()
@@ -108,7 +115,10 @@
       if let console = ConsoleCapture.shared.file() { immediate.append(console) }
       let logs = Task.detached(priority: .utility) { Diagnostics.recentLogs(until: capturedAt) }
       overlay.presentSheet(in: scene) { dismiss in
-        ComposerView(image: image, link: self.link, outbox: self.outbox) { note, png, attach in
+        ComposerView(
+          image: image, link: self.link, outbox: self.outbox, followUp: self.followUp,
+          stillBroken: { [weak self] entry in self?.followUp.entry = entry }
+        ) { note, png, attach in
           dismiss()
           Task { @MainActor in
             var files: [DiagnosticFile]?
@@ -119,7 +129,9 @@
             } else {
               logs.cancel()
             }
-            self.submit(note: note, image: png, device: device, diagnostics: files)
+            let followUpOf = self.followUp.entry?.id
+            self.followUp.entry = nil
+            self.submit(note: note, image: png, device: device, diagnostics: files, followUpOf: followUpOf)
           }
         } cancel: {
           logs.cancel()
@@ -146,7 +158,13 @@
       guard !overlay.isPresentingSheet, let scene = Snapshot.activeScene() else { return }
       overlay.presentSheet(in: scene) { dismiss in
         NavigationStack {
-          KitSettingsView(link: self.link, outbox: self.outbox)
+          KitSettingsView(link: self.link, outbox: self.outbox) { [weak self] entry in
+            guard let self else { return }
+            self.followUp.entry = entry
+            dismiss()
+            let number = entry.state?.reportNumber.map { " #\($0)" } ?? ""
+            self.overlay.toast("Go to the broken screen and shake. The capture is added to report\(number).")
+          }
             .toolbar {
               ToolbarItem(placement: .confirmationAction) { Button("Done") { dismiss() } }
             }
@@ -154,10 +172,14 @@
       }
     }
 
-    private func submit(note: String, image: Data?, device: DeviceContext, diagnostics: [DiagnosticFile]?) {
-      let report = WireReport(note: note, image: image, device: device, diagnostics: diagnostics)
+    private func submit(
+      note: String, image: Data?, device: DeviceContext, diagnostics: [DiagnosticFile]?, followUpOf: UUID?
+    ) {
+      var report = WireReport(note: note, image: image, device: device, diagnostics: diagnostics)
+      report.followUpOf = followUpOf
       do {
         try outbox.add(report)
+        link.sendQueue()
       } catch {
         overlay.toast("Could not save the report: \(error.localizedDescription)")
         return

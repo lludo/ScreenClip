@@ -25,8 +25,11 @@
     private(set) var discovered: [DiscoveredMac] = []
     private(set) var pairings: [Pairing] = PairingStore.load()
     private(set) var lastError: String?
+    /// The Mac this device is connected to now.
+    private(set) var connectedMacID: UUID?
 
     @ObservationIgnored private let outbox: Outbox
+    @ObservationIgnored let sent: SentLog
     @ObservationIgnored private var browser: NWBrowser?
     @ObservationIgnored private var link: LinkConnection?
     @ObservationIgnored private var linkMac: DiscoveredMac?
@@ -37,8 +40,12 @@
     @ObservationIgnored private var skipped: Set<UUID> = []
     @ObservationIgnored private var waiters: [UUID: [(token: UUID, done: (Bool) -> Void)]] = [:]
     @ObservationIgnored private var suspended = true
+    @ObservationIgnored private var backgroundTask: UIBackgroundTaskIdentifier = .invalid
 
-    init(outbox: Outbox) { self.outbox = outbox }
+    init(outbox: Outbox, sent: SentLog) {
+      self.outbox = outbox
+      self.sent = sent
+    }
 
     var isConnected: Bool {
       if case .connected = phase { return true }
@@ -66,6 +73,7 @@
     // MARK: Lifecycle
 
     func resume() {
+      finishBackgroundDelivery()
       suspended = false
       let missing = Self.missingInfoPlistKeys
       guard missing.isEmpty else {
@@ -79,7 +87,30 @@
       autoConnect()
     }
 
+    /// Going to the background: finish sending what is waiting first, within the time iOS gives.
     func suspend() {
+      if isConnected, inFlight != nil || !outbox.reports.isEmpty {
+        guard backgroundTask == .invalid else { return }
+        backgroundTask = UIApplication.shared.beginBackgroundTask(withName: "ScreenClip delivery") { [weak self] in
+          MainActor.assumeIsolated { self?.finishBackgroundDelivery() }
+        }
+        if backgroundTask != .invalid {
+          flush()
+          return
+        }
+      }
+      stopConnections()
+    }
+
+    private func finishBackgroundDelivery() {
+      guard backgroundTask != .invalid else { return }
+      let task = backgroundTask
+      backgroundTask = .invalid
+      if UIApplication.shared.applicationState == .background { stopConnections() }
+      UIApplication.shared.endBackgroundTask(task)
+    }
+
+    private func stopConnections() {
       suspended = true
       browser?.cancel()
       browser = nil
@@ -176,6 +207,25 @@
       guard let next = outbox.reports.first(where: { !skipped.contains($0.id) }) else { return }
       inFlight = next.id
       link.send(.report(next))
+    }
+
+    /// Tells the Mac which reports are still waiting here.
+    func sendQueue() {
+      guard isConnected else { return }
+      link?.send(.queue(outbox.reports.map { QueuedReport(id: $0.id, note: $0.note, createdAt: $0.createdAt) }))
+    }
+
+    /// Tells the Mac a merged fix works. Returns false when the Mac is not connected.
+    @discardableResult func verify(_ id: UUID) -> Bool {
+      guard isConnected, let link else { return false }
+      link.send(.verify(id: id))
+      return true
+    }
+
+    /// Asks the Mac again where the sent reports stand.
+    func refreshStatuses() {
+      guard isConnected else { return }
+      link?.send(.track(ids: sent.trackedIDs))
     }
 
     func retryFailed() {
@@ -275,8 +325,10 @@
         }
         PairingStore.save(pairings)
         lastError = nil
+        connectedMacID = macID
         phase = .connected(macName)
-        link.send(.status(pending: outbox.count))
+        sendQueue()
+        link.send(.track(ids: sent.trackedIDs))
         flush()
       case .rejected(let reason):
         switch reason {
@@ -297,28 +349,36 @@
       case .sendPending:
         retryFailed()
       case .ack(let id):
+        if let report = outbox.reports.first(where: { $0.id == id }) {
+          sent.record(report, macName: connectedMacName ?? linkMac?.name ?? "")
+        }
         outbox.remove(id)
         skipped.remove(id)
         if inFlight == id { inFlight = nil }
         resolve(id, true)
-        link.send(.status(pending: outbox.count))
+        sendQueue()
         flush()
+        if outbox.reports.isEmpty { finishBackgroundDelivery() }
+      case .reportStates(let states):
+        sent.update(states)
       case .failed(let id, let text):
         skipped.insert(id)
         if inFlight == id { inFlight = nil }
         lastError = text
         resolve(id, false)
         flush()
-      case .hello, .report, .status, .ping:
+      case .hello, .report, .queue, .track, .verify, .ping:
         break
       }
     }
 
     private func linkClosed(_ error: Error?) {
+      defer { finishBackgroundDelivery() }
       let wasPairing: Bool
       if case .pairing = phase { wasPairing = true } else { wasPairing = false }
       link = nil
       linkMac = nil
+      connectedMacID = nil
       inFlight = nil
       exchange = nil
       pendingPairing = nil
@@ -331,6 +391,7 @@
       let current = link
       link = nil
       linkMac = nil
+      connectedMacID = nil
       inFlight = nil
       exchange = nil
       pendingPairing = nil

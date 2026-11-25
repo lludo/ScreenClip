@@ -586,6 +586,10 @@ public struct AppSettings: Codable, Equatable {
   public var iosServerEnabled: Bool?
   /// Save reports from iOS as drafts instead of queuing them for an agent.
   public var iosReportsAsDrafts: Bool?
+  /// Keep the Mac from idle-sleeping while the iOS server is on. Missing means on.
+  public var keepAwakeForIOS: Bool?
+  /// Agent, model, and effort for every report from iOS. Nil uses each project's default.
+  public var iosAgentChoice: ReportAgentChoice?
   public init() {}
 }
 

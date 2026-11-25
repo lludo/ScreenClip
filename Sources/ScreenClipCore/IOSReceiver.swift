@@ -60,6 +60,8 @@ import Security
   @Published public private(set) var devices: [Device] = []
   /// Connected devices and the number of saved reports each says it is holding.
   @Published public private(set) var connected: [UUID: Int] = [:]
+  /// The saved reports each connected device says it is holding.
+  @Published public private(set) var deviceQueues: [UUID: [QueuedReport]] = [:]
   @Published public private(set) var pairingOpen = false
   @Published public private(set) var pairingRequest: PairingRequest?
   @Published public private(set) var lastEvent: Event?
@@ -68,6 +70,10 @@ import Security
   public let macName: String
   /// Saves one report into the queue. Throws to refuse it; the device keeps it and retries.
   public var importReport: (WireReport) throws -> ImportResult = { _ in .imported }
+  /// The current state of delivered reports, by report id, for devices' Sent lists.
+  public var reportStates: ([UUID]) -> [ReportState] = { _ in [] }
+  /// Marks a merged report verified. Throws when it cannot be.
+  public var verifyReport: (UUID) throws -> Void = { _ in }
   private let loadRecords: () -> [DeviceRecord]
   private let saveRecords: ([DeviceRecord]) -> Void
   private var records: [DeviceRecord]
@@ -80,6 +86,9 @@ import Security
     var hello: Hello?
     var ready = false
     var pendingKey: SymmetricKey?
+    /// Reports this device shows in its Sent list, and the states it last received.
+    var tracked: [UUID] = []
+    var sentStates: [UUID: ReportState] = [:]
     init(link: LinkConnection) { self.link = link }
   }
 
@@ -160,6 +169,7 @@ import Security
     for session in sessions.values { session.link.cancel() }
     sessions = [:]
     connected = [:]
+    deviceQueues = [:]
     pairingRequest = nil
     pairingOpen = false
     state = .stopped
@@ -226,6 +236,7 @@ import Security
       session.link.cancel()
     }
     connected[deviceID] = nil
+    deviceQueues[deviceID] = nil
   }
 
   private func persist() {
@@ -270,7 +281,23 @@ import Security
       !sessions.values.contains(where: { $0.ready && $0.hello?.deviceID == id })
     {
       connected[id] = nil
+      deviceQueues[id] = nil
     }
+  }
+
+  /// Sends devices the reports whose state changed since they last heard. Call after the queue
+  /// changes; unchanged states are not resent.
+  public func reportsChanged() {
+    for session in sessions.values where session.ready && !session.tracked.isEmpty {
+      sendStates(to: session, ids: session.tracked)
+    }
+  }
+
+  private func sendStates(to session: Session, ids: [UUID], force: Bool = false) {
+    let changed = reportStates(ids).filter { force || session.sentStates[$0.id] != $0 }
+    guard !changed.isEmpty else { return }
+    for state in changed { session.sentStates[state.id] = state }
+    session.link.send(.reportStates(changed))
   }
 
   private func reject(_ session: Session, _ reason: RejectReason) {
@@ -319,18 +346,34 @@ import Security
       do {
         let result = try importReport(report)
         session.link.send(.ack(id: report.id))
+        if !session.tracked.contains(report.id) { session.tracked.append(report.id) }
+        sendStates(to: session, ids: [report.id])
         if result == .imported {
           lastEvent = .received(deviceName: session.hello?.deviceName ?? "")
         }
       } catch {
         session.link.send(.failed(id: report.id, message: error.localizedDescription))
       }
-    case .status(let pending):
+    case .queue(let items):
       guard session.ready, let id = session.hello?.deviceID else { return }
-      connected[id] = max(0, pending)
+      let list = Array(items.prefix(200))
+      connected[id] = list.count
+      deviceQueues[id] = list
+    case .track(let ids):
+      guard session.ready else { return }
+      session.tracked = Array(ids.prefix(100))
+      sendStates(to: session, ids: session.tracked, force: true)
+    case .verify(let id):
+      guard session.ready else { return session.link.cancel() }
+      do {
+        try verifyReport(id)
+      } catch {
+        session.link.send(.failed(id: id, message: error.localizedDescription))
+      }
+      sendStates(to: session, ids: [id], force: true)
     case .ping:
       break
-    case .challenge, .rejected, .welcome, .ack, .failed, .sendPending:
+    case .challenge, .rejected, .welcome, .ack, .failed, .sendPending, .reportStates:
       // Only the Mac sends these.
       session.link.cancel()
     }

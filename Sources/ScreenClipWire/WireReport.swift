@@ -85,6 +85,9 @@ public struct WireReport: Codable, Equatable, Identifiable, Sendable {
   public var device: DeviceContext
   /// Optional; reports from earlier SDK builds have none.
   public var diagnostics: [DiagnosticFile]?
+  /// Set when the tester says an earlier report is still broken: this capture is added to that
+  /// report on the Mac, which sends it back to the agent.
+  public var followUpOf: UUID?
   public init(
     id: UUID = UUID(), createdAt: Date = Date(), note: String, image: Data?, device: DeviceContext,
     diagnostics: [DiagnosticFile]? = nil

@@ -41,6 +41,8 @@ There are two layers. Your `#if DEBUG` guards keep the call out, and the package
 
 When ScreenClip finds bundle IDs in a project's repository, the project editor shows them under **App bundle IDs (Mac and iOS)** with an **Add** button.
 
+Reports from iOS use the **Agent for iOS reports** chosen in Settings > iOS (agent, model, and effort), or each project's default. Choosing it there never changes the agent a project remembers for Mac captures.
+
 | Situation | What happens |
 | --- | --- |
 | Mac reachable | Sent at once. The toast says "Sent to *Mac*". |
@@ -51,6 +53,29 @@ When ScreenClip finds bundle IDs in a project's repository, the project editor s
 **Triggers.** By default the SDK listens for shake, and after a system screenshot it shows a small "Report this screen?" banner. Both can be turned off in the SDK's settings, or chosen in code: `ScreenClipKit.start(triggers: [.screenshot])`. To use your own debug menu, call `ScreenClipKit.capture()` or `ScreenClipKit.showSettings()`.
 
 **Other tools that use shake.** ScreenClipKit doesn't take the gesture over. It wraps `-[UIWindow motionEnded:withEvent:]` and always calls the previous implementation first, so the app's own handling, shake-to-undo, and other debugging tools still receive it. Tools that install the same kind of hook later chain to it. A shake doesn't open the report sheet while an alert or another tool's overlay window is on screen. If the app already uses shake, the cleanest setup is `triggers: [.screenshot]` plus `capture()` from your existing menu.
+
+## The loop: file from the couch, install the fix tomorrow
+
+1. **Mac, once:**
+   - Turn on **Open at login** (General) and **Receive reports from iOS devices** (iOS).
+   - Leave **Keep this Mac awake while receiving iOS reports** on.
+   - Pick the **Agent for iOS reports** (agent, model, effort), or keep **Project default**.
+   - Turn on the project's automatic merge if you want fixes merged without you. Its validation command (for example `xcodebuild test`) and GitHub checks still have to pass.
+2. **Phone, while testing:** shake, annotate, send.
+   - **Mac reachable:** the report goes straight into the queue, routed by bundle ID, and the agent starts.
+   - **Mac not reachable:** the report waits on the phone and goes out as soon as the app is open and finds the Mac.
+   - **Leaving the app right after Send:** the SDK asks iOS for a little background time to finish sending.
+3. **Phone, any time:** the SDK's settings show **Waiting to send** and **Sent to Mac**. Each sent report shows its number, project, agent, and live status: Queued, Agent working, Needs you, PR open, Merged, Verified, Failed. A merged report links its pull request.
+4. **Next day:** pull and install the new build from Xcode, retest, and on each merged report tap:
+   - **Looks fixed:** marks it Verified on the Mac.
+   - **Still broken:** your next capture is added to the same report and goes back to its agent in a fresh worktree.
+5. **Mac, at any time:** the iOS tab shows each paired device, what is still waiting on it, and **Fetch**.
+
+**What keeps the Mac working.** ScreenClip prevents idle sleep while the iOS server is on (this can be turned off), and always while a report is queued, an agent is working, or a pull request is waiting to merge automatically. The display can still sleep. A laptop with its lid closed sleeps unless it is on power with an external display.
+
+**What still needs you:**
+- Installing the new build on the phone.
+- Answering a report that stops at **Needs you**. The phone shows the status; you answer on the Mac.
 
 ## Diagnostics
 

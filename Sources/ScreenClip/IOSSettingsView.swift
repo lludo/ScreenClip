@@ -102,6 +102,56 @@ struct IOSSettingsView: View {
       }
       Toggle(
         isOn: Binding(
+          get: { settings.keepAwakeForIOS ?? true },
+          set: { keepAwake in
+            settings.keepAwakeForIOS = keepAwake
+            model.setKeepAwakeForIOS(keepAwake)
+          })
+      ) {
+        Text(chrome: "Keep this Mac awake while receiving iOS reports", comment: "Prevents idle sleep while the iOS local server is on.")
+      }
+      Text(
+        chrome:
+          "The display can still sleep. ScreenClip also stays awake while an agent works on a report. A laptop with its lid closed sleeps unless it is on power with a display attached.",
+        comment: "Explains the keep-awake setting."
+      ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+      LabeledContent {
+        Menu {
+          Toggle(
+            isOn: Binding(get: { settings.iosAgentChoice == nil }, set: { _ in chooseAgent(nil) })
+          ) {
+            Text(chrome: "Project default", comment: "iOS reports use each project's default agent.")
+          }
+          Divider()
+          ForEach(agentChoices, id: \.self) { kind in
+            AgentModelMenu(
+              kind: kind, options: model.modelOptions(for: kind), defaultModel: model.defaultModel(for: kind),
+              selected: settings.iosAgentChoice?.agent == kind
+                ? (settings.iosAgentChoice?.model, settings.iosAgentChoice?.effort) : nil,
+              isCurrent: settings.iosAgentChoice?.agent == kind, locale: locale
+            ) { chosenModel, chosenEffort in
+              chooseAgent(ReportAgentChoice(agent: kind, model: chosenModel, effort: chosenEffort))
+            }
+          }
+        } label: {
+          if let choice = settings.iosAgentChoice {
+            AgentLabel(
+              kind: choice.agent,
+              title: AgentModelMenu.summary(
+                kind: choice.agent, model: choice.model, effort: choice.effort,
+                options: model.modelOptions(for: choice.agent), defaultModel: model.defaultModel(for: choice.agent),
+                locale: locale))
+          } else {
+            Text(chrome: "Project default", comment: "iOS reports use each project's default agent.")
+          }
+        }
+        .menuIndicator(.visible)
+        .fixedSize()
+      } label: {
+        Text(chrome: "Agent for iOS reports", comment: "Picker for the agent, model, and effort used for reports from iOS.")
+      }
+      Toggle(
+        isOn: Binding(
           get: { settings.iosReportsAsDrafts == true },
           set: { drafts in
             settings.iosReportsAsDrafts = drafts
@@ -112,7 +162,7 @@ struct IOSSettingsView: View {
       }
       Text(
         chrome:
-          "Reports from iOS are filed like captures on this Mac: matched to a project by the app's bundle ID, then queued for its agent.",
+          "Reports from iOS are filed like captures on this Mac: matched to a project by the app's bundle ID, then queued for the agent above.",
         comment: "Explains how iOS reports are routed."
       ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     } header: {
@@ -143,6 +193,28 @@ struct IOSSettingsView: View {
           } label: {
             Text(chrome: "Forget", comment: "Removes a paired iOS device.")
           }
+        }
+        if let queue = receiver.deviceQueues[device.id], !queue.isEmpty {
+          DisclosureGroup {
+            VStack(alignment: .leading, spacing: 4) {
+              ForEach(queue) { item in
+                HStack(alignment: .firstTextBaseline) {
+                  Text(verbatim: item.note.isEmpty
+                    ? Chrome.text("Screenshot", locale: locale, comment: "A saved iOS report without a note.")
+                    : item.note)
+                    .lineLimit(1)
+                  Spacer()
+                  Text(item.createdAt, style: .relative).foregroundStyle(.secondary)
+                }.font(.caption)
+              }
+            }
+          } label: {
+            Text(verbatim: Chrome.format(
+              "ios.deviceQueue", "Waiting on \(device.name): \(queue.count)", locale: locale,
+              comment: "Reports saved on an iOS device, not sent yet. %@ is the device name; %lld is the count."))
+              .font(.caption).foregroundStyle(.secondary)
+          }
+          .padding(.leading, 28)
         }
       }
       HStack {
@@ -177,6 +249,19 @@ struct IOSSettingsView: View {
     } header: {
       Text(chrome: "Devices", comment: "Settings section listing paired iOS devices.")
     }
+  }
+
+  private var agentChoices: [AgentKind] {
+    AgentPicker.filingChoices(
+      detections: model.agents,
+      externalAvailable: AgentPicker.externalAvailability(
+        configured: model.loadExternalAssistant().isConfigured, hasProject: true
+      ).enabled)
+  }
+
+  private func chooseAgent(_ choice: ReportAgentChoice?) {
+    settings.iosAgentChoice = choice
+    model.setIOSAgentChoice(choice)
   }
 
   private var statusColor: Color {

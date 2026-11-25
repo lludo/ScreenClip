@@ -143,4 +143,99 @@ import XCTest
     try model.importIOSReport(report(note: "Second"))
     XCTAssertEqual(try model.store.load().issues.filter { $0.projectID == declaring.id }.count, 2)
   }
+
+  func testIOSAgentDefaultAppliesWithoutChangingTheProjectsLastChoice() throws {
+    let (model, root) = try makeModel()
+    var project = Project(name: "Shop", path: root.path)
+    project.bundleIDs = ["com.example.shop"]
+    project.reuseLastAgentChoice = true
+    project.lastAgentChoice = ReportAgentChoice(agent: .codex)
+    try model.commit { $0.projects.append(project) }
+    model.setIOSAgentChoice(ReportAgentChoice(agent: .claude, model: "opus", effort: "high"))
+    try model.importIOSReport(report())
+    let issue = try XCTUnwrap(try model.store.load().issues.first)
+    XCTAssertEqual(issue.agent, .claude)
+    XCTAssertEqual(issue.agentModel, "opus")
+    XCTAssertEqual(issue.agentEffort, "high")
+    XCTAssertEqual(model.project(project.id)?.lastAgentChoice, ReportAgentChoice(agent: .codex))
+    // Back to the project default.
+    model.setIOSAgentChoice(nil)
+    try model.importIOSReport(report(note: "Second"))
+    let second = try XCTUnwrap(try model.store.load().issues.first { $0.title == "Second" })
+    XCTAssertEqual(second.agent, .codex)
+  }
+
+  func testReportStatesFollowTheQueue() throws {
+    let (model, root) = try makeModel()
+    var project = Project(name: "Shop", path: root.path)
+    project.bundleIDs = ["com.example.shop"]
+    try model.commit { $0.projects.append(project) }
+    let incoming = try report()
+    try model.importIOSReport(incoming)
+    let unknown = UUID()
+    let states = model.iosReportStates([incoming.id, unknown])
+    XCTAssertEqual(states[0].status, "queued")
+    XCTAssertEqual(states[0].projectName, "Shop")
+    XCTAssertNotNil(states[0].reportNumber)
+    XCTAssertEqual(states[1].status, ReportState.removed)
+  }
+
+  func testVerifyAndStillBrokenFromTheDevice() throws {
+    let (model, root) = try makeModel()
+    var project = Project(name: "Shop", path: root.path)
+    project.bundleIDs = ["com.example.shop"]
+    try model.commit { $0.projects.append(project) }
+    let original = try report()
+    try model.importIOSReport(original)
+    let id = try XCTUnwrap(model.snapshot.issues.first?.id)
+    // Only merged reports can be verified.
+    XCTAssertThrowsError(try model.verifyIOSReport(original.id))
+    try model.updateIssue(id) {
+      $0.prURL = "https://github.com/o/r/pull/9"
+      $0.record("Merged", status: .merged)
+    }
+    try model.verifyIOSReport(original.id)
+    XCTAssertEqual(model.issue(id)?.status, .verified)
+    XCTAssertEqual(model.iosReportStates([original.id]).first?.status, "verified")
+
+    // "Still broken" adds a capture to the same report and sends it back to the agent.
+    var followUp = try report(note: "")
+    followUp.followUpOf = original.id
+    XCTAssertEqual(try model.importIOSReport(followUp), .imported)
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(model.snapshot.issues.count, 1)
+    XCTAssertEqual(issue.captures.count, 2)
+    XCTAssertEqual(issue.captures.last?.id, followUp.id)
+    XCTAssertEqual(issue.captures.last?.note, "Still broken after the fix.")
+    XCTAssertEqual(issue.status, .queued)
+    XCTAssertNil(issue.prURL)
+    // Resending is a duplicate; the follow-up's own id reports the same issue.
+    XCTAssertEqual(try model.importIOSReport(followUp), .duplicate)
+    XCTAssertEqual(model.iosReportStates([followUp.id]).first?.reportNumber, issue.reportNumber)
+  }
+
+  func testSleepGuardHoldsWhileWorkIsInFlightOrTheServerWaits() throws {
+    let (model, root) = try makeModel()
+    var snapshot = model.snapshot
+    snapshot.settings.paused = false
+    XCTAssertNil(SleepGuard.reason(for: snapshot, iosServerRunning: false))
+    XCTAssertEqual(SleepGuard.reason(for: snapshot, iosServerRunning: true), .iosServer)
+    snapshot.settings.keepAwakeForIOS = false
+    XCTAssertNil(SleepGuard.reason(for: snapshot, iosServerRunning: true))
+    var project = Project(name: "Shop", path: root.path)
+    project.autoMerge = false
+    snapshot.projects = [project]
+    var issue = Issue(projectID: project.id, title: "t", capture: Capture(note: "n", imagePath: nil, context: CaptureContext()))
+    issue.status = .queued
+    snapshot.issues = [issue]
+    XCTAssertEqual(SleepGuard.reason(for: snapshot, iosServerRunning: false), .work)
+    snapshot.settings.paused = true
+    XCTAssertNil(SleepGuard.reason(for: snapshot, iosServerRunning: false))
+    snapshot.issues[0].status = .working
+    XCTAssertEqual(SleepGuard.reason(for: snapshot, iosServerRunning: false), .work)
+    snapshot.issues[0].status = .prOpen
+    XCTAssertNil(SleepGuard.reason(for: snapshot, iosServerRunning: false))
+    snapshot.projects[0].autoMerge = true
+    XCTAssertEqual(SleepGuard.reason(for: snapshot, iosServerRunning: false), .work)
+  }
 }

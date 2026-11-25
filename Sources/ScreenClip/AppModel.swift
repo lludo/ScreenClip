@@ -47,6 +47,23 @@ struct GrokConnectionCheck: Equatable {
   lazy var worker = AgentWorker(model: self)
   /// Receives reports from ScreenClipKit in iOS apps. Started only when enabled in Settings.
   lazy var iosReceiver: IOSReceiver = makeIOSReceiver()
+  var iosStatusSubscription: AnyCancellable?
+  let sleepGuard = SleepGuard()
+  private var sleepSubscription: AnyCancellable?
+
+  /// Holds off idle sleep while reports are in flight or the iOS server waits for devices.
+  /// Not started for tests or previews.
+  func startSleepGuard() {
+    sleepSubscription = $snapshot
+      .debounce(for: .milliseconds(300), scheduler: RunLoop.main)
+      .sink { [weak self] snapshot in
+        guard let self else { return }
+        self.sleepGuard.update(SleepGuard.reason(for: snapshot, iosServerRunning: self.iosReceiver.isRunning))
+      }
+  }
+  func refreshSleepGuard() {
+    sleepGuard.update(SleepGuard.reason(for: snapshot, iosServerRunning: iosReceiver.isRunning))
+  }
   /// Reads the bundle IDs a repository declares. Tests replace it to avoid scanning disks.
   var scanBundleIDs: (String) -> [BundleIDScanner.Declaration] = BundleIDScanner.cachedScan
   /// Reads the Grok Bot connection from the Keychain. Tests replace this so they do not touch credentials.
@@ -229,7 +246,7 @@ struct GrokConnectionCheck: Equatable {
     imageData: Data?, originalData: Data?, annotations: [Annotation], note: String,
     context: CaptureContext, projectID: UUID?, existingID: UUID?, draft: Bool,
     agent: AgentKind? = nil, agentModel: String? = nil, agentEffort: String? = nil,
-    captureID: UUID? = nil, diagnostics: ReportDiagnostics? = nil
+    captureID: UUID? = nil, diagnostics: ReportDiagnostics? = nil, remembersAgentChoice: Bool = true
   ) throws {
     guard imageData != nil || !note.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
       throw ScreenClipError.message("Enter some context before saving.")
@@ -262,7 +279,7 @@ struct GrokConnectionCheck: Equatable {
       if let captureID { capture.id = captureID }
       capture.diagnostics = diagnostics
       try commit { state in
-        if !draft, target == nil || target?.status == .draft,
+        if !draft, remembersAgentChoice, target == nil || target?.status == .draft,
           let index = state.projects.firstIndex(where: { $0.id == projectID })
         {
           state.projects[index].lastAgentChoice = choice

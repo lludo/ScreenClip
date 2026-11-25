@@ -28,6 +28,8 @@
     let image: UIImage
     let link: MacLink
     let outbox: Outbox
+    let followUp: FollowUpTarget
+    let stillBroken: (SentLog.Entry) -> Void
     let send: (String, Data?, Bool) -> Void
     let cancel: () -> Void
     @State private var model = ComposerModel()
@@ -43,6 +45,20 @@
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.black)
           Divider()
+          if let entry = followUp.entry {
+            HStack {
+              Image(systemName: "arrow.uturn.backward.circle").foregroundStyle(.orange)
+              Text(followUpTitle(entry)).font(.footnote).lineLimit(1)
+              Spacer()
+              Button {
+                followUp.entry = nil
+              } label: {
+                Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+              }
+              .accessibilityLabel("File as a new report instead")
+            }
+            .padding(.horizontal, 14).padding(.top, 8)
+          }
           ToolBar(model: model)
           TextField("What's wrong here?", text: $model.note, axis: .vertical)
             .lineLimit(1...4)
@@ -77,7 +93,10 @@
         }
         .sheet(isPresented: $showingSettings) {
           NavigationStack {
-            KitSettingsView(link: link, outbox: outbox)
+            KitSettingsView(link: link, outbox: outbox) { entry in
+              stillBroken(entry)
+              showingSettings = false
+            }
               .toolbar {
                 ToolbarItem(placement: .confirmationAction) { Button("Done") { showingSettings = false } }
               }
@@ -101,6 +120,12 @@
         }
       }
       .tint(.orange)
+    }
+
+    private func followUpTitle(_ entry: SentLog.Entry) -> String {
+      let number = entry.state?.reportNumber.map { "#\($0) " } ?? ""
+      let title = entry.state?.title.isEmpty == false ? entry.state!.title : entry.note
+      return "Still broken: \(number)\(title)"
     }
 
     /// The approved image: annotations and redactions burned in at full resolution.

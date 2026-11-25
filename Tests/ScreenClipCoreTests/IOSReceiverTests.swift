@@ -128,6 +128,29 @@ import XCTest
     spin { device.messages.contains(.ack(id: sent.id)) }
     XCTAssertEqual(imported, [sent.id])
     XCTAssertNotNil(receiver.connected[pairing.deviceID])
+    // The device follows its delivered report and hears about changes.
+    var status = "queued"
+    let updated = Date()
+    receiver.reportStates = { ids in
+      ids.map {
+        ReportState(
+          id: $0, reportNumber: 3, title: "Broken layout", status: status, projectName: "Shop", agent: "Codex",
+          pullRequestURL: nil, updatedAt: updated)
+      }
+    }
+    device.link.send(.track(ids: [sent.id]))
+    spin { device.messages.contains { if case .reportStates(let s) = $0 { return s.first?.status == "queued" } else { return false } } }
+    status = "prOpen"
+    receiver.reportsChanged()
+    spin { device.messages.contains { if case .reportStates(let s) = $0 { return s.first?.status == "prOpen" } else { return false } } }
+    XCTAssertTrue(device.messages.contains { if case .reportStates(let s) = $0 { return s.first?.status == "prOpen" } else { return false } })
+    let before = device.messages.count
+    receiver.reportsChanged()  // unchanged: nothing resent
+    RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+    XCTAssertEqual(device.messages.count, before, "\(device.messages.suffix(3))")
+    device.link.send(.queue([QueuedReport(id: UUID(), note: "Later", createdAt: Date())]))
+    spin { receiver.deviceQueues[pairing.deviceID]?.count == 1 }
+    XCTAssertEqual(receiver.connected[pairing.deviceID], 1)
     XCTAssertEqual(receiver.fetch(), 1)
     spin { device.messages.contains(.sendPending) }
     XCTAssertTrue(device.messages.contains(.sendPending))
