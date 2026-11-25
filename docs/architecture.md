@@ -70,7 +70,7 @@ Changing the project before a chat or worktree exists reassigns the report. Afte
 
 ## Worktrees, checks, and merge
 
-Each local run gets one worktree under Application Support and a `screenclip/<id>` branch. Older issues may still use `codex/screenclip-<id>`. The branch starts from `origin/<base>` after a fetch when the repository has an origin, so unpushed commits on the tester's checkout never enter a pull request. Without an origin it starts from the local base. The tester's checkout is never the working directory.
+Each local run gets one worktree under Application Support and a `screenclip/<id>` branch. A new project takes its repository's default branch as the base (`origin/HEAD`, else `main` or `master` when only one exists); a base branch the repository doesn't have is flagged in the project editor, and a report stops with a message naming the branch to use instead of git's "invalid reference". Older issues may still use `codex/screenclip-<id>`. The branch starts from `origin/<base>` after a fetch when the repository has an origin, so unpushed commits on the tester's checkout never enter a pull request. Without an origin it starts from the local base. The tester's checkout is never the working directory.
 
 Grok Bot uses a different branch name: `screenclip/<reportNumber>-<slug>-<workspace>`. `<workspace>` is the first eight characters of the issue workspace id, so a follow-up after a merge does not reuse the merged branch. The committed files live under `.screenclip/<reportNumber>/`. Pull-request discovery looks for a body containing `ScreenClip: #<reportNumber>` whose head is that branch. Automatic merge waits while any `.screenclip/` path is still in the pull request.
 

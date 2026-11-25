@@ -57,6 +57,38 @@ public enum GitWorkspace {
     URL(fileURLWithPath: path).standardizedFileURL.resolvingSymlinksInPath().path
   }
 
+  /// True when `branch` exists locally or on `origin` in the repository at `path`.
+  public static func branchExists(_ branch: String, at path: String) async -> Bool {
+    for ref in ["refs/heads/" + branch, "refs/remotes/origin/" + branch] {
+      let result = try? await CommandRunner.run(git, ["show-ref", "--verify", "--quiet", ref], cwd: path)
+      if result?.status == 0 { return true }
+    }
+    return false
+  }
+
+  /// The repository's own default branch: `origin/HEAD` when the clone recorded it, otherwise
+  /// `main` or `master` when exactly one exists, otherwise the checked-out branch. Nil when the
+  /// folder is not a repository.
+  public static func defaultBranch(at path: String) async -> String? {
+    if let head = try? await CommandRunner.run(
+      git, ["symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD"], cwd: path),
+      head.status == 0
+    {
+      let name = head.output.trimmingCharacters(in: .whitespacesAndNewlines)
+      if name.hasPrefix("origin/"), name.count > 7 { return String(name.dropFirst(7)) }
+    }
+    var common: [String] = []
+    for candidate in ["main", "master"] where await branchExists(candidate, at: path) {
+      common.append(candidate)
+    }
+    if common.count == 1 { return common[0] }
+    guard let current = try? await CommandRunner.run(git, ["branch", "--show-current"], cwd: path),
+      current.status == 0
+    else { return common.first }
+    let name = current.output.trimmingCharacters(in: .whitespacesAndNewlines)
+    return name.isEmpty ? common.first : name
+  }
+
   /// The ref an issue branch starts from and is compared against: the remote base when the
   /// repository has an origin, so a tester's unpushed local commits never enter a PR.
   public static func baseRef(project: Project, path: String) async -> String {
@@ -106,10 +138,24 @@ public enum GitWorkspace {
         git, ["worktree", "add", path, branch], cwd: project.path)
       return (path, branch)
     }
+    // A missing base branch otherwise surfaces as git's "invalid reference", which does not
+    // say what to change.
+    guard await branchExists(project.baseBranch, at: project.path) else {
+      throw missingBaseBranch(project, suggested: await defaultBranch(at: project.path))
+    }
     let start = await baseRef(project: project, path: project.path)
     _ = try await CommandRunner.checked(
       git, ["worktree", "add", "-b", branch, path, start], cwd: project.path)
     return (path, branch)
+  }
+
+  static func missingBaseBranch(_ project: Project, suggested: String?) -> ScreenClipError {
+    if let suggested, suggested != project.baseBranch {
+      return .message(
+        "\(project.name) has no branch “\(project.baseBranch)”. Its default branch is “\(suggested)”: set Base branch to \(suggested) in Settings › Projects, then choose Continue.")
+    }
+    return .message(
+      "\(project.name) has no branch “\(project.baseBranch)”. Set its Base branch in Settings › Projects, then choose Continue.")
   }
 
   /// Removes a finished issue's worktree and local branch. A worktree with uncommitted
