@@ -104,11 +104,18 @@ extension AgentWorker {
       guard !project.validationCommand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
         throw ScreenClipError.message(GitWorkspace.missingValidationMessage)
       }
-      do {
-        try await PRScreenshotEvidence.prepare(issue: issue, worktree: path)
-      } catch {
-        if scheduleRepair(id, message: error.localizedDescription) { return }
-        throw error
+      // Screenshots are best effort: a failure is noted and the fix publishes without them.
+      var commitEvidence = project.commitsScreenshots
+      if commitEvidence {
+        do {
+          try await PRScreenshotEvidence.prepare(issue: issue, worktree: path)
+        } catch {
+          commitEvidence = false
+          await PRScreenshotEvidence.discard(issue: issue, worktree: path)
+          try model.updateIssue(id) {
+            $0.record(PRScreenshotEvidence.warning(error), kind: PRScreenshotEvidence.warningKind)
+          }
+        }
       }
       if !baseAlreadyUpdated {
         do {
@@ -144,7 +151,7 @@ extension AgentWorker {
       }
       let published = try await GitHubService.publish(
         project: project, issue: issue, summary: summary, receipt: receipt,
-        gh: AgentDetector.ghPath(model.snapshot.settings),
+        gh: AgentDetector.ghPath(model.snapshot.settings), commitEvidence: commitEvidence,
         shouldContinue: { [weak self] in
           self?.model.issue(id)?.revision == issue.coveredRevision
             && self?.model.issue(id)?.status == .working
@@ -153,6 +160,7 @@ extension AgentWorker {
       savedReceipt.head = published.head
       try saveReceipt(savedReceipt, for: id, issue: issue)
       try model.updateIssue(id) { current in
+        for warning in published.warnings { current.record(warning, kind: PRScreenshotEvidence.warningKind) }
         current.prURL = published.url
         current.prHead = published.head
         current.prRevision = issue.coveredRevision
@@ -400,13 +408,6 @@ extension AgentWorker {
         noChecksSettled = false
       }
       let receipt = loadReceipt(id, issue: issue)
-      // The local checkout can move independently while a PR is waiting for review.
-      // Inspect the commit GitHub would actually merge.
-      var carriesEvidence = true
-      if model.issue(id)?.prHead == pr.head {
-        carriesEvidence = ExternalAssistant.containsScreenclipEvidence(
-          try await GitHubService.listScreenclipPaths(revision: pr.head, cwd: path))
-      }
       guard let currentIssue = model.issue(id), currentIssue.status == .prOpen,
         currentIssue.prURL == url, currentIssue.workspaceID == issue.workspaceID
       else { return }
@@ -418,9 +419,7 @@ extension AgentWorker {
           && !project.validationCommand.isEmpty, checksPassed: pr.checksPassed || noChecksSettled,
         mergeable: pr.mergeable && pr.base == project.baseBranch,
         reviewSatisfied: pr.reviewSatisfied,
-        unresolvedQuestions: currentIssue.questions.contains { $0.reply == nil },
-        // Grok Bot pull requests that still have their hand-off folder returned `.blocked` above.
-        screenclipEvidenceCleared: !carriesEvidence, draft: pr.draft)
+        unresolvedQuestions: currentIssue.questions.contains { $0.reply == nil }, draft: pr.draft)
       let checkSummary: String
       if pr.draft {
         checkSummary = ExternalAssistant.draftPullRequestSummary
@@ -466,17 +465,13 @@ extension AgentWorker {
       // local validation. Automatic merge still requires at least one passing GitHub check.
       let approved = mergeReviewedHead != nil || (project.autoMerge && pr.checksPassed)
       let mergesNow = evidence.canMerge && approved
-      // A head with `.screenclip/` is never merged. ScreenClip removes the folder and pushes;
-      // the merge follows once checks pass on that commit.
-      let removesEvidence = evidence.removesEvidenceFirst && approved
-      if !mergesNow, !removesEvidence, evidence.readyForValidation,
+      if !mergesNow, evidence.readyForValidation,
         currentIssue.revision == currentIssue.coveredRevision,
-        evidence.canMerge || evidence.removesEvidenceFirst
-          || (!validatedHere && !project.validationCommand.isEmpty)
+        evidence.canMerge || (!validatedHere && !project.validationCommand.isEmpty)
       {
         eligibleHead = pr.head
       }
-      guard (mergesNow || removesEvidence || resolvesConflict) && !model.snapshot.settings.paused
+      guard (mergesNow || resolvesConflict) && !model.snapshot.settings.paused
       else { return }
       // Re-check after the awaits above: parallel reports in one project must merge one at a
       // time, so each later merge revalidates against the base that already includes the earlier.
@@ -558,17 +553,13 @@ extension AgentWorker {
         return
       }
       // Recheck local revision immediately before submitting a guarded merge.
-      guard mergesNow || removesEvidence, let latest = model.issue(id), latest.status == .prOpen,
+      guard mergesNow, let latest = model.issue(id), latest.status == .prOpen,
         latest.revision == issue.coveredRevision, latest.prURL == url, latest.prHead == pr.head,
         latest.questions.allSatisfy({ $0.reply != nil }), !model.snapshot.settings.paused,
         let latestProject = model.project(latest.projectID), latestProject.baseBranch == pr.base,
         latestProject.validationCommand == project.validationCommand,
         latestProject.autoMerge || mergeReviewedHead == pr.head
       else { return }
-      if removesEvidence {
-        try await removeEvidenceBeforeMerge(id, issue: issue, path: path, pullHead: pr.head)
-        return
-      }
       try await GitHubService.merge(
         url: url, head: pr.head, path: path, gh: AgentDetector.ghPath(model.snapshot.settings))
       let confirmed = try await GitHubService.state(
@@ -580,46 +571,6 @@ extension AgentWorker {
       }
     } catch {
       model.perform { try model.updateIssue(id) { $0.lastError = error.localizedDescription } }
-    }
-  }
-  /// Removes `.screenclip/` from the pull request in a commit of its own and pushes it, so the
-  /// squash merge cannot carry evidence into the base. The description keeps its images: they are
-  /// linked at the commit that added them. The validation receipt moves to the new head, which
-  /// only deletes ScreenClip's evidence files; GitHub checks run again before the merge.
-  func removeEvidenceBeforeMerge(_ id: UUID, issue: Issue, path: String, pullHead: String) async throws {
-    guard let branch = issue.branch else { throw ScreenClipError.message("No issue branch exists.") }
-    let head = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
-    let checkedOut = try await CommandRunner.checked(GitWorkspace.git, ["branch", "--show-current"], cwd: path)
-    guard head == pullHead, checkedOut == branch else {
-      throw ScreenClipError.message(
-        "The worktree is not on the pull request's head, so ScreenClip did not remove its evidence files.")
-    }
-    guard let removed = try await PRScreenshotEvidence.removeFromBranch(worktree: path) else { return }
-    do {
-      _ = try await CommandRunner.checked(
-        GitWorkspace.git, ["push", "origin", removed + ":refs/heads/" + branch], cwd: path)
-    } catch {
-      // Undo only this commit's tree changes. A hard reset would erase unrelated local
-      // edits, including another change staged before the evidence removal.
-      let current = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
-      if current == removed,
-        try await CommandRunner.checked(GitWorkspace.git, ["branch", "--show-current"], cwd: path) == branch
-      {
-        _ = try await CommandRunner.checked(GitWorkspace.git, ["read-tree", "-m", "-u", removed, head], cwd: path)
-        _ = try await CommandRunner.checked(GitWorkspace.git, ["update-ref", "refs/heads/" + branch, head, removed], cwd: path)
-      }
-      throw error
-    }
-    if var receipt = loadReceipt(id, issue: issue), receipt.head == pullHead {
-      receipt.head = removed
-      try saveReceipt(receipt, for: id, issue: issue)
-    }
-    let summary = PRScreenshotEvidence.removedBeforeMergeSummary
-    try model.updateIssue(id) {
-      $0.prHead = removed
-      $0.lastError = nil
-      $0.checkSummary = summary
-      $0.record(summary)
     }
   }
   /// `cleanUp` is false when the merged fix came from another branch: the report's

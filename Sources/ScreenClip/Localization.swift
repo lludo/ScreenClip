@@ -84,7 +84,6 @@ enum AppChrome {
     "Report no longer exists.",
     "No issue branch exists.",
     "Add a validation command in this project's settings before publishing a fix.",
-    "The worktree is not on the pull request's head, so ScreenClip did not remove its evidence files.",
     "Cancel active work before archiving this report.",
     "Cancel or finish the active run before deleting its evidence.",
     "This project has recorded issues. Add a new project to use a different repository.",

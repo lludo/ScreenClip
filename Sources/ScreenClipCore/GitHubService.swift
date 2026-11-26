@@ -3,11 +3,13 @@ import Foundation
 public enum GitHubService {
   public static func publish(
     project: Project, issue: Issue, summary: String, receipt: ValidationReceipt, gh: String,
-    shouldContinue: @escaping @MainActor () -> Bool
-  ) async throws -> (url: String, head: String) {
+    commitEvidence: Bool? = nil, shouldContinue: @escaping @MainActor () -> Bool
+  ) async throws -> (url: String, head: String, warnings: [String]) {
     guard let path = issue.worktreePath, let branch = issue.branch else {
       throw ScreenClipError.message("No issue worktree exists.")
     }
+    // False when the project does not commit screenshots, or preparing them failed.
+    let commitEvidence = commitEvidence ?? project.commitsScreenshots
     _ = try await CommandRunner.checked(gh, ["auth", "status"], cwd: path)
     let remote = try await CommandRunner.checked(
       GitWorkspace.git, ["remote", "get-url", "origin"], cwd: path)
@@ -25,10 +27,16 @@ public enum GitHubService {
     }
     let merging = await GitWorkspace.mergeInProgress(path: path)
     if !changes.isEmpty || merging {
-      if !changes.isEmpty { try await stageChanges(cwd: path) }
+      if !changes.isEmpty {
+        try await stageChanges(cwd: path, excludingEvidence: !commitEvidence)
+      }
       guard await shouldContinue() else { throw CancellationError() }
-      _ = try await CommandRunner.checked(
-        GitWorkspace.git, ["commit", "-m", "Fix: " + String(issue.title.prefix(120))], cwd: path)
+      // Without evidence, the only changes may have been the agent's After captures.
+      let staged = try await CommandRunner.run(GitWorkspace.git, ["diff", "--cached", "--quiet"], cwd: path)
+      if staged.status != 0 || merging {
+        _ = try await CommandRunner.checked(
+          GitWorkspace.git, ["commit", "-m", "Fix: " + String(issue.title.prefix(120))], cwd: path)
+      }
     }
     let base = await GitWorkspace.baseRef(project: project, path: path)
     let commits = try await CommandRunner.checked(
@@ -37,18 +45,22 @@ public enum GitHubService {
       throw ScreenClipError.message(
         "No fix commit was produced. Open the \(issue.resolvedAgent.title) conversation to review the result.")
     }
-    let evidenceCommit = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
+    let head = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
     guard await shouldContinue(),
       try await GitWorkspace.fingerprint(path: path) == receipt.fingerprint
     else {
       throw ScreenClipError.message("The source or issue changed before push. Publication stopped.")
     }
-    let screenshots = try PRScreenshotEvidence.markdown(
-      issue: issue, worktree: path, remote: remote, head: evidenceCommit)
-    // The description links the evidence at `evidenceCommit`; the pull request's head drops it, so
-    // checks, review and the squash merge see a branch without `.screenclip/`. Validation still
-    // covers that head: the commit only deletes ScreenClip's own evidence files.
-    let head = try await PRScreenshotEvidence.removeFromBranch(worktree: path) ?? evidenceCommit
+    // Evidence is best effort: a description without images still publishes the fix.
+    var warnings: [String] = []
+    var screenshots = ""
+    if commitEvidence {
+      do {
+        screenshots = try PRScreenshotEvidence.markdown(issue: issue, worktree: path, remote: remote, head: head)
+      } catch {
+        warnings.append(PRScreenshotEvidence.warning(error))
+      }
+    }
     guard await shouldContinue() else { throw CancellationError() }
     try await pushBranch(branch, cwd: path)
     let existing = try await CommandRunner.checked(
@@ -57,7 +69,7 @@ public enum GitHubService {
     let list = try JSONDecoder().decode(JSONValue.self, from: Data(existing.utf8)).array
     guard await shouldContinue() else { throw CancellationError() }
     let body =
-      "\(summary)\n\n\(screenshots)\n\nValidation: `\(redactSecrets(project.validationCommand))`\n\nScreenClip report: \(issue.reportReference ?? issue.id.uuidString)\nIssue ID: \(issue.id.uuidString)\nInput revision: \(issue.revision)"
+      "\(summary)\(screenshots.isEmpty ? "" : "\n\n" + screenshots)\n\nValidation: `\(redactSecrets(project.validationCommand))`\n\nScreenClip report: \(issue.reportReference ?? issue.id.uuidString)\nIssue ID: \(issue.id.uuidString)\nInput revision: \(issue.revision)"
     let file = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(
       "screenclip-pr-\(UUID().uuidString).md")
     try body.write(to: file, atomically: true, encoding: .utf8)
@@ -68,7 +80,7 @@ public enum GitHubService {
         throw ScreenClipError.message("The existing PR targets a different base branch.")
       }
       _ = try await CommandRunner.checked(gh, ["pr", "edit", url, "--body-file", file.path], cwd: path)
-      return (url, head)
+      return (url, head, warnings)
     }
     let url = try await CommandRunner.checked(
       gh,
@@ -80,7 +92,7 @@ public enum GitHubService {
       throw ScreenClipError.message(
         "Could not identify the created PR. Inspect the branch before retrying.")
     }
-    return (url, head)
+    return (url, head, warnings)
   }
   /// Stages every change for the fix commit. A deletion that is already staged has no path
   /// left to add: a base merge left in progress stages the files the base deleted or renamed,
@@ -90,7 +102,14 @@ public enum GitHubService {
   /// may ignore (Genealogy ignores `/.screenclip/`): re-adding an ignored index entry without it
   /// fails. Every path here is already in the index or an untracked file `--exclude-standard`
   /// let through, so forcing never brings in an ignored file ScreenClip did not stage itself.
-  public static func stageChanges(cwd path: String) async throws {
+  ///
+  /// `excludingEvidence` (no screenshots for this publish) does not add `.screenclip/` paths, such
+  /// as the agent's After captures. Nothing is unstaged: that would change the validated
+  /// fingerprint of a project that ignores `.screenclip/`, and ScreenClip stages none itself then.
+  static func isEvidencePath(_ path: String) -> Bool {
+    path == ".screenclip" || path.hasPrefix(".screenclip/")
+  }
+  public static func stageChanges(cwd path: String, excludingEvidence: Bool = false) async throws {
     func list(_ arguments: [String]) async throws -> Set<String> {
       let result = try await CommandRunner.run(GitWorkspace.git, arguments, cwd: path)
       guard result.status == 0 else { throw ScreenClipError.message(result.error) }
@@ -104,7 +123,8 @@ public enum GitHubService {
     guard !unstaged.isEmpty || !staged.isEmpty else {
       throw ScreenClipError.message("No source paths to publish.")
     }
-    let paths = unstaged.union(staged.subtracting(stagedDeletions)).sorted()
+    var paths = unstaged.union(staged.subtracting(stagedDeletions)).sorted()
+    if excludingEvidence { paths.removeAll(where: isEvidencePath) }
     guard !paths.isEmpty else { return }
     _ = try await CommandRunner.checked(GitWorkspace.git, ["--literal-pathspecs", "add", "--force", "--"] + paths, cwd: path)
   }

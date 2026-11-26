@@ -363,13 +363,7 @@ final class CoreTests: XCTestCase {
     e.unresolvedQuestions = true
     XCTAssertFalse(e.canMerge)
     e.unresolvedQuestions = false
-    e.screenclipEvidenceCleared = false
-    XCTAssertFalse(e.canMerge)
-    XCTAssertTrue(e.removesEvidenceFirst, "Evidence is removed first, not waited for")
-    XCTAssertTrue(e.readyForValidation)
-    e.screenclipEvidenceCleared = true
     XCTAssertTrue(e.canMerge)
-    XCTAssertFalse(e.removesEvidenceFirst)
   }
   func testPullRequestStateNeverTreatsNoChecksOrPendingAsPassing() throws {
     func state(_ check: String) throws -> PRState {

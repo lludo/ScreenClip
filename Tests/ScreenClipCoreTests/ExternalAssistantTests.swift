@@ -355,19 +355,12 @@ final class ExternalAssistantTests: XCTestCase {
         .value(forHTTPHeaderField: "Authorization"))
   }
 
-  func testScreenclipPathsBlockAutomaticMerge() {
+  func testScreenclipPathsAreRecognized() {
     XCTAssertTrue(ExternalAssistant.containsScreenclipEvidence([".screenclip/234/report.json"]))
     XCTAssertTrue(ExternalAssistant.containsScreenclipEvidence([".screenclip/234/capture-1.png"]))
     XCTAssertFalse(ExternalAssistant.containsScreenclipEvidence([]))
     XCTAssertFalse(ExternalAssistant.containsScreenclipEvidence(["Sources/App.swift"]))
     XCTAssertFalse(ExternalAssistant.containsScreenclipEvidence(["docs/screenclip/readme.md"]))
-    var evidence = MergeEvidence(
-      expectedHead: "abc", currentHead: "abc", inputRevision: 2, coveredRevision: 2,
-      validationPassed: true, hasValidation: true, checksPassed: true, mergeable: true,
-      reviewSatisfied: true, unresolvedQuestions: false, screenclipEvidenceCleared: false)
-    XCTAssertFalse(evidence.canMerge)
-    evidence.screenclipEvidenceCleared = true
-    XCTAssertTrue(evidence.canMerge)
   }
 
   func testFollowUpRequeuesExternalWorkAndOlderIssuesStayCodex() throws {
@@ -685,8 +678,7 @@ final class ExternalAssistantTests: XCTestCase {
     var evidence = MergeEvidence(
       expectedHead: "abc", currentHead: "abc", inputRevision: 2, coveredRevision: 2,
       validationPassed: true, hasValidation: true, checksPassed: true, mergeable: true,
-      reviewSatisfied: true, unresolvedQuestions: false, screenclipEvidenceCleared: true,
-      draft: true)
+      reviewSatisfied: true, unresolvedQuestions: false, draft: true)
     XCTAssertFalse(evidence.canMerge)
     evidence.draft = false
     XCTAssertTrue(evidence.canMerge)

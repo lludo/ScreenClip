@@ -82,16 +82,12 @@ public struct MergeEvidence: Equatable {
   public var mergeable: Bool
   public var reviewSatisfied: Bool
   public var unresolvedQuestions: Bool
-  /// The head has no `.screenclip/` path. A squash merge would carry those files into the base,
-  /// so ScreenClip removes them in a commit of its own first (`removesEvidenceFirst`).
-  public var screenclipEvidenceCleared: Bool
   /// Draft pull requests are attached and watched, and are never merged.
   public var draft: Bool
   public init(
     expectedHead: String, currentHead: String, inputRevision: Int, coveredRevision: Int,
     validationPassed: Bool, hasValidation: Bool, checksPassed: Bool, mergeable: Bool,
-    reviewSatisfied: Bool, unresolvedQuestions: Bool, screenclipEvidenceCleared: Bool = true,
-    draft: Bool = false
+    reviewSatisfied: Bool, unresolvedQuestions: Bool, draft: Bool = false
   ) {
     self.expectedHead = expectedHead
     self.currentHead = currentHead
@@ -103,7 +99,6 @@ public struct MergeEvidence: Equatable {
     self.mergeable = mergeable
     self.reviewSatisfied = reviewSatisfied
     self.unresolvedQuestions = unresolvedQuestions
-    self.screenclipEvidenceCleared = screenclipEvidenceCleared
     self.draft = draft
   }
   public var readyForValidation: Bool {
@@ -111,12 +106,9 @@ public struct MergeEvidence: Equatable {
       && checksPassed && mergeable && reviewSatisfied
       && !unresolvedQuestions && !draft
   }
-  /// Never true while the head carries `.screenclip/`.
+  /// `.screenclip/` evidence on the head does not hold a merge back: it stays in the repository
+  /// until the tester removes it.
   public var canMerge: Bool {
-    readyForValidation && validationPassed && hasValidation && screenclipEvidenceCleared
-  }
-  /// Ready in every other way: remove the evidence and push, then merge once checks pass again.
-  public var removesEvidenceFirst: Bool {
-    readyForValidation && validationPassed && hasValidation && !screenclipEvidenceCleared
+    readyForValidation && validationPassed && hasValidation
   }
 }

@@ -352,20 +352,22 @@ public enum GitWorkspace {
       let autostash = try await CommandRunner.run(
         git, ["rev-parse", "--verify", "--quiet", "MERGE_AUTOSTASH"], cwd: path)
       if autostash.status == 1, try await isAncestor(base, of: "MERGE_HEAD", path: path) { return }
-      try await stageWorkingChanges(path: path)
+      try await stageWorkingChanges(project: project, path: path)
       _ = try await CommandRunner.checked(git, ["-c", "core.editor=true", "merge", "--continue"], cwd: path)
       try await checkRestoredChanges(project: project, path: path)
     }
     guard try await !isAncestor(base, of: "HEAD", path: path) else { return }
-    try await stageWorkingChanges(path: path)
+    try await stageWorkingChanges(project: project, path: path)
     try await mergeBase(base, project: project, path: path, keepConflicts: true, autostash: true)
     // Git can report a successful fast-forward even if reapplying the working edits conflicted.
     try await checkRestoredChanges(project: project, path: path)
   }
 
-  private static func stageWorkingChanges(path: String) async throws {
+  private static func stageWorkingChanges(project: Project, path: String) async throws {
     let changes = try await CommandRunner.checked(git, ["status", "--porcelain"], cwd: path)
-    if !changes.isEmpty { try await GitHubService.stageChanges(cwd: path) }
+    if !changes.isEmpty {
+      try await GitHubService.stageChanges(cwd: path, excludingEvidence: !project.commitsScreenshots)
+    }
   }
 
   private static func checkRestoredChanges(project: Project, path: String) async throws {

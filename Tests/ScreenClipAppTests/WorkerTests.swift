@@ -850,9 +850,14 @@ import XCTest
       return
     }
     XCTAssertEqual(model.issue(id)?.resultSummary, "Recovered fix")
-    XCTAssertEqual(model.issue(id)?.status, .queued)
     XCTAssertEqual(model.issue(id)?.consumedTurnID, "T1")
-    XCTAssertTrue(model.issue(id)?.validationFeedback?.contains("Invalid PNG screenshot") == true) // Recovery hands the result to publication, which asks for valid evidence.
+    // Recovery hands the result to publication. The capture is no PNG, which is a warning, not a
+    // repair: publication carries on without screenshots (and stops later, at this fake remote).
+    XCTAssertTrue(model.issue(id)?.activities.contains {
+      $0.kind == PRScreenshotEvidence.warningKind && $0.text.contains("Invalid PNG screenshot")
+    } == true)
+    XCTAssertEqual(model.issue(id)?.repairAttempts ?? 0, 0)
+    XCTAssertNil(model.issue(id)?.validationFeedback)
     let requests = try String(contentsOf: root.appendingPathComponent("requests"), encoding: .utf8)
     XCTAssertFalse(requests.contains("turn/start"))
     await model.worker.resetConnection()
