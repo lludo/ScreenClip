@@ -245,6 +245,25 @@ final class IntegrationTests: XCTestCase {
     let staged = try await GitWorkspace.fingerprint(path: url.path)
     XCTAssertEqual(staged, third)
   }
+  func testStageChangesKeepsForceAddedEvidenceInAnIgnoredFolder() async throws {
+    let url = try await repo()
+    try Data("/.screenclip/\n".utf8).write(to: url.appendingPathComponent(".gitignore"))
+    let evidence = url.appendingPathComponent(".screenclip/pr/issue/revision-1/after")
+    try FileManager.default.createDirectory(at: evidence, withIntermediateDirectories: true)
+    try Data("png".utf8).write(to: evidence.appendingPathComponent("1.png"))
+    try Data("png".utf8).write(to: evidence.appendingPathComponent("2.png"))
+    _ = try await CommandRunner.checked(
+      "/usr/bin/git", ["add", "--force", "--", ".screenclip"], cwd: url.path)
+    // A later revision drops one screenshot after it was staged, and edits the source.
+    try FileManager.default.removeItem(at: evidence.appendingPathComponent("2.png"))
+    try Data("fixed\n".utf8).write(to: url.appendingPathComponent("source.txt"))
+    try await GitHubService.stageChanges(cwd: url.path)
+    let staged = try await CommandRunner.checked(
+      "/usr/bin/git", ["diff", "--cached", "--name-only"], cwd: url.path)
+    XCTAssertEqual(
+      staged.split(separator: "\n").map(String.init),
+      [".gitignore", ".screenclip/pr/issue/revision-1/after/1.png", "source.txt"])
+  }
   func testValidationRefusesSourceChangesDuringChecks() async throws {
     let url = try await repo()
     let project = Project(
