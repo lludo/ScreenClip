@@ -138,6 +138,16 @@ public enum GitWorkspace {
         git, ["worktree", "add", path, branch], cwd: project.path)
       return (path, branch)
     }
+    // A local branch freed by `removeIfUnneeded` had all its commits on origin. When origin
+    // still has the branch itself, continue from it rather than from the base.
+    let pushed = try await CommandRunner.run(
+      git, ["show-ref", "--verify", "--quiet", "refs/remotes/origin/\(branch)"], cwd: project.path)
+    if pushed.status == 0 {
+      _ = try await CommandRunner.checked(
+        git, ["worktree", "add", "--no-track", "-b", branch, path, "origin/" + branch],
+        cwd: project.path)
+      return (path, branch)
+    }
     // A missing base branch otherwise surfaces as git's "invalid reference", which does not
     // say what to change.
     guard await branchExists(project.baseBranch, at: project.path) else {
@@ -170,6 +180,84 @@ public enum GitWorkspace {
       _ = try? await CommandRunner.run(git, ["branch", "-D", branch], cwd: repository)
     }
     return true
+  }
+
+  /// A worktree registered with a repository, as `git worktree list` reports it.
+  public struct Worktree: Equatable, Sendable {
+    public var path: String
+    public var branch: String?
+  }
+
+  /// The repository's linked worktrees (not its main checkout).
+  public static func worktrees(repository: String) async -> [Worktree] {
+    guard let list = try? await CommandRunner.run(
+      git, ["worktree", "list", "--porcelain", "-z"], cwd: repository), list.status == 0
+    else { return [] }
+    var found: [Worktree] = []
+    for record in list.output.components(separatedBy: "\0\0") {
+      var current: Worktree?
+      for field in record.split(separator: "\0").map(String.init) {
+        if field.hasPrefix("worktree ") {
+          current = Worktree(path: String(field.dropFirst(9)), branch: nil)
+        } else if field.hasPrefix("branch refs/heads/") {
+          current?.branch = String(field.dropFirst(18))
+        }
+      }
+      if let current { found.append(current) }
+    }
+    // The first entry is always the main checkout.
+    return Array(found.dropFirst())
+  }
+
+  /// True when `path` is a folder directly inside ScreenClip's own worktree folder under `root`.
+  public static func isScreenClipWorktree(_ path: String, root: URL) -> Bool {
+    let folder = canonical(root.appendingPathComponent("worktrees").path) + "/"
+    let candidate = canonical(path)
+    return candidate.hasPrefix(folder) && !candidate.dropFirst(folder.count).contains("/")
+  }
+
+  /// Why the worktree at `path` must be kept, or nil when removing it and its local branch
+  /// loses nothing: it is one of ScreenClip's own worktrees of `repository` (never the tester's
+  /// checkout), it has no uncommitted or untracked changes and no merge in progress, and every
+  /// commit on its HEAD and on `branch` is already on origin. Without an origin, a worktree
+  /// with any commit is kept.
+  public static func reasonToKeep(
+    path: String, branch: String?, repository: String, root: URL
+  ) async -> String? {
+    guard isScreenClipWorktree(path, root: root), canonical(path) != canonical(repository) else {
+      return "not a ScreenClip worktree"
+    }
+    var isDirectory: ObjCBool = false
+    guard FileManager.default.fileExists(atPath: path, isDirectory: &isDirectory),
+      isDirectory.boolValue
+    else { return "missing" }
+    guard await worktrees(repository: repository).contains(where: {
+      canonical($0.path) == canonical(path)
+    }) else { return "not a worktree of this repository" }
+    guard let status = try? await CommandRunner.run(
+      git, ["status", "--porcelain", "--ignore-submodules=none", "--untracked-files=all"],
+      cwd: path), status.status == 0
+    else { return "status unavailable" }
+    if !status.output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+      return "uncommitted changes"
+    }
+    if await mergeInProgress(path: path) { return "merge in progress" }
+    var revisions = ["HEAD"]
+    if let branch, !branch.isEmpty {
+      let local = try? await CommandRunner.run(
+        git, ["show-ref", "--verify", "--quiet", "refs/heads/" + branch], cwd: repository)
+      if local?.status == 0 { revisions.append("refs/heads/" + branch) }
+    }
+    for revision in revisions {
+      guard let unpushed = try? await CommandRunner.run(
+        git, ["rev-list", "--count", revision, "--not", "--remotes=origin"], cwd: path),
+        unpushed.status == 0
+      else { return "commits unavailable" }
+      if unpushed.output.trimmingCharacters(in: .whitespacesAndNewlines) != "0" {
+        return "commits not on origin"
+      }
+    }
+    return nil
   }
 
   /// Deletes a merged issue branch from origin. Only ScreenClip's own branch prefixes are
