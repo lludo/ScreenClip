@@ -1,8 +1,7 @@
 <div class="intro wrap ios-intro">
       <section class="hero" aria-labelledby="ios-hero-title">
-        <p class="eyebrow">{{iosPage.eyebrow}}</p>
         <h1 id="ios-hero-title">{{iosPage.title}}</h1>
-        <p class="lead">{{iosPage.intro}}</p>
+        <p class="lead">{{ios.intro}}</p>
         <div class="actions">
           <a class="button button-primary" href="#setup">{{iosPage.setupButton}}</a>
           <a class="button button-secondary" href="@@SDK_DOCS@@">{{iosPage.docsButton}}</a>
@@ -14,53 +13,27 @@
     </div>
 
     <section class="section section-rule" id="how" aria-labelledby="how-title">
-      <div class="wrap">
-        <div class="section-intro section-intro-wide">
-          <p class="eyebrow">{{iosPage.howEyebrow}}</p>
-          <h2 id="how-title">{{iosPage.howTitle}}</h2>
-        </div>
-        <ol class="flow">
-          <li class="flow-step">
-            <p class="flow-who"><span class="who">{{flow.you}}</span><span class="step-num">01</span></p>
-            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.4"/><path d="M11 18.5h2"/><path d="M3.5 9c-.9 1.9-.9 4.1 0 6M20.5 9c.9 1.9.9 4.1 0 6"/></svg></span>
-            <h3>{{iosPage.step1Title}}</h3>
-            <p>{{iosPage.step1Body}}</p>
-          </li>
-          <li class="flow-step">
-            <p class="flow-who"><span class="who">{{flow.you}}</span><span class="step-num">02</span></p>
-            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10 14"/><path d="m21 3-7 18-4-7-7-4z"/></svg></span>
-            <h3>{{iosPage.step2Title}}</h3>
-            <p>{{iosPage.step2Body}}</p>
-          </li>
-          <li class="flow-step flow-agent">
-            <p class="flow-who"><span class="who">{{flow.agent}} · {{flow.background}}</span><span class="step-num">03</span></p>
-            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M6 8.2v7.6M18 15.8V10a3 3 0 0 0-3-3h-3.5"/><path d="M13.5 4.5 11 7l2.5 2.5"/></svg></span>
-            <h3>{{iosPage.step3Title}}</h3>
-            <p>{{iosPage.step3Body}}</p>
-          </li>
-          <li class="flow-step">
-            <p class="flow-who"><span class="who">{{flow.you}}</span><span class="step-num">04</span></p>
-            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4.5V9h-4.5"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></span>
-            <h3>{{iosPage.step4Title}}</h3>
-            <p>{{iosPage.step4Body}}</p>
-          </li>
-        </ol>
-        <div class="notification-example pair-example" id="pair">
-          <div>
-            <h3>{{iosPage.pairTitle}}</h3>
-            <p>{{iosPage.pairBody}}</p>
-          </div>
+      <div class="wrap instruction-copy">
+        <h2 id="how-title">{{iosPage.howTitle}}</h2>
+        <div id="pair" class="pair-example">
+          <h3>{{iosPage.pairTitle}}</h3>
+          <p>{{iosPage.pairBody}}</p>
           @@PAIRING_FIGURE@@
         </div>
+        <h3>{{iosPage.step1Title}}</h3>
+        <p>{{iosPage.step1Body}}</p>
+        <p>{{iosPage.step2Body}}</p>
+        <h3>{{iosPage.step4Title}}</h3>
+        <p>{{iosPage.step4Body}}</p>
       </div>
     </section>
 
     <section class="section section-rule" id="setup" aria-labelledby="setup-title">
       <div class="wrap">
         <div class="section-intro">
-          <p class="eyebrow">{{iosPage.setupEyebrow}}</p>
           <h2 id="setup-title">{{iosPage.setupTitle}}</h2>
           <p>{{iosPage.setupIntro}}</p>
+          <p>{{iosPage.agentTip}}</p>
         </div>
         <ol class="setup-steps">
           <li>
@@ -71,7 +44,8 @@
           <li>
             <h3>{{iosPage.setup2Title}}</h3>
             <p>{{iosPage.setup2Body}}</p>
-            <pre class="code"><code>#if DEBUG
+            <pre class="code"><code>import SwiftUI
+#if DEBUG
 import ScreenClipKit
 #endif
 
@@ -94,7 +68,6 @@ struct ShopApp: App {
 &lt;string&gt;Send bug reports to ScreenClip on your Mac.&lt;/string&gt;</code></pre>
           </li>
         </ol>
-        <p class="section-note">{{iosPage.agentTip}}</p>
         <p class="section-note">{{iosPage.releaseNote}}</p>
       </div>
     </section>
@@ -102,17 +75,13 @@ struct ShopApp: App {
     <section class="section section-rule" id="docs" aria-labelledby="docs-title">
       <div class="wrap">
         <div class="section-intro">
-          <p class="eyebrow">{{iosPage.docsEyebrow}}</p>
-          <h2 id="docs-title">{{iosPage.docsTitle}}</h2>
-          <p>{{iosPage.docsIntro}}</p>
+          <h2 id="docs-title">{{iosPage.docsButton}}</h2>
         </div>
-        <div class="cards doc-cards">
-          <a class="card" href="@@SDK_DOCS@@/attachingyourownfiles"><h3>{{iosPage.docsAttachTitle}}</h3><p>{{iosPage.docsAttachBody}}</p></a>
-          <a class="card" href="@@SDK_DOCS@@/diagnostics"><h3>{{iosPage.docsDiagTitle}}</h3><p>{{iosPage.docsDiagBody}}</p></a>
-          <a class="card" href="@@SDK_DOCS@@/privacyandreleasebuilds"><h3>{{iosPage.docsPrivacyTitle}}</h3><p>{{iosPage.docsPrivacyBody}}</p></a>
-        </div>
-        <div class="actions docs-actions">
-          <a class="button button-primary" href="@@SDK_DOCS@@">{{iosPage.docsAll}}</a>
-        </div>
+        <ul class="doc-links">
+          <li><a href="@@SDK_DOCS@@/attachingyourownfiles">{{iosPage.docsAttachTitle}}</a></li>
+          <li><a href="@@SDK_DOCS@@/diagnostics">{{iosPage.docsDiagTitle}}</a></li>
+          <li><a href="@@SDK_DOCS@@/privacyandreleasebuilds">{{iosPage.docsPrivacyTitle}}</a></li>
+          <li><a href="@@SDK_DOCS@@">{{iosPage.docsAll}}</a></li>
+        </ul>
       </div>
     </section>

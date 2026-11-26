@@ -1,10 +1,8 @@
 <div class="intro wrap">
       <section class="hero" aria-labelledby="hero-title">
-        <p class="hero-new"><a href="#ios"><span class="hero-new-tag">{{hero.newTag}}</span>{{hero.newText}}</a></p>
-        <p class="eyebrow">{{hero.eyebrow}}</p>
-        <h1 id="hero-title">@@HERO_TITLE@@</h1>
+        <h1 id="hero-title">{{hero.title}}</h1>
         <p class="lead">{{hero.lead}}</p>
-        <p class="shortcut"><span class="keys" role="img" aria-label="{{hero.keysLabel}}"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>2</kbd></span><span>@@HERO_SHORTCUT@@</span></p>
+        <p class="shortcut"><span class="keys" role="img" aria-label="{{hero.keysLabel}}"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>2</kbd></span><span>{{hero.shortcut}}</span></p>
         @@ACTIONS@@
       </section>
 
@@ -31,134 +29,48 @@
 
     <section class="section section-rule" id="loop" aria-labelledby="loop-title">
       <div class="wrap">
-        <div class="section-intro section-intro-wide">
-          <p class="eyebrow">{{loop.eyebrow}}</p>
-          <h2 id="loop-title">{{loop.title}}</h2>
-        </div>
+        <h2 id="loop-title">{{nav.how}}</h2>
         <ol class="flow">
-          <li class="flow-step">
-            <p class="flow-who"><span class="who">{{flow.you}}</span><span class="step-num">01</span></p>
-            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></span>
-            <h3>{{flow.s1Title}}</h3>
-            <p>{{flow.s1Body}}</p>
-          </li>
-          <li class="flow-step">
-            <p class="flow-who"><span class="who">{{flow.you}}</span><span class="step-num">02</span></p>
-            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M14.5 7.5l3 3"/></svg></span>
-            <h3>{{flow.s2Title}}</h3>
-            <p>{{flow.s2Body}}</p>
-          </li>
-          <li class="flow-step flow-agent">
-            <p class="flow-who"><span class="who">{{flow.agent}} · {{flow.background}}</span><span class="step-num">03</span></p>
-            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M6 8.2v7.6M18 15.8V10a3 3 0 0 0-3-3h-3.5"/><path d="M13.5 4.5 11 7l2.5 2.5"/></svg></span>
-            <h3>{{flow.s3Title}}</h3>
-            <p>{{flow.s3Body}}</p>
-            <ul class="chips">
-              <li>{{flow.chipWorking}}</li>
-              <li>{{flow.chipPr}}</li>
-              <li>{{flow.chipMerged}}</li>
-            </ul>
-          </li>
-          <li class="flow-step">
-            <p class="flow-who"><span class="who">{{flow.you}}</span><span class="step-num">04</span></p>
-            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5a6 6 0 1 1 12 0c0 5 2 6.5 2 6.5H4s2-1.500 2-6.5z"/><path d="M10 19.500a2.100 2.100 0 0 0 4 0"/></svg></span>
-            <h3>{{flow.s4Title}}</h3>
-            <p>{{flow.s4Body}}</p>
-          </li>
+          <li><h3>{{flow.s1Title}}</h3><p>{{flow.s1Body}}</p></li>
+          <li><h3>{{flow.s3Title}}</h3><p>{{flow.s3Body}}</p></li>
+          <li><h3>{{flow.s4Title}}</h3><p>{{flow.s4Body}}</p></li>
         </ol>
-      </div>
-    </section>
-
-    <section class="section wrap" id="ios" aria-labelledby="ios-title">
-      <div class="section-intro">
-        <p class="eyebrow">{{ios.eyebrow}}</p>
-        <h2 id="ios-title">{{ios.title}}</h2>
-        <p>{{ios.intro}}</p>
-      </div>
-      <div class="cards">
-        <article class="card"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2.5" width="10" height="19" rx="2.4"/><path d="M11 18.5h2"/><path d="M3.5 9c-.9 1.9-.9 4.1 0 6M20.5 9c.9 1.9.9 4.1 0 6"/></svg></span><h3>{{ios.shakeTitle}}</h3><p>{{ios.shakeBody}}</p></article>
-        <article class="card"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10.5" width="14" height="10" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/><circle cx="12" cy="15.5" r="1.3" fill="currentColor" stroke="none"/></svg></span><h3>{{ios.pairTitle}}</h3><p>{{ios.pairBody}}</p></article>
-        <article class="card"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4.5V9h-4.5"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg></span><h3>{{ios.statusTitle}}</h3><p>{{ios.statusBody}}</p></article>
-      </div>
-      <p class="section-note">{{ios.note}}</p>
-    </section>
-
-    <section class="section wrap" id="benefits" aria-labelledby="benefits-title">
-      <div class="section-intro">
-        <p class="eyebrow">{{benefits.eyebrow}}</p>
-        <h2 id="benefits-title">{{benefits.title}}</h2>
-      </div>
-      <div class="cards benefits-cards">
-        <article class="card"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15M13 6l6 6-6 6"/></svg></span><h3>{{benefits.flowTitle}}</h3><p>{{benefits.flowBody}}</p></article>
-        <article class="card"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.200"/><path d="m20 20-4.400-4.400"/></svg></span><h3>{{benefits.noticeTitle}}</h3><p>{{benefits.noticeBody}}</p></article>
-        <article class="card"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5a6 6 0 1 1 12 0c0 5 2 6.5 2 6.5H4s2-1.500 2-6.5z"/><path d="M10 19.500a2.100 2.100 0 0 0 4 0"/></svg></span><h3>{{benefits.retestTitle}}</h3><p>{{benefits.retestBody}}</p></article>
-        <article class="card"><span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7.500A2.500 2.500 0 0 1 5.500 5H9l2 2.500h7.500A2.500 2.500 0 0 1 21 10v7a2.500 2.500 0 0 1-2.500 2.500h-13A2.500 2.500 0 0 1 3 17z"/></svg></span><h3>{{benefits.clearTitle}}</h3><p>{{benefits.clearBody}}</p></article>
-      </div>
-    </section>
-
-    <section class="section wrap" id="queue" aria-labelledby="queue-title">
-      <div class="section-intro">
-        <p class="eyebrow">{{queue.eyebrow}}</p>
-        <h2 id="queue-title">{{queue.title}}</h2>
-        <p>{{queue.intro}}</p>
-      </div>
-      <figure class="queue-figure">
-        <a href="@@QUEUE_PNG@@" aria-label="{{queue.open}}"><img src="@@QUEUE_PNG@@" width="2292" height="1412" alt="{{queue.alt}}" loading="lazy" decoding="async"></a>
-        <figcaption>{{queue.caption}}</figcaption>
-      </figure>
-      <div class="notification-example" id="notifications">
-        <div>
-          <h3>{{notifications.title}}</h3>
-          <p>{{notifications.body}}</p>
-        </div>
-        <figure class="queue-figure">
-          <a href="@@NOTIFICATION_PNG@@" aria-label="{{notifications.open}}"><img src="@@NOTIFICATION_PNG@@" width="912" height="490" alt="{{notifications.alt}}" loading="lazy" decoding="async"></a>
+        <figure class="queue-figure" id="queue">
+          <a href="@@QUEUE_PNG@@" aria-label="{{queue.open}}"><img src="@@QUEUE_PNG@@" width="2292" height="1412" alt="{{queue.alt}}" loading="lazy" decoding="async"></a>
+          <figcaption>{{queue.caption}} <a id="notifications" href="@@NOTIFICATION_PNG@@">{{notifications.open}}</a></figcaption>
         </figure>
       </div>
     </section>
 
     <section class="section wrap" id="agents" aria-labelledby="agents-title">
-      <div class="section-intro">
-        <p class="eyebrow">{{agents.eyebrow}}</p>
-        <h2 id="agents-title">{{agents.title}}</h2>
-        <p>{{agents.intro}}</p>
-      </div>
-      <div class="cards">
-        <article class="card">
-          <h3>{{agents.codexTitle}}</h3>
-          <p>{{agents.codexBody}}</p>
-        </article>
-        <article class="card">
-          <h3>{{agents.claudeTitle}}</h3>
-          <p>{{agents.claudeBody}}</p>
-        </article>
-        <article class="card">
-          <h3>{{agents.grokTitle}}</h3>
-          <p>{{agents.grokBody}}</p>
-        </article>
-      </div>
+      <h2 id="agents-title">{{nav.agents}}</h2>
+      <dl class="agent-list">
+        <div><dt>{{agents.localTitle}}</dt><dd>{{agents.localBody}}</dd></div>
+        <div><dt>{{agents.grokTitle}}</dt><dd>{{agents.grokBody}}</dd></div>
+      </dl>
+    </section>
+
+    <section class="section wrap" id="ios" aria-labelledby="ios-title">
+      <h2 id="ios-title">{{iosPage.title}}</h2>
+      <p class="section-copy">{{ios.intro}}</p>
+      <a href="@@IOS_PATH@@">{{iosPage.setupButton}}</a>
     </section>
 
     <section class="section wrap" id="download" aria-labelledby="download-title">
       <div class="band">
         <div>
-          <p class="eyebrow">{{download.eyebrow}}</p>
           <h2 id="download-title">@@DOWNLOAD_TITLE@@</h2>
-          <p class="band-lead">{{download.price}}</p>
-          <p>@@SOURCE_LINE@@</p>
+          <p>{{download.price}} @@SOURCE_LINE@@</p>
           @@DOWNLOAD_ACTIONS@@
         </div>
         <div>
-          <h3 class="band-sub">{{download.needsTitle}}</h3>
+          <h3>{{download.needsTitle}}</h3>
           <ul class="reqs">
-            <li>{{download.needOs}}</li>
             <li>{{download.needGit}}</li>
             <li>{{download.needAgent}}</li>
             <li>{{download.needGh}}</li>
-            <li>{{download.needIos}}</li>
           </ul>
-          <p class="band-note">{{download.awake}}</p>
-          <p class="band-note">{{download.privacy}}</p>
+          <p class="band-note"><a href="@@SUPPORT_PATH@@">{{nav.support}}</a> · <a href="@@PRIVACY_PATH@@">{{nav.privacy}}</a></p>
         </div>
       </div>
     </section>

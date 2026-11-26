@@ -87,7 +87,7 @@ def render_actions(config, catalog=None, *, hero=False):
     download = catalog.strings["download"]
     rows = []
     if config.download_url:
-        rows.append(("primary", config.download_url, download["button"]))
+        rows.append(("primary", config.download_url, catalog.get("link.download")))
     if config.github_url:
         kind = "secondary" if config.download_url else "primary"
         rows.append((kind, config.github_url, download["github"]))
@@ -109,23 +109,6 @@ def render_actions(config, catalog=None, *, hero=False):
     if not parts:
         parts.append(f'<p class="status-note">{esc(download["macSoon"])}</p>')
     return '<div class="actions">' + "".join(parts) + "</div>"
-
-
-def hero_title(catalog, config):
-    """The headline breaks after its first comma, in whichever script the language uses."""
-    title = catalog.html("hero.title", config)
-    for comma in (", ", "、", "，"):
-        if comma in title:
-            return title.replace(comma, comma.rstrip() + "<br>", 1)
-    return title
-
-
-def hero_shortcut(catalog, config):
-    text = catalog.html("hero.shortcut", config)
-    for stop in (". ", "。"):
-        if stop in text:
-            return text.replace(stop, stop.rstrip() + "<br>", 1)
-    return text
 
 
 def header_cta(config, catalog):
@@ -154,38 +137,14 @@ def source_html(config, catalog):
     return result + " " + catalog.html("support.build", config) if config.github_url else result
 
 
-def github_button(config, catalog):
-    if not config.github_url:
-        return ""
-    return link(config.github_url, catalog.get("download.github"), "button button-secondary")
-
-
-def faq_items(config, catalog=None):
-    catalog = catalog_or_english(catalog)
-    faq = catalog.strings["faq"]
-    items = []
-    for item in faq["items"]:
-        if item.get("id") == "cost":
-            answer = faq["cost"] + (faq["costSource"] if config.github_url else "")
-        elif item.get("id") == "download":
-            if config.download_url:
-                answer = faq["downloadYes"] + (faq["downloadSource"] if config.github_url else "")
-            else:
-                answer = faq["downloadNo"] + (faq["downloadNoSource"] if config.github_url else "")
-        else:
-            answer = item["a"]
-        items.append((item["q"], answer))
-    return items
-
-
 def render_faq(config, catalog):
     blocks = []
-    for question, answer in faq_items(config, catalog):
+    for item in catalog.strings["faq"]["items"]:
         blocks.append(
             "<details><summary>"
-            + esc(question)
+            + esc(item["q"])
             + "</summary><p>"
-            + i18n.format_message(answer, catalog, config)
+            + i18n.format_message(item["a"], catalog, config)
             + "</p></details>"
         )
     return "\n        ".join(blocks)
@@ -223,10 +182,10 @@ def structured_data(config, catalog=None):
         "mainEntity": [
             {
                 "@type": "Question",
-                "name": question,
-                "acceptedAnswer": {"@type": "Answer", "text": answer.replace("{link:author}", catalog.get("link.author"))},
+                "name": item["q"],
+                "acceptedAnswer": {"@type": "Answer", "text": re.sub(r"\{link:(\w+)\}", lambda token: catalog.get(f"link.{token[1]}"), item["a"])},
             }
-            for question, answer in faq_items(config, catalog)
+            for item in catalog.strings["faq"]["items"]
         ],
     }
     payload = {"@context": "https://schema.org", "@graph": [app, faq]}
@@ -243,8 +202,7 @@ def nav(catalog, slug):
     items = [
         (fragment_href(catalog, slug, "loop"), catalog.get("nav.how"), "", False),
         (catalog.page("ios"), catalog.get("nav.ios"), "", slug == "ios"),
-        (fragment_href(catalog, slug, "agents"), catalog.get("nav.agents"), "", False),
-        (fragment_href(catalog, slug, "faq"), catalog.get("nav.questions"), "", False),
+        (catalog.page("support"), catalog.get("nav.support"), "", slug == "support"),
     ]
     parts = []
     for href, label, class_name, current in items:
@@ -750,10 +708,8 @@ def build():
     hashes = []
     for catalog in catalogs:
         tokens = {
-            "QUEUE_PNG": queue_image,
             "NOTIFICATION_PNG": notification_image,
-            "HERO_TITLE": hero_title(catalog, config),
-            "HERO_SHORTCUT": hero_shortcut(catalog, config),
+            "QUEUE_PNG": queue_image,
             "DOWNLOAD_TITLE": catalog.html("download.title" if config.download_url else "download.titleSoon", config),
             "ACTIONS": render_actions(config, catalog, hero=True),
             "DOWNLOAD_ACTIONS": render_actions(config, catalog) if (config.download_url or config.github_url or config.donate_url) else "",
@@ -762,7 +718,7 @@ def build():
             "ISSUES_HTML": issues_html(config, catalog),
             "DOWNLOAD_STATUS": download_status(config, catalog),
             "SOURCE_HTML": source_html(config, catalog),
-            "GITHUB_BUTTON": github_button(config, catalog),
+            "IOS_PATH": catalog.page("ios"),
             "HOME_PATH": catalog.page("home"),
             "SUPPORT_PATH": catalog.page("support"),
             "PRIVACY_PATH": catalog.page("privacy"),
@@ -883,7 +839,7 @@ def self_test():
     if "offers" in unavailable or "downloadUrl" in unavailable:
         raise SystemExit("Unreleased site must not advertise a download offer")
     free_actions = render_actions(free)
-    if ">Download for Mac</a>" not in free_actions:
+    if f'href="{esc(free.download_url)}">Download for Mac</a>' not in free_actions:
         raise SystemExit("Download label missing")
     if "Support the project" in render_actions(free):
         raise SystemExit("Donate link rendered while empty")
