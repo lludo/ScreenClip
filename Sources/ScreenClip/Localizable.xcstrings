@@ -24751,72 +24751,6 @@
         }
       }
     },
-    "ScreenClip removed the .screenclip/ files from this pull request before merging. Checks run again on the new commit.": {
-      "comment": "ScreenClip interface text.",
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip removed the .screenclip/ files from this pull request before merging. Checks run again on the new commit."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip 已在合并前从此拉取请求中移除 .screenclip/ 文件。检查会在新的提交上重新运行。"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip quitó los archivos .screenclip/ de esta pull request antes de fusionarla. Las comprobaciones se ejecutan de nuevo en el nuevo commit."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip はマージ前にこのプルリクエストから .screenclip/ ファイルを削除しました。新しいコミットでチェックが再実行されます。"
-          }
-        },
-        "pt-BR": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O ScreenClip removeu os arquivos .screenclip/ deste pull request antes do merge. As verificações rodam de novo no novo commit."
-          }
-        },
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip hat die .screenclip/-Dateien vor dem Merge aus diesem Pull Request entfernt. Die Checks laufen für den neuen Commit erneut."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip a retiré les fichiers .screenclip/ de cette pull request avant la fusion. Les vérifications sont relancées sur le nouveau commit."
-          }
-        },
-        "ko": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip이 병합 전에 이 pull request에서 .screenclip/ 파일을 제거했습니다. 새 커밋에서 검사가 다시 실행됩니다."
-          }
-        },
-        "ru": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip удалил файлы .screenclip/ из этого pull request перед слиянием. Проверки запускаются заново для нового коммита."
-          }
-        },
-        "zh-Hant": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ScreenClip 已在合併前從此拉取請求移除 .screenclip/ 檔案。檢查會在新的提交上重新執行。"
-          }
-        }
-      }
-    },
     "This pull request still contains .screenclip/ files. Automatic merge is waiting until Grok Bot removes them.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
@@ -42043,68 +41977,200 @@
         }
       }
     },
-    "The worktree is not on the pull request's head, so ScreenClip did not remove its evidence files.": {
-      "comment": "ScreenClip interface text.",
+    "Commit screenshots to the repository": {
+      "comment": "Project setting: commit Before / After screenshots with each fix.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The worktree is not on the pull request's head, so ScreenClip did not remove its evidence files."
+            "value": "Commit screenshots to the repository"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "工作树不在该拉取请求的最新提交上，因此 ScreenClip 没有移除证据文件。"
+            "value": "将截图提交到仓库"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "El árbol de trabajo no está en el último commit de la pull request, así que ScreenClip no quitó sus archivos de evidencia."
+            "value": "Hacer commit de las capturas en el repositorio"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ワークツリーがプルリクエストの先頭コミットにないため、ScreenClip は証拠ファイルを削除しませんでした。"
+            "value": "スクリーンショットをリポジトリにコミット"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A worktree não está no commit mais recente do pull request, então o ScreenClip não removeu seus arquivos de evidência."
+            "value": "Fazer commit das capturas no repositório"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Der Worktree steht nicht auf dem Head des Pull Requests, daher hat ScreenClip seine Belegdateien nicht entfernt."
+            "value": "Screenshots ins Repository committen"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Le worktree n’est pas sur le dernier commit de la pull request ; ScreenClip n’a donc pas retiré ses fichiers de preuve."
+            "value": "Committer les captures dans le dépôt"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "작업 트리가 pull request의 최신 커밋에 있지 않아 ScreenClip이 증거 파일을 제거하지 않았습니다."
+            "value": "스크린샷을 저장소에 커밋"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Рабочая копия не на последнем коммите pull request, поэтому ScreenClip не удалил файлы с материалами."
+            "value": "Коммитить снимки в репозиторий"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "工作樹不在該拉取請求的最新提交上，因此 ScreenClip 沒有移除證據檔案。"
+            "value": "將截圖提交到儲存庫"
+          }
+        }
+      }
+    },
+    "Before / After screenshots are committed under .screenclip/ with each fix so the pull request description can show them. They stay in the repository until you remove them.": {
+      "comment": "Explains committing screenshots to the repository.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before / After screenshots are committed under .screenclip/ with each fix so the pull request description can show them. They stay in the repository until you remove them."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次修复都会把前后对比截图提交到 .screenclip/ 下，以便拉取请求说明显示它们。它们会留在仓库中，直到你删除。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Las capturas de antes y después se incluyen en .screenclip/ con cada corrección para que la descripción del pull request pueda mostrarlas. Se quedan en el repositorio hasta que las elimines."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修正ごとに修正前・修正後のスクリーンショットを .screenclip/ にコミットし、プルリクエストの説明に表示できるようにします。削除するまでリポジトリに残ります。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "As capturas de antes e depois entram em .screenclip/ com cada correção para que a descrição do pull request possa mostrá-las. Elas ficam no repositório até você removê-las."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vorher-/Nachher-Screenshots werden mit jedem Fix unter .screenclip/ committet, damit die Pull-Request-Beschreibung sie zeigen kann. Sie bleiben im Repository, bis du sie entfernst."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les captures avant / après sont committées dans .screenclip/ avec chaque correctif pour que la description de la pull request puisse les afficher. Elles restent dans le dépôt jusqu’à ce que vous les supprimiez."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "수정마다 전후 스크린샷을 .screenclip/ 아래에 커밋해 풀 리퀘스트 설명에 표시할 수 있게 합니다. 직접 삭제할 때까지 저장소에 남습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Снимки «до» и «после» коммитятся в .screenclip/ вместе с каждым исправлением, чтобы описание pull request могло их показать. Они остаются в репозитории, пока вы их не удалите."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次修復都會把前後對照截圖提交到 .screenclip/ 下，讓拉取請求說明能顯示它們。它們會留在儲存庫中，直到你刪除。"
+          }
+        }
+      }
+    },
+    "Pull requests describe Before / After in words, without images. Nothing is committed under .screenclip/.": {
+      "comment": "Explains not committing screenshots.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull requests describe Before / After in words, without images. Nothing is committed under .screenclip/."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拉取请求用文字描述前后对比，不含图片。不会向 .screenclip/ 提交任何内容。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Los pull requests describen el antes y el después con palabras, sin imágenes. No se incluye nada en .screenclip/."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プルリクエストでは修正前・修正後を画像なしで文章で説明します。.screenclip/ には何もコミットしません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Os pull requests descrevem o antes e o depois em palavras, sem imagens. Nada entra em .screenclip/."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull Requests beschreiben Vorher und Nachher in Worten, ohne Bilder. Unter .screenclip/ wird nichts committet."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Les pull requests décrivent l’avant / après en mots, sans images. Rien n’est committé dans .screenclip/."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "풀 리퀘스트는 전후 상태를 이미지 없이 글로 설명합니다. .screenclip/ 아래에는 아무것도 커밋하지 않습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pull request описывает «до» и «после» словами, без изображений. В .screenclip/ ничего не коммитится."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拉取請求以文字描述前後對照，不含圖片。不會向 .screenclip/ 提交任何內容。"
           }
         }
       }

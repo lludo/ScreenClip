@@ -78,6 +78,13 @@ public struct Project: Codable, Identifiable, Equatable {
   public var codexApprovalMode: CodexApprovalMode = .automaticReview
   /// SF Symbol shown next to the project name. Optional so projects saved earlier still decode.
   public var symbol: String? = nil
+  /// Commit each fix's Before / After screenshots under `.screenclip/` and link them in the pull
+  /// request description. Optional so projects saved earlier decode; nil means on.
+  public var commitScreenshots: Bool? = nil
+  public var commitsScreenshots: Bool {
+    get { commitScreenshots ?? true }
+    set { commitScreenshots = newValue }
+  }
   public static let defaultSymbol = "folder"
   public var displaySymbol: String {
     guard let symbol, !symbol.isEmpty else { return Project.defaultSymbol }
@@ -101,6 +108,7 @@ public struct Project: Codable, Identifiable, Equatable {
   private enum CodingKeys: String, CodingKey {
     case id, name, path, baseBranch, origins, bundleIDs, validationCommand, autoMerge
     case allowExternalScreenshots, symbol, defaultAgent, codexApprovalMode, reuseLastAgentChoice, lastAgentChoice
+    case commitScreenshots
   }
 
   public init(from decoder: Decoder) throws {
@@ -115,6 +123,7 @@ public struct Project: Codable, Identifiable, Equatable {
     autoMerge = try container.decode(Bool.self, forKey: .autoMerge)
     allowExternalScreenshots = try container.decodeIfPresent(Bool.self, forKey: .allowExternalScreenshots)
     symbol = try container.decodeIfPresent(String.self, forKey: .symbol)
+    commitScreenshots = try container.decodeIfPresent(Bool.self, forKey: .commitScreenshots)
     codexApprovalMode = try container.decodeIfPresent(CodexApprovalMode.self, forKey: .codexApprovalMode)
       ?? .automaticReview
     reuseLastAgentChoice = try container.decodeIfPresent(Bool.self, forKey: .reuseLastAgentChoice) ?? false
@@ -143,6 +152,7 @@ public struct Project: Codable, Identifiable, Equatable {
     try container.encode(autoMerge, forKey: .autoMerge)
     try container.encodeIfPresent(allowExternalScreenshots, forKey: .allowExternalScreenshots)
     try container.encodeIfPresent(symbol, forKey: .symbol)
+    try container.encodeIfPresent(commitScreenshots, forKey: .commitScreenshots)
     try container.encode(reuseLastAgentChoice, forKey: .reuseLastAgentChoice)
     try container.encodeIfPresent(lastAgentChoice, forKey: .lastAgentChoice)
     try container.encode(defaultAgent, forKey: .defaultAgent)

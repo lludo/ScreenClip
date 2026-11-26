@@ -208,6 +208,25 @@ struct ProjectEditor: View {
             ).fixedSize(horizontal: false, vertical: true)
           }
         }
+        note {
+          VStack(alignment: .leading, spacing: 4) {
+            Toggle(isOn: $project.commitsScreenshots) {
+              Text(
+                chrome: "Commit screenshots to the repository",
+                comment: "Project setting: commit Before / After screenshots with each fix."
+              ).fixedSize(horizontal: false, vertical: true)
+            }
+            Group {
+              if project.commitsScreenshots {
+                Text(chrome: "Before / After screenshots are committed under .screenclip/ with each fix so the pull request description can show them. They stay in the repository until you remove them.", comment: "Explains committing screenshots to the repository.")
+              } else {
+                Text(chrome: "Pull requests describe Before / After in words, without images. Nothing is committed under .screenclip/.", comment: "Explains not committing screenshots.")
+              }
+            }.font(.caption).foregroundStyle(.secondary)
+              .fixedSize(horizontal: false, vertical: true)
+              .frame(maxWidth: .infinity, alignment: .leading)
+          }
+        }
       }.textFieldStyle(.roundedBorder)
       if let error {
         Text(verbatim: Chrome.stored(error, locale: locale)).font(.caption).foregroundStyle(.red)

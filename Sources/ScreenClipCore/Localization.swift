@@ -79,7 +79,6 @@ public enum CoreChrome {
     "The conversation is in Grok Bot's chat.",
     "Sent to external assistant",
     "This pull request still contains .screenclip/ files. Automatic merge is waiting until Grok Bot removes them.",
-    "ScreenClip removed the .screenclip/ files from this pull request before merging. Checks run again on the new commit.",
     "Canceled locally. Grok Bot cannot be stopped from ScreenClip; it may still finish and open a pull request.",
     "Cancel requested. This is best-effort: Grok Bot may still finish work it already started.",
     "Could not reach Grok Bot to ask it to stop.",

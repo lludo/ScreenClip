@@ -50,8 +50,8 @@ import XCTest
     try data.write(to: URL(fileURLWithPath: destination))
   }
 
-  /// A missing After image no longer blocks publication, but a broken one still asks the agent to fix it.
-  func testInvalidAfterScreenshotSchedulesRepairWithoutOpeningPR() async throws {
+  /// A broken After image is a warning, not a repair: publishing carries on without screenshots.
+  func testInvalidAfterScreenshotIsAWarningNotARepair() async throws {
     let root = FileManager.default.temporaryDirectory.appendingPathComponent("screenclip-missing-after-" + UUID().uuidString)
     defer { try? FileManager.default.removeItem(at: root) }
     let model = try AppModel(root: root)
@@ -66,11 +66,14 @@ import XCTest
     try Data("not a PNG".utf8).write(to: after.appendingPathComponent("1.png"))
     try model.commit { $0.projects = [project]; $0.issues = [issue]; $0.settings.paused = true }
     await model.worker.publish(issue.id, project: project, summary: "Fixed")
-    let repaired = try XCTUnwrap(model.issue(issue.id))
-    XCTAssertEqual(repaired.status, .queued)
-    XCTAssertEqual(repaired.repairAttempts, 1)
-    XCTAssertTrue(repaired.validationFeedback?.contains("Invalid PNG screenshot") == true)
-    XCTAssertNil(repaired.prURL)
+    let published = try XCTUnwrap(model.issue(issue.id))
+    XCTAssertEqual(published.repairAttempts ?? 0, 0)
+    XCTAssertNotEqual(published.status, .queued)
+    XCTAssertNil(published.validationFeedback)
+    let warning = try XCTUnwrap(published.activities.first { $0.kind == PRScreenshotEvidence.warningKind })
+    XCTAssertTrue(warning.text.contains("Invalid PNG screenshot"), warning.text)
+    // This folder is no Git repository, so publishing stops later, at the base update.
+    XCTAssertFalse(published.lastError?.contains("Invalid PNG") ?? false)
   }
 
   /// Opt-in live check: uses a dedicated private fixture, real git/gh and the native worker.
@@ -120,14 +123,14 @@ import XCTest
     XCTAssertTrue(firstBody.contains("![Before 1]"))
     XCTAssertTrue(firstBody.contains("![After 1]"))
     XCTAssertFalse(firstBody.contains("Screenshots and source context remain"))
-    // Images are linked at the commit that added them; the pull request's head has no evidence.
+    // Images are linked at the commit that added them, which is the pull request's head.
     func evidenceCommit(_ body: String) throws -> String {
       let match = try XCTUnwrap(body.range(
         of: #"/blob/[0-9a-f]{40}/\.screenclip/"#, options: .regularExpression))
       return String(body[match].dropFirst("/blob/".count).prefix(40))
     }
     let firstEvidence = try evidenceCommit(firstBody)
-    XCTAssertNotEqual(firstEvidence, issue.prHead)
+    XCTAssertEqual(firstEvidence, issue.prHead)
 
     // A follow-up gets a fresh After image and updates the same PR description.
     try model.updateIssue(issue.id) { $0.revision += 1; $0.coveredRevision = $0.revision; $0.status = .working }
@@ -156,7 +159,7 @@ import XCTest
       try await CommandRunner.run(gh, ["api", "repos/\(slug)/contents/.screenclip?ref=\(ref)"], cwd: repo).status == 0
     }
     let headHasEvidence = try await hasEvidence(head)
-    XCTAssertFalse(headHasEvidence, "The pull request's head must not carry .screenclip/")
+    XCTAssertTrue(headHasEvidence, "The evidence stays on the pull request's head")
     // Publish the actual local validation result as a commit status, avoiding paid CI.
     _ = try await CommandRunner.checked(gh,
       ["api", "--method", "POST", "repos/\(slug)/statuses/\(head)",
@@ -180,7 +183,7 @@ import XCTest
     XCTAssertEqual(Data(base64Encoded: content, options: .ignoreUnknownCharacters), after)
     let mergeCommit = try XCTUnwrap(merged.mergeCommit)
     let baseHasEvidence = try await hasEvidence(mergeCommit)
-    XCTAssertFalse(baseHasEvidence, "The squash merge must not bring .screenclip/ into the base branch")
+    XCTAssertTrue(baseHasEvidence, "The evidence stays in the repository until the tester removes it")
     try "\(url)\n\(head)\n".write(to: root.appendingPathComponent("verified-pr.txt"), atomically: true, encoding: .utf8)
     print("LIVE SCREENSHOT PR VERIFIED: \(url)")
   }

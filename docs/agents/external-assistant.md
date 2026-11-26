@@ -14,7 +14,7 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 | Screenshot sharing | Always enabled for configured projects, including older projects saved with sharing off. The project editor has no sharing checkbox. |
 | After a 2xx | Activity `Sent to external assistant`. The issue stays **Working** until a pull request is found. |
 | Pull request | The assistant opens a PR from that same branch. The body contains `ScreenClip: #<reportNumber>`. It may also contain `ScreenClip-Report:`, `ScreenClip-Revision:`, and `ScreenClip-Agent:`. ScreenClip polls GitHub and **Refresh PR status** picks it up immediately. A fork PR is ignored. A draft is attached and is not merged. |
-| Merge | ScreenClip decides. The existing auto-merge checks apply (validated head, passing checks, current revision, reviews). A PR that still has the hand-off folder `.screenclip/<reportNumber>/`, or that is still a draft, is not merged. Any other `.screenclip/` file is removed by ScreenClip before it merges (see [Evidence stays out of the base branch](README.md#evidence-stays-out-of-the-base-branch)). |
+| Merge | ScreenClip decides. The existing auto-merge checks apply (validated head, passing checks, current revision, reviews). A PR that still has the hand-off folder `.screenclip/<reportNumber>/`, or that is still a draft, is not merged. Other `.screenclip/` files do not hold the merge back and are left in place. |
 | Conversation | When Grok Bot posts a commit status whose link is `https://cursor.com/agents/bc-<uuid>`, the report shows **Open Grok Bot agent**. A pull request in the same repository is the other allowed link. Before either exists, the report says the conversation is in Grok Bot's chat. There is still no report-specific Grok Bot deep link. |
 | Cancel | Local always. If the setup code includes `"capabilities":["cancel"]`, ScreenClip also POSTs a best-effort cancel. The remote run may still finish. |
 
@@ -75,7 +75,7 @@ ScreenClip asks the remote routine to investigate, implement, build, test, and p
 2. Starts or continues a cloud coding agent on that repository. The branch stays `screenclip/<reportNumber>-<slug>-<workspace>`. The pull request body includes `ScreenClip: #<reportNumber>`, and should also include `ScreenClip-Report: <issueID>`, `ScreenClip-Revision: <revision>`, and `ScreenClip-Agent: <agent URL>`.
 3. Writes a commit status on the evidence commit, context `screenclip/grok-bot`: `pending` with `target_url` `https://cursor.com/agents/bc-<uuid>`, then `success` with the pull request URL, or `failure`, or `error` with "Canceled from ScreenClip".
 4. Questions stay in Grok Bot's chat.
-5. The last commit deletes `.screenclip/`. Removing the hand-off folder `.screenclip/<reportNumber>/` is how ScreenClip knows the routine finished the revision, so ScreenClip does not merge while it is still in the pull request, or while the pull request is a draft. If other `.screenclip/` files remain, ScreenClip removes them in a commit of its own (`Remove ScreenClip evidence before merge`), pushes, and merges only after checks pass on that commit.
+5. The last commit deletes `.screenclip/`. Removing the hand-off folder `.screenclip/<reportNumber>/` is how ScreenClip knows the routine finished the revision, so ScreenClip does not merge while it is still in the pull request, or while the pull request is a draft. Other `.screenclip/` files, such as Before / After evidence earlier fixes committed, do not hold the merge back; ScreenClip leaves them in place.
 
 ## Setup
 
@@ -126,7 +126,7 @@ The address must use HTTPS (plain HTTP is accepted only for `localhost` test ser
 | Non-2xx or network failure | **Failed**, with the error and **Retry**. Retry sends the same report number and revision. |
 | Pull request found | **PR open**, then the existing merged → **To retest** path. |
 | Hand-off folder `.screenclip/<reportNumber>/` still in the PR | Stays **PR open**, is not merged, and appears under **Needs you** with an explanation. |
-| Other `.screenclip/` files in a PR that is otherwise ready to merge | ScreenClip removes them, pushes, and says so in the PR card. The merge follows once checks pass on the new commit; a manual merge is confirmed again for that commit. |
+| Other `.screenclip/` files in a PR that is otherwise ready to merge | Merged as is. ScreenClip does not remove them. |
 | Cancel, no `cancel` capability | **Canceled**. The activity says Grok Bot cannot be stopped from ScreenClip. |
 | Cancel, setup code has `cancel` | **Canceled**, and ScreenClip POSTs `screenclip.external.v1.cancel`. The activity says this is best-effort. |
 | Commit status `screenclip/grok-bot` | Records the description and, when the link is allowed, **Open Grok Bot agent**. ScreenClip keeps reading statuses while the pull request is open so a later revision can update them. |

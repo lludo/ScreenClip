@@ -250,7 +250,7 @@ extension AgentWorker {
     // A follow-up handoff can update an already attached PR. Only credit that revision once
     // the inspected head no longer has the hand-off folder (Grok Bot's last commit deletes it)
     // and actually contains its handoff commit. Other `.screenclip/` files do not hold this
-    // back: ScreenClip removes them itself before merging.
+    // back.
     if issue.prRevision != issue.coveredRevision, issue.handoffRevision == issue.coveredRevision,
       let commit = issue.handoffCommit, GitHubService.isCommit(commit),
       try await CommandRunner.run(GitWorkspace.git, ["merge-base", "--is-ancestor", commit, head], cwd: path).status == 0,

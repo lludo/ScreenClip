@@ -267,6 +267,8 @@ class PluginTests(unittest.TestCase):
         self.assertEqual((proposal["projectID"], proposal["changes"], proposal["reason"], proposal["proposer"]), (project_id, {"validationCommand": "make test"}, "Runs the tests.", "claude-code"))
         listed = json.loads(plugin.call("list_projects", {})["content"][0]["text"])["projects"][0]
         self.assertEqual((listed["hasValidationCommand"], listed["settingsProposalPending"]), (False, True))
+        # Projects saved before the screenshot setting commit screenshots.
+        self.assertTrue(listed["commitsScreenshots"])
         self.assertNotIn("validationCommand", listed)
         # A newer proposal for the same project replaces the waiting one.
         plugin.call("propose_project_settings", {"project": "App", "validation_command": "make check", "base_branch": "develop"})

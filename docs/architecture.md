@@ -74,7 +74,7 @@ Each local run gets one worktree under Application Support and a `screenclip/<id
 
 Grok Bot uses a different branch name: `screenclip/<reportNumber>-<slug>-<workspace>`. `<workspace>` is the first eight characters of the issue workspace id, so a follow-up after a merge does not reuse the merged branch. The committed files live under `.screenclip/<reportNumber>/`. Pull-request discovery looks for a body containing `ScreenClip: #<reportNumber>` whose head is that branch. Merge waits while that hand-off folder is still in the pull request, because Grok Bot's last commit deletes it.
 
-No `.screenclip/` path reaches a base branch. Local-agent publishing commits the evidence with the fix, links it at that commit, and pushes a following commit that deletes the folder. Before any merge, ScreenClip checks the head; if `.screenclip/` is still there, it removes the folder in a commit of its own, pushes, and merges only after checks pass on that commit. See [Evidence stays out of the base branch](agents/README.md#evidence-stays-out-of-the-base-branch).
+With a project's **Commit screenshots to the repository** setting on (the default), local-agent publishing commits the evidence under `.screenclip/pr/` with the fix and links it at that commit. The files stay in the repository through the merge; ScreenClip does not remove them or gate a merge on them. With it off, no `.screenclip/` path is staged. Evidence failures are warnings and never stop publishing. See [Commit screenshots to the repository](agents/README.md#commit-screenshots-to-the-repository).
 
 Validation runs the project's command in the worktree with a one-hour limit, allowing full native test suites to finish. The source fingerprint must be unchanged afterward. Initialized submodules are fingerprinted by their checked-out commit; uninitialized ones by a fixed marker. Child processes have git redirect variables removed. A timed-out command has its process tree terminated. Coding agents and the validation command run without GitHub tokens. ScreenClip pushes and opens pull requests itself. Pull-request bodies redact `NAME=value` assignments and token-like strings from the validation command.
 
@@ -90,7 +90,7 @@ There is no Mac App Store configuration. `scripts/release-dmg.sh` refuses a sign
 
 The local worker runs while ScreenClip is running and the Mac is awake. Closing the popover does not stop it. A login item is optional (`SMAppService.mainApp`) and off until the user turns it on. Grok Bot is the exception: the remote assistant keeps working if the Mac sleeps.
 
-Secrets ScreenClip stores for itself go in the Keychain. Pull requests include the flattened report screenshots and retested After images, and Grok Bot evidence is pushed to a `screenclip/` branch, so anyone who can read the repository can read them. They stay in the pull request's commits, not on the base branch. Unredacted originals are never published. Deleting a report locally does not delete an agent chat or a pull request that already exists.
+Secrets ScreenClip stores for itself go in the Keychain. Pull requests include the flattened report screenshots and retested After images, and Grok Bot evidence is pushed to a `screenclip/` branch, so anyone who can read the repository can read them. Committed Before / After evidence stays in the repository, base branch included, until the tester removes it. Unredacted originals are never published. Deleting a report locally does not delete an agent chat or a pull request that already exists.
 
 ## Source layout
 

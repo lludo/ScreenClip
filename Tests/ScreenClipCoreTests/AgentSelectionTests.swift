@@ -18,6 +18,19 @@ final class AgentSelectionTests: XCTestCase {
     XCTAssertEqual(legacy.codexApprovalMode.sandbox, "workspace-write")
     XCTAssertEqual(legacy.codexApprovalMode.approvalPolicy, "on-request")
   }
+  /// Projects saved before the screenshot setting keep committing screenshots; a choice survives saving.
+  func testOlderProjectsCommitScreenshotsAndTheChoiceSurvivesSaving() throws {
+    let legacyJSON = #"{"id":"6B1F2F3A-0000-4000-8000-000000000001","name":"Demo","path":"/demo","baseBranch":"main","origins":[],"bundleIDs":[],"validationCommand":"","autoMerge":true}"#
+    let legacy = try JSONDecoder().decode(Project.self, from: Data(legacyJSON.utf8))
+    XCTAssertNil(legacy.commitScreenshots)
+    XCTAssertTrue(legacy.commitsScreenshots)
+    let encoded = try XCTUnwrap(String(data: JSONEncoder().encode(legacy), encoding: .utf8))
+    XCTAssertFalse(encoded.contains("commitScreenshots"), "An untouched project stays as it was saved")
+    var off = legacy
+    off.commitsScreenshots = false
+    let saved = try JSONDecoder().decode(Project.self, from: JSONEncoder().encode(off))
+    XCTAssertFalse(saved.commitsScreenshots)
+  }
   func testProviderPhrasesUseOneTemplate() {
     for phrase in ProviderPhrase.allCases {
       let patterns = AgentKind.allCases.map { kind in
