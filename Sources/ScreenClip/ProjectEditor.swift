@@ -29,144 +29,184 @@ struct ProjectEditor: View {
           Text(chrome: "New project", comment: "Title when creating a project.")
         }
       }.font(.title2.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
-      Form {
-        TextField(text: $project.name) {
+      Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 10) {
+        row {
           Text(chrome: "Name", comment: "Project name field.")
+        } content: {
+          TextField(text: $project.name) {
+            Text(chrome: "Name", comment: "Project name field.")
+          }.labelsHidden()
         }
-        ProjectSymbolPicker(symbol: $project.symbol)
-        HStack {
-          TextField(text: $project.path) {
-            Text(chrome: "Repository root", comment: "Git repository path field.")
-          }
-          Button {
-            let panel = NSOpenPanel()
-            panel.canChooseFiles = false
-            panel.canChooseDirectories = true
-            if panel.runModal() == .OK, let url = panel.url {
-              project.path = url.path
-              if project.name.isEmpty { project.name = url.lastPathComponent }
-            }
-          } label: {
-            Text(chrome: "Choose…", comment: "Picks a repository folder.")
+        row {
+          Text(chrome: "Icon", comment: "Project icon field.")
+        } content: {
+          ProjectSymbolPicker(symbol: $project.symbol).labelsHidden()
+        }
+        row {
+          Text(chrome: "Repository root", comment: "Git repository path field.")
+        } content: {
+          HStack {
+            TextField(text: $project.path) {
+              Text(chrome: "Repository root", comment: "Git repository path field.")
+            }.labelsHidden().truncationMode(.head)
+            Button {
+              let panel = NSOpenPanel()
+              panel.canChooseFiles = false
+              panel.canChooseDirectories = true
+              if panel.runModal() == .OK, let url = panel.url {
+                project.path = url.path
+                if project.name.isEmpty { project.name = url.lastPathComponent }
+              }
+            } label: {
+              Text(chrome: "Choose…", comment: "Picks a repository folder.")
+            }.fixedSize()
           }
         }
-        TextField(text: $project.baseBranch) {
+        row {
           Text(chrome: "Base branch", comment: "Git base branch field. The branch name itself is not translated.")
+        } content: {
+          TextField(text: $project.baseBranch) {
+            Text(chrome: "Base branch", comment: "Git base branch field. The branch name itself is not translated.")
+          }.labelsHidden()
         }
         if baseBranchMissing {
-          HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
-            Text(verbatim: missingBranchText)
-              .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: 4)
-            if let defaultBranch {
-              Button {
-                project.baseBranch = defaultBranch
-              } label: {
-                Text(verbatim: Chrome.format(
-                  "project.useBranch", "Use \(defaultBranch)", locale: locale,
-                  comment: "Sets the base branch to the repository's default. %@ is a branch name and stays unchanged."))
-              }.controlSize(.small)
+          note {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+              Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange)
+              Text(verbatim: missingBranchText)
+                .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
+              if let defaultBranch {
+                Button {
+                  project.baseBranch = defaultBranch
+                } label: {
+                  Text(verbatim: Chrome.format(
+                    "project.useBranch", "Use \(defaultBranch)", locale: locale,
+                    comment: "Sets the base branch to the repository's default. %@ is a branch name and stays unchanged."))
+                }.controlSize(.small).fixedSize()
+              }
             }
           }
         }
-        TextField(
-          text: $origins,
-          prompt: Text(chrome: "One per line", comment: "Placeholder for a multiline list."),
-          axis: .vertical
-        ) {
+        row {
           Text(chrome: "Websites", comment: "Website origins used for project routing.")
-        }.lineLimit(2...4)
-        Text(
-          chrome:
-            "Include the scheme and port, for example http://localhost:3000 or https://example.com/app.",
-          comment: "Example website origins. Keep the example URLs."
-        ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-        TextField(
-          text: $bundles,
-          prompt: Text(chrome: "One per line", comment: "Placeholder for a multiline list."),
-          axis: .vertical
-        ) {
+        } content: {
+          TextField(
+            text: $origins,
+            prompt: Text(chrome: "One per line", comment: "Placeholder for a multiline list."),
+            axis: .vertical
+          ) {
+            Text(chrome: "Websites", comment: "Website origins used for project routing.")
+          }.labelsHidden().lineLimit(2...4)
+        }
+        note {
+          caption(Text(
+            chrome:
+              "Include the scheme and port, for example http://localhost:3000 or https://example.com/app.",
+            comment: "Example website origins. Keep the example URLs."
+          ))
+        }
+        row {
           Text(chrome: "App bundle IDs (Mac and iOS)", comment: "Native app bundle identifiers used for routing.")
-        }.lineLimit(1...4)
+        } content: {
+          TextField(
+            text: $bundles,
+            prompt: Text(chrome: "One per line", comment: "Placeholder for a multiline list."),
+            axis: .vertical
+          ) {
+            Text(chrome: "App bundle IDs (Mac and iOS)", comment: "Native app bundle identifiers used for routing.")
+          }.labelsHidden().lineLimit(1...4)
+        }
         if !suggestedBundles.isEmpty {
-          HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text(verbatim: Chrome.format(
-              "project.detectedBundles", "Found in this repository: \(suggestedBundles.joined(separator: ", "))",
-              locale: locale, comment: "App bundle IDs found in the project's source. %@ is a list of identifiers."))
-              .font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-              .textSelection(.enabled)
-            Spacer(minLength: 4)
-            Button {
-              let current = bundles.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
-                .filter { !$0.isEmpty }
-              bundles = (current + suggestedBundles).joined(separator: "\n")
-            } label: {
-              Text(chrome: "Add", comment: "Adds the detected bundle IDs to the project.")
-            }.controlSize(.small)
+          note {
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+              caption(Text(verbatim: Chrome.format(
+                "project.detectedBundles", "Found in this repository: \(suggestedBundles.joined(separator: ", "))",
+                locale: locale, comment: "App bundle IDs found in the project's source. %@ is a list of identifiers.")))
+                .textSelection(.enabled)
+              Button {
+                let current = bundles.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) }
+                  .filter { !$0.isEmpty }
+                bundles = (current + suggestedBundles).joined(separator: "\n")
+              } label: {
+                Text(chrome: "Add", comment: "Adds the detected bundle IDs to the project.")
+              }.controlSize(.small).fixedSize()
+            }
           }
         }
-        LabeledContent {
+        row {
+          Text(chrome: "Validation command", comment: "Command that must pass before publishing.")
+        } content: {
           TextField("", text: $project.validationCommand, axis: .vertical)
             .labelsHidden().lineLimit(2...4).font(.system(.body, design: .monospaced))
-        } label: {
-          Text(chrome: "Validation command", comment: "Command that must pass before publishing.")
-            .fixedSize(horizontal: false, vertical: true)
         }
-        Text(
-          chrome:
-            "This command runs in the issue's worktree before publishing. Automatic merge also requires passing GitHub checks and required reviews.",
-          comment: "Explains validation. Keep GitHub."
-        ).font(.caption).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-        Picker(
-          selection: $project.defaultAgent
-        ) {
-          Text(
-            verbatim: Chrome.format(
-              "agent.systemDefault",
-              "System default (\(model.snapshot.settings.preferredAgent.title))",
-              locale: locale,
-              comment: "Project default that follows the system default. %@ is the current provider name.")
-          ).tag(nil as AgentKind?)
-          ForEach(providerChoices) { kind in
-            AgentLabel(kind: kind).tag(Optional(kind))
-          }
-        } label: {
+        note {
+          caption(Text(
+            chrome:
+              "This command runs in the issue's worktree before publishing. Automatic merge also requires passing GitHub checks and required reviews.",
+            comment: "Explains validation. Keep GitHub."
+          ))
+        }
+        row {
           Text(chrome: "Project default", comment: "Picker for this project's default provider.")
-            .fixedSize(horizontal: false, vertical: true)
+        } content: {
+          Picker(selection: $project.defaultAgent) {
+            Text(
+              verbatim: Chrome.format(
+                "agent.systemDefault",
+                "System default (\(model.snapshot.settings.preferredAgent.title))",
+                locale: locale,
+                comment: "Project default that follows the system default. %@ is the current provider name.")
+            ).tag(nil as AgentKind?)
+            ForEach(providerChoices) { kind in
+              AgentLabel(kind: kind).tag(Optional(kind))
+            }
+          } label: {
+            Text(chrome: "Project default", comment: "Picker for this project's default provider.")
+          }.labelsHidden().fixedSize()
         }
-
-        Toggle(isOn: $project.reuseLastAgentChoice) {
-          Text(chrome: "Use the last agent, model, and effort for new reports",
-            comment: "Project setting to start new reports with the last submitted agent choice.")
-        }
-
-        Picker(selection: $project.codexApprovalMode) {
-          Text(chrome: "Automatic review (recommended)", comment: "Codex reviews permission requests automatically.")
-            .tag(CodexApprovalMode.automaticReview)
-          Text(chrome: "Ask me", comment: "Codex permission mode with manual approval.")
-            .tag(CodexApprovalMode.ask)
-          Text(chrome: "Full access (no approval prompts)", comment: "Codex permission mode without sandbox or approval prompts.")
-            .tag(CodexApprovalMode.fullAccess)
-        } label: {
-          Text(chrome: "Codex permissions", comment: "Project permission mode for Codex.")
-        }
-        Group {
-          switch project.codexApprovalMode {
-          case .automaticReview:
-            Text(chrome: "Codex reviews permission requests automatically while keeping the workspace sandbox. Questions about the fix still come to you. Applies to the next turn.", comment: "Explains automatic Codex approval review.")
-          case .ask:
-            Text(chrome: "Codex asks you when a command needs extra access. Applies to the next turn.", comment: "Explains manual Codex approvals.")
-          case .fullAccess:
-            Text(chrome: "Commands can access your Mac and the network without approval prompts. Use only for projects you trust. Applies to the next turn.", comment: "Explains full access for Codex.")
+        note {
+          Toggle(isOn: $project.reuseLastAgentChoice) {
+            Text(chrome: "Use the last agent, model, and effort for new reports",
+              comment: "Project setting to start new reports with the last submitted agent choice.")
+              .fixedSize(horizontal: false, vertical: true)
           }
-        }.font(.caption).foregroundStyle(project.codexApprovalMode == .fullAccess ? .orange : .secondary)
-          .fixedSize(horizontal: false, vertical: true)
-        Toggle(isOn: $project.autoMerge) {
-          Text(
-            chrome: "Merge fixes automatically after checks pass",
-            comment: "Enables automatic merge."
-          ).fixedSize(horizontal: false, vertical: true)
+        }
+        row {
+          Text(chrome: "Codex permissions", comment: "Project permission mode for Codex.")
+        } content: {
+          Picker(selection: $project.codexApprovalMode) {
+            Text(chrome: "Automatic review (recommended)", comment: "Codex reviews permission requests automatically.")
+              .tag(CodexApprovalMode.automaticReview)
+            Text(chrome: "Ask me", comment: "Codex permission mode with manual approval.")
+              .tag(CodexApprovalMode.ask)
+            Text(chrome: "Full access (no approval prompts)", comment: "Codex permission mode without sandbox or approval prompts.")
+              .tag(CodexApprovalMode.fullAccess)
+          } label: {
+            Text(chrome: "Codex permissions", comment: "Project permission mode for Codex.")
+          }.labelsHidden().fixedSize()
+        }
+        note {
+          Group {
+            switch project.codexApprovalMode {
+            case .automaticReview:
+              Text(chrome: "Codex reviews permission requests automatically while keeping the workspace sandbox. Questions about the fix still come to you. Applies to the next turn.", comment: "Explains automatic Codex approval review.")
+            case .ask:
+              Text(chrome: "Codex asks you when a command needs extra access. Applies to the next turn.", comment: "Explains manual Codex approvals.")
+            case .fullAccess:
+              Text(chrome: "Commands can access your Mac and the network without approval prompts. Use only for projects you trust. Applies to the next turn.", comment: "Explains full access for Codex.")
+            }
+          }.font(.caption).foregroundStyle(project.codexApprovalMode == .fullAccess ? .orange : .secondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        note {
+          Toggle(isOn: $project.autoMerge) {
+            Text(
+              chrome: "Merge fixes automatically after checks pass",
+              comment: "Enables automatic merge."
+            ).fixedSize(horizontal: false, vertical: true)
+          }
         }
       }.textFieldStyle(.roundedBorder)
       if let error {
@@ -217,12 +257,52 @@ struct ProjectEditor: View {
           }
         }.buttonStyle(.borderedProminent).tint(.orange).keyboardShortcut("s", modifiers: .command)
       }
-    }.padding(24).frame(minWidth: embedded ? 0 : 620, idealWidth: embedded ? nil : 720)
+    }.padding(24)
+      // A sheet gets one fixed width so the label column and wrapped notes never spill past its edges.
+      .frame(width: embedded ? nil : 640)
       .frame(maxWidth: embedded ? .infinity : nil, alignment: .leading)
       .onAppear { load(project) }
+      // An accepted settings proposal changes the saved project while this form is open.
+      // Without this, the next Save would write the old values back.
+      .onChange(of: model.project(project.id)?.validationCommand) { old, new in
+        if let new, project.validationCommand == (old ?? "") { project.validationCommand = new }
+      }
+      .onChange(of: model.project(project.id)?.baseBranch) { old, new in
+        if let new, project.baseBranch == (old ?? Project.defaultBaseBranch) { project.baseBranch = new }
+      }
       .task(id: project.path) { await detectBundles() }
       .task(id: project.path + "\u{0}" + project.baseBranch) { await checkBaseBranch() }
   }
+  /// Width of the trailing-aligned label column. Longer translations wrap instead of widening it.
+  private let labelWidth: CGFloat = 190
+
+  /// A labeled row: the label sits in a fixed trailing column, the control fills the rest.
+  private func row<Label: View, Content: View>(
+    @ViewBuilder label: () -> Label, @ViewBuilder content: () -> Content
+  ) -> some View {
+    GridRow(alignment: .firstTextBaseline) {
+      label()
+        .multilineTextAlignment(.trailing)
+        .fixedSize(horizontal: false, vertical: true)
+        .frame(width: labelWidth, alignment: .trailing)
+      content().frame(maxWidth: .infinity, alignment: .leading)
+    }
+  }
+
+  /// A row with no label: help text, warnings and toggles aligned with the controls above.
+  private func note<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+    GridRow {
+      Color.clear.frame(width: labelWidth, height: 0)
+      content().frame(maxWidth: .infinity, alignment: .leading)
+    }
+  }
+
+  private func caption(_ text: Text) -> some View {
+    text.font(.caption).foregroundStyle(.secondary)
+      .fixedSize(horizontal: false, vertical: true)
+      .frame(maxWidth: .infinity, alignment: .leading)
+  }
+
   private var providerChoices: [AgentKind] {
     let connected = AgentKind.allCases.filter { model.detection($0)?.usable == true }
     guard let chosen = project.defaultAgent, !connected.contains(chosen) else { return connected }
