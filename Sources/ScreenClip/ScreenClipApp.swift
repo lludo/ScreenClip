@@ -311,15 +311,35 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
       + model.settingsProposals.count
     statusItem.button?.image = NSImage(
       systemSymbolName: "viewfinder", accessibilityDescription: "ScreenClip")
-    let count = active.formatted(.number)
-    let dot = attention > 0 ? " •" : ""
-    statusItem.button?.title = active > 0 ? " \(count)\(dot)" : dot
+    statusItem.button?.attributedTitle = Self.badgeTitle(active: active, attention: attention)
     let open = Chrome.format(
       "tooltip.open", "\(active) open", comment: "Menu bar tooltip. %lld is the open count.")
     let needs = Chrome.format(
       "tooltip.attention", "\(attention) need attention",
       comment: "Menu bar tooltip. %lld is how many reports need attention.")
     statusItem.button?.toolTip = "ScreenClip: \(open), \(needs)"
+  }
+  /// The open count, then a red dot when something needs the tester. The dot is drawn larger
+  /// than a text bullet and raised to the middle of the digits so it reads at a glance.
+  static func badgeTitle(active: Int, attention: Int) -> NSAttributedString {
+    let font = NSFont.menuBarFont(ofSize: 0)
+    let title = NSMutableAttributedString()
+    if active > 0 {
+      title.append(NSAttributedString(
+        string: " \(active.formatted(.number))",
+        attributes: [.font: font, .foregroundColor: NSColor.labelColor]))
+    }
+    if attention > 0 {
+      let dotFont = NSFont.systemFont(ofSize: font.pointSize * 0.8)
+      title.append(NSAttributedString(string: " ", attributes: [.font: font]))
+      title.append(NSAttributedString(
+        string: "\u{25CF}",
+        attributes: [
+          .font: dotFont, .foregroundColor: NSColor.systemRed,
+          .baselineOffset: (font.capHeight - dotFont.capHeight) / 2,
+        ]))
+    }
+    return title
   }
   @objc func togglePopover() {
     if popover.isShown {
