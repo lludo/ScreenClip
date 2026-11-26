@@ -9,6 +9,35 @@ import SwiftUI
 import UIKit
 
 @MainActor final class ScreenClipKitTests: XCTestCase {
+  func testCapturePreservesAppPixelsUnderATransparentWindow() async throws {
+    let scene = try XCTUnwrap(Snapshot.activeScene())
+    let host = try XCTUnwrap(Snapshot.appWindow(in: scene, excluding: []))
+    let marker = UIView(frame: host.bounds.insetBy(dx: host.bounds.width / 4, dy: host.bounds.height / 4))
+    marker.backgroundColor = .red
+    host.addSubview(marker)
+    let overlay = UIWindow(windowScene: scene)
+    overlay.windowLevel = .alert
+    overlay.rootViewController = UIViewController()
+    overlay.rootViewController?.view.backgroundColor = .clear
+    overlay.backgroundColor = .clear
+    overlay.isHidden = false
+    defer { overlay.isHidden = true; marker.removeFromSuperview() }
+    // Capture an already displayed frame, as a shake would.
+    CATransaction.flush()
+    try await Task.sleep(for: .milliseconds(200))
+    let snapshot = try XCTUnwrap(Snapshot.capture(in: scene, excluding: []))
+    let image = try XCTUnwrap(snapshot.image.cgImage)
+    let center = try XCTUnwrap(image.cropping(to: CGRect(x: image.width / 2, y: image.height / 2, width: 1, height: 1)))
+    var pixel = [UInt8](repeating: 0, count: 4)
+    let bitmap = try XCTUnwrap(CGContext(data: &pixel, width: 1, height: 1, bitsPerComponent: 8,
+      bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+      bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
+    bitmap.draw(center, in: CGRect(x: 0, y: 0, width: 1, height: 1))
+    XCTAssertGreaterThan(pixel[0], 200)
+    XCTAssertLessThan(pixel[1], 50)
+    XCTAssertLessThan(pixel[2], 50)
+  }
+
   func testCaptureExportsAtFullResolutionWithTheScenesCornerGeometry() throws {
     let scene = try XCTUnwrap(Snapshot.activeScene())
     let host = try XCTUnwrap(Snapshot.appWindow(in: scene, excluding: []))
@@ -141,6 +170,12 @@ import UIKit
     let large = try XCTUnwrap(largeResult).0
     XCTAssertEqual(large.image.cgImage?.width, 600)
     XCTAssertEqual(large.image.cgImage?.height, 400)
+    let sameAspect = try encoded(width: 600, height: 1200, takenAt: nil)
+    let resized = await Snapshot.picked(sameAspect, replacing: live)
+    let (thumbnail, metadata) = try XCTUnwrap(resized)
+    XCTAssertEqual(thumbnail.image.cgImage?.height, 600)
+    XCTAssertFalse(metadata.matchesDevice)
+    XCTAssertEqual(thumbnail.cornerRadii, RectangleCornerRadii())
     let unreadable = await Snapshot.picked(Data("not an image".utf8), replacing: live)
     XCTAssertNil(unreadable)
     // The exported PNG is cut to the device outline only for the matching screenshot.
@@ -162,6 +197,29 @@ import UIKit
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     addTeardownBlock { try FileManager.default.removeItem(at: directory) }
     return directory
+  }
+
+  func testCaptureHonorsSavedDiagnosticsPreferenceBeforeStartingProviders() async {
+    let previous = KitPreferences.attachDiagnostics
+    let runtime = KitRuntime.shared
+    defer {
+      ScreenClipKit.removeAttachmentProvider("preference-test")
+      KitPreferences.attachDiagnostics = previous
+      runtime.overlay.dismissSheet()
+    }
+    for enabled in [false, true] {
+      KitPreferences.attachDiagnostics = enabled
+      let started = expectation(description: "Attachment provider started")
+      started.isInverted = !enabled
+      ScreenClipKit.setAttachmentProvider("preference-test") { _ in
+        started.fulfill()
+        return []
+      }
+      ScreenClipKit.capture()
+      XCTAssertTrue(runtime.overlay.isPresentingSheet)
+      await fulfillment(of: [started], timeout: enabled ? 2 : 0.25)
+      runtime.overlay.dismissSheet()
+    }
   }
 
   func testPublicCapturePresentsInTheDemoAndRestoresItsKeyWindow() throws {
@@ -322,6 +380,9 @@ import UIKit
     XCTAssertTrue(KitPreferences.attachDiagnostics)
     composer.attachDiagnostics = true
     XCTAssertTrue(composer.attachDiagnostics)
+    composer.clearMarks()
+    composer.add(Annotation(kind: .redact, points: [MarkPoint(0, 0), MarkPoint(1, 1)]))
+    XCTAssertFalse(composer.attachDiagnostics, "Replacing the image needs a fresh opt-in for its redactions")
     let next = ComposerModel()
     next.add(Annotation(kind: .redact, points: [MarkPoint(0, 0), MarkPoint(1, 1)]))
     XCTAssertFalse(next.attachDiagnostics)

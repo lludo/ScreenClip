@@ -16,7 +16,7 @@ Redaction is only the black rectangles you draw with the redact tool. Those pixe
 
 ### From an iOS app
 
-On a physical iPhone or iPad, add ScreenClipKit to your app's Debug build, then shake the device to report a screen. Reports arrive in the queue with an iPhone icon. Setup, pairing, and Fetch are in [ScreenClip for iOS](ios-sdk.md).
+On a physical iPhone or iPad, add ScreenClipKit to your app's Debug build, then shake the device to report a screen. To report an earlier screen, use the photo button in the composer to choose a screenshot. The Mac identifies images chosen from Photos. **Attach logs and diagnostics** also controls any files the app supplies. Reports arrive in the queue with an iPhone icon. Setup, pairing, and Fetch are in [ScreenClip for iOS](ios-sdk.md).
 
 ## The queue
 
@@ -114,4 +114,4 @@ python3 scripts/review_queue.py --project ScreenClip --details
 
 ### Check tasks from your agents
 
-Settings › Connections › **Check tasks from your agents** installs ScreenClip's read-only MCP server for Claude Code or Codex in one click. After that, a session in any project can answer “Check this project's ScreenClip tasks”: what is open, in progress, or blocked, and the details of each report. **Copy command** shows the Terminal equivalent, and **Copy JSON** configures other MCP apps. Grok Bot runs in the cloud and cannot use it. Details are in the [MCP plugin](../plugins/screenclip/README.md).
+Settings › Connections › **Check tasks from your agents** installs ScreenClip’s MCP server for Claude Code or Codex in one click. After that, a session in any project can answer “Check this project's ScreenClip tasks”: what is open, in progress, or blocked, and the details of each report. **Copy command** shows the Terminal equivalent, and **Copy JSON** configures other MCP apps. Grok Bot runs in the cloud and cannot use it. An agent can also suggest a validation command or a base branch. Review the full suggestion in the menu bar popover or the project’s settings, then choose **Accept** or **Reject**. Accepting a validation command continues reports waiting for one. Details are in the [MCP plugin](../plugins/screenclip/README.md).

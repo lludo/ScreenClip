@@ -19,7 +19,7 @@ public enum PRScreenshotEvidence {
     let paths = try await GitHubService.listScreenclipPaths(revision: "HEAD", cwd: worktree)
     guard ExternalAssistant.containsScreenclipEvidence(paths) else { return nil }
     _ = try await CommandRunner.checked(
-      GitWorkspace.git, ["rm", "-r", "-q", "-f", "--", ".screenclip"], cwd: worktree)
+      GitWorkspace.git, ["rm", "-r", "-q", "--", ".screenclip"], cwd: worktree)
     _ = try await CommandRunner.checked(
       GitWorkspace.git, ["commit", "-q", "-m", removalCommitMessage, "--", ".screenclip"], cwd: worktree)
     return try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: worktree)

@@ -121,7 +121,7 @@
       "從網站和原生 Mac App 截取",
       "Codex、Claude Code 和 Grok Bot",
       "專案驗證、GitHub 拉取請求、可選合併和再測佇列",
-      "唯讀的 MCP 伺服器，讓 Claude Code 和 Codex 查看每個專案的報告",
+      "Claude Code 和 Codex 可以讀取專案報告並提出設定變更，供你核准",
       "透過 ScreenClipKit 從你自己的 iPhone 與 iPad App 回報（Debug 建置）"
     ]
   },
@@ -172,7 +172,7 @@
     "site1a": "{link:site} 是靜態網站。本站頁面不從其他網域載入指令碼或字型。",
     "site1b": "本站使用由網站主機提供的 Vercel Web Analytics 統計訪客數和頁面瀏覽量。它不設定 cookie。它會記錄頁面位址、來源網站、瀏覽器、作業系統和裝置類型，以及根據 IP 位址推斷的國家或地區。它不儲存 IP 位址，也不會跨其他網站追蹤你。",
     "site1c": "選擇語言會把該選擇存在名為 screenclip_lang 的 cookie 和你裝置的本機儲存中。該 cookie 只用於下次打開首頁時選擇語言。它不用於廣告或分析。提供網站的主機為了送達頁面，會收到 IP 位址和使用者代理等一般連線資料。",
-    "ios1a": "如果你將 ScreenClipKit 加入自己 iOS App 的 Debug 版本，從 iPhone 傳送的報告（加上標註的截圖、你的備註、裝置與 App 資訊，以及除非你關閉，否則包括最近的 App 記錄、畫面結構和裝置狀態）會透過本機網路直接傳到你 Mac 上的 ScreenClip，並為已配對的 Mac 加密。它不經過任何 ScreenClip 伺服器。",
+    "ios1a": "如果你將 ScreenClipKit 加入自己 iOS App 的 Debug 版本，從 iPhone 傳送的報告（加上標註的截圖、你的備註、裝置與 App 資訊，以及除非你關閉，否則包括最近的 App 記錄、畫面結構和裝置狀態）會透過本機網路直接傳到你 Mac 上的 ScreenClip，並為已配對的 Mac 加密。它不經過任何 ScreenClip 伺服器。啟用診斷後，App 也可以附上自己的文字或 JSON 檔案。代理程式可以在查看報告時讀取這些檔案。",
     "ios1b": "在 Mac 可連線之前，報告會留在 iPhone 上，之後 Mac 會像處理其他報告一樣儲存和處理。App 的 Release 版本不包含 ScreenClipKit 程式碼。"
   },
   "support": {

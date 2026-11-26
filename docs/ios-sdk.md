@@ -112,7 +112,7 @@ ScreenClipKit.setAttachmentProvider("cart") { context in
 
 | Question | Answer |
 | --- | --- |
-| When does it run? | When the report sheet opens, so its data matches the screen the tester captured, and it has all the time the tester spends annotating. After **Send**, ScreenClip waits up to `timeout` more (default 5 seconds, at most 30), with "Saving report…" on screen, then sends the report without whatever hasn't arrived. |
+| When does it run? | When the report sheet opens with diagnostics enabled, or when the tester enables them in the composer. After **Send**, ScreenClip waits up to `timeout` more (default 5 seconds, at most 30), with "Saving report…" on screen, then sends the report without whatever hasn't arrived. |
 | On which thread? | Off the main actor. Read main-actor state with `await MainActor.run { … }`, and keep heavy work out of it. |
 | What does it return? | `[ScreenClipAttachment]`, each built with `.text(_:name:summary:)`, `.json(_ data: Data, name:summary:)`, or `.json(_ value: some Encodable, name:summary:)` (pretty-printed, sorted keys, ISO 8601 dates). Return `[]` to add nothing this time. |
 | What is `context`? | `reportID` (log it next to your own records, such as a backend request id, to tie them to the report), `capturedAt`, `screenTitle`, and `screenPath`. |

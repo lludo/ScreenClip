@@ -13,6 +13,7 @@ struct ScreenClipKitDemoApp: App {
         ScreenClipOptions(captureConsoleOutput: ProcessInfo.processInfo.arguments.contains("-captureConsole")))
       Self.simulateShakeIfAsked()
       // Your own files on every report: here, a little app state as JSON.
+      let launchedAt = ProcessInfo.processInfo.systemUptime
       ScreenClipKit.setAttachmentProvider("session") { context in
         struct Session: Encodable {
           var reportID: UUID
@@ -23,15 +24,11 @@ struct ScreenClipKitDemoApp: App {
         let session = Session(
           reportID: context.reportID, screen: context.screenTitle,
           launchArguments: Array(ProcessInfo.processInfo.arguments.dropFirst()),
-          secondsSinceLaunch: Int(ProcessInfo.processInfo.systemUptime - Self.launchedAt))
+          secondsSinceLaunch: Int(ProcessInfo.processInfo.systemUptime - launchedAt))
         return [try .json(session, name: "session", summary: "demo session state and launch arguments")]
       }
     #endif
   }
-
-  #if DEBUG
-    static let launchedAt = ProcessInfo.processInfo.systemUptime
-  #endif
 
   #if DEBUG
     /// `-simulateShakeAfter 6` sends a shake to the key window after 6 seconds, the same event a

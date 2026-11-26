@@ -17,12 +17,11 @@ ScreenClipKit.setAttachmentProvider("cart") { context in
 
 The agent reads each file's name and summary in its prompt. It opens a file only when the screenshot and note aren't enough, so write the summary for it: say what is inside.
 
+Attachment providers were added after ScreenClipKit 1.1.0. Use a newer package release or a revision that includes the attachment API.
+
 ### When the provider runs
 
-The provider starts when the report sheet opens, not when the tester taps **Send**:
-
-- Its data matches the screen the tester captured, not whatever the app shows a minute later.
-- Slow work, such as a network call, a database read, or a file on disk, overlaps the time the tester spends marking up.
+With **Attach logs and diagnostics** enabled, the provider starts when the report sheet opens. It can read the app state while the tester annotates. Turning diagnostics on later starts a fresh provider run with the same report ID and capture time.
 
 After **Send**, ScreenClip waits up to `timeout` more (5 seconds by default, at most 30) with **Saving report…** on screen. It then sends the report without whatever hasn't arrived.
 

@@ -4,11 +4,13 @@ sole queue writer. The one thing it writes is a settings proposal file, which ch
 until the tester accepts it in ScreenClip."""
 import base64
 from contextlib import closing
+import fcntl
 import json
 import os
 from pathlib import Path
 import re
 import sqlite3
+import subprocess
 import sys
 import time
 import uuid
@@ -35,8 +37,6 @@ PROPOSES = {"readOnlyHint": False, "destructiveHint": False, "idempotentHint": T
 PROPOSALS = "proposals"
 MAX_COMMAND = 4000
 MAX_REASON = 2000
-# A Git branch name without spaces, control characters, or the forms Git rejects.
-BRANCH = re.compile(r"^(?!/|.*(?:\.\.|//|@\{|\.lock$|/$|\.$))[A-Za-z0-9._/-]{1,255}$")
 # The MCP client that started this server, shown to the tester next to a proposal.
 CLIENT = {"name": None}
 PROJECT_PARAMETER = {"type": "string", "description": "Project name, or an absolute path inside its repository or one of its worktrees. Pass your working directory to see only this project's reports."}
@@ -203,7 +203,8 @@ def propose(state, arguments):
         changes["validationCommand"] = command
     branch = text_argument(arguments, "base_branch", 255)
     if branch is not None:
-        if not BRANCH.match(branch):
+        if (not branch or branch.startswith("-") or branch == "HEAD" or
+                subprocess.run(["/usr/bin/git", "check-ref-format", "refs/heads/" + branch]).returncode != 0):
             raise InvalidParams("base_branch must be a Git branch name such as main")
         changes["baseBranch"] = branch
     if not changes:
@@ -214,20 +215,24 @@ def propose(state, arguments):
         return {"content": [{"type": "text", "text": json.dumps({"status": "unchanged", "project": project.get("name"), "note": "The project already has these settings. Nothing was proposed."})}]}
     folder = proposals_folder()
     folder.mkdir(mode=0o700, parents=True, exist_ok=True)
-    proposal = {"version": 1, "id": str(uuid.uuid4()).upper(), "projectID": project.get("id"), "projectName": project.get("name"), "changes": changes, "reason": reason or None, "proposer": CLIENT["name"], "createdAt": time.time()}
-    destination = folder / f"{proposal['id']}.json"
-    temporary = folder / f".{proposal['id']}.tmp"
-    descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-    with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
-        json.dump(proposal, handle)
-    os.replace(temporary, destination)
-    # The newest proposal for a project is the one the tester sees.
-    for older in pending_proposals():
-        if older.get("projectID") == project.get("id") and older["_path"] != destination:
-            try:
-                older["_path"].unlink()
-            except OSError:
-                pass
+    proposal = {"version": 1, "id": str(uuid.uuid4()).upper(), "projectID": project.get("id"), "projectName": project.get("name"), "changes": changes, "reason": reason or None, "proposer": CLIENT["name"]}
+    # Each MCP client has its own server process. Serialize replacement so two clients
+    # cannot both delete the proposal the other just published.
+    with (folder / ".writer.lock").open("a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        older = [p["_path"] for p in pending_proposals() if p.get("projectID") == project.get("id")]
+        proposal["createdAt"] = time.time()
+        destination = folder / f"{proposal['id']}.json"
+        temporary = destination.with_suffix(".tmp")
+        descriptor = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        try:
+            with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                json.dump(proposal, handle, ensure_ascii=False)
+            os.replace(temporary, destination)
+        finally:
+            temporary.unlink(missing_ok=True)
+        for path in older:
+            path.unlink(missing_ok=True)
     result = {"status": "pending", "project": project.get("name"), "proposalID": proposal["id"], "changes": changes, "note": "Waiting for the tester to accept or reject this in ScreenClip. Nothing changes until they accept. list_projects shows settingsProposalPending until they decide."}
     return {"content": [{"type": "text", "text": json.dumps(result)}]}
 

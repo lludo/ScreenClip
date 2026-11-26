@@ -150,7 +150,7 @@ These were open while the app was being built. The original table, with the prop
 | --- | --- |
 | Source control | GitHub only |
 | Browsers | Safari and Chrome, optional, off until the URL preference is on |
-| Agents | Codex and Claude Code locally; Grok Bot by webhook; a read-only MCP server, installed from Settings, lets agents check their project's reports |
+| Agents | Codex and Claude Code locally; Grok Bot by webhook; the MCP server lets agents read project reports and propose a validation command or base branch for the tester to approve |
 | After a merge | **To retest**. ScreenClip does not relaunch the app under test |
 | Questions | Answered in ScreenClip for Codex and Claude Code. Grok Bot questions stay in Grok Bot's chat |
 | Old screenshots | Kept until the report is deleted. No automatic expiry yet ([roadmap](roadmap.md)) |

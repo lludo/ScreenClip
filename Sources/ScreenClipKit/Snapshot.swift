@@ -37,7 +37,9 @@
       guard !windows.isEmpty, bounds.width > 0, bounds.height > 0 else { return nil }
       let format = UIGraphicsImageRendererFormat()
       format.scale = scene.screen.scale
-      format.opaque = true
+      // A transparent overlay (including UIKit’s text-effects window) can draw black over
+      // the app when drawHierarchy targets an opaque bitmap. The black fill supplies the backdrop.
+      format.opaque = false
       let image = UIGraphicsImageRenderer(bounds: bounds, format: format).image { context in
         UIColor.black.setFill()
         context.fill(bounds)
@@ -67,8 +69,9 @@
       let decoded = await Task.detached(priority: .userInitiated) {
         decode(data, maximumPixelSize: max(width, height))
       }.value
-      guard let (image, takenAt) = decoded else { return nil }
-      let matches = (image.width, image.height) == (width, height) || (image.width, image.height) == (height, width)
+      guard let (image, originalSize, takenAt) = decoded else { return nil }
+      let matches = originalSize == CGSize(width: width, height: height)
+        || originalSize == CGSize(width: height, height: width)
       let snapshot = Snapshot(
         image: UIImage(cgImage: image, scale: matches ? scale : 1, orientation: .up),
         cornerRadii: matches ? live.cornerRadii : RectangleCornerRadii())
@@ -76,7 +79,7 @@
     }
 
     /// The upright image, no larger than `maximumPixelSize` on its longest side, and its capture date.
-    nonisolated static func decode(_ data: Data, maximumPixelSize: Int) -> (CGImage, Date?)? {
+    nonisolated static func decode(_ data: Data, maximumPixelSize: Int) -> (CGImage, CGSize?, Date?)? {
       guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
       let options: [CFString: Any] = [
         kCGImageSourceCreateThumbnailFromImageAlways: true,
@@ -85,7 +88,13 @@
       ]
       guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
       let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
-      return (image, takenAt(properties))
+      var originalSize: CGSize?
+      if let width = properties?[kCGImagePropertyPixelWidth] as? Int,
+        let height = properties?[kCGImagePropertyPixelHeight] as? Int
+      {
+        originalSize = CGSize(width: width, height: height)
+      }
+      return (image, originalSize, takenAt(properties))
     }
 
     /// The capture date in the image's EXIF metadata, which iOS screenshots carry.

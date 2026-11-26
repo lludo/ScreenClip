@@ -52,7 +52,7 @@ struct SettingsProposalCard: View {
                   .font(.caption).foregroundStyle(.secondary).frame(width: 70, alignment: .leading)
               }
               Text(verbatim: change.value).font(.system(.caption, design: .monospaced))
-                .textSelection(.enabled).lineLimit(compact ? 3 : nil)
+                .textSelection(.enabled)
                 .fixedSize(horizontal: false, vertical: true)
             }
           }

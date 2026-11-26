@@ -23,6 +23,7 @@ Link the **ScreenClipKit** product to your app target. App extensions and widget
 Call ``ScreenClipKit/ScreenClipKit/start(_:)`` as early as possible: in your `App` initializer, or in `application(_:didFinishLaunchingWithOptions:)`.
 
 ```swift
+import SwiftUI
 #if DEBUG
 import ScreenClipKit
 #endif

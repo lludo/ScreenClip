@@ -49,6 +49,7 @@ public enum GitHubService {
     // checks, review and the squash merge see a branch without `.screenclip/`. Validation still
     // covers that head: the commit only deletes ScreenClip's own evidence files.
     let head = try await PRScreenshotEvidence.removeFromBranch(worktree: path) ?? evidenceCommit
+    guard await shouldContinue() else { throw CancellationError() }
     try await pushBranch(branch, cwd: path)
     let existing = try await CommandRunner.checked(
       gh, ["pr", "list", "--head", branch, "--state", "open", "--json", "url,baseRefName,isCrossRepository"],
@@ -86,9 +87,9 @@ public enum GitHubService {
   /// and naming them would make `git add` fail.
   public static func stageChanges(cwd path: String) async throws {
     func list(_ arguments: [String]) async throws -> Set<String> {
-      Set(
-        try await CommandRunner.checked(GitWorkspace.git, arguments, cwd: path)
-          .split(separator: "\0").map(String.init))
+      let result = try await CommandRunner.run(GitWorkspace.git, arguments, cwd: path)
+      guard result.status == 0 else { throw ScreenClipError.message(result.error) }
+      return Set(result.output.split(separator: "\0").map(String.init))
     }
     let unstaged = try await list(
       ["ls-files", "--modified", "--deleted", "--others", "--exclude-standard", "-z"])
@@ -100,7 +101,7 @@ public enum GitHubService {
     }
     let paths = unstaged.union(staged.subtracting(stagedDeletions)).sorted()
     guard !paths.isEmpty else { return }
-    _ = try await CommandRunner.checked(GitWorkspace.git, ["add", "--"] + paths, cwd: path)
+    _ = try await CommandRunner.checked(GitWorkspace.git, ["--literal-pathspecs", "add", "--"] + paths, cwd: path)
   }
   public static func state(url: String, path: String, gh: String) async throws -> PRState {
     guard URL(string: url)?.host == "github.com" else {
@@ -230,11 +231,11 @@ public enum GitHubService {
   }
   public static func listScreenclipPaths(revision: String, cwd: String) async throws -> [String] {
     let result = try await CommandRunner.run(
-      GitWorkspace.git, ["ls-tree", "-r", "--name-only", revision, "--", ".screenclip"], cwd: cwd)
+      GitWorkspace.git, ["ls-tree", "-r", "-z", "--name-only", revision, "--", ".screenclip"], cwd: cwd)
     guard result.status == 0 else {
       throw ScreenClipError.message(result.error.isEmpty ? result.output : result.error)
     }
-    return result.output.split(separator: "\n", omittingEmptySubsequences: true).map(String.init)
+    return result.output.split(separator: "\0").map(String.init)
   }
   public static func commitEvidence(directory: String, message: String, cwd: String) async throws
     -> String

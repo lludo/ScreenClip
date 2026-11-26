@@ -1,10 +1,18 @@
 import XCTest
 
 final class ComposerInteractionTests: XCTestCase {
+  override func setUp() {
+    super.setUp()
+    continueAfterFailure = false
+  }
+
   @MainActor func testDismissKeyboardAndUseAnnotationHistory() throws {
     let app = XCUIApplication()
-    app.launchArguments = ["-simulateShakeAfter", "1"]
     app.launch()
+    let settings = app.buttons["Settings"].firstMatch
+    XCTAssertTrue(settings.waitForExistence(timeout: 10))
+    settings.tap()
+    app.buttons["Report this screen"].tap()
     let note = app.descendants(matching: .any).matching(identifier: "screenclip.note").firstMatch
     XCTAssertTrue(note.waitForExistence(timeout: 10))
     let canvas = app.descendants(matching: .any).matching(identifier: "screenclip.canvas").firstMatch
@@ -20,12 +28,16 @@ final class ComposerInteractionTests: XCTestCase {
     note.tap()
     note.typeText("First line\nSecond line")
     let keyboard = app.keyboards.firstMatch
-    XCTAssertTrue(keyboard.exists)
-    XCTAssertLessThanOrEqual(note.frame.maxY, keyboard.frame.minY)
+    // iPad can host its keyboard outside the app’s accessibility hierarchy. In both
+    // cases the editor must offer dismissal, preserve the note, and relinquish focus.
+    let dismissButton = app.buttons["Dismiss keyboard"]
+    XCTAssertTrue(dismissButton.exists)
+    if keyboard.exists { XCTAssertLessThanOrEqual(note.frame.maxY, keyboard.frame.minY) }
     attachScreenshot(name: "Editing the note")
-    app.buttons["Dismiss keyboard"].tap()
+    dismissButton.tap()
     let dismissed = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: keyboard)
     XCTAssertEqual(XCTWaiter.wait(for: [dismissed], timeout: 5), .completed)
+    XCTAssertFalse(dismissButton.exists)
     XCTAssertEqual(note.value as? String, "First line\nSecond line")
 
     let undo = app.buttons["Undo"]

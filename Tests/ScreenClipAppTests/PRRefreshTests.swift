@@ -20,6 +20,7 @@ import XCTest
       ["init", "-q", "-b", "main"],
       ["-c", "user.name=ScreenClip", "-c", "user.email=test@example.invalid", "commit", "-q",
        "--allow-empty", "-m", "initial"],
+      ["tag", "pushed"],
     ] {
       let git = Process()
       git.executableURL = URL(fileURLWithPath: "/usr/bin/git")
@@ -239,6 +240,26 @@ import XCTest
         output: "", fingerprint: "fixture"), for: id, issue: issue)
     try model.updateIssue(id) { $0.prHead = legacy }
     try passingChecks(legacy)
+    // A clean local checkout is no evidence about the remote commit GitHub would merge.
+    _ = try await CommandRunner.checked(git, ["switch", "--detach", legacy + "^"], cwd: worktree.path)
+    await model.worker.refreshPR(id)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: mergeRequest.path))
+    _ = try await CommandRunner.checked(git, ["switch", branch], cwd: worktree.path)
+
+    // A rejected cleanup push must preserve both layers of someone else's local edit.
+    let edited = worktree.appendingPathComponent("fix.txt")
+    try Data("staged".utf8).write(to: edited)
+    _ = try await CommandRunner.checked(git, ["add", "--", "fix.txt"], cwd: worktree.path)
+    try Data("still editing".utf8).write(to: edited)
+    let hook = root.appendingPathComponent("remote.git/hooks/pre-receive")
+    try Data("#!/bin/sh\nexit 1\n".utf8).write(to: hook)
+    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: hook.path)
+    await model.worker.refreshPR(id)
+    let staged = try await CommandRunner.checked(git, ["show", ":fix.txt"], cwd: worktree.path)
+    XCTAssertEqual(staged, "staged")
+    XCTAssertEqual(try String(contentsOf: edited, encoding: .utf8), "still editing")
+    XCTAssertEqual(model.issue(id)?.prHead, legacy)
+    try FileManager.default.removeItem(at: hook)
     await model.worker.refreshPR(id)
     XCTAssertFalse(FileManager.default.fileExists(atPath: mergeRequest.path), "Never merged with .screenclip/")
     let stripped = try XCTUnwrap(model.issue(id)?.prHead)
