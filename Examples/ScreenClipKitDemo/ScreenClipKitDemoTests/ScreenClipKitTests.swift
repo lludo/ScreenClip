@@ -3,6 +3,7 @@ import XCTest
 
 #if os(iOS) && DEBUG
 import Network
+import ImageIO
 import ScreenClipWire
 import SwiftUI
 import UIKit
@@ -80,6 +81,72 @@ import UIKit
     let edge = (0..<72).map { 4 * (8 * 300 + $0) }.first { (1..<255).contains(rounded[$0 + 3]) }
     let offset = try XCTUnwrap(edge)
     XCTAssertEqual(Array(rounded[offset..<offset + 3]), [0, 0, 0])
+  }
+
+  func testPickedScreenshotKeepsDeviceCornersOnlyWhenItMatchesTheScreen() async throws {
+    let radii = RectangleCornerRadii(topLeading: 50, bottomLeading: 50, bottomTrailing: 50, topTrailing: 50)
+    let format = UIGraphicsImageRendererFormat()
+    format.scale = 3
+    let liveImage = UIGraphicsImageRenderer(size: CGSize(width: 100, height: 200), format: format).image { context in
+      UIColor.blue.setFill()
+      context.fill(CGRect(x: 0, y: 0, width: 100, height: 200))
+    }
+    let live = Snapshot(image: liveImage, cornerRadii: radii)
+    func encoded(width: Int, height: Int, takenAt: String?) throws -> Data {
+      let space = try XCTUnwrap(CGColorSpace(name: CGColorSpace.sRGB))
+      let context = try XCTUnwrap(CGContext(
+        data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: width * 4, space: space,
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
+      context.setFillColor(CGColor(srgbRed: 1, green: 1, blue: 1, alpha: 1))
+      context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+      let image = try XCTUnwrap(context.makeImage())
+      let data = NSMutableData()
+      let destination = try XCTUnwrap(CGImageDestinationCreateWithData(data, "public.png" as CFString, 1, nil))
+      var properties: [CFString: Any] = [:]
+      if let takenAt {
+        properties[kCGImagePropertyExifDictionary] = [
+          kCGImagePropertyExifDateTimeOriginal: takenAt, kCGImagePropertyExifOffsetTimeOriginal: "+00:00",
+        ]
+      }
+      CGImageDestinationAddImage(destination, image, properties as CFDictionary)
+      XCTAssertTrue(CGImageDestinationFinalize(destination))
+      return data as Data
+    }
+    let matchingData = try encoded(width: 600, height: 300, takenAt: "2026:01:02 03:04:05")
+    let matchingResult = await Snapshot.picked(matchingData, replacing: live)
+    let (matching, matchingInfo) = try XCTUnwrap(matchingResult)
+    XCTAssertTrue(matchingInfo.matchesDevice)
+    XCTAssertEqual(matching.cornerRadii, radii)
+    XCTAssertEqual(matching.image.size, CGSize(width: 200, height: 100))
+    XCTAssertEqual(matchingInfo.takenAt, Date(timeIntervalSince1970: 1_767_323_045))
+    let otherData = try encoded(width: 500, height: 500, takenAt: nil)
+    let otherResult = await Snapshot.picked(otherData, replacing: live)
+    let (other, otherInfo) = try XCTUnwrap(otherResult)
+    XCTAssertFalse(otherInfo.matchesDevice)
+    XCTAssertNil(otherInfo.takenAt)
+    XCTAssertEqual(other.cornerRadii, RectangleCornerRadii())
+    XCTAssertEqual(other.image.size, CGSize(width: 500, height: 500))
+    // Larger images are scaled to the screen's longest side, the size of a live capture.
+    let largeData = try encoded(width: 1800, height: 1200, takenAt: nil)
+    let largeResult = await Snapshot.picked(largeData, replacing: live)
+    let large = try XCTUnwrap(largeResult).0
+    XCTAssertEqual(large.image.cgImage?.width, 600)
+    XCTAssertEqual(large.image.cgImage?.height, 400)
+    let unreadable = await Snapshot.picked(Data("not an image".utf8), replacing: live)
+    XCTAssertNil(unreadable)
+    // The exported PNG is cut to the device outline only for the matching screenshot.
+    func cornerAlpha(_ snapshot: Snapshot) throws -> UInt8 {
+      let decoded = try XCTUnwrap(PNG.decode(XCTUnwrap(snapshot.renderPNG(marks: []))))
+      var pixel = [UInt8](repeating: 0, count: 4)
+      let context = try XCTUnwrap(CGContext(data: &pixel, width: 1, height: 1, bitsPerComponent: 8,
+        bytesPerRow: 4, space: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
+      // Draw so the image's top-left pixel lands on the 1x1 context.
+      context.draw(decoded, in: CGRect(x: 0, y: 1 - decoded.height, width: decoded.width, height: decoded.height))
+      return pixel[3]
+    }
+    XCTAssertEqual(try cornerAlpha(matching), 0)
+    XCTAssertEqual(try cornerAlpha(other), 255)
   }
 
   private func temporaryDirectory() -> URL {

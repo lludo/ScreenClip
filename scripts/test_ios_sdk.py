@@ -43,9 +43,15 @@ def check_product(configuration, sdk):
 
 
 def main():
+    device = simulator_id()
+    # The report sheet's picker shows only screenshots. This PNG carries the EXIF comment Photos
+    # uses to file it there, so the UI test has one to pick. Adding it again only adds a duplicate.
+    subprocess.run(["xcrun", "simctl", "boot", device], capture_output=True)
+    subprocess.run(["xcrun", "simctl", "addmedia", device,
+                    str(ROOT / f"Examples/{NAME}/Fixtures/picker-screenshot.png")], check=True)
     build = ["xcodebuild", "-project", str(ROOT / f"Examples/{NAME}/{NAME}.xcodeproj"),
              "-scheme", NAME, "-derivedDataPath", str(DERIVED)]
-    subprocess.run([*build, "-configuration", "Debug", "-destination", f"platform=iOS Simulator,id={simulator_id()}",
+    subprocess.run([*build, "-configuration", "Debug", "-destination", f"platform=iOS Simulator,id={device}",
                     "-parallel-testing-enabled", "NO", "test"], check=True)
     check_product("Debug", "iphonesimulator")
     subprocess.run([*build, "-configuration", "Release", "-destination", "generic/platform=iOS",

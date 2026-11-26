@@ -22,6 +22,9 @@ public struct DeviceContext: Codable, Equatable, Sendable {
   /// The visible screen, outermost first, such as `["UITabBarController", "SettingsViewController"]`.
   public var screenPath: [String]
   public var screenTitle: String?
+  /// Set when the tester replaced the live capture with an existing screenshot from Photos. The
+  /// image may show an older build, and the screen path and view tree describe the live screen.
+  public var pickedScreenshot: PickedScreenshot?
   public init(
     platform: String = "iOS", deviceModel: String = "", deviceName: String = "",
     osVersion: String = "", appName: String = "", bundleID: String = "", appVersion: String = "",
@@ -54,6 +57,25 @@ public struct DeviceContext: Codable, Equatable, Sendable {
   }
   /// The innermost screen, for display.
   public var screenName: String? { screenTitle ?? screenPath.last }
+}
+
+/// An existing screenshot the tester picked in place of the live capture.
+public struct PickedScreenshot: Codable, Equatable, Sendable {
+  /// When the screenshot was taken, from its metadata, if it has any.
+  public var takenAt: Date?
+  /// True when its pixel size matches this device's screen in either orientation.
+  public var matchesDevice: Bool
+  public init(takenAt: Date? = nil, matchesDevice: Bool) {
+    self.takenAt = takenAt
+    self.matchesDevice = matchesDevice
+  }
+  /// One sentence for agents and the capture details.
+  public var caveat: String {
+    var text = "Screenshot picked from the device's photo library instead of captured live"
+    if let takenAt { text += ", taken \(takenAt.formatted(.iso8601))" }
+    text += matchesDevice ? "" : ", on a screen of a different size"
+    return text + ". It may show an older build than the one installed; the visible view controllers and view tree describe the live screen, not this image."
+  }
 }
 
 /// An optional file captured with a report: app logs, the view tree, or device state. Agents

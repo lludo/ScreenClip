@@ -32,7 +32,7 @@ There are two layers. Your `#if DEBUG` guards keep the call out, and the package
 
 1. On the Mac, open **Settings > iOS**, turn on **Receive reports from iOS devices**, and click **Pair a device…**.
 2. On the device, run the Debug build and shake. Tap the gear in the report sheet, then tap **Pair** next to your Mac. Confirm that both screens show the same 6-digit code, then click **Confirm** on the Mac.
-3. From then on: shake, draw (arrow, rectangle, ellipse, pen, text, redact), write a note, and tap **Send**. The report gets the iPhone icon in the queue.
+3. From then on: shake, draw (arrow, rectangle, ellipse, pen, text, redact), write a note, and tap **Send**. The report gets the iPhone icon in the queue. To report something seen earlier, the tester can tap the photo button and pick one of the device's screenshots instead of the live capture. It keeps the device's rounded corners when its size matches this screen and is otherwise scaled to fit it, and the report tells the agent it was picked from Photos, when it was taken, and that it may show an older build than the one installed. No photo library permission is needed: the system picker only shares the image the tester chooses.
 
 ### Which project gets the report
 

@@ -49,6 +49,27 @@ final class ComposerInteractionTests: XCTestCase {
     XCTAssertFalse(redo.isEnabled)
   }
 
+  @MainActor func testPickingAPhotoReplacesTheCaptureAndCanBeUndone() throws {
+    let app = XCUIApplication()
+    app.launchArguments = ["-simulateShakeAfter", "1"]
+    app.launch()
+    let pick = app.buttons["screenclip.pickScreenshot"]
+    XCTAssertTrue(pick.waitForExistence(timeout: 10))
+    XCTAssertGreaterThanOrEqual(pick.frame.width, 44)
+    pick.tap()
+    // The system picker runs out of process and exposes little to UI tests. It opens on the
+    // Screenshots grid; scripts/test_ios_sdk.py adds one, the first cell below the privacy banner.
+    XCTAssertTrue(app.staticTexts["Screenshots"].waitForExistence(timeout: 15))
+    attachScreenshot(name: "Photos picker over the composer")
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.17, dy: 0.42)).tap()
+    let banner = app.descendants(matching: .any).matching(identifier: "screenclip.pickedBanner").firstMatch
+    XCTAssertTrue(banner.waitForExistence(timeout: 15))
+    attachScreenshot(name: "Composer with a picked screenshot")
+    app.buttons["Use the live capture instead"].tap()
+    let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: banner)
+    XCTAssertEqual(XCTWaiter.wait(for: [gone], timeout: 5), .completed)
+  }
+
   @MainActor private func attachScreenshot(name: String) {
     let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
     attachment.name = name

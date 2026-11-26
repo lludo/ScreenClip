@@ -42,6 +42,22 @@ final class WireTests: XCTestCase {
     XCTAssertThrowsError(try ReportFile.decode(Data("nope".utf8)))
   }
 
+  func testPickedScreenshotRoundTripsAndOlderReportsHaveNone() throws {
+    var picked = device()
+    picked.pickedScreenshot = PickedScreenshot(takenAt: Date(timeIntervalSince1970: 1_700_000_000), matchesDevice: false)
+    let report = WireReport(note: "Old screenshot", image: Data([1]), device: picked)
+    let decoded = try ReportFile.decode(ReportFile.encode(report))
+    XCTAssertEqual(decoded.device.pickedScreenshot, picked.pickedScreenshot)
+    let caveat = try XCTUnwrap(decoded.device.pickedScreenshot?.caveat)
+    XCTAssertTrue(caveat.contains("photo library"))
+    XCTAssertTrue(caveat.contains("2023-11-14T22:13:20Z"))
+    XCTAssertTrue(caveat.contains("different size"))
+    XCTAssertTrue(caveat.contains("older build"))
+    XCTAssertFalse(PickedScreenshot(matchesDevice: true).caveat.contains("different size"))
+    let live = try ReportFile.decode(ReportFile.encode(WireReport(note: "", image: nil, device: device())))
+    XCTAssertNil(live.device.pickedScreenshot)
+  }
+
   func testFrameHeaderRejectsOutOfRangeLengths() {
     let frame = Frame.encode(kind: .plain, payload: Data([9, 9]))
     XCTAssertEqual(Frame.length(header: frame.prefix(4)), 3)

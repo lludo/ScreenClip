@@ -12,6 +12,8 @@ A shake, or **Report** on the banner after a system screenshot, takes a snapshot
 
 The tester can draw arrows, rectangles, ellipses, freehand lines, and text, and redact anything private. Then they write a note and tap **Send**. Only the marked-up image leaves the device: annotations and redactions are burned in, and no unredacted copy is kept.
 
+To report something seen earlier, the tester can tap the photo button and pick one of the device's screenshots instead of the live capture. It keeps the device's rounded corners when its size matches this screen and is otherwise scaled to fit it, and the report tells the agent it was picked from Photos, when it was taken, and that it may show an older build than the one installed. No photo library permission is needed: the system picker only shares the image the tester chooses.
+
 ### Delivery
 
 | Situation | What happens |

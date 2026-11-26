@@ -1,5 +1,6 @@
 #if os(iOS) && DEBUG
   import Observation
+  import PhotosUI
   import ScreenClipWire
   import SwiftUI
   import UIKit
@@ -37,17 +38,29 @@
     }
     func undo() { if let mark = marks.popLast() { redoMarks.append(mark) } }
     func redo() { if let mark = redoMarks.popLast() { marks.append(mark) } }
+    /// Marks belong to one image; replacing the screenshot clears them.
+    func clearMarks() {
+      marks.removeAll()
+      redoMarks.removeAll()
+      draft = nil
+      pendingTextPoint = nil
+    }
   }
 
   struct ComposerView: View {
+    /// The live capture. A screenshot picked from Photos can replace it until Send.
     let snapshot: Snapshot
     let link: MacLink
     let outbox: Outbox
     let followUp: FollowUpTarget
     let stillBroken: (SentLog.Entry) -> Void
-    let send: (String, Data, Bool) async throws -> Void
+    let send: (String, Data, Bool, PickedScreenshot?) async throws -> Void
     let cancel: () -> Void
     @State private var model = ComposerModel()
+    @State private var picked: (snapshot: Snapshot, info: PickedScreenshot)?
+    @State private var photoItem: PhotosPickerItem?
+    @State private var loadingPhoto = false
+    @State private var photoError: String?
     @State private var showingSettings = false
     @State private var saving = false
     @State private var saveError: String?
@@ -58,7 +71,7 @@
         VStack(spacing: 0) {
           HStack(spacing: 4) {
             AnnotationPalette { colorButtons }
-            AnnotationCanvasView(snapshot: snapshot, model: model)
+            AnnotationCanvasView(snapshot: shownSnapshot, model: model)
             AnnotationPalette { toolButtons }
           }
           .environment(\.layoutDirection, .leftToRight)
@@ -66,19 +79,17 @@
           .frame(maxWidth: .infinity, maxHeight: .infinity)
           .background(Color.black)
           Divider()
-          if let entry = followUp.entry {
-            HStack {
-              Image(systemName: "arrow.uturn.backward.circle").foregroundStyle(.orange)
-              Text(followUpTitle(entry)).font(.footnote).lineLimit(1)
-              Spacer()
-              Button {
-                followUp.entry = nil
-              } label: {
-                Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
-              }
-              .accessibilityLabel("File as a new report instead")
+          if picked != nil {
+            banner("Screenshot from Photos", symbol: "photo.on.rectangle", dismiss: "Use the live capture instead") {
+              model.clearMarks()
+              picked = nil
             }
-            .padding(.horizontal, 14).padding(.top, 8)
+            .accessibilityIdentifier("screenclip.pickedBanner")
+          }
+          if let entry = followUp.entry {
+            banner(followUpTitle(entry), symbol: "arrow.uturn.backward.circle", dismiss: "File as a new report instead") {
+              followUp.entry = nil
+            }
           }
           HStack(spacing: 4) {
             TextField("What's wrong here?", text: $model.note, axis: .vertical)
@@ -99,6 +110,12 @@
           HStack(spacing: 8) {
             historyButton("Undo", symbol: "arrow.uturn.backward", enabled: model.canUndo, action: model.undo)
             historyButton("Redo", symbol: "arrow.uturn.forward", enabled: model.canRedo, action: model.redo)
+            PhotosPicker(selection: $photoItem, matching: .screenshots, preferredItemEncoding: .current) {
+              squareLabel("photo.on.rectangle")
+            }
+            .accessibilityLabel("Use a screenshot from Photos")
+            .accessibilityHint("Replaces this capture and clears its marks.")
+            .accessibilityIdentifier("screenclip.pickScreenshot")
             Spacer(minLength: 4)
             Toggle(isOn: $model.attachDiagnostics) {
               Text("Attach logs and diagnostics").font(.footnote)
@@ -131,13 +148,13 @@
               saving = true
               Task { @MainActor in
                 defer { saving = false }
-                guard let png = snapshot.renderPNG(marks: model.marks) else {
+                guard let png = shownSnapshot.renderPNG(marks: model.marks) else {
                   saveError = "Could not render the annotated screenshot."
                   return
                 }
                 do {
                   try await send(model.note.trimmingCharacters(in: .whitespacesAndNewlines), png,
-                    model.attachDiagnostics)
+                    model.attachDiagnostics, picked?.info)
                 } catch {
                   saveError = error.localizedDescription
                 }
@@ -157,6 +174,13 @@
               }
           }
         }
+        .onChange(of: photoItem) { _, item in
+          guard let item else { return }
+          loadPhoto(item)
+        }
+        .alert("Could not use that image", isPresented: Binding(
+          get: { photoError != nil }, set: { if !$0 { photoError = nil } })
+        ) { Button("OK") {} } message: { Text(photoError ?? "") }
         .alert("Could not save the report", isPresented: Binding(
           get: { saveError != nil }, set: { if !$0 { saveError = nil } })
         ) { Button("OK") {} } message: { Text(saveError ?? "") }
@@ -177,9 +201,39 @@
           Button("Cancel", role: .cancel) { model.pendingTextPoint = nil }
         }
       }
-      .disabled(saving)
-      .overlay { if saving { ProgressView("Saving report…").padding().background(.regularMaterial, in: Capsule()) } }
+      .disabled(saving || loadingPhoto)
+      .overlay {
+        if saving {
+          ProgressView("Saving report…").padding().background(.regularMaterial, in: Capsule())
+        } else if loadingPhoto {
+          ProgressView().padding().background(.regularMaterial, in: Capsule())
+        }
+      }
       .tint(.orange)
+    }
+
+    private var shownSnapshot: Snapshot { picked?.snapshot ?? snapshot }
+
+    private func loadPhoto(_ item: PhotosPickerItem) {
+      loadingPhoto = true
+      Task { @MainActor in
+        defer {
+          loadingPhoto = false
+          photoItem = nil
+        }
+        do {
+          guard let data = try await item.loadTransferable(type: Data.self),
+            let result = await Snapshot.picked(data, replacing: snapshot)
+          else {
+            photoError = "The image could not be read."
+            return
+          }
+          model.clearMarks()
+          picked = result
+        } catch {
+          photoError = error.localizedDescription
+        }
+      }
     }
 
     private func followUpTitle(_ entry: SentLog.Entry) -> String {
@@ -249,13 +303,29 @@
       }
     }
 
-    private func historyButton(_ title: String, symbol: String, enabled: Bool, action: @escaping () -> Void) -> some View {
-      Button(action: action) {
-        Image(systemName: symbol)
-          .frame(width: 44, height: 44)
-          .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
-          .contentShape(Rectangle())
+    /// A one-line notice above the note, with a button that undoes what it describes.
+    private func banner(_ text: String, symbol: String, dismiss: String, action: @escaping () -> Void) -> some View {
+      HStack {
+        Image(systemName: symbol).foregroundStyle(.orange)
+        Text(text).font(.footnote).lineLimit(1)
+        Spacer()
+        Button(action: action) {
+          Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary)
+        }
+        .accessibilityLabel(dismiss)
       }
+      .padding(.horizontal, 14).padding(.top, 8)
+    }
+
+    private func squareLabel(_ symbol: String) -> some View {
+      Image(systemName: symbol)
+        .frame(width: 44, height: 44)
+        .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+        .contentShape(Rectangle())
+    }
+
+    private func historyButton(_ title: String, symbol: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+      Button(action: action) { squareLabel(symbol) }
       .accessibilityLabel(title)
       .disabled(!enabled)
     }
