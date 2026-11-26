@@ -632,6 +632,22 @@ FORMATS = {
         "%@ says this is still broken", "%@ 表示问题仍未解决", "%@ indica que sigue sin funcionar", "%@ によると、まだ直っていません",
         "%@ informa que ainda não está corrigido", "%@ meldet: immer noch fehlerhaft", "%@ indique que le problème persiste",
         "%@에서 아직 고쳐지지 않았다고 합니다", "%@: всё ещё не исправлено", "%@ 表示問題仍未解決"),
+    "proposal.title": S("app", "Title of a settings proposal from a coding agent. %@ is the project name.",
+        "Suggested settings for %@", "%@ 的建议设置", "Ajustes sugeridos para %@", "%@ の提案された設定", "Ajustes sugeridos para %@", "Vorgeschlagene Einstellungen für %@", "Réglages suggérés pour %@", "%@에 대한 제안된 설정", "Предложенные настройки для %@", "%@ 的建議設定"),
+    "proposal.from": S("app", "Who sent a settings proposal. %@ is an app name such as Claude Code.",
+        "From %@", "来自 %@", "De %@", "送信元: %@", "De %@", "Von %@", "De %@", "보낸 곳: %@", "От %@", "來自 %@"),
+    "proposal.unblocks": P("app", "Under a proposed validation command. %lld is how many reports were waiting for one.", {
+        "en": ("Accepting continues %lld blocked report.", "Accepting continues %lld blocked reports."),
+        "zh-Hans": "接受后将继续 %lld 个受阻的报告。",
+        "es": ("Al aceptar, continúa %lld informe bloqueado.", "Al aceptar, continúan %lld informes bloqueados."),
+        "ja": "承認すると、止まっている %lld 件のレポートが続行されます。",
+        "pt-BR": ("Aceitar continua %lld relatório bloqueado.", "Aceitar continua %lld relatórios bloqueados."),
+        "de": ("Annehmen setzt %lld blockierten Bericht fort.", "Annehmen setzt %lld blockierte Berichte fort."),
+        "fr": ("Accepter relance %lld rapport bloqué.", "Accepter relance %lld rapports bloqués."),
+        "ko": "수락하면 막힌 리포트 %lld개를 계속합니다.",
+        "ru": ("Принятие продолжит %lld заблокированный отчёт.", "Принятие продолжит %lld заблокированных отчёта.", "Принятие продолжит %lld заблокированных отчётов.", "Принятие продолжит %lld заблокированного отчёта."),
+        "zh-Hant": "接受後將繼續 %lld 個受阻的報告。",
+    }),
 }
 
 INFO_PLIST = {

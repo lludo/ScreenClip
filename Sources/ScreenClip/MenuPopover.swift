@@ -101,6 +101,9 @@ struct MenuPopover: View {
             Text(chrome: "Dismiss message", comment: "Clears the menu bar banner."))
         }
       }
+      ForEach(model.settingsProposals) { proposal in
+        SettingsProposalCard(model: model, proposal: proposal, compact: true)
+      }
       Divider()
       if model.snapshot.issues.isEmpty {
         Text(

@@ -1,7 +1,8 @@
 import Foundation
 
-/// Registers ScreenClip's read-only MCP server with a coding agent, so a session in any
-/// project can ask which of its reports are open, in progress, or blocked.
+/// Registers ScreenClip's MCP server with a coding agent, so a session in any project can ask
+/// which of its reports are open, in progress, or blocked, and propose project settings that
+/// the tester accepts in the app. The server never writes the queue.
 ///
 /// The server script ships in the app bundle and is copied into the data folder, so the
 /// path an agent stores survives app updates and moving the app.

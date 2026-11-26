@@ -219,6 +219,44 @@ class PluginTests(unittest.TestCase):
         self.assertIn("20 of 25", summary["note"])
         listed = json.loads(plugin.call("list_issues", {"status": "paused"})["content"][0]["text"])
         self.assertEqual([i["reportNumber"] for i in listed], [99])
+    def proposal_files(self):
+        folder = plugin.ROOT / "proposals"
+        return sorted(folder.glob("*.json")) if folder.is_dir() else []
+    def test_proposing_settings_writes_only_a_proposal_file(self):
+        repo = plugin.ROOT / "repos/App"
+        (repo / ".git").mkdir(parents=True)
+        project_id = str(uuid.uuid4()).upper()
+        self.save_state([{"id": project_id, "name": "App", "path": str(repo), "baseBranch": "main", "validationCommand": ""}], [])
+        database = (plugin.ROOT / "screenclip.sqlite").read_bytes()
+        plugin.CLIENT["name"] = "claude-code"
+        self.addCleanup(plugin.CLIENT.update, {"name": None})
+        result = json.loads(plugin.call("propose_project_settings", {"project": str(repo), "validation_command": "  make test  ", "reason": "Runs the tests."})["content"][0]["text"])
+        self.assertEqual(result["status"], "pending")
+        self.assertEqual((plugin.ROOT / "screenclip.sqlite").read_bytes(), database)
+        files = self.proposal_files()
+        self.assertEqual(len(files), 1)
+        self.assertEqual(files[0].stat().st_mode & 0o777, 0o600)
+        proposal = json.loads(files[0].read_text())
+        self.assertEqual(files[0].stem, proposal["id"])
+        self.assertEqual((proposal["projectID"], proposal["changes"], proposal["reason"], proposal["proposer"]), (project_id, {"validationCommand": "make test"}, "Runs the tests.", "claude-code"))
+        listed = json.loads(plugin.call("list_projects", {})["content"][0]["text"])["projects"][0]
+        self.assertEqual((listed["hasValidationCommand"], listed["settingsProposalPending"]), (False, True))
+        self.assertNotIn("validationCommand", listed)
+        # A newer proposal for the same project replaces the waiting one.
+        plugin.call("propose_project_settings", {"project": "App", "validation_command": "make check", "base_branch": "develop"})
+        files = self.proposal_files()
+        self.assertEqual(len(files), 1)
+        self.assertEqual(json.loads(files[0].read_text())["changes"], {"validationCommand": "make check", "baseBranch": "develop"})
+    def test_proposals_that_change_nothing_or_are_invalid_are_refused(self):
+        self.save_state([{"id": "p", "name": "App", "path": "/nowhere", "baseBranch": "main", "validationCommand": "make test"}], [])
+        unchanged = json.loads(plugin.call("propose_project_settings", {"project": "App", "validation_command": "make test"})["content"][0]["text"])
+        self.assertEqual(unchanged["status"], "unchanged")
+        for arguments in [{"project": "App"}, {"project": "App", "validation_command": "   "}, {"project": "App", "validation_command": 5}, {"project": "App", "validation_command": "x" * 4001}, {"project": "App", "base_branch": "bad branch"}, {"project": "App", "base_branch": "../main"}, {"project": "App", "validation_command": "a\x00b"}, {"validation_command": "make"}]:
+            with self.subTest(arguments=arguments), self.assertRaises(plugin.InvalidParams):
+                plugin.call("propose_project_settings", arguments)
+        with self.assertRaises(ValueError):
+            plugin.call("propose_project_settings", {"project": "Unknown", "validation_command": "make"})
+        self.assertEqual(self.proposal_files(), [])
     def test_claude_code_plugin_manifests(self):
         root = Path(__file__).resolve().parents[1]
         manifest = json.loads((root / "plugins/screenclip/.claude-plugin/plugin.json").read_text())
@@ -266,7 +304,10 @@ class PluginTests(unittest.TestCase):
         messages = [json.loads(line) for line in result.stdout.splitlines()]
         self.assertEqual(len(messages), 3)
         self.assertEqual(messages[0]["result"]["serverInfo"]["name"], "screenclip")
-        self.assertEqual({t["name"] for t in messages[1]["result"]["tools"]}, {"task_summary", "list_issues", "get_issue", "list_projects"})
+        self.assertEqual({t["name"] for t in messages[1]["result"]["tools"]}, {"task_summary", "list_issues", "get_issue", "list_projects", "propose_project_settings"})
+        tools = {t["name"]: t for t in messages[1]["result"]["tools"]}
+        self.assertFalse(tools["propose_project_settings"]["annotations"]["readOnlyHint"])
+        self.assertTrue(all(t["annotations"]["readOnlyHint"] for name, t in tools.items() if name != "propose_project_settings"))
         self.assertEqual(json.loads(messages[2]["result"]["content"][0]["text"])["id"], self.id)
 
 if __name__ == "__main__":

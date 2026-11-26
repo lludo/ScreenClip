@@ -78,7 +78,7 @@ Not verified: the visual sidebar group. The record had no git anchors immediatel
 
 ## Reading the queue interactively (plugin)
 
-You can also pull reports into your own interactive Claude Code session instead of having ScreenClip dispatch them. The repository is a local Claude Code plugin marketplace with the read-only MCP server and a `fix-report` skill. Installation steps are in the [plugin README](../../plugins/screenclip/README.md). To get only the MCP tools in every project, use Settings › Connections › **Check tasks from your agents** › Install.
+You can also pull reports into your own interactive Claude Code session instead of having ScreenClip dispatch them. The repository is a local Claude Code plugin marketplace with the MCP server (it reads the queue and can propose project settings for you to accept) and a `fix-report` skill. Installation steps are in the [plugin README](../../plugins/screenclip/README.md). To get only the MCP tools in every project, use Settings › Connections › **Check tasks from your agents** › Install.
 
 Then ask, for example, "fix ScreenClip #234". The skill reads the note, context, and screenshots, refuses to duplicate a report ScreenClip is already working on, and fixes it in the current session. ScreenClip does not learn about fixes made this way: mark the report Verified or archive it after retesting.
 
