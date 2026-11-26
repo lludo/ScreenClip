@@ -137,7 +137,7 @@ def render_link(name, catalog, config):
         href = catalog.page(internal[name])
         return f'<a href="{html.escape(href, quote=True)}">{label}</a>'
     urls = {
-        "githubRead": config.github_url,
+        "license": config.github_url.rstrip("/") + "/blob/HEAD/LICENSE.md" if config.github_url else "",
         "github": config.github_url,
         "issues": config.issues_url,
         "download": config.download_url,

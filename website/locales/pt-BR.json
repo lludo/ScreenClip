@@ -2,16 +2,16 @@
   "languageName": "Português (Brasil)",
   "meta": {
     "homeTitle": "ScreenClip — Feedback por captura para agentes de código",
-    "homeDescription": "ScreenClip é um app de barra de menus para Mac, agora com o ScreenClipKit para seus apps iOS. Capture uma observação no Mac, iPhone ou iPad, envie a um agente de código e acompanhe a correção sem perder o ritmo.",
+    "homeDescription": "Marque o problema em um app para Mac ou em um site e envie a captura ao seu agente de código. Continue testando enquanto ele prepara a correção.",
     "privacyTitle": "Política de privacidade — ScreenClip",
     "privacyDescription": "O que o ScreenClip guarda no Mac, o que pode ir para o Codex, Claude Code, Grok Bot ou GitHub, e como a redação funciona.",
     "supportTitle": "Suporte — ScreenClip",
     "supportDescription": "Ajuda do ScreenClip pelo GitHub issues e o que você precisa para executar ou compilar o app de Mac.",
     "notFoundTitle": "Página não encontrada — ScreenClip",
     "notFoundDescription": "Essa página não existe no site do ScreenClip.",
-    "ogAlt": "ScreenClip. Registre bugs no fluxo, sem interromper o ritmo.",
+    "ogAlt": "ScreenClip — Relate bugs com uma captura de tela",
     "iosTitle": "ScreenClip para iPhone e iPad: ScreenClipKit",
-    "iosDescription": "Agite seu iPhone para relatar um bug no seu próprio app. O ScreenClipKit envia o relato ao ScreenClip no seu Mac, onde o Codex, o Claude Code ou o Grok Bot o corrige."
+    "iosDescription": "Adicione o ScreenClipKit ao build Debug do seu app. Agite o aparelho para enviar uma captura com uma nota ao Mac."
   },
   "nav": {
     "skip": "Pular para o conteúdo",
@@ -30,7 +30,6 @@
   },
   "link": {
     "privacy": "política de privacidade",
-    "githubRead": "Ler no GitHub",
     "github": "no GitHub",
     "issues": "GitHub issues",
     "download": "Baixar para Mac",
@@ -38,15 +37,13 @@
     "site": "screenclipai.com",
     "privacyLead": "Leia a política de privacidade",
     "author": "Ludo Landry",
-    "iosGuide": "Guia do iOS"
+    "iosGuide": "Guia do iOS",
+    "license": "PolyForm Noncommercial 1.0.0"
   },
   "hero": {
-    "newTag": "Novo",
-    "newText": "Relate também a partir dos seus apps de iPhone e iPad",
-    "eyebrow": "Feedback por captura para agentes de código",
-    "title": "Registre bugs no fluxo, sem interromper o ritmo.",
-    "lead": "Notou algo? Capture, escreva algumas palavras e siga em frente. Seu agente de programação corrige em segundo plano, e o ScreenClip avisa quando for hora de testar de novo.",
-    "shortcut": "De qualquer lugar do seu Mac. Altere o atalho em Settings.",
+    "title": "Relate bugs com uma captura de tela",
+    "lead": "Marque o problema em um app para Mac ou em um site e envie a captura ao seu agente de código. Continue testando enquanto ele prepara a correção.",
+    "shortcut": "Capturar uma área no Mac",
     "keysLabel": "Command Shift 2"
   },
   "demo": {
@@ -62,144 +59,57 @@
     "step7": "Ou abra a fila para ver cada relato e seu status",
     "step8": "Receba uma notificação quando a alteração for integrada e estiver pronta para novo teste"
   },
-  "loop": {
-    "eyebrow": "Como funciona",
-    "title": "Alguns segundos do seu tempo. O resto acontece em segundo plano."
-  },
   "ios": {
-    "eyebrow": "Novo na 1.1 · iPhone e iPad",
-    "title": "Testando no iPhone? Relate de lá também.",
-    "intro": "Adicione o ScreenClipKit ao build Debug do seu app iOS. Agite o aparelho, marque a tela e envie. O relatório chega ao ScreenClip no seu Mac, onde seu agente de código o corrige como qualquer outro.",
-    "shakeTitle": "Agite para relatar",
-    "shakeBody": "Agite o aparelho, ou faça uma captura de tela e toque em Relatar. Marque com as mesmas ferramentas do Mac, adicione uma nota e envie.",
-    "pairTitle": "Pareado com o seu Mac",
-    "pairBody": "Confirme o mesmo código de 6 dígitos nas duas telas. Os relatórios passam pela sua rede local, criptografados para o seu Mac, e esperam no seu iPhone até o Mac estar acessível.",
-    "statusTitle": "Status e novo teste no seu iPhone",
-    "statusBody": "Veja o agente, o status ao vivo e a pull request de cada relatório. Quando uma correção é mesclada, marque como corrigida ou envie sua próxima captura de volta ao mesmo relatório.",
-    "note": "Os builds Release do seu app não contêm nada disso. iOS 17 ou posterior. Nos Ajustes do ScreenClip › iOS, um prompt copiado pede ao Claude Code ou ao Codex que instale para você. {link:iosGuide}."
+    "intro": "Adicione o ScreenClipKit ao build Debug do seu app. Agite o aparelho para enviar uma captura com uma nota ao Mac."
   },
   "agents": {
-    "eyebrow": "Agentes",
-    "title": "Codex, Claude Code ou Grok Bot.",
-    "intro": "Escolha um agente padrão em Settings, ou um para cada relatório novo, com o modelo e o nível de raciocínio no Codex e no Claude Code. Uma captura de acompanhamento fica com o agente daquele relatório.",
-    "codexTitle": "Codex",
-    "codexBody": "Neste Mac, em um Git worktree isolado. Ele não envia o branch nem abre o pull request. O ScreenClip roda a validação e abre. Você responde às perguntas no relatório.",
-    "claudeTitle": "Claude Code",
-    "claudeBody": "Neste Mac, no próprio Git worktree. O ScreenClip abre o pull request. As perguntas aparecem no relatório, e você responde lá.",
     "grokTitle": "Grok Bot",
-    "grokBody": "Remoto. Nada é enviado até você salvar um webhook. O Grok Bot abre o pull request a partir do branch que o ScreenClip enviou. As perguntas ficam no chat do Grok Bot."
+    "grokBody": "Conecte um webhook para enviar relatórios ao Grok Bot. Ele trabalha remotamente, faz perguntas no próprio chat e abre o pull request.",
+    "localTitle": "Codex e Claude Code",
+    "localBody": "Os dois rodam no seu Mac, em um worktree do Git separado para cada relatório. Responda às perguntas no ScreenClip. O ScreenClip executa as verificações do projeto e abre o pull request."
   },
   "download": {
-    "eyebrow": "Baixar",
     "title": "ScreenClip 1.1.0 para seu Mac.",
     "price": "Grátis para uso não comercial.",
-    "source": "O ScreenClip tem o código-fonte disponível (source-available) sob a PolyForm Noncommercial 1.0.0, grátis para uso não comercial. O licenciamento comercial está disponível sob consulta. {link:githubRead}, abra um issue ou compile com o Xcode 16 ou posterior.",
+    "source": "Licenças comerciais estão disponíveis mediante solicitação. {link:license}.",
     "sourceMissing": "O código-fonte ainda não é público.",
-    "button": "Baixar para Mac",
-    "headerButton": "Baixar",
     "github": "Ver no GitHub",
     "donate": "Apoiar o projeto",
-    "noteReady": "ScreenClip 1.1.0 · Apple Silicon · macOS 14 ou posterior · Atualiza automaticamente",
+    "noteReady": "ScreenClip 1.1.0 · Apple Silicon · macOS 14 ou posterior",
     "noteSoon": "Download para Mac em breve.",
     "macSoon": "O download para Mac chega em breve.",
     "needsTitle": "O que você precisa",
-    "needOs": "macOS 14 ou posterior",
     "needGit": "Um repositório Git local do app que você está testando",
     "needAgent": "Codex CLI, Claude Code ou um webhook do Grok Bot",
     "needGh": "GitHub CLI, para pull requests e para o Grok Bot",
-    "needIos": "Para apps iOS: ScreenClipKit no build Debug, iOS 17 ou posterior",
-    "awake": "Deixe o ScreenClip em execução e o Mac acordado enquanto Codex ou Claude Code trabalham. O Grok Bot continua se o Mac dormir. O ScreenClip atualiza esse pull request na próxima vez que você abrir o app.",
-    "privacy": "{link:privacyLead} para ver o que fica no Mac e o que pode sair.",
     "titleSoon": "Em breve no seu Mac."
   },
   "faq": {
     "title": "Perguntas",
-    "cost": "Grátis para uso não comercial; licenciamento comercial disponível mediante solicitação.",
-    "costSource": " O código está no GitHub.",
-    "downloadYes": "Sim. “Baixar para Mac” aponta para a imagem de disco mais recente no GitHub Releases. Depois de instalado, o ScreenClip se mantém atualizado sozinho.",
-    "downloadSource": " Você também pode compilar o código a partir do GitHub.",
-    "downloadNo": "Ainda não. Esta página vai indicar o download para Mac quando uma versão for publicada.",
-    "downloadNoSource": " Enquanto isso, o código está no GitHub.",
     "items": [
       {
-        "q": "O que o ScreenClip faz?",
-        "a": "O ScreenClip é um app da barra de menus do macOS. Pressione Command-Shift-2, selecione uma região de um site ou de um app de Mac, acrescente uma nota ou marcas se quiser e envie. O relatório vai para o Codex, Claude Code ou Grok Bot. Para Codex e Claude Code, o ScreenClip executa o comando de validação do projeto e abre o pull request no GitHub. O Grok Bot abre o pull request a partir do branch que o ScreenClip enviou, e o ScreenClip acompanha. Com o merge automático ativado, o ScreenClip faz o merge depois da validação, das verificações e das regras de review. Relatórios com merge vão para To retest."
-      },
-      {
-        "q": "Qual a diferença de colar uma captura no chat de um agente?",
-        "a": "Uma captura colada abre uma única conversa, que você depois gerencia à mão. O ScreenClip registra cada captura como um relatório próprio, com a sua conversa com o agente e um worktree Git isolado, então várias correções podem andar enquanto você continua testando. Cada relatório ganha um pull request no GitHub acompanhado pelo ScreenClip, e as correções com merge vão para To retest."
-      },
-      {
-        "q": "Quais agentes de código ele aceita?",
-        "a": "Codex, Claude Code e Grok Bot. Codex e Claude Code rodam no seu Mac, em um Git worktree isolado, e não enviam o branch nem abrem o pull request. O Grok Bot é remoto: você salva um webhook, e o ScreenClip envia para ele as capturas aprovadas de cada relatório a um branch no repositório do projeto no GitHub. Escolha um agente padrão em Settings, ou um para um relatório novo. Uma captura de acompanhamento fica com o agente daquele relatório."
+        "q": "Como eu configuro?",
+        "a": "Entre com gh auth login. Nos ajustes do ScreenClip, adicione o repositório, a branch base e o comando de validação. Depois, conecte um agente."
       },
       {
         "q": "Meu agente de código consegue ver o que está aberto no ScreenClip?",
-        "a": "Sim, no Claude Code e no Codex. Em Settings › Connections, Check tasks from your agents instala o servidor MCP do ScreenClip com um clique. Depois, uma sessão em qualquer projeto pode pedir “Check this project’s ScreenClip tasks” e ver o que está aberto, em andamento e bloqueado, além dos detalhes de cada relatório. As ferramentas só leem sua fila. Copy JSON configura outros apps MCP."
-      },
-      {
-        "q": "É só para bugs?",
-        "a": "Não. Capture um controle cortado, um texto confuso, um espaçamento estranho ou uma ideia para depois. Só a captura já basta."
-      },
-      {
-        "q": "O que preciso ter instalado?",
-        "a": "macOS 14 ou posterior, um repositório Git local e um agente: Codex CLI com app-server, Claude Code ou um webhook do Grok Bot. O GitHub CLI é necessário para abrir pull requests e para enviar capturas ao Grok Bot. Conceda a permissão de Gravação de Tela para a região que você selecionar. Deixe o ScreenClip em execução e o Mac acordado enquanto Codex ou Claude Code trabalham. O Grok Bot continua se o Mac dormir, e o status do pull request é atualizado na próxima vez que o ScreenClip estiver em execução. Compilar a partir do código também exige o Xcode 16 ou posterior."
-      },
-      {
-        "q": "Como eu configuro?",
-        "a": "Em três passos. Entre no GitHub com a GitHub CLI (gh auth login) para que o ScreenClip possa abrir pull requests. Em Settings, adicione cada projeto em que você trabalha: o repositório local, o branch base e o comando de validação. Depois conecte os agentes que você usa: Codex, Claude Code ou Grok Bot. Escolha um padrão, pressione Command-Shift-2 e envie seu primeiro relato."
+        "a": "Em Ajustes › Conexões, você pode dar ao Codex ou ao Claude Code acesso de leitura à fila de relatórios."
       },
       {
         "q": "O que sai do meu Mac?",
-        "a": "O ScreenClip não tem servidor próprio. Ele entrega a captura aprovada e a nota ao Codex ou ao Claude Code no Mac, e esse agente pode enviá-las à conta em que você entrou. O GitHub recebe o branch e o pull request abertos com o seu GitHub CLI. As capturas finais do relatório, com suas anotações e redações, e as capturas que o agente faz depois da correção entram no commit da correção e são incorporadas a esse pull request, então qualquer pessoa que possa ler o repositório pode vê-las. Com o Grok Bot, depois que você salva um webhook, o ScreenClip envia as capturas aprovadas a um branch do mesmo repositório. Os originais sem redação nunca são publicados. Não há análise do ScreenClip. A lista completa está na política de privacidade."
-      },
-      {
-        "q": "Como a redação funciona?",
-        "a": "Uma redação é um retângulo que você desenha com a ferramenta redact. O ScreenClip o achata em preto opaco. Setas, traços, formas e texto não escondem os pixels por baixo. Se uma captura tem redação, o recorte sem redação não é guardado e não é enviado."
+        "a": "Seu agente pode enviar a captura e a nota ao provedor dele. As capturas aprovadas ficam no repositório do GitHub. A {link:privacy} explica como os dados são compartilhados e ocultados."
       },
       {
         "q": "Uma correção entra no merge sozinha?",
-        "a": "Não, a menos que você ative o merge automático nesse projeto. Aí o ScreenClip só faz o merge depois da própria validação e das verificações e regras de review do pull request. Ele não ignora reviews obrigatórios. Merge não é deploy. Você testa de novo a partir de To retest, e uma nova captura no mesmo relatório continua o trabalho."
-      },
-      {
-        "q": "Onde aparecem as perguntas do agente?",
-        "a": "As perguntas do Codex e do Claude Code aparecem no relato, onde você responde. As do Grok Bot ficam no chat dele. Cancel interrompe o registro local e pode solicitar cancelamento em conexões compatíveis, mas a execução remota ainda pode terminar."
-      },
-      {
-        "q": "A captura fica junto do pull request?",
-        "a": "Sim. As capturas do relatório, achatadas com suas anotações e ocultações, são commitadas com a correção e incorporadas ao pull request, junto com as capturas que o agente faz depois da correção. Os originais sem ocultação nunca são publicados."
-      },
-      {
-        "q": "Ele captura o console do navegador ou as requisições de rede?",
-        "a": "Não. Um relatório é a região que você seleciona, mais a sua nota e marcações. O ScreenClip não grava vídeo, o console do navegador, requisições de rede nem o DOM da página. Se o agente precisar de mais, adicione uma nota ou outra captura ao mesmo relatório."
+        "a": "O merge automático é opcional por projeto. A correção precisa passar pela validação, pelas verificações do GitHub e pelas revisões obrigatórias."
       },
       {
         "q": "E se o recorte ficar apertado demais?",
-        "a": "Adicione uma segunda captura, mais ampla, ao mesmo relatório. Continua sendo um relatório só e não aumenta a contagem. Você também pode adicionar uma nota de texto a qualquer momento, inclusive enquanto o agente trabalha."
-      },
-      {
-        "q": "Quando a correção chega, o ScreenClip reabre o app ou a mesma região da tela?",
-        "a": "Não. Um relatório com merge vai para To retest. O ScreenClip não reabre o app que você está testando nem volta à região capturada, e merge não é deploy. Se ainda estiver quebrado, capture de novo no mesmo relatório, com a versão que você testou, e o trabalho continua na mesma conversa."
-      },
-      {
-        "id": "cost",
-        "q": "Quanto custa?"
-      },
-      {
-        "id": "download",
-        "q": "Dá para baixar?"
-      },
-      {
-        "q": "Funciona em sites e apps de Mac?",
-        "a": "Sim. Capture uma região de um site ou de um app nativo de Mac. Cadastre um repositório e associe endereços de sites ou bundle IDs de apps. Você pode trocar o projeto antes de enviar. Se o projeto for ambíguo, o ScreenClip salva o relatório e espera, em vez de adivinhar um repositório."
-      },
-      {
-        "q": "Funciona com apps de iPhone e iPad?",
-        "a": "Sim, com os apps iOS que você desenvolve. Adicione o pacote Swift ScreenClipKit ao build Debug do seu app, iOS 17 ou posterior; os builds Release não contêm nada disso. Pareie o aparelho com o ScreenClip no seu Mac confirmando um código de 6 dígitos e depois agite o aparelho, ou faça uma captura de tela, para relatar. A captura marcada e sua nota vão para o seu Mac pela rede local, criptografadas para o Mac pareado, e são arquivadas como qualquer outro relatório. Opcionalmente, você pode anexar logs recentes, as views da tela e o estado do aparelho. Seu iPhone mostra o status e a pull request de cada relatório e permite testar de novo uma correção mesclada."
+        "a": "Adicione outra captura ou uma nota ao mesmo relatório, mesmo enquanto o agente trabalha."
       },
       {
         "q": "Quem faz o ScreenClip?",
-        "a": "Um único desenvolvedor ({link:author}), mais os agentes de código que corrigem os bugs que eu registro com ele. O ScreenClip é grátis para uso não comercial. O que eu adoraria em troca: feedback, relatos de bugs e pull requests no GitHub. E se ele poupar uma tarde sua, a opção de gorjeta no menu do app me paga um café. O café volta direto para o código."
+        "a": "Sou {link:author}. Criei o ScreenClip para relatar bugs enquanto testava meus próprios apps. Comentários e pull requests são bem-vindos no GitHub."
       }
     ]
   },
@@ -216,10 +126,9 @@
     ]
   },
   "privacy": {
-    "eyebrow": "Política de privacidade",
     "title": "Política de privacidade",
-    "updated": "Atualizada em 24 de novembro de 2026.",
-    "intro": "O ScreenClip é um app da barra de menus do macOS. Você captura uma região que escolhe, anota e acrescenta uma nota se quiser, e entrega esse relatório a um agente que configurou. Esta política descreve o que o app guarda no Mac, o que pode sair e o que este site faz.",
+    "updated": "Atualizada em 25 de novembro de 2026.",
+    "intro": "O ScreenClip armazena os relatórios no Mac. Seu agente pode enviá-los ao provedor dele. As capturas salvas no repositório do GitHub ficam visíveis para quem tem acesso a ele.",
     "staysTitle": "O que fica no Mac",
     "stays1": "Relatórios, capturas, notas, anotações, ajustes de projeto, perguntas e atividade ficam no Mac, em {code:appSupport}. A fila é um banco SQLite mais arquivos de imagem. O trabalho do agente roda em um Git worktree nessa mesma pasta. O checkout do seu projeto não é o diretório de trabalho.",
     "stays2": "Um log de diagnóstico nessa pasta registra metadados de erros de build e de API. Ele não inclui capturas, notas, URLs do navegador nem títulos de janela.",
@@ -237,13 +146,10 @@
     "local2": "O agente usa a conta em que você entrou: o Codex pelo app-server, o Claude Code pelo próprio login. Esse agente pode enviar o pedido e as imagens ao provedor dele, nos termos dessa conta. O ScreenClip inicia esses agentes sem tokens do GitHub no ambiente. Quem envia branches e abre pull requests é o ScreenClip, não o agente.",
     "local3": "Se você instalar o servidor MCP do ScreenClip no Claude Code ou no Codex, as sessões desse agente podem ler seus relatórios: títulos, notas, status, perguntas e atividade. O servidor roda no seu Mac e não envia nada por conta própria, mas o agente pode enviar o que lê ao provedor dele, como faz com o prompt. Remova o servidor do agente para impedir isso.",
     "iosTitle": "Apps iOS com ScreenClipKit",
-    "ios1": "Se você adicionar o ScreenClipKit ao build Debug do seu próprio app iOS, um relatório enviado do seu iPhone (a captura anotada, sua nota, dados do dispositivo e do app e, a menos que você os desative, logs recentes do app, a estrutura da tela e o estado do dispositivo) vai direto para o ScreenClip no seu Mac pela sua rede local, criptografado para um Mac pareado. Ele não passa por nenhum servidor do ScreenClip. Os relatórios aguardam no seu iPhone até o Mac ficar acessível, e o Mac então os guarda e trata como qualquer outro relatório. Os builds Release do seu app não contêm código do ScreenClipKit.",
     "githubTitle": "GitHub",
     "github1": "A automação de pull request usa o GitHub CLI que você instala e a conta do GitHub em que esse CLI está logado. O ScreenClip envia um branch {code:branch} e, para Codex e Claude Code, abre o pull request. Ele lê o status das verificações e só faz merge quando o merge automático está ligado nesse projeto e as verificações e regras de review passam.",
-    "github2": "O corpo do pull request inclui o resumo do agente, o comando de validação do projeto com valores parecidos com segredos ocultos e a referência do relatório. Para Codex e Claude Code, o ScreenClip também inclui as capturas do relatório no commit da correção e as incorpora ao pull request como uma comparação Before / After: as capturas finais que você aprovou, com suas anotações e redações, e as capturas que o agente fez ao testar a correção de novo. Não há ajuste que desligue isso. Qualquer pessoa que possa ler o repositório pode ver essas imagens; em um repositório público, isso inclui qualquer pessoa na internet. Remover os arquivos em um commit posterior não os apaga do histórico do Git. Só as capturas finais são publicadas, nunca o recorte sem redação.",
     "grokTitle": "Grok Bot",
     "grok1": "Nada é enviado ao Grok Bot até você salvar uma URL de webhook e um Authorization header. Depois que essa conexão é salva, cada relatório que você envia ao Grok Bot compartilha suas capturas aprovadas. Não há um ajuste de compartilhamento separado por projeto, seja o repositório privado ou público.",
-    "grok2": "Aí o ScreenClip envia os PNGs aprovados e um arquivo {code:reportJson} para um branch {code:branch} do repositório do projeto e manda um webhook JSON pequeno. O webhook não contém bytes de imagem. Ele inclui o número do relatório, o issue id, a revisão, o título, as notas, notas de contexto posteriores, o nome do app de origem, o bundle ID, o nome do projeto, o repositório, o branch base, o comando de validação e o branch de evidência, o commit e os caminhos de arquivo. A URL do navegador e o título da janela só entram quando {ui:browserUrl} está ligado. O webhook também inclui um ID do espaço de trabalho, URLs de pull requests anteriores e identificadores de entrega. O webhook e o {code:reportJson} também levam as instruções do ScreenClip para o agente e o seu complemento padrão do prompt definido nos Ajustes. Uma solicitação de cancelamento compatível envia o ID do caso, número do relato, revisão, repositório e branch.",
     "grok3": "Quem puder ler o repositório pode acessar as evidências; em um repositório público, qualquer pessoa na internet. Remover arquivos em um commit posterior não os apaga do histórico Git. O Grok Bot abre a pull request desse branch. Cancel interrompe o registro local e, se a conexão permitir, solicita o cancelamento sem garantia; a execução remota ainda pode terminar. As perguntas ficam no chat do Grok Bot.",
     "grok4": "Um redirecionamento do webhook para outro host não inclui o Authorization header.",
     "deleteTitle": "Apagar dados",
@@ -252,21 +158,28 @@
     "tipsTitle": "Gorjetas",
     "tips": "O app pode mostrar uma janela opcional de gorjeta, e a mesma janela está no menu e em Settings. Escolher uma gorjeta abre o GitHub Sponsors no navegador. O ScreenClip não processa o pagamento e não recebe dados de cartão nem de repasse. Você pode fechar a janela ou desligar o aviso. Este site não aponta para uma página de pagamento.",
     "siteTitle": "Este site",
-    "site1": "{link:site} é um site estático. As páginas não carregam scripts nem fontes de outros domínios. O site usa o Vercel Web Analytics, fornecido pelo host que o entrega, para contar visitantes e visualizações de página. Ele não grava cookies. Registra o endereço da página, o site de origem, o navegador, o sistema operacional e o tipo de dispositivo, e o país deduzido do endereço IP. Não guarda o endereço IP nem acompanha você em outros sites. Escolher um idioma guarda essa escolha em um cookie chamado screenclip_lang e no armazenamento local do seu dispositivo. O cookie só escolhe o idioma da página inicial. Não é usado para publicidade nem análise. O host que entrega o site recebe dados comuns de conexão, como endereço IP e user agent, para servir a página.",
     "site2": "Os cliques no link de download também são contados, junto com a parte da página em que o link estava. Nada mais sobre você é adicionado a essa contagem.",
     "contactTitle": "Contato",
     "contact": "Perguntas sobre esta política vão pela {link:support}.",
     "changesTitle": "Alterações",
-    "changes": "Mudanças relevantes desta política serão publicadas nesta página, com a data atualizada."
+    "changes": "Mudanças relevantes desta política serão publicadas nesta página, com a data atualizada.",
+    "github2a": "O corpo do pull request inclui o resumo do agente, o comando de validação do projeto com valores parecidos com segredos ocultos e a referência do relatório.",
+    "github2b": "Para Codex e Claude Code, o ScreenClip também inclui as capturas do relatório no commit da correção e as incorpora ao pull request como uma comparação Before / After: as capturas finais que você aprovou, com suas anotações e redações, e as capturas que o agente fez ao testar a correção de novo. Não há ajuste que desligue isso.",
+    "github2c": "Qualquer pessoa que possa ler o repositório pode ver essas imagens; em um repositório público, isso inclui qualquer pessoa na internet. Remover os arquivos em um commit posterior não os apaga do histórico do Git. Só as capturas finais são publicadas, nunca o recorte sem redação.",
+    "grok2a": "Aí o ScreenClip envia os PNGs aprovados e um arquivo {code:reportJson} para um branch {code:branch} do repositório do projeto e manda um webhook JSON pequeno. O webhook não contém bytes de imagem.",
+    "grok2b": "Ele inclui o número do relatório, o issue id, a revisão, o título, as notas, notas de contexto posteriores, o nome do app de origem, o bundle ID, o nome do projeto, o repositório, o branch base, o comando de validação e o branch de evidência, o commit e os caminhos de arquivo. A URL do navegador e o título da janela só entram quando {ui:browserUrl} está ligado. O webhook também inclui um ID do espaço de trabalho, URLs de pull requests anteriores e identificadores de entrega.",
+    "grok2c": "O webhook e o {code:reportJson} também levam as instruções do ScreenClip para o agente e o seu complemento padrão do prompt definido nos Ajustes. Uma solicitação de cancelamento compatível envia o ID do caso, número do relato, revisão, repositório e branch.",
+    "site1a": "{link:site} é um site estático. As páginas não carregam scripts nem fontes de outros domínios.",
+    "site1b": "O site usa o Vercel Web Analytics, fornecido pelo host que o entrega, para contar visitantes e visualizações de página. Ele não grava cookies. Registra o endereço da página, o site de origem, o navegador, o sistema operacional e o tipo de dispositivo, e o país deduzido do endereço IP. Não guarda o endereço IP nem acompanha você em outros sites.",
+    "site1c": "Escolher um idioma guarda essa escolha em um cookie chamado screenclip_lang e no armazenamento local do seu dispositivo. O cookie só escolhe o idioma da página inicial. Não é usado para publicidade nem análise. O host que entrega o site recebe dados comuns de conexão, como endereço IP e user agent, para servir a página.",
+    "ios1a": "Se você adicionar o ScreenClipKit ao build Debug do seu próprio app iOS, um relatório enviado do seu iPhone (a captura anotada, sua nota, dados do dispositivo e do app e, a menos que você os desative, logs recentes do app, a estrutura da tela e o estado do dispositivo) vai direto para o ScreenClip no seu Mac pela sua rede local, criptografado para um Mac pareado. Ele não passa por nenhum servidor do ScreenClip.",
+    "ios1b": "Os relatórios aguardam no seu iPhone até o Mac ficar acessível, e o Mac então os guarda e trata como qualquer outro relatório. Os builds Release do seu app não contêm código do ScreenClipKit."
   },
   "support": {
-    "eyebrow": "Suporte",
     "title": "Suporte",
-    "intro": "O ScreenClip é um app da barra de menus do macOS para enviar uma captura, uma nota e marcas ao Codex, Claude Code ou Grok Bot e depois acompanhar o pull request no GitHub.",
     "statusReady": "ScreenClip 1.1.0 é grátis para uso não comercial. {link:download} abre a imagem de disco mais recente no GitHub Releases.",
     "statusSoon": "O ScreenClip chegará em breve. Ainda não há download disponível.",
-    "contactTitle": "Contato",
-    "issues": "Use {link:issues} para bugs, dúvidas de configuração e pedidos. Inclua a versão do macOS, o agente escolhido e o que o ScreenClip mostrou no relatório. Não anexe uma captura sem redação de algo que você queria esconder.",
+    "issues": "Relate um bug ou faça uma pergunta em {link:issues}. Informe sua versão do macOS, o agente usado e o que aconteceu. Oculte dados privados antes de compartilhar capturas.",
     "issuesMissing": "O suporte público ainda não está disponível.",
     "needTitle": "O que você precisa para executar",
     "needOs": "macOS 14 ou posterior.",
@@ -286,74 +199,40 @@
   },
   "notFound": {
     "eyebrow": "404",
-    "title": "Essa página não está aqui.",
-    "body": "O endereço pode ter sido digitado errado, ou a página mudou de lugar. Os links abaixo são as páginas que este site realmente tem."
-  },
-  "benefits": {
-    "eyebrow": "Por que usar o ScreenClip",
-    "title": "Continue testando. Mantenha o foco.",
-    "clearTitle": "Uma mesa mais organizada",
-    "clearBody": "Mantenha as capturas junto dos relatos, em vez de deixar imagens espalhadas pela mesa.",
-    "flowTitle": "Mantenha o ritmo",
-    "flowBody": "Registre uma observação rapidamente, sem alternar entre aplicativos nem criar uma nova conversa manualmente na sua ferramenta de IA.",
-    "noticeTitle": "Não deixe os detalhes passarem",
-    "noticeBody": "Capture pequenos erros, detalhes incômodos e ideias assim que notar, para não esquecê-los durante os testes.",
-    "retestTitle": "Saiba quando testar novamente",
-    "retestBody": "Ative as notificações e o ScreenClip avisa quando uma correção é integrada, para você recompilar e testar novamente sem perder o foco nos testes."
+    "title": "Essa página não está aqui."
   },
   "flow": {
-    "you": "Você",
-    "agent": "Seu agente",
-    "background": "Em segundo plano",
-    "s1Title": "Capture",
-    "s1Body": "Pressione ⌘⇧2 e arraste sobre o que você notou, em qualquer app do Mac ou site. No iPhone ou iPad, agite o aparelho.",
-    "s2Title": "Escreva algumas palavras",
-    "s2Body": "Digite uma nota rápida. Se quiser, faça marcações ou cubra o que for privado, e envie.",
-    "s3Title": "Siga em frente",
-    "s3Body": "Seu agente de programação pega o relato, faz a correção e abre uma pull request. Não precisa acompanhar.",
-    "s4Title": "Teste de novo",
-    "s4Body": "O ScreenClip avisa quando a correção é integrada. As pull requests de correções visuais incluem capturas de antes e depois.",
-    "chipWorking": "Em andamento",
-    "chipPr": "Pull request",
-    "chipMerged": "Integrada"
+    "s1Title": "Mostre o problema",
+    "s1Body": "Selecione uma área da tela. Escreva uma nota, desenhe uma seta ou cubra informações privadas.",
+    "s3Title": "Revise a correção",
+    "s3Body": "Seu agente trabalha no relatório. Abra o pull request no GitHub para revisar as alterações.",
+    "s4Title": "Teste após o merge",
+    "s4Body": "Ative as notificações para saber quando o merge for concluído. Compile o app novamente e repita o teste."
   },
   "queue": {
-    "eyebrow": "Acompanhe o trabalho",
-    "title": "Tudo o que você registrou, em um só lugar.",
-    "intro": "Continue testando enquanto seu agente de código trabalha. O ScreenClip mostra seus relatos, o status e a pull request, para você ver o que precisa de atenção e o que está pronto para testar novamente.",
     "open": "Abrir a captura da fila em tamanho completo",
     "alt": "Fila do ScreenClip com projetos, relatos integrados e detalhes de um relato selecionado.",
-    "caption": "Uma fila de relatos real. Interface exibida em inglês."
+    "caption": "Cada relatório reúne a captura, a conversa e o pull request."
   },
   "notifications": {
-    "title": "Um aviso na hora de testar novamente",
-    "body": "Ative as notificações e o ScreenClip avisa quando uma correção é integrada. Recompile ou implante seu app e volte ao relatório para testar novamente.",
-    "open": "Abrir a captura das notificações em tamanho real",
-    "alt": "Duas notificações do ScreenClip no macOS avisando que a correção foi integrada e está pronta para recompilar e testar novamente."
+    "open": "Ver uma notificação de reteste"
   },
   "iosPage": {
-    "eyebrow": "ScreenClip para iPhone e iPad",
-    "title": "Relate no seu iPhone. Receba a correção no seu Mac.",
-    "intro": "O ScreenClipKit é um pequeno pacote Swift para o build Debug do seu app iOS. Agite o dispositivo, marque a tela e envie. O relatório chega ao ScreenClip no seu Mac, onde seu agente de código o corrige como qualquer outro.",
+    "title": "Relate bugs pelo iPhone ou iPad",
     "setupButton": "Configurar o ScreenClipKit",
     "docsButton": "Documentação do SDK",
     "shotAlt": "A folha de relatório do ScreenClipKit sobre um app de demonstração. Um retângulo vermelho e uma seta marcam um botão Add to order cortado, e a nota diz que o preço está cortado.",
-    "howEyebrow": "Como funciona",
-    "howTitle": "De uma agitada a um pull request.",
+    "howTitle": "Emparelhe o aparelho e envie um relatório",
     "step1Title": "Agite e marque",
     "step1Body": "Agite o dispositivo, ou faça uma captura de tela e toque em Report. Desenhe setas, retângulos e texto, oculte o que for privado e adicione uma nota.",
-    "step2Title": "Envie, ou deixe esperar",
     "step2Body": "Os relatórios passam pela sua rede local, criptografados para o Mac pareado. Se ele não estiver acessível, o relatório espera no seu iPhone e é enviado sozinho depois.",
-    "step3Title": "Seu agente corrige",
-    "step3Body": "O ScreenClip arquiva o relatório no projeto que compila seu app e o entrega ao Codex, ao Claude Code ou ao Grok Bot, que abre um pull request.",
     "step4Title": "Teste de novo no seu iPhone",
     "step4Body": "Seu iPhone mostra o status ao vivo de cada relatório. Quando a correção for mesclada, toque em Looks fixed, ou em Still broken para enviar sua próxima captura ao mesmo relatório.",
     "pairTitle": "Pareie uma vez",
     "pairBody": "No seu Mac, abra Ajustes › iOS, ative Receber relatórios de dispositivos iOS e clique em Parear um dispositivo… No seu iPhone, agite, toque na engrenagem e depois em Pair. Confirme o mesmo código de 6 dígitos nas duas telas. Seu iPhone e seu Mac precisam estar na mesma rede.",
     "pairAlt": "Ajustes › iOS do ScreenClip no Mac, pedindo para confirmar o código de 6 dígitos exibido no iPhone.",
     "pairOpen": "Abrir a captura do pareamento em tamanho real",
-    "setupEyebrow": "Para desenvolvedores",
-    "setupTitle": "Configure em poucos minutos.",
+    "setupTitle": "Configure o ScreenClipKit",
     "setupIntro": "Você precisa do ScreenClip 1.1 ou posterior no Mac e de um app para iOS 17 ou posterior compilado com o Xcode 16 ou mais recente.",
     "setup1Title": "Adicione o pacote",
     "setup1Body": "No Xcode, escolha File › Add Package Dependencies, digite esta URL e vincule o ScreenClipKit ao target do seu app.",
@@ -363,15 +242,9 @@
     "setup3Body": "Adicione estas duas chaves ao Info.plist da configuração Debug, para o app encontrar seu Mac.",
     "agentTip": "Prefere não editar à mão? No ScreenClip, abra Ajustes › iOS e clique em Copiar prompt para o agente, depois cole no Claude Code ou no Codex no seu projeto iOS. O agente faz essas três alterações por você.",
     "releaseNote": "Os builds Release não contêm nada disso. Fora do Debug, o pacote compila como um stub vazio, e as chaves de rede ficam na configuração Debug. Builds do TestFlight são builds Release.",
-    "docsEyebrow": "Documentação do SDK",
-    "docsTitle": "Vá além.",
-    "docsIntro": "A documentação do ScreenClipKit tem a referência completa da API, mais exemplos e todos os detalhes.",
     "docsAttachTitle": "Anexe seus próprios dados",
-    "docsAttachBody": "Adicione o estado do seu app, como a conta conectada ou as últimas requisições à API, a cada relatório.",
     "docsDiagTitle": "Diagnósticos",
-    "docsDiagBody": "Logs recentes, a árvore de views e o estado do dispositivo, e como os testadores os desativam.",
     "docsPrivacyTitle": "Privacidade e builds Release",
-    "docsPrivacyBody": "O que sai do dispositivo, como o pareamento o protege e por que nada chega aos seus usuários.",
     "docsAll": "Abrir a documentação do SDK"
   }
 }
