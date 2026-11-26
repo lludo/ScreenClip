@@ -151,7 +151,9 @@ public typealias ScreenClipAttachmentProvider = @Sendable (ScreenClipReportConte
       Run(
         started: registrations.map { registration in
           let provider = registration.provider, id = registration.id
-          let task = Task.detached(priority: .utility) { () -> [ScreenClipAttachment]? in
+          // The tester is waiting on Send, so these run at user-initiated priority; utility work can
+          // be held back for seconds on a busy device.
+          let task = Task.detached(priority: .userInitiated) { () -> [ScreenClipAttachment]? in
             do {
               return try await provider(context)
             } catch {
