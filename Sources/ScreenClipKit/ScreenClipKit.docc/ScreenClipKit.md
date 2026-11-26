@@ -32,7 +32,7 @@ struct ShopApp: App {
 
 Release builds contain none of it. Outside Debug the package compiles to an empty stub with the same API, and your `#if DEBUG` guards keep the call out as well. See <doc:PrivacyAndReleaseBuilds>.
 
-New to ScreenClip? [ScreenClip for iPhone and iPad](https://screenclipai.com/ios) shows the whole loop, and ScreenClip for the Mac is a free download at [screenclipai.com](https://screenclipai.com).
+New to ScreenClip? [ScreenClip for iPhone and iPad](https://screenclipai.com/ios) shows the whole loop, and you can download ScreenClip for the Mac at [screenclipai.com](https://screenclipai.com).
 
 ## Topics
 
