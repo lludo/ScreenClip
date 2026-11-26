@@ -56,10 +56,14 @@
     var body: some View {
       NavigationStack {
         VStack(spacing: 0) {
-          AnnotationCanvasView(image: image, model: model)
-            .padding(8)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black)
+          HStack(spacing: 4) {
+            AnnotationPalette { colorButtons }
+            AnnotationCanvasView(image: image, model: model)
+            AnnotationPalette { toolButtons }
+          }
+          .padding(4)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+          .background(Color.black)
           Divider()
           if let entry = followUp.entry {
             HStack {
@@ -75,18 +79,33 @@
             }
             .padding(.horizontal, 14).padding(.top, 8)
           }
-          ToolBar(model: model)
-          TextField("What's wrong here?", text: $model.note, axis: .vertical)
-            .lineLimit(1...4)
-            .focused($noteFocused)
-            .padding(10)
-            .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
-            .padding(.horizontal, 12).padding(.bottom, 6)
-          Toggle(isOn: $model.attachDiagnostics) {
-            Text("Attach logs and diagnostics").font(.footnote)
+          HStack(spacing: 4) {
+            TextField("What's wrong here?", text: $model.note, axis: .vertical)
+              .lineLimit(1...4)
+              .focused($noteFocused)
+              .accessibilityIdentifier("screenclip.note")
+              .padding(10)
+            if noteFocused {
+              Button { noteFocused = false } label: {
+                Text("Done").frame(minWidth: 52, minHeight: 44)
+              }
+              .buttonStyle(.borderless)
+              .accessibilityLabel("Dismiss keyboard")
+            }
           }
-          .padding(.horizontal, 14).padding(.bottom, 10)
-          .accessibilityHint("Recent app logs, the screen's layout, and device state. The agent reads them only if needed.")
+          .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+          .padding(.horizontal, 12).padding(.top, 6)
+          HStack(spacing: 8) {
+            historyButton("Undo", symbol: "arrow.uturn.backward", enabled: model.canUndo, action: model.undo)
+            historyButton("Redo", symbol: "arrow.uturn.forward", enabled: model.canRedo, action: model.redo)
+            Spacer(minLength: 4)
+            Toggle(isOn: $model.attachDiagnostics) {
+              Text("Attach logs and diagnostics").font(.footnote)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityHint("Recent app logs, the screen's layout, and device state. The agent reads them only if needed.")
+          }
+          .padding(.horizontal, 12).padding(.vertical, 4)
           if model.hasRedactions {
             Text("Logs and diagnostics may contain text you covered in the screenshot.")
               .font(.caption).foregroundStyle(.secondary).padding(.horizontal).padding(.bottom, 6)
@@ -94,6 +113,8 @@
         }
         .navigationTitle("Report")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbarBackground(Color(uiColor: .systemBackground), for: .navigationBar)
+        .toolbarBackground(.visible, for: .navigationBar)
         .toolbar {
           ToolbarItem(placement: .cancellationAction) { Button("Cancel", action: cancel) }
           ToolbarItem(placement: .principal) { ConnectionBadge(link: link) }
@@ -180,49 +201,82 @@
     }
   }
 
-  struct ToolBar: View {
-    let model: ComposerModel
-    private let tools: [(MarkKind, String, String)] = [
+  extension ComposerView {
+    private var toolButtons: some View {
+      ForEach(Self.tools, id: \.0) { tool, symbol, name in
+        Button {
+          model.tool = tool
+        } label: {
+          Image(systemName: symbol)
+            .font(.body.weight(.medium))
+            .foregroundStyle(model.tool == tool ? Color.orange : .white)
+            .frame(width: 36, height: 36)
+            .background(model.tool == tool ? Color.orange.opacity(0.2) : .clear, in: Circle())
+            .frame(width: 44, height: 44)
+            .contentShape(Rectangle())
+        }
+        .accessibilityLabel(name)
+        .accessibilityAddTraits(model.tool == tool ? .isSelected : [])
+      }
+    }
+
+    private static let tools: [(MarkKind, String, String)] = [
       (.arrow, "arrow.up.right", "Arrow"), (.rectangle, "rectangle", "Rectangle"),
       (.ellipse, "circle", "Ellipse"), (.pen, "scribble", "Pen"), (.text, "textformat", "Text"),
       (.redact, "eye.slash.fill", "Redact"),
     ]
-    private let colors: [MarkColor] = [.red, .orange, .yellow, .green, .blue, .white]
-    var body: some View {
-      VStack(spacing: 8) {
-        HStack(spacing: 4) {
-          ForEach(tools, id: \.0) { tool, symbol, name in
-            Button {
-              model.tool = tool
-            } label: {
-              Image(systemName: symbol).frame(width: 36, height: 32)
-                .background(model.tool == tool ? Color.orange.opacity(0.2) : .clear, in: RoundedRectangle(cornerRadius: 8))
+
+    private var colorButtons: some View {
+      ForEach([MarkColor.red, .orange, .yellow, .green, .blue, .white], id: \.self) { color in
+        Button {
+          model.color = color
+        } label: {
+          Circle().fill(Color(cgColor: color.cgColor))
+            .frame(width: 22, height: 22)
+            .overlay {
+              if model.color == color {
+                Image(systemName: "checkmark").font(.caption.bold()).foregroundStyle(.black)
+              }
             }
-            .accessibilityLabel(name)
-            .accessibilityAddTraits(model.tool == tool ? .isSelected : [])
-          }
-          Spacer(minLength: 4)
-          Button { model.undo() } label: { Image(systemName: "arrow.uturn.backward") }
-            .disabled(!model.canUndo).accessibilityLabel("Undo")
-          Button { model.redo() } label: { Image(systemName: "arrow.uturn.forward") }
-            .disabled(!model.canRedo).accessibilityLabel("Redo")
+            .frame(width: 44, height: 44)
+            .contentShape(Rectangle())
         }
-        HStack(spacing: 10) {
-          ForEach(colors, id: \.self) { color in
-            Button {
-              model.color = color
-            } label: {
-              Circle().fill(Color(cgColor: color.cgColor)).frame(width: 22, height: 22)
-                .overlay(Circle().stroke(Color.primary.opacity(model.color == color ? 0.9 : 0.15), lineWidth: model.color == color ? 2.5 : 1))
-            }
-            .accessibilityLabel(color.rawValue.capitalized)
-          }
-          Spacer()
-        }
-        .opacity(model.tool == .redact ? 0.35 : 1)
+        .accessibilityLabel(color.rawValue.capitalized)
+        .accessibilityAddTraits(model.color == color ? .isSelected : [])
         .disabled(model.tool == .redact)
+        .opacity(model.tool == .redact ? 0.4 : 1)
       }
-      .padding(.horizontal, 12).padding(.vertical, 8)
+    }
+
+    private func historyButton(_ title: String, symbol: String, enabled: Bool, action: @escaping () -> Void) -> some View {
+      Button(action: action) {
+        Image(systemName: symbol)
+          .frame(width: 44, height: 44)
+          .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 10))
+          .contentShape(Rectangle())
+      }
+      .accessibilityLabel(title)
+      .disabled(!enabled)
+    }
+  }
+
+  private struct AnnotationPalette<Buttons: View>: View {
+    @ViewBuilder let buttons: Buttons
+
+    var body: some View {
+      ViewThatFits(in: .vertical) {
+        stack
+        ScrollView(.vertical) { stack }
+      }
+      .frame(width: 44)
+      .buttonStyle(.plain)
+      .background(.regularMaterial, in: Capsule())
+      .clipShape(Capsule())
+      .environment(\.colorScheme, .dark)
+    }
+
+    private var stack: some View {
+      VStack(spacing: 0) { buttons }.padding(.vertical, 4)
     }
   }
 
@@ -250,6 +304,7 @@
             .onEnded { value in ended(value, rect: rect) })
       }
       .accessibilityLabel("Screenshot. Draw to annotate.")
+      .accessibilityIdentifier("screenclip.canvas")
     }
 
     private func fittedRect(in size: CGSize) -> CGRect {

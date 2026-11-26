@@ -20,8 +20,23 @@
       previousKeyWindow = scene.windows.first(where: \.isKeyWindow)
       let window = UIWindow(windowScene: scene)
       window.windowLevel = .alert + 1
-      let host = UIHostingController(rootView: AnyView(content { [weak self] in self?.dismissSheet() }))
-      window.rootViewController = host
+      let host = UIHostingController(rootView: content { [weak self] in self?.dismissSheet() })
+      // The report lives in a separate window. Keep its editor above this scene's keyboard.
+      let container = UIViewController()
+      window.rootViewController = container
+      container.addChild(host)
+      container.view.addSubview(host.view)
+      host.view.translatesAutoresizingMaskIntoConstraints = false
+      host.safeAreaRegions = .container
+      let keyboard = container.view.keyboardLayoutGuide
+      keyboard.usesBottomSafeArea = false
+      NSLayoutConstraint.activate([
+        host.view.topAnchor.constraint(equalTo: container.view.topAnchor),
+        host.view.leadingAnchor.constraint(equalTo: container.view.leadingAnchor),
+        host.view.trailingAnchor.constraint(equalTo: container.view.trailingAnchor),
+        host.view.bottomAnchor.constraint(equalTo: keyboard.topAnchor),
+      ])
+      host.didMove(toParent: container)
       window.alpha = 0
       window.makeKeyAndVisible()
       sheetWindow = window

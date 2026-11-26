@@ -145,6 +145,22 @@ import UIKit
     XCTAssertEqual(Diagnostics.rounded(CGRect(x: 2.5, y: -4, width: 8, height: 12)), [3, -4, 8, 12])
   }
 
+  func testViewTreePreservesLabelsAndChildrenInCompactJSON() throws {
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+    window.isHidden = false
+    let label = UILabel()
+    label.accessibilityIdentifier = "report-note"
+    label.isAccessibilityElement = true
+    label.accessibilityLabel = "First line\nSecond line"
+    window.addSubview(label)
+    let data = try XCTUnwrap(Diagnostics.viewTree(of: window)?.data)
+    XCTAssertFalse(data.contains(0x0A))
+    let root = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    let children = try XCTUnwrap(root["children"] as? [[String: Any]])
+    let child = try XCTUnwrap(children.first { $0["id"] as? String == "report-note" })
+    XCTAssertEqual(child["label"] as? String, label.accessibilityLabel)
+  }
+
   func testRedactionNeedsSeparateOptInToDiagnostics() {
     let original = KitPreferences.attachDiagnostics
     defer { KitPreferences.attachDiagnostics = original }

@@ -62,6 +62,7 @@ Reports from iOS use the **Agent for iOS reports** chosen in Settings > iOS (age
    - Pick the **Agent for iOS reports** (agent, model, effort), or keep **Project default**.
    - Turn on the project's automatic merge if you want fixes merged without you. Its validation command (for example `xcodebuild test`) and GitHub checks still have to pass.
 2. **Phone, while testing:** shake, annotate, send.
+   - Choose a color on the left of the screenshot and a drawing tool on the right. Undo and Redo are below the note. While writing, tap **Done** to return to the screenshot with your note intact.
    - **Mac reachable:** the report goes straight into the queue, routed by bundle ID, and the agent starts.
    - **Mac not reachable:** the report waits on the phone and goes out as soon as the app is open and finds the Mac.
    - **Leaving the app right after Send:** the SDK asks iOS for a little background time to finish sending.
