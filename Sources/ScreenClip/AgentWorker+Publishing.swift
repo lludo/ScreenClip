@@ -622,13 +622,11 @@ extension AgentWorker {
       $0.record(summary)
     }
   }
-  /// `cleanUp` is false when the merged fix came from another branch: the report's
-  /// worktree and branch are then left for the tester, who archives the report.
-  func recordMerge(_ id: UUID, commit: String?, coveredRevision: Int, cleanUp: Bool = true) throws {
+  func recordMerge(_ id: UUID, commit: String?, coveredRevision: Int) throws {
     let finished = model.issue(id)
     defer {
       // The merged fix no longer needs its checkout; free the disk and the local branch.
-      if cleanUp, let finished, let path = finished.worktreePath,
+      if let finished, let path = finished.worktreePath,
         let project = model.project(finished.projectID)
       {
         Task { await removeWorkspace(id, path: path, branch: finished.branch, project: project) }

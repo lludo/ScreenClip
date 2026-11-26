@@ -792,9 +792,11 @@ import XCTest
     XCTAssertEqual(issue.status, .merged)
     XCTAssertEqual(issue.prURL, "https://github.com/example/app/pull/20")
     XCTAssertEqual(issue.mergeCommit, "def456")
-    XCTAssertTrue(issue.activities.contains { $0.text == ExternalFix.activity("https://github.com/example/app/pull/20") })
+    // Closed the way close_issue closes a report, naming the pull request.
+    XCTAssertEqual(issue.activities.last?.kind, "agent-closure")
+    XCTAssertTrue(issue.activities.last?.text.contains(ExternalFix.activity("https://github.com/example/app/pull/20")) == true)
     XCTAssertFalse(issue.questions.contains { $0.reply == nil })
-    // Merged from another branch: the report's own worktree may hold other work and stays.
+    // As with close_issue, the worktree and branch stay.
     XCTAssertNotNil(issue.worktreePath)
   }
 
