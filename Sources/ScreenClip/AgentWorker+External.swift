@@ -199,7 +199,7 @@ extension AgentWorker {
       }
     }
   }
-  private func githubRepo(_ project: Project) async throws -> String {
+  func githubRepo(_ project: Project) async throws -> String {
     let remote = try await CommandRunner.checked(
       GitWorkspace.git, ["remote", "get-url", "origin"], cwd: project.path)
     guard let repo = GitHubRepository.parse(remote: remote) else {

@@ -137,6 +137,21 @@ public enum GitHubService {
         && URL(string: $0["url"].string ?? "")?.host == "github.com"
     }?["url"].string
   }
+  /// Recently merged pull requests into `base` of the repository at `path` that mention
+  /// ScreenClip in their title or body. `ExternalFix` decides which report each one fixed.
+  public static func mergedPullRequestsMentioningScreenClip(base: String, path: String, gh: String)
+    async throws -> [MergedPullRequest]
+  {
+    let text = try await CommandRunner.checked(
+      gh,
+      [
+        "pr", "list", "--state", "merged", "--base", base, "--limit", "100",
+        "--search", "ScreenClip in:title,body sort:updated-desc", "--json",
+        "url,title,body,headRefName,baseRefName,mergedAt,mergeCommit",
+      ], cwd: path)
+    return try JSONDecoder().decode(JSONValue.self, from: Data(text.utf8)).array.map(
+      MergedPullRequest.parse)
+  }
   public struct PullRequestDescription: Decodable {
     public let bodyHTML: String
     public let headRefOid: String

@@ -754,4 +754,134 @@ import XCTest
     XCTAssertNotEqual(model.issue(id)?.status, .merged)
     XCTAssertNil(model.issue(id)?.prURL)
   }
+
+  // MARK: Reports fixed outside ScreenClip
+
+  /// ScreenClip's agent failed (a usage limit) and another session fixed the report on its own
+  /// branch: the report has no pull request of its own, and its worktree is still there.
+  private func failWithoutAPullRequest() async throws -> Int {
+    let repo = try XCTUnwrap(model.snapshot.projects.first).path
+    _ = try await CommandRunner.checked(
+      GitWorkspace.git, ["remote", "add", "origin", "https://github.com/example/app.git"], cwd: repo)
+    try model.updateIssue(id) {
+      $0.prURL = nil
+      $0.prHead = nil
+      $0.questions.append(PendingQuestion(title: "Continue?"))
+      $0.record("You've hit your usage limit.", status: .failed, kind: "error")
+    }
+    return try XCTUnwrap(model.issue(id)?.reportNumber)
+  }
+
+  private func merged(
+    _ number: Int, title: String, body: String = "", repo: String = "example/app",
+    base: String = "main", head: String = "claude/outside-fix", at date: Date = Date().addingTimeInterval(60)
+  ) -> [String: JSONValue] {
+    [
+      "url": .string("https://github.com/\(repo)/pull/\(number)"), "title": .string(title),
+      "body": .string(body), "headRefName": .string(head), "baseRefName": .string(base),
+      "mergedAt": .string(ISO8601DateFormatter().string(from: date)),
+      "mergeCommit": .object(["oid": .string("def456")]),
+    ]
+  }
+
+  func testAMergedPullRequestNamingTheReportClosesIt() async throws {
+    let number = try await failWithoutAPullRequest()
+    try mergedList([merged(20, title: "Swipe the panel away (ScreenClip #\(number - 1), #\(number))")])
+    await model.worker.refreshPRs()
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.status, .merged)
+    XCTAssertEqual(issue.prURL, "https://github.com/example/app/pull/20")
+    XCTAssertEqual(issue.mergeCommit, "def456")
+    XCTAssertTrue(issue.activities.contains { $0.text == ExternalFix.activity("https://github.com/example/app/pull/20") })
+    XCTAssertFalse(issue.questions.contains { $0.reply == nil })
+    // Merged from another branch: the report's own worktree may hold other work and stays.
+    XCTAssertNotNil(issue.worktreePath)
+  }
+
+  func testOnlyAnExactReportNumberInTheSameRepositoryAfterTheEvidenceCloses() async throws {
+    let number = try await failWithoutAPullRequest()
+    try mergedList([
+      merged(21, title: "Fix (ScreenClip #\(number)0)"),
+      merged(22, title: "Fix", body: "Close the gaps the ScreenClip reports found (#\(number))"),
+      merged(23, title: "Fix (ScreenClip #\(number))", repo: "someone/app"),
+      merged(24, title: "Fix (ScreenClip #\(number))", base: "release"),
+      merged(25, title: "Fix (ScreenClip #\(number))", at: Date().addingTimeInterval(-3600)),
+      merged(26, title: "Fix (ScreenClipKit #\(number))"),
+    ])
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .failed)
+    XCTAssertNil(model.issue(id)?.prURL)
+  }
+
+  func testWorkInProgressAndFinishedReportsAreNotClosedByAnOutsideFix() async throws {
+    let number = try await failWithoutAPullRequest()
+    try mergedList([merged(20, title: "Fix (ScreenClip #\(number))")])
+    for status in [IssueStatus.working, .verified, .canceled, .draft] {
+      try model.updateIssue(id) { $0.status = status }
+      await model.worker.refreshPRs()
+      XCTAssertEqual(model.issue(id)?.status, status)
+      XCTAssertNil(model.issue(id)?.prURL, status.rawValue)
+    }
+    try model.updateIssue(id) {
+      $0.status = .failed
+      $0.dispatchUncertain = true
+    }
+    await model.worker.refreshPRs()
+    XCTAssertEqual(model.issue(id)?.status, .failed)
+  }
+
+  func testTheAutomaticSearchRunsAtMostEveryFiveMinutesPerProject() async throws {
+    let number = try await failWithoutAPullRequest()
+    let start = Date()
+    await model.worker.closeReportsFixedElsewhere(force: false, now: start)
+    try mergedList([merged(20, title: "Fix (ScreenClip #\(number))")])
+    await model.worker.closeReportsFixedElsewhere(force: false, now: start.addingTimeInterval(60))
+    XCTAssertEqual(model.issue(id)?.status, .failed)
+    await model.worker.closeReportsFixedElsewhere(
+      force: false, now: start.addingTimeInterval(AgentWorker.externalFixSearchInterval))
+    XCTAssertEqual(model.issue(id)?.status, .merged)
+  }
+
+  /// close_issue with resolution done and a pull request, as the MCP server writes it.
+  private func closeAsDone(_ url: String) async throws {
+    try AgentClosureInbox.write(
+      AgentClosure(
+        issueID: id, resolution: .done, pullRequest: url, summary: "Fixed in my own PR.",
+        closer: "claude-code"), root: model.store.root)
+    await model.worker.applyAgentClosures()
+  }
+
+  func testAnAgentClosesAReportWithAPullRequestOnlyAfterGitHubConfirmsTheMerge() async throws {
+    _ = try await failWithoutAPullRequest()
+    let url = "https://github.com/example/app/pull/30"
+    try await closeAsDone("https://github.com/someone/app/pull/30")
+    XCTAssertEqual(model.issue(id)?.status, .failed, "a pull request of another repository")
+    try pullRequest(["url": .string(url), "state": .string("OPEN")])
+    try await closeAsDone(url)
+    XCTAssertEqual(model.issue(id)?.status, .failed, "an open pull request")
+    try pullRequest(["url": .string(url), "state": .string("MERGED"), "baseRefName": .string("release")])
+    try await closeAsDone(url)
+    XCTAssertEqual(model.issue(id)?.status, .failed, "a merge into another branch")
+    XCTAssertNil(model.issue(id)?.prURL)
+    XCTAssertTrue(model.issue(id)?.activities.last?.text.hasPrefix("Not closed: ") == true)
+    XCTAssertTrue(AgentClosureInbox.load(root: model.store.root).isEmpty)
+
+    try pullRequest(["url": .string(url), "state": .string("MERGED"), "mergeCommit": .object(["oid": .string("abc123")])])
+    try await closeAsDone(url)
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.status, .merged)
+    XCTAssertEqual(issue.prURL, url)
+    XCTAssertEqual(issue.mergeCommit, "abc123")
+    XCTAssertTrue(issue.activities.last?.text.contains("Closed by claude-code") == true)
+  }
+
+  func testAVerifiedPullRequestReplacesScreenClipsOwnUnmergedOne() async throws {
+    _ = try await failWithoutAPullRequest()
+    try model.updateIssue(id) { $0.prURL = "https://github.com/example/app/pull/1" }
+    let url = "https://github.com/example/app/pull/30"
+    try pullRequest(["url": .string(url), "state": .string("MERGED")])
+    try await closeAsDone(url)
+    XCTAssertEqual(model.issue(id)?.status, .merged)
+    XCTAssertEqual(model.issue(id)?.prURL, url)
+  }
 }
