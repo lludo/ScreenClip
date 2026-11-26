@@ -2377,6 +2377,72 @@
         }
       }
     },
+    "ScreenClip removed the .screenclip/ files from this pull request before merging. Checks run again on the new commit.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip removed the .screenclip/ files from this pull request before merging. Checks run again on the new commit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 已在合并前从此拉取请求中移除 .screenclip/ 文件。检查会在新的提交上重新运行。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip quitó los archivos .screenclip/ de esta pull request antes de fusionarla. Las comprobaciones se ejecutan de nuevo en el nuevo commit."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip はマージ前にこのプルリクエストから .screenclip/ ファイルを削除しました。新しいコミットでチェックが再実行されます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O ScreenClip removeu os arquivos .screenclip/ deste pull request antes do merge. As verificações rodam de novo no novo commit."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip hat die .screenclip/-Dateien vor dem Merge aus diesem Pull Request entfernt. Die Checks laufen für den neuen Commit erneut."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip a retiré les fichiers .screenclip/ de cette pull request avant la fusion. Les vérifications sont relancées sur le nouveau commit."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip이 병합 전에 이 pull request에서 .screenclip/ 파일을 제거했습니다. 새 커밋에서 검사가 다시 실행됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip удалил файлы .screenclip/ из этого pull request перед слиянием. Проверки запускаются заново для нового коммита."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 已在合併前從此拉取請求移除 .screenclip/ 檔案。檢查會在新的提交上重新執行。"
+          }
+        }
+      }
+    },
     "This pull request still contains .screenclip/ files. Automatic merge is waiting until Grok Bot removes them.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",

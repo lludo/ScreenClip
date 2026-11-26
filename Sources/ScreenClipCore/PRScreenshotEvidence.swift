@@ -1,9 +1,30 @@
 import Foundation
 import ImageIO
 
-/// Report evidence lives in the fix commit so PR images survive branch deletion and merging.
+/// Report evidence is committed with the fix on the pull-request branch, and the description links
+/// it at that commit. The next commit removes `.screenclip/` again (`removeFromBranch`), so a
+/// squash merge never carries screenshots into the base branch; GitHub keeps the evidence commit
+/// reachable through `refs/pull/<n>/head` after the branch is deleted.
 /// Only the flattened report derivatives are copied; unredacted originals are never read.
 public enum PRScreenshotEvidence {
+  public static let removalCommitMessage = "Remove ScreenClip evidence before merge"
+  /// Check summary after ScreenClip removed `.screenclip/` from a pull request it was about to merge.
+  public static let removedBeforeMergeSummary =
+    "ScreenClip removed the .screenclip/ files from this pull request before merging. Checks run again on the new commit."
+
+  /// Deletes `.screenclip/` from the worktree's branch in a commit of its own. Returns the new
+  /// head, or nil when HEAD has no `.screenclip/` path. Only that folder is committed, whatever
+  /// else is staged, and the worktree is otherwise left as it was.
+  public static func removeFromBranch(worktree: String) async throws -> String? {
+    let paths = try await GitHubService.listScreenclipPaths(revision: "HEAD", cwd: worktree)
+    guard ExternalAssistant.containsScreenclipEvidence(paths) else { return nil }
+    _ = try await CommandRunner.checked(
+      GitWorkspace.git, ["rm", "-r", "-q", "-f", "--", ".screenclip"], cwd: worktree)
+    _ = try await CommandRunner.checked(
+      GitWorkspace.git, ["commit", "-q", "-m", removalCommitMessage, "--", ".screenclip"], cwd: worktree)
+    return try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: worktree)
+  }
+
   /// Private blob images may need GitHub authentication even when its rendered PR body was
   /// fetched successfully. Only resolve immutable ScreenClip evidence for this report and repo.
   public static func contentsEndpoint(image: URL, pullRequest: URL, issueID: UUID) -> String? {
@@ -125,11 +146,31 @@ public enum PRScreenshotEvidence {
   static let missingAfterNote =
     "_No After screenshot was captured for this revision. The summary above explains what is missing and why._"
 
+  /// Publishing strips this revision's evidence right after committing it. Publishing the same
+  /// revision again (a CI repair or a base update) brings its After images back from the commit
+  /// before that removal, so the new description still shows them. Another revision's images
+  /// live under another path and are never reused.
+  static func restoreRemovedAfter(_ issue: Issue, _ worktree: String) async throws {
+    let relative = directory(for: issue) + "/after"
+    let folder = try safeFolder(worktree: worktree, relative: relative)
+    guard !FileManager.default.fileExists(atPath: folder.path) else { return }
+    // Fails on a branch without commits, which has nothing to restore either.
+    let last = try await CommandRunner.run(
+      GitWorkspace.git, ["rev-list", "-1", "HEAD", "--", relative], cwd: worktree)
+      .output.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard GitHubService.isCommit(last) else { return }
+    // The newest commit that touched the folder removed it, so its parent holds the images.
+    // Nothing to restore when it did not (the folder never reached a commit).
+    _ = try await CommandRunner.run(
+      GitWorkspace.git, ["checkout", last + "^", "--", relative], cwd: worktree)
+  }
+
   public static func prepare(issue: Issue, worktree: String) async throws {
     let screenshots = issue.captures.enumerated().compactMap { index, capture in
       capture.imagePath.map { (number: index + 1, path: $0) }
     }
     guard !screenshots.isEmpty else { return }
+    try await restoreRemovedAfter(issue, worktree)
     let after = try afterFiles(issue, worktree)
     let before = try folder(issue, worktree, "before")
     if FileManager.default.fileExists(atPath: before.path) {
@@ -147,6 +188,8 @@ public enum PRScreenshotEvidence {
         + after.map { directory(for: issue) + "/after/" + $0.lastPathComponent }, cwd: worktree)
   }
 
+  /// `head` is the commit that contains the evidence. Publishing removes the files in the
+  /// commit after it, so the links never point at the pull request's later head.
   public static func markdown(issue: Issue, worktree: String, remote: String, head: String) throws -> String {
     let screenshots = issue.captures.enumerated().filter { $0.element.imagePath != nil }
     guard !screenshots.isEmpty else { return "" }

@@ -14,7 +14,7 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 | Screenshot sharing | Always enabled for configured projects, including older projects saved with sharing off. The project editor has no sharing checkbox. |
 | After a 2xx | Activity `Sent to external assistant`. The issue stays **Working** until a pull request is found. |
 | Pull request | The assistant opens a PR from that same branch. The body contains `ScreenClip: #<reportNumber>`. It may also contain `ScreenClip-Report:`, `ScreenClip-Revision:`, and `ScreenClip-Agent:`. ScreenClip polls GitHub and **Refresh PR status** picks it up immediately. A fork PR is ignored. A draft is attached and is not merged. |
-| Merge | ScreenClip decides. The existing auto-merge checks apply (validated head, passing checks, current revision, reviews). A PR that still contains `.screenclip/` files, or that is still a draft, is not auto-merged. |
+| Merge | ScreenClip decides. The existing auto-merge checks apply (validated head, passing checks, current revision, reviews). A PR that still has the hand-off folder `.screenclip/<reportNumber>/`, or that is still a draft, is not merged. Any other `.screenclip/` file is removed by ScreenClip before it merges (see [Evidence stays out of the base branch](README.md#evidence-stays-out-of-the-base-branch)). |
 | Conversation | When Grok Bot posts a commit status whose link is `https://cursor.com/agents/bc-<uuid>`, the report shows **Open Grok Bot agent**. A pull request in the same repository is the other allowed link. Before either exists, the report says the conversation is in Grok Bot's chat. There is still no report-specific Grok Bot deep link. |
 | Cancel | Local always. If the setup code includes `"capabilities":["cancel"]`, ScreenClip also POSTs a best-effort cancel. The remote run may still finish. |
 
@@ -65,7 +65,7 @@ The webhook also sends `Idempotency-Key` set to `delivery.key`. Request headers 
 
 `notes` are the capture notes, in capture order. `capture-<n>.png` belongs to `notes[n-1]`; a text note has no PNG, so its number is skipped (a text note followed by a screenshot gives `capture-2.png`). `contextNotes` are text added later with **Add context**, kept separate so they do not shift the screenshot paths. `context.browserURL` and `context.windowTitle` are included only when **Read the active browser URL for project matching** is on. App name and bundle ID are always included.
 
-`promptAddOn` includes required autonomy instructions and the screenshot publication contract (or, for a report filed as text only, a line saying there are no original screenshots) followed by the current shared instruction text from **Settings → Connections → Agent instructions**. Both `report.json` and the webhook include it, even when the optional add-on is empty. The routine should use the latest webhook value. Screenshot publication is authorized: the routine must embed the original evidence PNGs at `evidence.commit`, capture the rebuilt fixed UI, commit retest PNGs outside `.screenclip/`, and embed immutable GitHub commit links for both. Follow-up revisions must update the comparison. A missing retest capture does not block the pull request: the routine finishes it and states in the description which After screenshot is missing and the concrete obstacle. ScreenClip's local missing-image repair check does not run inside the remote routine.
+`promptAddOn` includes required autonomy instructions and the screenshot publication contract (or, for a report filed as text only, a line saying there are no original screenshots) followed by the current shared instruction text from **Settings → Connections → Agent instructions**. Both `report.json` and the webhook include it, even when the optional add-on is empty. The routine should use the latest webhook value. Screenshot publication is authorized: the routine must embed the original evidence PNGs at `evidence.commit`, capture the rebuilt fixed UI, commit retest PNGs inside the hand-off directory (never elsewhere in the repository), and embed immutable GitHub commit links for both. Screenshots appear only in the pull request description; they never reach the base branch. Follow-up revisions must update the comparison. A missing retest capture does not block the pull request: the routine finishes it and states in the description which After screenshot is missing and the concrete obstacle. ScreenClip's local missing-image repair check does not run inside the remote routine.
 
 ScreenClip asks the remote routine to investigate, implement, build, test, and prepare its pull request autonomously, asking only for material missing decisions or concrete blockers. The routine should use automatic permission review in its coding agent when available and leave merging to ScreenClip. ScreenClip does not control the remote Grok Bot or cloud agent permission settings through this webhook; those must also permit unattended work.
 
@@ -75,7 +75,7 @@ ScreenClip asks the remote routine to investigate, implement, build, test, and p
 2. Starts or continues a cloud coding agent on that repository. The branch stays `screenclip/<reportNumber>-<slug>-<workspace>`. The pull request body includes `ScreenClip: #<reportNumber>`, and should also include `ScreenClip-Report: <issueID>`, `ScreenClip-Revision: <revision>`, and `ScreenClip-Agent: <agent URL>`.
 3. Writes a commit status on the evidence commit, context `screenclip/grok-bot`: `pending` with `target_url` `https://cursor.com/agents/bc-<uuid>`, then `success` with the pull request URL, or `failure`, or `error` with "Canceled from ScreenClip".
 4. Questions stay in Grok Bot's chat.
-5. The last commit deletes `.screenclip/`. ScreenClip will not auto-merge while those files are still in the pull request, or while the pull request is a draft.
+5. The last commit deletes `.screenclip/`. Removing the hand-off folder `.screenclip/<reportNumber>/` is how ScreenClip knows the routine finished the revision, so ScreenClip does not merge while it is still in the pull request, or while the pull request is a draft. If other `.screenclip/` files remain, ScreenClip removes them in a commit of its own (`Remove ScreenClip evidence before merge`), pushes, and merges only after checks pass on that commit.
 
 ## Setup
 
@@ -125,7 +125,8 @@ The address must use HTTPS (plain HTTP is accepted only for `localhost` test ser
 | HTTP 2xx | **Working**, activity `Sent to external assistant`. |
 | Non-2xx or network failure | **Failed**, with the error and **Retry**. Retry sends the same report number and revision. |
 | Pull request found | **PR open**, then the existing merged → **To retest** path. |
-| `.screenclip/` still in the PR | Stays **PR open**, is not auto-merged, and appears under **Needs you** with an explanation. |
+| Hand-off folder `.screenclip/<reportNumber>/` still in the PR | Stays **PR open**, is not merged, and appears under **Needs you** with an explanation. |
+| Other `.screenclip/` files in a PR that is otherwise ready to merge | ScreenClip removes them, pushes, and says so in the PR card. The merge follows once checks pass on the new commit; a manual merge is confirmed again for that commit. |
 | Cancel, no `cancel` capability | **Canceled**. The activity says Grok Bot cannot be stopped from ScreenClip. |
 | Cancel, setup code has `cancel` | **Canceled**, and ScreenClip POSTs `screenclip.external.v1.cancel`. The activity says this is best-effort. |
 | Commit status `screenclip/grok-bot` | Records the description and, when the link is allowed, **Open Grok Bot agent**. ScreenClip keeps reading statuses while the pull request is open so a later revision can update them. |
@@ -156,7 +157,7 @@ The menu bar status line is **Grok Bot ready** or **Grok Bot is not connected**,
 - Questions are not copied into ScreenClip. Answer them in Grok Bot's chat.
 - Cancel is best-effort, and only when the saved connection lists `cancel`. There is no API that hard-stops the cloud agent. Without that capability, cancel is local only.
 - ScreenClip has no report-specific Grok Bot chat link. Grok Bot documents a `grokbot://app/v1/prompt` link that opens a Bot with an unsent draft message. That link does not identify a particular ScreenClip report or send the message, and ScreenClip does not offer it as one. See [Grok Bot deep links](https://docs.x.ai/grok-bot/deep-links). `screenclip://connect` only opens the connect sheet.
-- Automatic merge waits until `.screenclip/` is gone and the pull request is not a draft, even when checks are green.
+- Merge waits until Grok Bot removes its hand-off folder and the pull request is not a draft, even when checks are green. ScreenClip cannot tell a finished revision from one in progress any other way.
 
 ## Verification status
 

@@ -231,7 +231,7 @@ extension AgentWorker {
     }
     _ = try await CommandRunner.checked(GitWorkspace.git, ["fetch", "origin", branch], cwd: path)
     let remotePaths = try await GitHubService.listScreenclipPaths(revision: "FETCH_HEAD", cwd: path)
-    if ExternalAssistant.containsScreenclipEvidence(remotePaths) {
+    if ExternalAssistant.containsHandoff(remotePaths, reportNumber: issue.reportNumber) {
       try noteScreenclipEvidence(id)
       return .blocked
     }
@@ -243,12 +243,14 @@ extension AgentWorker {
       return .blocked
     }
     let localPaths = try await GitHubService.listScreenclipPaths(revision: "HEAD", cwd: path)
-    guard !ExternalAssistant.containsScreenclipEvidence(localPaths) else {
+    guard !ExternalAssistant.containsHandoff(localPaths, reportNumber: issue.reportNumber) else {
       try noteScreenclipEvidence(id)
       return .blocked
     }
     // A follow-up handoff can update an already attached PR. Only credit that revision once
-    // the inspected, evidence-free head actually contains its handoff commit.
+    // the inspected head no longer has the hand-off folder (Grok Bot's last commit deletes it)
+    // and actually contains its handoff commit. Other `.screenclip/` files do not hold this
+    // back: ScreenClip removes them itself before merging.
     if issue.prRevision != issue.coveredRevision, issue.handoffRevision == issue.coveredRevision,
       let commit = issue.handoffCommit, GitHubService.isCommit(commit),
       try await CommandRunner.run(GitWorkspace.git, ["merge-base", "--is-ancestor", commit, head], cwd: path).status == 0,
@@ -317,7 +319,7 @@ extension AgentWorker {
       throw ScreenClipError.message("The Grok Bot report has no evidence branch.")
     }
     let paths = try await GitHubService.listScreenclipPaths(revision: "HEAD", cwd: path)
-    if ExternalAssistant.containsScreenclipEvidence(paths) {
+    if ExternalAssistant.containsHandoff(paths, reportNumber: issue.reportNumber) {
       try await rollBackBase(path, to: previousHead, after: nil)
       try noteScreenclipEvidence(id)
       return
@@ -336,7 +338,7 @@ extension AgentWorker {
       throw failure
     }
     let remaining = try await GitHubService.listScreenclipPaths(revision: "HEAD", cwd: path)
-    if ExternalAssistant.containsScreenclipEvidence(remaining) {
+    if ExternalAssistant.containsHandoff(remaining, reportNumber: issue.reportNumber) {
       try await rollBackBase(path, to: previousHead, after: nil)
       try noteScreenclipEvidence(id)
       return

@@ -77,7 +77,7 @@ The root [CONTRIBUTING.md](../CONTRIBUTING.md) is the short version of this work
 2. Copy `Config/LocalSigning.xcconfig.example` to `Config/LocalSigning.xcconfig` only if you will install the app. Ad-hoc signing is enough for `scripts/build.sh` and `scripts/test.sh`. Do not commit the local signing file. It is gitignored.
 3. Run the local checks above before opening a pull request. The macOS workflow runs them again.
 4. Interface copy goes through the String Catalogs. Follow [Localization](localization.md) when you add a string or a language, and commit the regenerated `.xcstrings` files.
-5. Do not commit signing material, `.env` files, a `screenclip.sqlite` queue, `.screenclip/` evidence, or screenshots from a real queue. Localization and website screenshot output is gitignored (`build/` and `website/screenshots/`).
+5. Do not commit signing material, `.env` files, a `screenclip.sqlite` queue, `.screenclip/` evidence, or screenshots from a real queue. `.screenclip/` is gitignored. ScreenClip's own pull requests carry their Before / After evidence only on the pull-request branch and in the description; it is removed before merge and never lands on `main` (see [Evidence stays out of the base branch](agents/README.md#evidence-stays-out-of-the-base-branch)). Localization and website screenshot output is gitignored (`build/` and `website/screenshots/`).
 6. Open a pull request against `main`. CI cancels a superseded run on the same branch. Describe user-visible behavior and how you checked it.
 
 The app is the only writer of a queue. Do not add a plugin tool that mutates reports. Grok Bot questions stay in Grok Bot's chat; the plugin is not installed there.

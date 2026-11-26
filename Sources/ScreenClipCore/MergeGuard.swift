@@ -82,7 +82,8 @@ public struct MergeEvidence: Equatable {
   public var mergeable: Bool
   public var reviewSatisfied: Bool
   public var unresolvedQuestions: Bool
-  /// Grok Bot deletes `.screenclip/` in its last commit. Automatic merge waits until that is gone.
+  /// The head has no `.screenclip/` path. A squash merge would carry those files into the base,
+  /// so ScreenClip removes them in a commit of its own first (`removesEvidenceFirst`).
   public var screenclipEvidenceCleared: Bool
   /// Draft pull requests are attached and watched, and are never merged.
   public var draft: Bool
@@ -108,7 +109,14 @@ public struct MergeEvidence: Equatable {
   public var readyForValidation: Bool {
     !expectedHead.isEmpty && expectedHead == currentHead && inputRevision == coveredRevision
       && checksPassed && mergeable && reviewSatisfied
-      && !unresolvedQuestions && screenclipEvidenceCleared && !draft
+      && !unresolvedQuestions && !draft
   }
-  public var canMerge: Bool { readyForValidation && validationPassed && hasValidation }
+  /// Never true while the head carries `.screenclip/`.
+  public var canMerge: Bool {
+    readyForValidation && validationPassed && hasValidation && screenclipEvidenceCleared
+  }
+  /// Ready in every other way: remove the evidence and push, then merge once checks pass again.
+  public var removesEvidenceFirst: Bool {
+    readyForValidation && validationPassed && hasValidation && !screenclipEvidenceCleared
+  }
 }

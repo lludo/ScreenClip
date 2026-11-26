@@ -120,7 +120,14 @@ import XCTest
     XCTAssertTrue(firstBody.contains("![Before 1]"))
     XCTAssertTrue(firstBody.contains("![After 1]"))
     XCTAssertFalse(firstBody.contains("Screenshots and source context remain"))
-    let firstHead = try XCTUnwrap(issue.prHead)
+    // Images are linked at the commit that added them; the pull request's head has no evidence.
+    func evidenceCommit(_ body: String) throws -> String {
+      let match = try XCTUnwrap(body.range(
+        of: #"/blob/[0-9a-f]{40}/\.screenclip/"#, options: .regularExpression))
+      return String(body[match].dropFirst("/blob/".count).prefix(40))
+    }
+    let firstEvidence = try evidenceCommit(firstBody)
+    XCTAssertNotEqual(firstEvidence, issue.prHead)
 
     // A follow-up gets a fresh After image and updates the same PR description.
     try model.updateIssue(issue.id) { $0.revision += 1; $0.coveredRevision = $0.revision; $0.status = .working }
@@ -133,7 +140,8 @@ import XCTest
     let latestBody = try await body()
     XCTAssertTrue(latestBody.contains("Retested the follow-up revision."))
     XCTAssertTrue(latestBody.contains("revision-\(issue.revision)/after/1.png"))
-    XCTAssertFalse(latestBody.contains("/blob/\(firstHead)/"))
+    XCTAssertFalse(latestBody.contains("/blob/\(firstEvidence)/"))
+    let evidence = try evidenceCommit(latestBody)
     let head = try XCTUnwrap(issue.prHead)
     let remote = try await CommandRunner.checked(GitWorkspace.git, ["remote", "get-url", "origin"], cwd: repo)
     let slug = try XCTUnwrap(GitHubRepository.parse(remote: remote)?.slug)
@@ -141,9 +149,14 @@ import XCTest
     for (relative, expected) in [("before/1.png", before), ("after/1.png", after)] {
       let path = PRScreenshotEvidence.directory(for: issue) + "/" + relative
       let content = try await CommandRunner.checked(gh,
-        ["api", "repos/\(slug)/contents/\(path)?ref=\(head)", "--jq", ".content"], cwd: repo)
+        ["api", "repos/\(slug)/contents/\(path)?ref=\(evidence)", "--jq", ".content"], cwd: repo)
       XCTAssertEqual(Data(base64Encoded: content, options: .ignoreUnknownCharacters), expected)
     }
+    func hasEvidence(_ ref: String) async throws -> Bool {
+      try await CommandRunner.run(gh, ["api", "repos/\(slug)/contents/.screenclip?ref=\(ref)"], cwd: repo).status == 0
+    }
+    let headHasEvidence = try await hasEvidence(head)
+    XCTAssertFalse(headHasEvidence, "The pull request's head must not carry .screenclip/")
     // Publish the actual local validation result as a commit status, avoiding paid CI.
     _ = try await CommandRunner.checked(gh,
       ["api", "--method", "POST", "repos/\(slug)/statuses/\(head)",
@@ -163,8 +176,11 @@ import XCTest
     let finalBody = try await body()
     XCTAssertEqual(finalBody, latestBody)
     let content = try await CommandRunner.checked(gh,
-      ["api", "repos/\(slug)/contents/\(PRScreenshotEvidence.directory(for: issue))/after/1.png?ref=\(head)", "--jq", ".content"], cwd: repo)
+      ["api", "repos/\(slug)/contents/\(PRScreenshotEvidence.directory(for: issue))/after/1.png?ref=\(evidence)", "--jq", ".content"], cwd: repo)
     XCTAssertEqual(Data(base64Encoded: content, options: .ignoreUnknownCharacters), after)
+    let mergeCommit = try XCTUnwrap(merged.mergeCommit)
+    let baseHasEvidence = try await hasEvidence(mergeCommit)
+    XCTAssertFalse(baseHasEvidence, "The squash merge must not bring .screenclip/ into the base branch")
     try "\(url)\n\(head)\n".write(to: root.appendingPathComponent("verified-pr.txt"), atomically: true, encoding: .utf8)
     print("LIVE SCREENSHOT PR VERIFIED: \(url)")
   }
