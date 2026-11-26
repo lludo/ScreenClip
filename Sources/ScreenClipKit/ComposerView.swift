@@ -42,6 +42,7 @@
     func clearMarks() {
       marks.removeAll()
       redoMarks.removeAll()
+      redactedDiagnostics = false
       draft = nil
       pendingTextPoint = nil
       pendingText = ""
@@ -55,6 +56,7 @@
     let outbox: Outbox
     let followUp: FollowUpTarget
     let stillBroken: (SentLog.Entry) -> Void
+    let diagnosticsChanged: (Bool) -> Void
     let send: (String, Data, Bool, PickedScreenshot?) async throws -> Void
     let cancel: () -> Void
     @State private var model = ComposerModel()
@@ -203,6 +205,7 @@
         }
       }
       .disabled(saving || loadingPhoto)
+      .onChange(of: model.attachDiagnostics) { _, enabled in diagnosticsChanged(enabled) }
       .overlay {
         if saving {
           ProgressView("Saving report…").padding().background(.regularMaterial, in: Capsule())

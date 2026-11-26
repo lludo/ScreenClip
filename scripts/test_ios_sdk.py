@@ -35,7 +35,7 @@ def check_product(configuration, sdk):
         raise SystemExit("Release demo contains Debug network declarations.")
     binaries = [app / info["CFBundleExecutable"], *app.glob("*.dylib")]
     symbols = b"".join(subprocess.check_output(["xcrun", "nm", "-j", path]) for path in binaries)
-    for marker in (b"ShakeHook", b"MacLink", b"KitRuntime", b"LinkConnection"):
+    for marker in (b"ShakeHook", b"MacLink", b"KitRuntime", b"AttachmentProviders", b"LinkConnection"):
         if (marker in symbols) != debug:
             raise SystemExit(f"Unexpected {marker.decode()} symbols in the {configuration} demo.")
     if not debug and any(b"_screenclip._tcp" in binary.read_bytes() for binary in binaries):
@@ -46,7 +46,7 @@ def main():
     device = simulator_id()
     # The report sheet's picker shows only screenshots. This PNG carries the EXIF comment Photos
     # uses to file it there, so the UI test has one to pick. Adding it again only adds a duplicate.
-    subprocess.run(["xcrun", "simctl", "boot", device], capture_output=True)
+    subprocess.run(["xcrun", "simctl", "bootstatus", device, "-b"], check=True)
     subprocess.run(["xcrun", "simctl", "addmedia", device,
                     str(ROOT / f"Examples/{NAME}/Fixtures/picker-screenshot.png")], check=True)
     build = ["xcodebuild", "-project", str(ROOT / f"Examples/{NAME}/{NAME}.xcodeproj"),

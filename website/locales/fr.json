@@ -121,7 +121,7 @@
       "Captures de sites et d’apps Mac natives",
       "Codex, Claude Code et Grok Bot",
       "Validation du projet, pull requests GitHub, fusion facultative et file de nouveaux tests",
-      "Un serveur MCP en lecture seule, pour que Claude Code et Codex consultent les rapports de chaque projet",
+      "Claude Code et Codex peuvent consulter les rapports du projet et proposer des réglages à approuver",
       "Rapports depuis vos propres apps iPhone et iPad avec ScreenClipKit, en version Debug"
     ]
   },
@@ -172,7 +172,7 @@
     "site1a": "{link:site} est un site statique. Les pages ne chargent ni scripts ni polices depuis d’autres domaines.",
     "site1b": "Le site utilise Vercel Web Analytics, fourni par l’hôte qui le sert, pour compter les visiteurs et les pages vues. Il ne dépose aucun cookie. Il enregistre l’adresse de la page, le site d’origine, le navigateur, le système d’exploitation et le type d’appareil, ainsi que le pays déduit de l’adresse IP. Il ne conserve pas l’adresse IP et ne vous suit pas sur d’autres sites.",
     "site1c": "Choisir une langue enregistre ce choix dans un cookie nommé screenclip_lang et dans le stockage local de votre appareil. Le cookie ne sert qu’à choisir la langue de la page d’accueil. Il n’est pas utilisé pour la publicité ni l’analyse. L’hôte qui sert le site reçoit des données de connexion ordinaires, comme l’adresse IP et l’agent utilisateur, afin de livrer la page.",
-    "ios1a": "Si vous ajoutez ScreenClipKit à la version Debug de votre propre app iOS, un rapport envoyé depuis votre iPhone (la capture annotée, votre note, des informations sur l’appareil et l’app et, sauf si vous les désactivez, les journaux récents de l’app, la structure de l’écran et l’état de l’appareil) va directement à ScreenClip sur votre Mac par votre réseau local, chiffré pour un Mac jumelé. Il ne passe par aucun serveur ScreenClip.",
+    "ios1a": "Si vous ajoutez ScreenClipKit à la version Debug de votre propre app iOS, un rapport envoyé depuis votre iPhone (la capture annotée, votre note, des informations sur l’appareil et l’app et, sauf si vous les désactivez, les journaux récents de l’app, la structure de l’écran et l’état de l’appareil) va directement à ScreenClip sur votre Mac par votre réseau local, chiffré pour un Mac jumelé. Il ne passe par aucun serveur ScreenClip. Si les diagnostics sont activés, l’app peut aussi joindre ses propres fichiers texte ou JSON. L’agent peut les consulter avec le rapport.",
     "ios1b": "Les rapports attendent sur votre iPhone jusqu’à ce que le Mac soit joignable ; le Mac les enregistre et les traite ensuite comme tout autre rapport. Les versions Release de votre app ne contiennent aucun code ScreenClipKit."
   },
   "support": {

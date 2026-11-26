@@ -68,8 +68,8 @@ public struct ScreenClipOptions: Sendable {
     ///   return [try .json(cart, name: "cart", summary: "the cart's \(cart.items.count) items and promo codes")]
     /// }
     /// ```
-    /// The provider starts when the report sheet opens and runs while the tester annotates, off
-    /// the main actor. After the tester taps Send, ScreenClip waits up to `timeout` more (at most
+    /// With diagnostics enabled, the provider starts when the sheet opens and runs off the main
+    /// actor while the tester annotates. Enabling diagnostics later starts a fresh run. After the tester taps Send, ScreenClip waits up to `timeout` more (at most
     /// 30 seconds), then sends the report without whatever hasn't arrived. It is cancelled when
     /// the tester cancels or turns off **Attach logs and diagnostics**. Registering the same `id`
     /// again replaces the provider, so calling this more than once is safe.

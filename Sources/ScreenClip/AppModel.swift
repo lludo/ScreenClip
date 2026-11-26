@@ -257,14 +257,11 @@ struct GrokConnectionCheck: Equatable {
   }
   /// Applies the proposal, then continues the reports that were waiting for a validation command.
   func acceptSettingsProposal(_ id: UUID) {
+    refreshSettingsProposals()
     guard let proposal = settingsProposals.first(where: { $0.id == id }) else { return }
-    var blocked: [Issue] = []
     perform {
       guard project(proposal.projectID) != nil else {
         throw ScreenClipError.message("Report or project no longer exists.")
-      }
-      if proposal.changes[.validationCommand] != nil {
-        blocked = reportsBlockedOnValidation(proposal.projectID)
       }
       try commit { state in
         guard let index = state.projects.firstIndex(where: { $0.id == proposal.projectID }) else { return }
@@ -272,8 +269,10 @@ struct GrokConnectionCheck: Equatable {
       }
       SettingsProposalInbox.remove(id, root: store.root)
       settingsProposals.removeAll { $0.id == id }
+      if proposal.changes[.validationCommand] != nil {
+        for issue in reportsBlockedOnValidation(proposal.projectID) { retry(issue.id) }
+      }
     }
-    for issue in blocked { retry(issue.id) }
   }
   func rejectSettingsProposal(_ id: UUID) {
     SettingsProposalInbox.remove(id, root: store.root)

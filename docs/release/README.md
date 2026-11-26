@@ -5,6 +5,7 @@ ScreenClip is not on the Mac App Store. The download, when a release exists, is 
 | Page | What it covers |
 | --- | --- |
 | [Release checklist](checklist.md) | Every step for cutting a release, from syncing and reviewing to publishing and verifying. Follow it for every release |
+| [Next release notes](next.md) | Draft of changes since 1.1.0 |
 | [v1.1.0 release notes](v1.1.0.md) | ScreenClip for iOS (ScreenClipKit, local server, pairing, diagnostics, live status, retest from the phone); default base branch |
 | [v1.0.5 release notes](v1.0.5.md) | Agents check their project's reports through the MCP server, installed from Settings; merges done by hand detected by branch |
 | [v1.0.4 release notes](v1.0.4.md) | Popover lists the reports behind each count, newest-first queue, review fixes |

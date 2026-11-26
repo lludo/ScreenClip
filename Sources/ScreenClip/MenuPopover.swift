@@ -101,8 +101,11 @@ struct MenuPopover: View {
             Text(chrome: "Dismiss message", comment: "Clears the menu bar banner."))
         }
       }
-      ForEach(model.settingsProposals) { proposal in
-        SettingsProposalCard(model: model, proposal: proposal, compact: true)
+      if !model.settingsProposals.isEmpty {
+        ViewThatFits(in: .vertical) {
+          proposalCards.fixedSize(horizontal: false, vertical: true)
+          ScrollView { proposalCards }
+        }.frame(maxHeight: 240)
       }
       Divider()
       if model.snapshot.issues.isEmpty {
@@ -187,6 +190,14 @@ struct MenuPopover: View {
       }
     }.padding(20).frame(minWidth: 400, idealWidth: 460, maxWidth: 520)
   }
+  private var proposalCards: some View {
+    VStack {
+      ForEach(model.settingsProposals) { proposal in
+        SettingsProposalCard(model: model, proposal: proposal, compact: true)
+      }
+    }
+  }
+
   /// Counted exactly like the queue sidebar, so both always show the same numbers.
   private func count(_ filter: QueueFilter) -> Int {
     model.snapshot.issues.filter { filter.includes($0) }.count

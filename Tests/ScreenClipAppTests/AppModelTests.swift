@@ -150,9 +150,15 @@ import XCTest
     XCTAssertEqual(model.reportsBlockedOnValidation(project.id).map(\.id), [blocked])
     XCTAssertEqual(model.project(project.id)?.validationCommand, "", "Nothing changes before Accept")
 
+    let replacement = SettingsProposal(projectID: project.id, changes: [.validationCommand: "make check"],
+      createdAt: proposal.createdAt.addingTimeInterval(1))
+    try SettingsProposalInbox.write(replacement, root: root)
     model.acceptSettingsProposal(proposal.id)
-    XCTAssertEqual(model.project(project.id)?.validationCommand, "make test")
-    XCTAssertEqual(try model.store.load().projects.first?.validationCommand, "make test")
+    XCTAssertEqual(model.project(project.id)?.validationCommand, "", "The agent replaced this proposal before the click")
+    XCTAssertEqual(model.issue(blocked)?.status, .failed)
+    model.acceptSettingsProposal(replacement.id)
+    XCTAssertEqual(model.project(project.id)?.validationCommand, "make check")
+    XCTAssertEqual(try model.store.load().projects.first?.validationCommand, "make check")
     XCTAssertTrue(model.settingsProposals.isEmpty)
     XCTAssertTrue(SettingsProposalInbox.load(root: root).isEmpty)
     XCTAssertEqual(model.issue(blocked)?.status, .queued)

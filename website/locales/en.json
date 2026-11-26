@@ -121,7 +121,7 @@
       "Capture from websites and native Mac apps",
       "Codex, Claude Code, and Grok Bot",
       "Project validation, GitHub pull requests, optional merge, and a retest queue",
-      "A read-only MCP server, so Claude Code and Codex can check each project’s reports",
+      "Claude Code and Codex can read project reports and suggest settings for you to approve",
       "Reports from your own iPhone and iPad apps with ScreenClipKit, in Debug builds"
     ]
   },
@@ -172,7 +172,7 @@
     "site1a": "{link:site} is a static website. Pages on this site load no scripts or fonts from other domains.",
     "site1b": "The site uses Vercel Web Analytics, provided by the host that serves it, to count visitors and page views. It sets no cookies. It records the page address, the referring site, the browser, operating system, and device type, and the country derived from the IP address. It does not store the IP address and does not follow you across other sites.",
     "site1c": "Choosing a language stores that choice in a cookie named screenclip_lang and in local storage on your device. The cookie only selects the language for the home page. It is not used for advertising or analytics. The host that serves the site receives ordinary connection data, such as IP address and user agent, in order to deliver the page.",
-    "ios1a": "ScreenClipKit sends Debug reports directly to your paired Mac over the local network, encrypted for that Mac. Reports include the annotated screenshot, note, and device and app details. You can turn off recent app logs, screen layout, and device state.",
+    "ios1a": "ScreenClipKit sends Debug reports directly to your paired Mac over the local network, encrypted for that Mac. Reports include the annotated screenshot, note, and device and app details. You can turn off recent app logs, screen layout, and device state. When diagnostics are enabled, the app can also attach its own text or JSON files. The agent can read those files with the report.",
     "ios1b": "Reports wait on your iPhone or iPad until the Mac is reachable. The Mac then stores them like other reports. Release builds omit the reporting code."
   },
   "support": {

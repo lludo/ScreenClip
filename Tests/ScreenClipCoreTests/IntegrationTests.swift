@@ -143,6 +143,27 @@ final class IntegrationTests: XCTestCase {
     XCTAssertTrue(receipt.output.contains("base and fix\nnew file"))
   }
 
+  func testBinaryBaseConflictRequiresAResolutionBeforeValidation() async throws {
+    let (source, work, project) = try await prevalidationFixture()
+    let name = "source.txt"
+    try Data([0, 1]).write(to: source.appendingPathComponent(name))
+    _ = try await CommandRunner.checked(GitWorkspace.git, ["commit", "-am", "Base binary"], cwd: source.path)
+    try Data([0, 2]).write(to: work.appendingPathComponent(name))
+    let extra = " :(fixture).txt"
+    try Data("addition".utf8).write(to: work.appendingPathComponent(extra))
+    for _ in 0..<2 {
+      do {
+        try await GitWorkspace.updateBaseBeforeValidation(project: project, path: work.path, branch: "fix")
+        XCTFail("An untouched binary conflict must block validation on every retry")
+      } catch let conflict as GitWorkspace.BaseConflict {
+        XCTAssertEqual(conflict.files, [name])
+      }
+    }
+    _ = try await CommandRunner.checked(GitWorkspace.git, ["add", "--", name], cwd: work.path)
+    try await GitWorkspace.updateBaseBeforeValidation(project: project, path: work.path, branch: "fix")
+    XCTAssertEqual(try String(contentsOf: work.appendingPathComponent(extra), encoding: .utf8), "addition")
+  }
+
   func testPendingEditsAreRestoredAfterRepairingADivergedBranch() async throws {
     let (source, work, project) = try await prevalidationFixture()
     let git = GitWorkspace.git

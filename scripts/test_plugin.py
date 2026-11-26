@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import importlib.util
+from concurrent.futures import ThreadPoolExecutor
 import json
 from pathlib import Path
 import sqlite3
@@ -7,6 +8,7 @@ import subprocess
 import os
 import sys
 import tempfile
+import threading
 import unittest
 import uuid
 
@@ -247,6 +249,26 @@ class PluginTests(unittest.TestCase):
         files = self.proposal_files()
         self.assertEqual(len(files), 1)
         self.assertEqual(json.loads(files[0].read_text())["changes"], {"validationCommand": "make check", "baseBranch": "develop"})
+    def test_overlapping_proposals_leave_one_decision_for_the_tester(self):
+        self.make_projects()
+        start = threading.Barrier(8)
+        def send(index):
+            start.wait(timeout=5)
+            result = plugin.call("propose_project_settings", {"project": "App", "validation_command": f"make check-{index}"})
+            return json.loads(result["content"][0]["text"])["proposalID"]
+        with ThreadPoolExecutor(max_workers=8) as writers:
+            ids = list(writers.map(send, range(8)))
+        files = self.proposal_files()
+        self.assertEqual(len(files), 1)
+        self.assertIn(files[0].stem, ids)
+
+    def test_invalid_git_branch_names_are_refused(self):
+        self.make_projects()
+        for branch in ["-main", "topic/.hidden", "topic.lock/wip", "HEAD"]:
+            with self.subTest(branch=branch), self.assertRaises(plugin.InvalidParams):
+                plugin.call("propose_project_settings", {"project": "App", "base_branch": branch})
+        self.assertEqual(self.proposal_files(), [])
+
     def test_proposals_that_change_nothing_or_are_invalid_are_refused(self):
         self.save_state([{"id": "p", "name": "App", "path": "/nowhere", "baseBranch": "main", "validationCommand": "make test"}], [])
         unchanged = json.loads(plugin.call("propose_project_settings", {"project": "App", "validation_command": "make test"})["content"][0]["text"])

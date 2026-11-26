@@ -143,19 +143,30 @@
       guard !overlay.isPresentingSheet, scene.activationState == .foregroundActive else { return }
       let logs = Task.detached(priority: .utility) { Diagnostics.recentLogs(until: capturedAt) }
       let reportID = UUID()
-      let provided = attachments.start(
-        ScreenClipReportContext(
-          reportID: reportID, capturedAt: capturedAt, screenTitle: device.screenTitle, screenPath: device.screenPath))
+      let context = ScreenClipReportContext(
+        reportID: reportID, capturedAt: capturedAt, screenTitle: device.screenTitle, screenPath: device.screenPath)
+      var provided: AttachmentProviders.Run?
+      func collectAttachments(_ enabled: Bool) {
+        if enabled {
+          if provided == nil { provided = attachments.start(context) }
+        } else {
+          provided?.cancel()
+          provided = nil
+        }
+      }
+      collectAttachments(KitPreferences.attachDiagnostics)
       overlay.presentSheet(in: scene) { dismiss in
         ComposerView(
           snapshot: snapshot, link: self.link, outbox: self.outbox, followUp: self.followUp,
-          stillBroken: { [weak self] entry in self?.followUp.entry = entry }
+          stillBroken: { [weak self] entry in self?.followUp.entry = entry },
+          diagnosticsChanged: collectAttachments
         ) { note, png, attach, picked in
           let target = self.followUp.entry
           var device = device
           device.pickedScreenshot = picked
           var files: [DiagnosticFile]?
-          if attach {
+          collectAttachments(attach)
+          if attach, let provided {
             let builtIn = Set(["logs.txt"] + immediate.map(\.name))
             async let log = Self.value(of: logs, timeout: 8)
             async let extra = provided.files(avoiding: builtIn)
@@ -163,7 +174,6 @@
             files = ([await log].compactMap { $0 } + captured + (await extra)).fittingSizeLimit()
           } else {
             logs.cancel()
-            provided.cancel()
           }
           var report = WireReport(id: reportID, createdAt: capturedAt, note: note, image: png, device: device, diagnostics: files)
           report.followUpOf = target?.id
@@ -177,7 +187,7 @@
           self.deliver(report)
         } cancel: {
           logs.cancel()
-          provided.cancel()
+          collectAttachments(false)
           dismiss()
         }
       }

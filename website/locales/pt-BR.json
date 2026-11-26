@@ -121,7 +121,7 @@
       "Capturas de sites e de apps nativos de Mac",
       "Codex, Claude Code e Grok Bot",
       "Validação do projeto, pull requests no GitHub, merge opcional e fila de reteste",
-      "Um servidor MCP somente leitura para o Claude Code e o Codex consultarem os relatórios de cada projeto",
+      "Claude Code e Codex podem ler os relatórios do projeto e sugerir ajustes para você aprovar",
       "Relatórios dos seus próprios apps de iPhone e iPad com o ScreenClipKit, em builds Debug"
     ]
   },
@@ -172,7 +172,7 @@
     "site1a": "{link:site} é um site estático. As páginas não carregam scripts nem fontes de outros domínios.",
     "site1b": "O site usa o Vercel Web Analytics, fornecido pelo host que o entrega, para contar visitantes e visualizações de página. Ele não grava cookies. Registra o endereço da página, o site de origem, o navegador, o sistema operacional e o tipo de dispositivo, e o país deduzido do endereço IP. Não guarda o endereço IP nem acompanha você em outros sites.",
     "site1c": "Escolher um idioma guarda essa escolha em um cookie chamado screenclip_lang e no armazenamento local do seu dispositivo. O cookie só escolhe o idioma da página inicial. Não é usado para publicidade nem análise. O host que entrega o site recebe dados comuns de conexão, como endereço IP e user agent, para servir a página.",
-    "ios1a": "Se você adicionar o ScreenClipKit ao build Debug do seu próprio app iOS, um relatório enviado do seu iPhone (a captura anotada, sua nota, dados do dispositivo e do app e, a menos que você os desative, logs recentes do app, a estrutura da tela e o estado do dispositivo) vai direto para o ScreenClip no seu Mac pela sua rede local, criptografado para um Mac pareado. Ele não passa por nenhum servidor do ScreenClip.",
+    "ios1a": "Se você adicionar o ScreenClipKit ao build Debug do seu próprio app iOS, um relatório enviado do seu iPhone (a captura anotada, sua nota, dados do dispositivo e do app e, a menos que você os desative, logs recentes do app, a estrutura da tela e o estado do dispositivo) vai direto para o ScreenClip no seu Mac pela sua rede local, criptografado para um Mac pareado. Ele não passa por nenhum servidor do ScreenClip. Com o diagnóstico ativado, o app também pode anexar seus próprios arquivos de texto ou JSON. O agente pode lê-los junto com o relatório.",
     "ios1b": "Os relatórios aguardam no seu iPhone até o Mac ficar acessível, e o Mac então os guarda e trata como qualquer outro relatório. Os builds Release do seu app não contêm código do ScreenClipKit."
   },
   "support": {

@@ -214,7 +214,7 @@ public enum GitWorkspace {
   /// reports can collide on git's ref lock; that transient error is retried.
   public static func fetch(_ branch: String, cwd: String, attempts: Int = 4) async throws {
     for attempt in 1...max(1, attempts) {
-      let result = try await CommandRunner.run(git, ["fetch", "origin", branch], cwd: cwd)
+      let result = try await CommandRunner.run(git, ["fetch", "--", "origin", branch], cwd: cwd)
       if result.status == 0 { return }
       let message = result.error.isEmpty ? result.output : result.error
       let locked = message.contains("cannot lock ref") || message.contains(".lock")
@@ -240,7 +240,7 @@ public enum GitWorkspace {
       """
       The worktree contains conflicts between the base branch (origin/\(base)) and this fix:
       \(files.map { "- " + $0 }.joined(separator: "\n"))
-      Resolve the conflicts in these files, keeping both the base changes and the intended fix. Remove conflict markers, then rebuild and rerun validation. Stay on this branch and leave the changes for ScreenClip to validate and publish. Do not abort, commit, rebase, or apply a stash.
+      Resolve the conflicts in these files, keeping both the base changes and the intended fix. Remove conflict markers. If you choose one side unchanged, resolve a binary file, or choose a deletion, stage that decision with git add or git rm. Rebuild and rerun validation. Stay on this branch and leave the changes for ScreenClip to validate and publish. Do not abort, commit, rebase, or apply a stash.
       """
     }
   }
@@ -271,20 +271,38 @@ public enum GitWorkspace {
 
   /// Check a pending merge or conflicts from restoring local edits after a base update.
   public static func unresolvedConflicts(path: String) async throws -> [String] {
-    let changed: Set<String>
+    let index = try await CommandRunner.checked(git, ["ls-files", "--unmerged", "-z"], cwd: path)
+    var conflictBlobs: [String: Set<String>] = [:]
+    for record in index.split(separator: "\0") {
+      let fields = record.split(separator: "\t", maxSplits: 1)
+      guard fields.count == 2 else { continue }
+      let stage = fields[0].split(separator: " ")
+      guard stage.count == 3 else { continue }
+      conflictBlobs[String(fields[1]), default: []].insert(String(stage[1]))
+    }
+    var changed = Set(conflictBlobs.keys)
     if await mergeInProgress(path: path) {
-      changed = Set(try await CommandRunner.checked(
+      changed.formUnion(try await CommandRunner.checked(
         git, ["diff", "--name-only", "-z", "HEAD"], cwd: path).split(separator: "\0").map(String.init))
-    } else {
-      changed = Set(try await unmergedFiles(path: path))
     }
     guard !changed.isEmpty else { return [] }
     // Exit status 1 means no match. Binary files are skipped.
     let marked = try await CommandRunner.run(
       git, ["grep", "-I", "-l", "-z", "-E", "^(<<<<<<<|>>>>>>>)( |$)"], cwd: path)
-    if marked.status == 1 { return [] }
-    guard marked.status == 0 else { throw ScreenClipError.message(marked.error) }
-    return marked.output.split(separator: "\0").map(String.init).filter(changed.contains).sorted()
+    guard marked.status == 0 || marked.status == 1 else { throw ScreenClipError.message(marked.error) }
+    var unresolved = Set(marked.output.split(separator: "\0").map(String.init)).intersection(changed)
+    // Git leaves one side on disk for binary and modify/delete conflicts. Absence of conflict
+    // markers is insufficient to distinguish that default from an intentional resolution.
+    for (name, blobs) in conflictBlobs where !unresolved.contains(name) {
+      let file = URL(fileURLWithPath: path).appendingPathComponent(name)
+      guard (try? file.resourceValues(forKeys: [.isRegularFileKey]))?.isRegularFile == true else {
+        unresolved.insert(name)
+        continue
+      }
+      let blob = try await CommandRunner.checked(git, ["hash-object", "--", name], cwd: path)
+      if blobs.contains(blob) { unresolved.insert(name) }
+    }
+    return unresolved.sorted()
   }
 
   /// Integrate the base into the agent's working changes before running the project command.

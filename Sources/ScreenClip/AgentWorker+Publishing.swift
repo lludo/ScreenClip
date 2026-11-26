@@ -394,10 +394,13 @@ extension AgentWorker {
         noChecksSettled = false
       }
       let receipt = loadReceipt(id, issue: issue)
-      // The worktree is on the pull request's head here whenever a merge is possible: ScreenClip
-      // pushed it, or the Grok Bot inspection fast-forwarded to it.
-      let carriesEvidence = ExternalAssistant.containsScreenclipEvidence(
-        try await GitHubService.listScreenclipPaths(revision: "HEAD", cwd: path))
+      // The local checkout can move independently while a PR is waiting for review.
+      // Inspect the commit GitHub would actually merge.
+      var carriesEvidence = true
+      if model.issue(id)?.prHead == pr.head {
+        carriesEvidence = ExternalAssistant.containsScreenclipEvidence(
+          try await GitHubService.listScreenclipPaths(revision: pr.head, cwd: path))
+      }
       guard let currentIssue = model.issue(id), currentIssue.status == .prOpen,
         currentIssue.prURL == url, currentIssue.workspaceID == issue.workspaceID
       else { return }
@@ -580,17 +583,25 @@ extension AgentWorker {
   func removeEvidenceBeforeMerge(_ id: UUID, issue: Issue, path: String, pullHead: String) async throws {
     guard let branch = issue.branch else { throw ScreenClipError.message("No issue branch exists.") }
     let head = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
-    guard head == pullHead else {
+    let checkedOut = try await CommandRunner.checked(GitWorkspace.git, ["branch", "--show-current"], cwd: path)
+    guard head == pullHead, checkedOut == branch else {
       throw ScreenClipError.message(
         "The worktree is not on the pull request's head, so ScreenClip did not remove its evidence files.")
     }
     guard let removed = try await PRScreenshotEvidence.removeFromBranch(worktree: path) else { return }
     do {
       _ = try await CommandRunner.checked(
-        GitWorkspace.git, ["push", "origin", "HEAD:" + branch], cwd: path)
+        GitWorkspace.git, ["push", "origin", removed + ":refs/heads/" + branch], cwd: path)
     } catch {
-      // Unpushed, the local commit would diverge from the pull request and block later refreshes.
-      _ = try? await CommandRunner.checked(GitWorkspace.git, ["reset", "--hard", head], cwd: path)
+      // Undo only this commit's tree changes. A hard reset would erase unrelated local
+      // edits, including another change staged before the evidence removal.
+      let current = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
+      if current == removed,
+        try await CommandRunner.checked(GitWorkspace.git, ["branch", "--show-current"], cwd: path) == branch
+      {
+        _ = try await CommandRunner.checked(GitWorkspace.git, ["read-tree", "-m", "-u", removed, head], cwd: path)
+        _ = try await CommandRunner.checked(GitWorkspace.git, ["update-ref", "refs/heads/" + branch, head, removed], cwd: path)
+      }
       throw error
     }
     if var receipt = loadReceipt(id, issue: issue), receipt.head == pullHead {
