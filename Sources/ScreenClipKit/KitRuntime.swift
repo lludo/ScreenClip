@@ -159,7 +159,8 @@
             let builtIn = Set(["logs.txt"] + immediate.map(\.name))
             async let log = Self.value(of: logs, timeout: 8)
             async let extra = provided.files(avoiding: builtIn)
-            files = ([await log].compactMap { $0 } + immediate + (await extra)).fittingSizeLimit()
+            let captured = Diagnostics.captureFiles(immediate, picked: picked != nil)
+            files = ([await log].compactMap { $0 } + captured + (await extra)).fittingSizeLimit()
           } else {
             logs.cancel()
             provided.cancel()

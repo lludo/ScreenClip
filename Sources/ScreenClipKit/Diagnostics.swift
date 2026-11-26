@@ -91,6 +91,14 @@
 
     /// The captured window's views and accessibility elements (SwiftUI content appears as
     /// accessibility elements), with identifiers, labels, and frames in points.
+    static let viewTreeName = "view-tree.json"
+
+    /// The capture-time files to send. A screenshot picked from Photos shows another moment, so
+    /// the live screen's view tree would describe something the image does not.
+    static func captureFiles(_ files: [DiagnosticFile], picked: Bool) -> [DiagnosticFile] {
+      picked ? files.filter { $0.name != viewTreeName } : files
+    }
+
     @MainActor static func viewTree(of window: UIWindow) -> DiagnosticFile? {
       var budget = 2000
       let root = node(for: window, in: window, depth: 0, budget: &budget)
@@ -98,7 +106,7 @@
       encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
       guard let data = try? encoder.encode(root) else { return nil }
       return DiagnosticFile(
-        name: "view-tree.json",
+        name: viewTreeName,
         summary: "views and accessibility elements on screen, with identifiers, labels, and frames (\(2000 - budget) nodes)",
         data: data)
     }
