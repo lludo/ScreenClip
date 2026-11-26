@@ -48,12 +48,6 @@ final class WireTests: XCTestCase {
     let report = WireReport(note: "Old screenshot", image: Data([1]), device: picked)
     let decoded = try ReportFile.decode(ReportFile.encode(report))
     XCTAssertEqual(decoded.device.pickedScreenshot, picked.pickedScreenshot)
-    let caveat = try XCTUnwrap(decoded.device.pickedScreenshot?.caveat)
-    XCTAssertTrue(caveat.contains("photo library"))
-    XCTAssertTrue(caveat.contains("2023-11-14T22:13:20Z"))
-    XCTAssertTrue(caveat.contains("different size"))
-    XCTAssertTrue(caveat.contains("older build"))
-    XCTAssertFalse(PickedScreenshot(matchesDevice: true).caveat.contains("different size"))
     let live = try ReportFile.decode(ReportFile.encode(WireReport(note: "", image: nil, device: device())))
     XCTAssertNil(live.device.pickedScreenshot)
   }

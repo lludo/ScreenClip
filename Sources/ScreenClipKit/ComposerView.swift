@@ -44,6 +44,7 @@
       redoMarks.removeAll()
       draft = nil
       pendingTextPoint = nil
+      pendingText = ""
     }
   }
 

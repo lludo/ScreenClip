@@ -215,7 +215,7 @@
 			baseConfigurationReference = 100000000000000000000017 /* Config/Signing.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Resources/ScreenClip.entitlements;
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 67;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = NO;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -240,7 +240,7 @@
 			baseConfigurationReference = 100000000000000000000017 /* Config/Signing.xcconfig */;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Resources/ScreenClip.entitlements;
-				CURRENT_PROJECT_VERSION = 66;
+				CURRENT_PROJECT_VERSION = 67;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;

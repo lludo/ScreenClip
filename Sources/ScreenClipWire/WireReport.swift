@@ -69,13 +69,6 @@ public struct PickedScreenshot: Codable, Equatable, Sendable {
     self.takenAt = takenAt
     self.matchesDevice = matchesDevice
   }
-  /// One sentence for agents and the capture details.
-  public var caveat: String {
-    var text = "Screenshot picked from the device's photo library instead of captured live"
-    if let takenAt { text += ", taken \(takenAt.formatted(.iso8601))" }
-    text += matchesDevice ? "" : ", on a screen of a different size"
-    return text + ". It may show an older build than the one installed; the visible view controllers and view tree describe the live screen, not this image."
-  }
 }
 
 /// An optional file captured with a report: app logs, the view tree, or device state. Agents
