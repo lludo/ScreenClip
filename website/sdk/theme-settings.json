@@ -1,0 +1,21 @@
+{
+  "meta": {
+    "title": "ScreenClipKit"
+  },
+  "theme": {
+    "color": {
+      "link": { "light": "#b8430a", "dark": "#ffb088" },
+      "documentation-intro-fill": "#2a211c",
+      "documentation-intro-accent": "#f76826",
+      "documentation-intro-figure": "#f6f1e8",
+      "documentation-intro-title": "#f6f1e8",
+      "documentation-intro-eyebrow": "#d9cfc2",
+      "standard-orange": "#f76826"
+    }
+  },
+  "features": {
+    "docs": {
+      "quickNavigation": { "enable": true }
+    }
+  }
+}

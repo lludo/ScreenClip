@@ -29,6 +29,8 @@ Other local tools:
 | Command | What it does |
 | --- | --- |
 | `bash scripts/render-localizations.sh` | Writes locale screenshots under `build/localization-screenshots/`. See [Localization](localization.md). |
+| `python3 scripts/build_sdk_docs.py` | Rebuilds the ScreenClipKit DocC site into `website/sdk/` (committed). See [Website](website.md#ios-page-and-sdk-documentation). |
+| `python3 scripts/sdk_screenshots.py` | Retakes the report-sheet screenshot used by the iOS page and the SDK documentation. |
 | `python3 scripts/review_queue.py` | Read-only queue summary. Never dispatches or edits. |
 | `python3 scripts/report_action.py 45 resume` | Asks the running app to reconcile and continue report #45 (`reconcile`, `continue`, `resume`, or `open`). It opens `screenclip://issues/<uuid>/<action>?token=<token>`, with the token the app keeps in `link-token` in its data folder (report ids are published in pull requests, so the id alone does not authorize an action); the app applies the same conditions as the buttons and stays the only writer of the queue. |
 | `python3 scripts/probe_codex.py --codex /path/to/codex` | Read-only Codex handshake. Uses account quota. |

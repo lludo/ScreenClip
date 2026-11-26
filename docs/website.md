@@ -2,7 +2,7 @@
 
 Static pages for [screenclipai.com](https://screenclipai.com). The copy describes the Mac app as it works today: capture a region, annotate or redact it, hand it to Codex, Claude Code, or Grok Bot, then track the GitHub pull request through an optional merge and retest. The home page leads with the headline, the ⌘⇧2 keycaps, and a four-step **How it works** strip (`flow.*` strings) that marks which steps are yours and which one the agent does in the background. Type is the system font stack. Plain HTML and CSS, plus three small scripts: one for the language choice, one that keeps the demo caption in step with the video, and `analytics-events.js`, which counts clicks on the download link. No framework and no third-party fonts. Every page also loads Vercel Web Analytics from the site’s own origin (`/_vercel/insights/script.js`) to count visitors, page views, and download clicks without cookies. The page follows the system light and dark setting. Beside the headline, a short silent screen recording shows a capture going from selection to a tracked report.
 
-`website/build.py` reads `website/site.config.json` and `website/src/`, then writes `website/dist/`. Python’s standard library is enough. `dist/` is generated and gitignored.
+`website/build.py` reads `website/site.config.json`, `website/src/`, and the committed SDK documentation in `website/sdk/`, then writes `website/dist/`. Python’s standard library is enough. `dist/` is generated and gitignored.
 
 The site is configured for the current release: it links the GitHub repository and the latest release download. What must be true before this configuration reaches production, plus public support and the empty donate URL, is tracked in [Publishing checklist](release/publishing-checklist.md#open-todos). This page describes how the site is built and deployed.
 
@@ -26,6 +26,23 @@ node website/test_locale.mjs
 ```
 
 CI runs `python3 website/build.py` only. It does not run the locale test or the screenshot script. See [Development](development.md#ci).
+
+## iOS page and SDK documentation
+
+`/ios` (and `/<locale>/ios`) is the iPhone and iPad page: what testers do, pairing, a three-step developer setup with code, and links into the SDK documentation. Its template is `website/src/pages/ios.html` and its copy is the `iosPage.*` strings. The header's **iPhone & iPad** link and the home page's iOS section point to it. Code samples on the page are not translated.
+
+Its images live in `website/src/assets/ios/`:
+
+- `composer.png`: the report sheet over the demo app, from `python3 scripts/sdk_screenshots.py`. The script runs `WebsiteScreenshotTests` in the demo's UI tests on an iPhone simulator, in light mode with a 9:41 status bar. It also writes the full-size copy that the documentation uses.
+- `mac-pairing.png` (optional): ScreenClip **Settings › iOS** on the Mac, confirming a pairing code. It is supplied by the owner. The **Pair once** block shows it when the file exists and is text-only otherwise.
+
+`/sdk` is the ScreenClipKit DocC site, at `/sdk/documentation/screenclipkit`. Vercel cannot run Swift, so `python3 scripts/build_sdk_docs.py` builds it on a Mac into `website/sdk/`, which is committed. `build.py` copies it to `dist/sdk/`. The script:
+
+- builds the iOS Debug symbol graph, because the real API exists only there;
+- converts `Sources/ScreenClipKit/ScreenClipKit.docc` for static hosting under `/sdk`, failing on any DocC warning;
+- moves DocC's one inline script into `/sdk/base-url.js`, because the Content-Security-Policy allows no inline scripts. `build.py` refuses an `sdk/` with inline scripts.
+
+Rerun the script after changing the SDK's public API, its doc comments, or the catalog, and commit `website/sdk/`. `vercel.json` redirects `/sdk` and `/sdk/documentation` to the landing page and caches DocC's hashed `/sdk/css` and `/sdk/js` files for a year. The DocC pages are English only and are not in the sitemap.
 
 ## Links
 
@@ -57,7 +74,7 @@ There is no monitored support inbox yet. With `githubUrl` set, the support page 
 
 | Locale | Path |
 | --- | --- |
-| English (default) | `/`, `/privacy`, `/support` |
+| English (default) | `/`, `/ios`, `/privacy`, `/support` |
 | Chinese Simplified | `/zh-hans/` |
 | Spanish | `/es/` |
 | Japanese | `/ja/` |
@@ -84,14 +101,14 @@ Adding a language is part of [Localization](localization.md#adding-a-language). 
 
 ## Screenshots
 
-`website/scripts/screenshots.mjs` builds the site, serves it, and saves a full-page capture of home, privacy, and support for every locale, in light and dark, at 1440×900 and 390×844. The window size is the viewport. Each file is the whole page, so the hero is the top of the image. Output is gitignored:
+`website/scripts/screenshots.mjs` builds the site, serves it, and saves a full-page capture of home, iOS, privacy, and support for every locale, in light and dark, at 1440×900 and 390×844. The window size is the viewport. Each file is the whole page, so the hero is the top of the image. Output is gitignored:
 
 ```text
 website/screenshots/<locale>/<theme>-<viewport>-<page>.png
 website/screenshots/index.html
 ```
 
-`theme` is `light` or `dark`. `viewport` is `desktop` or `mobile`. `page` is `home`, `privacy`, or `support`. The index is a contact sheet: each card shows the top of a capture and links to the full image.
+`theme` is `light` or `dark`. `viewport` is `desktop` or `mobile`. `page` is `home`, `ios`, `privacy`, or `support`. The index is a contact sheet: each card shows the top of a capture and links to the full image.
 
 From the repository root, after installing the screenshot tool once:
 
@@ -125,7 +142,7 @@ The build writes:
 - One `h1` per page, a canonical URL per locale, and `hreflang` alternates including `x-default` (English at `/`).
 - Open Graph and Twitter tags, including `og:locale`. The image is `website/src/assets/og.png` (1200×630), copied to `/assets/og.png`.
 - `SoftwareApplication` JSON-LD (`operatingSystem` includes macOS and `inLanguage`; offer and `downloadUrl` appear when configured) and `FAQPage` JSON-LD on each home page.
-- `robots.txt` and `sitemap.xml`. The sitemap lists `/`, `/privacy`, and `/support` in every locale, each with `xhtml:link` alternates. The sitemap is omitted when `siteUrl` is empty.
+- `robots.txt` and `sitemap.xml`. The sitemap lists `/`, `/ios`, `/privacy`, and `/support` in every locale, each with `xhtml:link` alternates. The sitemap is omitted when `siteUrl` is empty.
 - `manifest.webmanifest`, `favicon.ico`, an SVG icon, a 32×32 PNG, and an Apple touch icon. The icons in `dist/` are drawn by `build.py`.
 - `/privacy`, `/support`, and `404.html`. Localized privacy and support pages use the same paths under each locale prefix.
 

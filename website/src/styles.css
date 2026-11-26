@@ -474,6 +474,63 @@ kbd {
 .faq-list details[open] summary::after { content: "–"; }
 .faq-list details p { margin: 0 0 1.05rem; color: var(--muted); max-width: 65ch; }
 
+/* The iOS page */
+.phone-figure { margin: 0; display: flex; justify-content: center; }
+.phone-shot {
+  width: min(300px, 72%);
+  height: auto;
+  border: 9px solid var(--band);
+  border-radius: 44px;
+  background: var(--band);
+  box-shadow: 0 24px 48px rgba(36, 31, 26, 0.18);
+}
+.pair-example .queue-figure img { border-radius: 12px; }
+.setup-steps {
+  list-style: none;
+  counter-reset: setup;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.75rem;
+  padding: 0;
+  margin: 0;
+  max-width: 48rem;
+}
+.setup-steps li { counter-increment: setup; position: relative; min-width: 0; padding-left: 3rem; }
+.setup-steps li::before {
+  content: counter(setup);
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  background: var(--orange);
+  color: var(--on-orange);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.setup-steps h3 { margin-bottom: 0.35rem; }
+.setup-steps p { margin: 0 0 0.75rem; color: var(--muted); }
+.code {
+  margin: 0;
+  padding: 1rem 1.15rem;
+  overflow-x: auto;
+  background: var(--band);
+  color: var(--band-text);
+  border-radius: 12px;
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  line-height: 1.55;
+  tab-size: 2;
+}
+.code code { font-family: inherit; }
+.doc-cards .card { color: inherit; text-decoration: none; transition: border-color 0.15s; }
+.doc-cards .card:hover { border-color: var(--orange-ink); }
+.doc-cards .card h3 { margin-bottom: 0.4rem; }
+.docs-actions { margin-top: 1.5rem; }
+
 .prose { width: min(68ch, calc(100% - 3rem)); margin: 0 auto; padding-block: 2.75rem 4.25rem; }
 .prose h1 { font-size: clamp(2.3rem, 5vw, 3.4rem); }
 .prose h2 { font-size: 1.55rem; margin-top: 2.5rem; }
@@ -552,6 +609,8 @@ kbd {
   .header-cta { order: 1; margin-left: auto; }
   .site-header nav { order: 3; width: 100%; margin-left: 0; }
   .cards, .benefits-cards, .flow, .notification-example { grid-template-columns: 1fr; }
+  .setup-steps li { padding-left: 0; }
+  .setup-steps li::before { position: static; margin-bottom: 0.6rem; }
   .flow-agent, .flow-step:last-child { grid-column: auto; }
   .shortcut { align-items: flex-start; flex-direction: column; gap: 0.6rem; }
   .flow-step { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 0.9rem; padding-bottom: 1.2rem; }
