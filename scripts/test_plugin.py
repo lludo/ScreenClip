@@ -248,6 +248,23 @@ class PluginTests(unittest.TestCase):
         self.save()
         unchanged = json.loads(plugin.call("close_issue", {"issue_id": "#12", "summary": "Again.", "commit": "abcdef1"})["content"][0]["text"])
         self.assertEqual(unchanged["status"], "unchanged")
+    def test_close_issue_refuses_archived_reports_and_other_projects(self):
+        app = plugin.ROOT / "repos/App"; (app / ".git").mkdir(parents=True)
+        web = plugin.ROOT / "repos/Web"; (web / ".git").mkdir(parents=True)
+        app_id, web_id = str(uuid.uuid4()).upper(), str(uuid.uuid4()).upper()
+        issues = [{"id": str(uuid.uuid4()), "reportNumber": 1, "title": "A", "status": "failed", "projectID": app_id},
+                  {"id": str(uuid.uuid4()), "reportNumber": 2, "title": "W", "status": "failed", "projectID": web_id},
+                  {"id": str(uuid.uuid4()), "reportNumber": 3, "title": "Old", "status": "failed", "projectID": app_id, "archived": True}]
+        self.save_state([{"id": app_id, "name": "App", "path": str(app)}, {"id": web_id, "name": "Web", "path": str(web)}], issues)
+        previous = os.getcwd()
+        os.chdir(app)
+        self.addCleanup(os.chdir, previous)
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("close_issue", {"issue_id": "#2", "resolution": "canceled", "summary": "Not mine."})
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("close_issue", {"issue_id": "#3", "resolution": "canceled", "summary": "Archived."})
+        result = json.loads(plugin.call("close_issue", {"issue_id": "#1", "resolution": "canceled", "summary": "Duplicate."})["content"][0]["text"])
+        self.assertEqual(result["status"], "closing")
     def test_proposing_settings_writes_only_a_proposal_file(self):
         repo = plugin.ROOT / "repos/App"
         (repo / ".git").mkdir(parents=True)

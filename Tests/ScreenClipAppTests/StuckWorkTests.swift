@@ -509,24 +509,70 @@ import XCTest
 
   func testAgentCloseRequestClosesTheReport() async throws {
     let model = try makeModel()
+    let repo = try XCTUnwrap(model.snapshot.projects.first?.path)
+    // The project's origin has the landed commit; a second commit exists only locally.
+    let origin = root.appendingPathComponent("origin.git").path
+    _ = try git(["init", "-q", "--bare", origin], in: root.path)
+    _ = try git(["remote", "add", "origin", origin], in: repo)
+    _ = try git(["push", "-q", "origin", "main"], in: repo)
+    let landed = try git(["rev-parse", "HEAD"], in: repo)
+    _ = try git(
+      ["-c", "user.name=T", "-c", "user.email=t@example.invalid", "commit", "-q", "--allow-empty",
+       "-m", "local"], in: repo)
+    let local = try git(["rev-parse", "HEAD"], in: repo)
+
     let done = try submit(model, agent: .claude)
+    let unpushed = try submit(model, agent: .claude)
     let duplicate = try submit(model, agent: .claude)
-    try model.updateIssue(done) { $0.record("failed", status: .failed) }
+    for id in [done, unpushed] { try model.updateIssue(id) { $0.record("failed", status: .failed) } }
     try model.updateIssue(duplicate) { $0.record("waiting", status: .needsYou) }
     try AgentClosureInbox.write(
       AgentClosure(
-        issueID: done, resolution: .done, commit: "abc1234",
+        issueID: done, resolution: .done, commit: landed,
         summary: "Fixed in my own commit.", closer: "claude-code"), root: model.store.root)
+    try AgentClosureInbox.write(
+      AgentClosure(issueID: unpushed, resolution: .done, commit: local, summary: "Not pushed."),
+      root: model.store.root)
     try AgentClosureInbox.write(
       AgentClosure(issueID: duplicate, resolution: .canceled, summary: "Duplicate."),
       root: model.store.root)
     await model.worker.applyAgentClosures()
     XCTAssertEqual(model.issue(done)?.status, .merged)
-    // A commit is recorded as given; a pull request is checked with GitHub (PRRefreshTests).
-    XCTAssertEqual(model.issue(done)?.mergeCommit, "abc1234")
+    XCTAssertEqual(model.issue(done)?.mergeCommit, landed)
     XCTAssertTrue(model.issue(done)?.activities.last?.text.contains("Closed by claude-code") == true)
+    // A commit only in a local checkout has not landed.
+    XCTAssertEqual(model.issue(unpushed)?.status, .failed)
+    XCTAssertTrue(model.issue(unpushed)?.activities.last?.text.hasPrefix("Not closed:") == true)
     XCTAssertEqual(model.issue(duplicate)?.status, .canceled)
     XCTAssertTrue(AgentClosureInbox.load(root: model.store.root).isEmpty)
+  }
+
+  func testCloseRequestWaitsWhileTheReportIsPublishing() async throws {
+    let model = try makeModel()
+    let id = try submit(model, agent: .claude)
+    try model.updateIssue(id) { $0.record("publishing", status: .working) }
+    model.worker.publishing.insert(id)
+    try AgentClosureInbox.write(
+      AgentClosure(issueID: id, resolution: .canceled, summary: "Duplicate."), root: model.store.root)
+    await model.worker.applyAgentClosures()
+    XCTAssertEqual(model.issue(id)?.status, .working)
+    XCTAssertEqual(AgentClosureInbox.load(root: model.store.root).count, 1)
+    model.worker.publishing.remove(id)
+    await model.worker.applyAgentClosures()
+    XCTAssertEqual(model.issue(id)?.status, .canceled)
+  }
+
+  @discardableResult private func git(_ arguments: [String], in directory: String) throws -> String {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+    process.arguments = arguments
+    process.currentDirectoryURL = URL(fileURLWithPath: directory)
+    let pipe = Pipe()
+    process.standardOutput = pipe
+    try process.run()
+    process.waitUntilExit()
+    let output = String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+    return output.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
   func testDoneCloseRequestWithoutEvidenceIsIgnored() async throws {

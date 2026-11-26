@@ -334,19 +334,26 @@ import ScreenClipCore
   /// stay, since the agent's own PR may still need them.
   func applyAgentClosures() async {
     for closure in AgentClosureInbox.load(root: model.store.root) {
+      // A report being validated or published keeps the request for a later tick: closing it
+      // mid-publish would be undone when the publish stops and records its own outcome.
+      if finishing.contains(closure.issueID) || publishing.contains(closure.issueID) { continue }
       AgentClosureInbox.remove(closure.id, root: model.store.root)
       guard let issue = model.issue(closure.issueID), !issue.archived,
-        ![.merged, .verified, .canceled].contains(issue.status)
+        ![.merged, .verified, .canceled, .draft].contains(issue.status)
       else { continue }
       // "Done" with a pull request counts only once GitHub confirms that pull request is merged
       // into the project's base branch, in the project's own repository.
       var verified = false, verifiedCommit: String?
-      if closure.resolution == .done, let pullRequest = closure.pullRequest {
+      if closure.resolution == .done {
         let refusal: String?
         if let project = model.project(issue.projectID) {
-          (refusal, verifiedCommit) = await refusalForMergedPullRequest(pullRequest, project: project)
+          if let pullRequest = closure.pullRequest {
+            (refusal, verifiedCommit) = await refusalForMergedPullRequest(pullRequest, project: project)
+          } else {
+            refusal = await refusalForLandedCommit(closure.commit ?? "", project: project)
+          }
         } else {
-          refusal = "The report has no project, so the pull request cannot be checked."
+          refusal = "The report has no project, so the fix cannot be checked."
         }
         if let refusal {
           model.perform {
@@ -387,6 +394,21 @@ import ScreenClipCore
         }
       }
     }
+  }
+  /// Why `commit` does not count as a landed fix, or nil when it is on the project's base branch
+  /// on `origin`. A commit only in a local worktree has not landed.
+  func refusalForLandedCommit(_ commit: String, project: Project) async -> String? {
+    guard !commit.isEmpty else { return "A done close needs a pull request or a commit." }
+    _ = try? await CommandRunner.run(
+      GitWorkspace.git, ["fetch", "--quiet", "origin", project.baseBranch], cwd: project.path,
+      timeout: 60)
+    let result = try? await CommandRunner.run(
+      GitWorkspace.git,
+      ["merge-base", "--is-ancestor", commit, "origin/" + project.baseBranch], cwd: project.path)
+    guard result?.status == 0 else {
+      return "Commit \(commit) is not on \(project.baseBranch) on origin."
+    }
+    return nil
   }
   static func isTimeLimitError(_ text: String) -> Bool {
     text.contains("did not finish within") && text.contains("was stopped")
