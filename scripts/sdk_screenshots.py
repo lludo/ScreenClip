@@ -24,7 +24,7 @@ DESTINATIONS = (ROOT / "website/src/assets/ios", ROOT / "Sources/ScreenClipKit/S
 
 def main():
     device = simulator_id()
-    subprocess.run(["xcrun", "simctl", "boot", device], capture_output=True)
+    subprocess.run(["xcrun", "simctl", "bootstatus", device, "-b"], check=True)
     subprocess.run(["xcrun", "simctl", "ui", device, "appearance", "light"], check=True)
     subprocess.run(["xcrun", "simctl", "status_bar", device, "override", "--time", "9:41", "--batteryState", "charged",
                     "--batteryLevel", "100", "--wifiBars", "3", "--cellularMode", "active", "--cellularBars", "4",

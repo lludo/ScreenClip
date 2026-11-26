@@ -27,7 +27,8 @@ Each report carries:
 - the approved image, with annotations and redactions burned in
 - the note
 - app name, bundle ID, version, build, and an optional git SHA (Info.plist key `ScreenClipGitSHA`)
-- device model, OS version, locale, orientation, and screen size
+- device name and model, OS version, locale, orientation, and screen size
+- for a screenshot picked from Photos, that it was picked and its capture date when the file has one
 - the visible view-controller chain and the innermost screen title
 - optional <doc:Diagnostics> and your own attachments
 

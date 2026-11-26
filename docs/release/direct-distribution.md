@@ -40,7 +40,7 @@ The asset name is always `ScreenClip.dmg`, so this URL tracks the newest tag:
 
 `https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg`
 
-`downloadUrl` in `website/site.config.json` is set to that URL. Publish the v1.0.0 release with `ScreenClip.dmg` before that configuration reaches production, or the button leads to a 404. An empty value renders the coming-soon state without a download link.
+`downloadUrl` in `website/site.config.json` is set to that URL. Every release uploads `ScreenClip.dmg`, so the button always gets the newest one. An empty value renders the coming-soon state without a download link.
 
 Check a download with `shasum -a 256 -c SHA256SUMS`.
 
@@ -76,7 +76,7 @@ Never commit the private key.
 
 A personal tap is the easy install. Official [homebrew-cask](https://docs.brew.sh/Acceptable-Casks) wants a pinned version, a checksum, a livecheck, and enough users. A brand-new app will not pass that review. `version :latest` and `sha256 :no_check` are rejected there.
 
-`packaging/homebrew/Casks/screenclip.rb` is a formula for a tap named `lludo/homebrew-tap` (the GitHub repo `lludo/homebrew-tap`, file `Casks/screenclip.rb`). It is not installed by this repo. After the first release:
+`packaging/homebrew/Casks/screenclip.rb` is a formula for a tap named `lludo/homebrew-tap` (the GitHub repo `lludo/homebrew-tap`, file `Casks/screenclip.rb`). It is not installed by this repo, and the tap does not exist yet. Once it does:
 
 ```sh
 brew tap lludo/homebrew-tap

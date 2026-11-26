@@ -45,6 +45,8 @@ public struct ScreenClipAttachment: Equatable, Sendable {
 
   /// The largest attachment ScreenClip sends. Larger ones are left out of the report.
   public static let maximumBytes = 1024 * 1024
+  /// The most attachments ScreenClip sends with one report, across all providers. Later ones are left out.
+  public static let maximumCount = 16
 }
 
 /// What a provider knows about the report it is attaching to.
@@ -111,8 +113,12 @@ public typealias ScreenClipAttachmentProvider = @Sendable (ScreenClipReportConte
         let results = await withTaskGroup(of: (Int, [ScreenClipAttachment]?).self) { group in
           for (index, provider) in started.enumerated() {
             group.addTask {
+              let clock = ContinuousClock()
+              let started = clock.now
               let value = await KitRuntime.value(of: provider.task, timeout: provider.timeout.seconds)
-              if value == nil, !provider.task.isCancelled {
+              // A provider that threw has logged its own error, and one the tester cancelled says
+              // nothing; both return before the timeout has passed.
+              if value == nil, clock.now - started >= provider.timeout {
                 kitLog.error("Attachment provider \(provider.id, privacy: .public) returned nothing in time")
               }
               return (index, value)
@@ -126,6 +132,12 @@ public typealias ScreenClipAttachmentProvider = @Sendable (ScreenClipReportConte
         var files: [DiagnosticFile] = []
         for (provider, attachments) in zip(started, results) {
           for attachment in attachments ?? [] {
+            guard files.count < ScreenClipAttachment.maximumCount else {
+              kitLog.error(
+                "Left out \(attachment.name, privacy: .public) from \(provider.id, privacy: .public): a report takes up to \(ScreenClipAttachment.maximumCount) attachments"
+              )
+              continue
+            }
             guard attachment.data.count <= ScreenClipAttachment.maximumBytes else {
               kitLog.error(
                 "Left out \(attachment.name, privacy: .public) from \(provider.id, privacy: .public): \(attachment.data.count) bytes is over the 1 MB limit"
@@ -178,9 +190,9 @@ public typealias ScreenClipAttachmentProvider = @Sendable (ScreenClipReportConte
           stem.append("-")
         }
       }
+      stem = String(stem.prefix(32))
       while stem.last == "-" { stem.removeLast() }
       if stem.isEmpty { stem = "attachment" }
-      stem = String(stem.prefix(32))
       let ext = attachment.format.rawValue
       var candidate = "\(stem).\(ext)"
       var number = 2

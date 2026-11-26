@@ -17,7 +17,7 @@ ScreenClipKit.setAttachmentProvider("cart") { context in
 
 The agent reads each file's name and summary in its prompt. It opens a file only when the screenshot and note aren't enough, so write the summary for it: say what is inside.
 
-Attachment providers were added after ScreenClipKit 1.1.0. Use a newer package release or a revision that includes the attachment API.
+Attachment providers need ScreenClipKit 1.2.0 or later.
 
 ### When the provider runs
 
@@ -60,6 +60,7 @@ Each id holds one provider. Registering the same id again replaces it, so callin
 
 - `name` becomes a file name the Mac accepts. It is lowercased, anything other than letters, digits, and `-` becomes `-`, and it is cut to 32 characters, plus `.txt` or `.json`. A name already in use, such as `logs.txt` or another provider's, gets `-2`, `-3`, and so on.
 - Each attachment can be up to 1 MB (``ScreenClipAttachment/maximumBytes``). Larger ones are left out.
+- A report takes up to 16 attachments (``ScreenClipAttachment/maximumCount``). Later ones are left out.
 - All files in a report share a 4 MB limit. When a report is over it, the largest files are dropped first.
 
 ### What not to attach

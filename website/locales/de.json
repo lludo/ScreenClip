@@ -2,7 +2,7 @@
   "languageName": "Deutsch",
   "meta": {
     "homeTitle": "ScreenClip — Screenshot-Feedback für Coding-Agenten",
-    "homeDescription": "Markiere das Problem in einer Mac-App oder auf einer Website und schick den Screenshot an deinen Coding-Agenten. Während er an der Lösung arbeitet, kannst du weiter testen.",
+    "homeDescription": "Markiere das Problem in einer Mac-App, einer iPhone-App oder auf einer Website und schick den Screenshot an deinen Coding-Agenten. Während er an der Lösung arbeitet, kannst du weiter testen.",
     "privacyTitle": "Datenschutz — ScreenClip",
     "privacyDescription": "Was ScreenClip auf dem Mac speichert, was an Codex, Claude Code, Grok Bot oder GitHub gehen kann, und wie Schwärzen funktioniert.",
     "supportTitle": "Support — ScreenClip",
@@ -42,7 +42,7 @@
   },
   "hero": {
     "title": "Fehler per Screenshot melden",
-    "lead": "Markiere das Problem in einer Mac-App oder auf einer Website und schick den Screenshot an deinen Coding-Agenten. Während er an der Lösung arbeitet, kannst du weiter testen.",
+    "lead": "Markiere das Problem in einer Mac-App, einer iPhone-App oder auf einer Website und schick den Screenshot an deinen Coding-Agenten. Während er an der Lösung arbeitet, kannst du weiter testen.",
     "shortcut": "Bereich auf dem Mac aufnehmen",
     "keysLabel": "Befehl Umschalt 2"
   },
@@ -69,13 +69,13 @@
     "localBody": "Beide laufen auf deinem Mac, für jeden Bericht in einem eigenen Git-Worktree. Fragen beantwortest du in ScreenClip. ScreenClip führt die Projektprüfungen aus und öffnet den Pull Request."
   },
   "download": {
-    "title": "ScreenClip 1.1.0 für deinen Mac.",
+    "title": "ScreenClip 1.2.0 für deinen Mac.",
     "price": "Für die nichtkommerzielle Nutzung kostenlos.",
     "source": "Eine kommerzielle Lizenz ist auf Anfrage erhältlich. {link:license}.",
     "sourceMissing": "Der Quellcode ist noch nicht öffentlich.",
     "github": "Auf GitHub ansehen",
     "donate": "Projekt unterstützen",
-    "noteReady": "ScreenClip 1.1.0 · Apple Silicon · macOS 14 oder neuer",
+    "noteReady": "ScreenClip 1.2.0 · Apple Silicon · macOS 14 oder neuer",
     "noteSoon": "Der Mac-Download kommt bald.",
     "macSoon": "Der Mac-Download kommt bald.",
     "needsTitle": "Was du brauchst",
@@ -177,7 +177,7 @@
   },
   "support": {
     "title": "Support",
-    "statusReady": "ScreenClip 1.1.0 ist für nicht-kommerzielle Nutzung kostenlos. {link:download} öffnet das neueste Disk-Image auf GitHub Releases.",
+    "statusReady": "ScreenClip 1.2.0 ist für nicht-kommerzielle Nutzung kostenlos. {link:download} öffnet das neueste Disk-Image auf GitHub Releases.",
     "statusSoon": "ScreenClip kommt bald. Ein Download ist noch nicht verfügbar.",
     "issues": "Melde einen Fehler oder stelle eine Frage über {link:issues}. Nenne deine macOS-Version, den Agenten und was passiert ist. Schwärze vertrauliche Stellen in Screenshots vor dem Teilen.",
     "issuesMissing": "Öffentlicher Support ist noch nicht verfügbar.",
@@ -224,7 +224,7 @@
     "shotAlt": "Das ScreenClipKit-Berichtsfenster über einer Demo-App. Ein roter Rahmen und ein Pfeil markieren einen abgeschnittenen Add to order-Button, und die Notiz sagt, dass der Preis abgeschnitten ist.",
     "howTitle": "Gerät koppeln und Bericht senden",
     "step1Title": "Schütteln und markieren",
-    "step1Body": "Schüttle das Gerät oder mach einen Screenshot und tippe auf Report. Zeichne Pfeile, Rahmen und Text, schwärze Privates und füge eine Notiz hinzu.",
+    "step1Body": "Schüttle das Gerät oder mach einen Screenshot und tippe auf Report. Zeichne Pfeile, Rahmen und Text, schwärze Privates und füge eine Notiz hinzu. Du kannst auch einen früheren Screenshot auswählen.",
     "step2Body": "Berichte gehen über dein lokales Netzwerk, verschlüsselt für den gekoppelten Mac. Ist er nicht erreichbar, wartet der Bericht auf deinem iPhone und geht später von selbst raus.",
     "step4Title": "Auf deinem iPhone nachtesten",
     "step4Body": "Dein iPhone zeigt den Live-Status jedes Berichts. Ist der Fix gemergt, tippe auf Looks fixed, oder auf Still broken, um deine nächste Aufnahme an denselben Bericht zurückzuschicken.",
@@ -233,7 +233,7 @@
     "pairAlt": "ScreenClip-Einstellungen › iOS auf dem Mac mit der Bitte, den auf deinem iPhone angezeigten 6-stelligen Code zu bestätigen.",
     "pairOpen": "Screenshot der Kopplung in voller Größe öffnen",
     "setupTitle": "ScreenClipKit einrichten",
-    "setupIntro": "Du brauchst ScreenClip 1.1 oder neuer auf deinem Mac und eine App für iOS 17 oder neuer, gebaut mit Xcode 16 oder neuer.",
+    "setupIntro": "Du brauchst ScreenClip 1.2 oder neuer auf deinem Mac und eine App für iOS 17 oder neuer, gebaut mit Xcode 16 oder neuer.",
     "setup1Title": "Paket hinzufügen",
     "setup1Body": "Wähle in Xcode File › Add Package Dependencies, gib diese URL ein und verknüpfe ScreenClipKit mit deinem App-Target.",
     "setup2Title": "Im Debug-Build starten",

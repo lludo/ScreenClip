@@ -13,7 +13,7 @@ Until the Apple secrets are set in the repository, every release is built and pu
 
 ## 2. Review everything since the last release
 
-- [ ] Review `git diff vPREVIOUS..main` in full: app UI, worker and core, release tooling, docs and website. Look for regressions, state that persists (new saved fields must decode from old payloads), localization (all 10 languages), and two places that compute the same thing differently.
+- [ ] Review `git diff vPREVIOUS..main` in full: app UI, worker and core, ScreenClipKit and the wire format, the MCP plugin, release tooling, docs and website. Look for regressions, state that persists (new saved fields must decode from old payloads), localization (all 10 languages), two places that compute the same thing differently, and the SDK in both directions: the new SDK with the previous Mac release, the previous SDK with the new Mac, and a Release build that still contains none of it.
 - [ ] Fix every finding in the release branch (`release-X.Y.Z`), with tests for behavior changes.
 
 ## 3. Version and build number
@@ -23,21 +23,26 @@ Until the Apple secrets are set in the repository, every release is built and pu
 
 ## 4. Release notes
 
-- [ ] Write `docs/release/vX.Y.Z.md` in the shape of the previous notes: a `# ScreenClip X.Y.Z` title, a one-line lead, `## New`, `## Fixes`, then `## Install`. Everything between the title and `## Install` becomes the update notes Sparkle shows; the whole file becomes the GitHub Release notes. `release-dmg.sh` and `make_appcast.py` refuse to run without it.
-- [ ] Use the app's UI names exactly as in `Sources/ScreenClip/Localizable.xcstrings`.
+- [ ] Write `docs/release/vX.Y.Z.md` in the shape of the previous notes (when `docs/release/next.md` holds a draft, rename it with `git mv` and drop its row from `docs/release/README.md`): a `# ScreenClip X.Y.Z` title, a one-line lead, `## New`, `## Fixes`, then `## Install`. Everything between the title and `## Install` becomes the update notes Sparkle shows; the whole file becomes the GitHub Release notes. `release-dmg.sh` and `make_appcast.py` refuse to run without it.
+- [ ] Use the app's UI names exactly as in `Sources/ScreenClip/Localizable.xcstrings`, and the SDK's as in `Sources/ScreenClipKit`.
+- [ ] In `## Install`, name the ScreenClipKit version to use and the ScreenClip version it needs on the Mac.
 
 ## 5. Docs
 
 - [ ] `README.md`: "The current release is X.Y.Z" and its notes link.
 - [ ] `docs/README.md` and `docs/release/README.md`: a new row above the previous release.
 - [ ] `docs/getting-started.md`: add the release to the "later changes" list.
-- [ ] `docs/user-guide.md`, `docs/product-spec.md` and `docs/agents/` describe every new or changed behavior.
+- [ ] `docs/user-guide.md`, `docs/product-spec.md`, `docs/agents/`, `docs/ios-sdk.md`, `plugins/screenclip/README.md` and its skills, and `SECURITY.md` describe every new or changed behavior.
+- [ ] Version statements in `docs/ios-sdk.md` and the DocC articles in `Sources/ScreenClipKit/ScreenClipKit.docc` (which SDK version added an API, which ScreenClip the Mac needs).
+- [ ] `version` in `plugins/screenclip/plugin.json` and `plugins/screenclip/.claude-plugin/plugin.json` matches `serverInfo` in `plugins/screenclip/server.py` when the server's tools changed.
 
 ## 6. Website
 
 The site deploys from `main`, so these changes go live when the release PR merges. Publish the GitHub Release (step 11) right after merging.
 
-- [ ] Version in `download.title`, `download.noteReady` and `support.statusReady`, in all 10 `website/locales/*.json` files.
+- [ ] Version in `download.title`, `download.noteReady` and `support.statusReady`, in all 10 `website/locales/*.json` files. `iosPage.setupIntro` names the ScreenClip version the SDK needs on the Mac.
+- [ ] If the report sheet on iOS changed: `python3 scripts/sdk_screenshots.py` redraws `composer.png` for the site and the SDK documentation.
+- [ ] If the SDK's public API, doc comments or `ScreenClipKit.docc` changed, or the screenshot was redrawn: `python3 scripts/build_sdk_docs.py`, and commit `website/sdk/`.
 - [ ] `app["softwareVersion"]` in `website/build.py`.
 - [ ] If the app or site now sends anything new anywhere, update the privacy policy (`privacy.*` in all 10 locales) and its `privacy.updated` date.
 - [ ] `python3 website/build.py`. When it prints "vercel.json security headers do not match", copy the expected `Content-Security-Policy` into `website/vercel.json` and build again.
@@ -45,7 +50,8 @@ The site deploys from `main`, so these changes go live when the release PR merge
 
 ## 7. Checks and release PR
 
-- [ ] `bash scripts/test.sh` (localizations plus all Swift tests), `python3 scripts/test_plugin.py`, `python3 scripts/check_localizations.py`.
+- [ ] `bash scripts/test.sh` (localizations plus all Swift tests), `python3 scripts/test_plugin.py`, `python3 scripts/test_review_queue.py`, `python3 scripts/test_external_assistant.py`, `python3 scripts/check_localizations.py`.
+- [ ] `python3 scripts/test_ios_sdk.py` (the SDK's unit and UI tests on a simulator, and the Release build without the SDK).
 - [ ] Commit, push `release-X.Y.Z`, open the PR, wait for CI to pass, and squash-merge it. Squash is the only merge method the repository allows.
 
 ## 8. Build from the merged main
@@ -74,7 +80,7 @@ It checks the release notes, version and build number against the published appc
 git tag vX.Y.Z && git push origin vX.Y.Z
 ```
 
-Tag the merge commit the DMG was built from.
+Tag the merge commit the DMG was built from. The tag is also the ScreenClipKit version Swift Package Manager resolves, so never move a published tag.
 
 ## 11. Publish
 
@@ -91,7 +97,8 @@ In an empty folder:
 - [ ] Download `https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg` and `…/SHA256SUMS`; `shasum -a 256 -c SHA256SUMS` passes.
 - [ ] `spctl -a -t open --context context:primary-signature -v ScreenClip.dmg` says `source=Notarized Developer ID`, and `xcrun stapler validate ScreenClip.dmg` passes.
 - [ ] `curl -sL https://github.com/lludo/ScreenClip/releases/latest/download/appcast.xml` shows the new `sparkle:version` and `sparkle:shortVersionString`, and its enclosure URL downloads (`curl -sIL <url>` ends in 200).
-- [ ] [screenclipai.com](https://screenclipai.com) shows the new version once Vercel has deployed `main`.
+- [ ] [screenclipai.com](https://screenclipai.com) shows the new version once Vercel has deployed `main`, and [the SDK documentation](https://screenclipai.com/sdk/documentation/screenclipkit) shows any new API.
+- [ ] `git ls-remote --tags https://github.com/lludo/ScreenClip vX.Y.Z` lists the tag, so the Swift package resolves `from: "X.Y.Z"`.
 - [ ] On a Mac running the previous release, **Check for Updates…** offers the new version, installs it and relaunches. The bottom of Settings shows the new version and build.
 - [ ] The tag's GitHub Actions run is green.
 

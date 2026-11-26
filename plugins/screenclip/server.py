@@ -204,7 +204,8 @@ def propose(state, arguments):
     branch = text_argument(arguments, "base_branch", 255)
     if branch is not None:
         if (not branch or branch.startswith("-") or branch == "HEAD" or
-                subprocess.run(["/usr/bin/git", "check-ref-format", "refs/heads/" + branch]).returncode != 0):
+                subprocess.run(["/usr/bin/git", "check-ref-format", "refs/heads/" + branch], stdin=subprocess.DEVNULL,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode != 0):
             raise InvalidParams("base_branch must be a Git branch name such as main")
         changes["baseBranch"] = branch
     if not changes:

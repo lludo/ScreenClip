@@ -2,7 +2,7 @@
   "languageName": "日本語",
   "meta": {
     "homeTitle": "ScreenClip — AIコーディングエージェント向けのスクリーンショットフィードバック",
-    "homeDescription": "Mac アプリや Web サイトの気になる箇所に印を付け、コーディングエージェントに送信。修正を待つ間もテストを続けられます。",
+    "homeDescription": "Mac アプリ、iPhone アプリ、Web サイトの気になる箇所に印を付け、コーディングエージェントに送信。修正を待つ間もテストを続けられます。",
     "privacyTitle": "プライバシーポリシー — ScreenClip",
     "privacyDescription": "ScreenClipがMacに保存するもの、Codex、Claude Code、Grok Bot、GitHubに送られるもの、そして墨消しの仕組み。",
     "supportTitle": "サポート — ScreenClip",
@@ -42,7 +42,7 @@
   },
   "hero": {
     "title": "スクリーンショットで不具合を報告",
-    "lead": "Mac アプリや Web サイトの気になる箇所に印を付け、コーディングエージェントに送信。修正を待つ間もテストを続けられます。",
+    "lead": "Mac アプリ、iPhone アプリ、Web サイトの気になる箇所に印を付け、コーディングエージェントに送信。修正を待つ間もテストを続けられます。",
     "shortcut": "Mac の画面の一部を撮影",
     "keysLabel": "Command Shift 2"
   },
@@ -69,13 +69,13 @@
     "localBody": "どちらも Mac 上で動作し、レポートごとに独立した Git ワークツリーを使います。質問には ScreenClip で回答します。プロジェクトの検証とプルリクエストの作成も ScreenClip が行います。"
   },
   "download": {
-    "title": "Mac向けScreenClip 1.1.0。",
+    "title": "Mac向けScreenClip 1.2.0。",
     "price": "非商用利用は無料です。",
     "source": "商用ライセンスはお問い合わせください。{link:license}。",
     "sourceMissing": "ソースコードはまだ公開されていません。",
     "github": "GitHubで見る",
     "donate": "プロジェクトを支援",
-    "noteReady": "ScreenClip 1.1.0 · Apple Silicon · macOS 14以降",
+    "noteReady": "ScreenClip 1.2.0 · Apple Silicon · macOS 14以降",
     "noteSoon": "Mac版のダウンロードは近日公開予定です。",
     "macSoon": "Mac版のダウンロードは近日公開です。",
     "needsTitle": "必要なもの",
@@ -177,7 +177,7 @@
   },
   "support": {
     "title": "サポート",
-    "statusReady": "ScreenClip 1.1.0は非商用の利用は無料です。{link:download}からGitHub Releases上の最新のディスクイメージを開けます。",
+    "statusReady": "ScreenClip 1.2.0は非商用の利用は無料です。{link:download}からGitHub Releases上の最新のディスクイメージを開けます。",
     "statusSoon": "ScreenClipは近日公開予定です。現在ダウンロードは提供されていません。",
     "issues": "不具合の報告や質問は {link:issues} へ。macOS のバージョン、使用したエージェント、起きたことをお知らせください。スクリーンショットを共有する前に個人情報を塗りつぶしてください。",
     "issuesMissing": "一般向けのサポートはまだ提供されていません。",
@@ -224,7 +224,7 @@
     "shotAlt": "デモアプリの上に表示された ScreenClipKit のレポートシート。赤い枠と矢印が文字の切れた Add to order ボタンを示し、メモには価格が切れていると書かれています。",
     "howTitle": "端末をペアリングして報告する",
     "step1Title": "振って書き込む",
-    "step1Body": "デバイスを振るか、スクリーンショットを撮って Report をタップ。矢印、枠、テキストを描き、見せたくない部分を隠して、メモを添えます。",
+    "step1Body": "デバイスを振るか、スクリーンショットを撮って Report をタップ。矢印、枠、テキストを描き、見せたくない部分を隠して、メモを添えます。以前撮ったスクリーンショットも選べます。",
     "step2Body": "レポートはローカルネットワーク経由で、ペアリングした Mac 向けに暗号化されて届きます。Mac に届かないときは iPhone で待機し、あとで自動的に送信されます。",
     "step4Title": "iPhone で再テスト",
     "step4Body": "iPhone で各レポートのステータスをリアルタイムに確認できます。修正がマージされたら Looks fixed を、直っていなければ Still broken をタップして、次のキャプチャを同じレポートに送り返します。",
@@ -233,7 +233,7 @@
     "pairAlt": "Mac の ScreenClip 設定 › iOS。iPhone に表示された 6 桁のコードを確認するよう求めています。",
     "pairOpen": "ペアリングのスクリーンショットを実寸で開く",
     "setupTitle": "ScreenClipKit の設定",
-    "setupIntro": "Mac に ScreenClip 1.1 以降、そして Xcode 16 以降でビルドする iOS 17 以降のアプリが必要です。",
+    "setupIntro": "Mac に ScreenClip 1.2 以降、そして Xcode 16 以降でビルドする iOS 17 以降のアプリが必要です。",
     "setup1Title": "パッケージを追加",
     "setup1Body": "Xcode で File › Add Package Dependencies を選び、この URL を入力して、ScreenClipKit をアプリのターゲットにリンクします。",
     "setup2Title": "Debug で起動",

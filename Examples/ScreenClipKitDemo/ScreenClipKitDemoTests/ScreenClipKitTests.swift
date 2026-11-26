@@ -431,6 +431,21 @@ import UIKit
     XCTAssertEqual(providers.registrations.map(\.id), ["slow", "failing", "big"])
   }
 
+  func testAttachmentsStopAtTheCountLimit() async {
+    let providers = AttachmentProviders()
+    providers.set("many") { _ in
+      (0..<ScreenClipAttachment.maximumCount + 5).map { .text("", name: "record-\($0)", summary: "") }
+    }
+    let files = await providers.start(ScreenClipReportContext()).files(avoiding: [])
+    XCTAssertEqual(files.count, ScreenClipAttachment.maximumCount)
+    XCTAssertEqual(files.last?.name, "record-\(ScreenClipAttachment.maximumCount - 1).txt")
+  }
+
+  func testLongAttachmentNamesDoNotEndInADash() {
+    let attachment = ScreenClipAttachment.text("", name: String(repeating: "a", count: 31) + " b", summary: "")
+    XCTAssertEqual(AttachmentProviders.fileName(for: attachment, avoiding: []), String(repeating: "a", count: 31) + ".txt")
+  }
+
   func testCancelledAttachmentProvidersAreCancelled() async {
     let providers = AttachmentProviders()
     let cancelled = expectation(description: "Provider sees cancellation")

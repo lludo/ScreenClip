@@ -24,9 +24,9 @@ Example: while moving through a checkout flow, the tester notices a clipped butt
 
 | Decision | Agreed behavior |
 | --- | --- |
-| Platform | macOS only |
+| Platform | macOS, plus ScreenClipKit for reporting from iOS apps in Debug builds |
 | Primary value | Capture feedback as it is noticed, then continue without losing flow; support many small observations per session |
-| Apps being tested | Websites and native macOS apps |
+| Apps being tested | Websites, native macOS apps, and your own iOS apps |
 | Entry point | Menu bar utility plus a global keyboard shortcut |
 | Capture | Select a screen region or start a text note from the menu bar |
 | Composer | Write an observation and choose a project and agent. Screenshot reports also offer image annotation tools. |
@@ -86,7 +86,7 @@ If evidence is missing or conflicting, save the submission as **Needs project** 
 
 ## Menu bar and issue view
 
-Menu bar label: icon plus the count of submitted, unresolved issues. A separate attention indicator signals questions, failures, or routing problems. The popover provides explicit counts by state; color alone must not carry meaning.
+Menu bar label: icon plus the count of submitted, unresolved issues. A separate attention indicator signals questions, failures, routing problems, or suggested project settings. The popover provides explicit counts by state; color alone must not carry meaning.
 
 | Surface | Contents and actions |
 | --- | --- |

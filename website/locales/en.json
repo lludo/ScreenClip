@@ -2,7 +2,7 @@
   "languageName": "English",
   "meta": {
     "homeTitle": "ScreenClip — Screenshot feedback for AI coding agents",
-    "homeDescription": "Mark what’s wrong in a Mac app or website and send it to your coding agent. Keep testing while it works on a fix.",
+    "homeDescription": "Mark what’s wrong in a Mac app, an iPhone app, or a website and send it to your coding agent. Keep testing while it works on a fix.",
     "privacyTitle": "Privacy policy — ScreenClip",
     "privacyDescription": "What ScreenClip stores on your Mac, what can be sent to Codex, Claude Code, Grok Bot, or GitHub, and how redaction works.",
     "supportTitle": "Support — ScreenClip",
@@ -42,7 +42,7 @@
   },
   "hero": {
     "title": "Report bugs with a screenshot",
-    "lead": "Mark what’s wrong in a Mac app or website and send it to your coding agent. Keep testing while it works on a fix.",
+    "lead": "Mark what’s wrong in a Mac app, an iPhone app, or a website and send it to your coding agent. Keep testing while it works on a fix.",
     "shortcut": "Capture a region on your Mac",
     "keysLabel": "Command Shift 2"
   },
@@ -69,13 +69,13 @@
     "localBody": "Both run on your Mac in a separate Git worktree for each report. Answer questions in ScreenClip. ScreenClip runs your project checks and opens the pull request."
   },
   "download": {
-    "title": "ScreenClip 1.1.0 for Mac",
+    "title": "ScreenClip 1.2.0 for Mac",
     "price": "Free for noncommercial use.",
     "source": "Commercial licenses are available on request. {link:license}.",
     "sourceMissing": "The source is not public yet.",
     "github": "View on GitHub",
     "donate": "Support the project",
-    "noteReady": "ScreenClip 1.1.0 · Apple Silicon · macOS 14 or later",
+    "noteReady": "ScreenClip 1.2.0 · Apple Silicon · macOS 14 or later",
     "noteSoon": "Mac download coming soon.",
     "macSoon": "Mac download coming soon.",
     "needsTitle": "What you need",
@@ -177,7 +177,7 @@
   },
   "support": {
     "title": "Support",
-    "statusReady": "{link:download} gets the latest disk image from GitHub Releases. ScreenClip 1.1.0 is free for noncommercial use.",
+    "statusReady": "{link:download} gets the latest disk image from GitHub Releases. ScreenClip 1.2.0 is free for noncommercial use.",
     "statusSoon": "ScreenClip is coming soon. There is no download available yet.",
     "issues": "Report a bug or ask a question in {link:issues}. Include your macOS version, the agent you used, and what happened. Redact private details before sharing screenshots.",
     "issuesMissing": "Public support is not available yet.",
@@ -224,7 +224,7 @@
     "shotAlt": "The ScreenClipKit report sheet over a demo app. A red box and an arrow mark a clipped Add to order button, and the note says the price is cut off.",
     "howTitle": "Pair your device and send a report",
     "step1Title": "Shake and mark up",
-    "step1Body": "Shake the device, or take a screenshot and tap Report. Mark the issue, redact private details, and tap Send.",
+    "step1Body": "Shake the device, or take a screenshot and tap Report. Mark the issue, redact private details, and tap Send. You can also choose a screenshot you took earlier.",
     "step2Body": "Reports are encrypted for your paired Mac. If it’s offline, they wait on your iPhone or iPad and send when it reconnects.",
     "step4Title": "Retest on your iPhone",
     "step4Body": "When a fix merges, try it on your iPhone or iPad. Tap “Looks fixed” to close the report or “Still broken” to add another capture.",
@@ -233,7 +233,7 @@
     "pairAlt": "ScreenClip Settings › iOS on the Mac, asking to confirm the 6-digit code shown on the iPhone.",
     "pairOpen": "Open the full-size pairing screenshot",
     "setupTitle": "Set up ScreenClipKit",
-    "setupIntro": "You need ScreenClip 1.1 or later on your Mac, and an app for iOS 17 or later built with Xcode 16 or newer.",
+    "setupIntro": "You need ScreenClip 1.2 or later on your Mac, and an app for iOS 17 or later built with Xcode 16 or newer.",
     "setup1Title": "Add the package",
     "setup1Body": "In Xcode, choose File › Add Package Dependencies, enter this URL, and link ScreenClipKit to your app target.",
     "setup2Title": "Start it in Debug",

@@ -314,6 +314,33 @@ public enum GitWorkspace {
     let unresolved = try await unresolvedConflicts(path: path)
     if !unresolved.isEmpty { throw BaseConflict(base: project.baseBranch, files: unresolved, kept: true) }
     let base = try await fetchedBase(project: project, path: path)
+    let stash = await stashTop(path: path)
+    do {
+      try await integrate(base, project: project, path: path)
+    } catch {
+      await dropAutostash(since: stash, path: path)
+      throw error
+    }
+    await dropAutostash(since: stash, path: path)
+  }
+
+  private static func stashTop(path: String) async -> String? {
+    let top = try? await CommandRunner.run(git, ["rev-parse", "--verify", "--quiet", "refs/stash"], cwd: path)
+    return top?.status == 0 ? top?.output.trimmingCharacters(in: .whitespacesAndNewlines) : nil
+  }
+
+  /// When re-applying an autostash conflicts, Git keeps it in the stash list, which every
+  /// worktree of the repository shares, so it would show up in the tester's own checkout.
+  /// The conflicted files and the index already hold both sides, so the entry is dropped.
+  private static func dropAutostash(since before: String?, path: String) async {
+    guard let top = await stashTop(path: path), top != before,
+      let subject = try? await CommandRunner.checked(git, ["log", "-g", "-1", "--format=%gs", "refs/stash"], cwd: path),
+      subject == "autostash"
+    else { return }
+    _ = try? await CommandRunner.run(git, ["stash", "drop", "--quiet", "stash@{0}"], cwd: path)
+  }
+
+  private static func integrate(_ base: String, project: Project, path: String) async throws {
     let resolved = try await unmergedFiles(path: path)
     if !resolved.isEmpty {
       // The agent resolves conflicts in the files. Reflect its choices in the index as well.

@@ -16,4 +16,4 @@ Agents don't receive the files up front. The prompt lists each file with a one-l
 | `console.txt` | The last 300 lines printed to stdout and stderr. Only with ``ScreenClipOptions/captureConsoleOutput``. |
 | Your own files | Whatever your attachment providers return. See <doc:AttachingYourOwnFiles>. |
 
-On the Mac, only plain `.txt` and `.json` names are accepted, up to 4 MB per report. Token-like strings in text files are hidden. Each report's files are kept in their own folder and deleted with the report.
+On the Mac, only plain `.txt` and `.json` names are accepted, up to 24 files and 4 MB per report. Token-like strings in text files are hidden. Each report's files are kept in their own folder and deleted with the report.
