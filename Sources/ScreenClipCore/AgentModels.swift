@@ -42,8 +42,8 @@ public enum AgentModelCatalog {
   public static func claudeFallbacks(after model: String?) -> [String] {
     let chain = ["fable", "opus", "sonnet"]
     let current = model?.trimmingCharacters(in: .whitespaces).lowercased() ?? ""
-    guard let index = chain.firstIndex(where: { current.hasPrefix($0) || current.contains($0) })
-    else { return current.isEmpty ? ["opus", "sonnet"] : chain }
+    guard let index = chain.firstIndex(where: { current.contains($0) })
+    else { return current.isEmpty ? ["opus", "sonnet"] : [] }
     return Array(chain[(index + 1)...])
   }
 

@@ -164,7 +164,7 @@ import ScreenClipCore
       model.snapshot.issues.filter {
         $0.status == .queued && !$0.archived && model.project($0.projectID) != nil
       }.map(\.resolvedAgent)
-    ).filter { isHeld($0) }
+    ).filter { isHeld($0) && usageLimitedUntil[$0] == nil }
     guard !held.isEmpty else { return }
     if now.timeIntervalSince(model.lastAgentDetection) >= heldRecheckInterval {
       await model.refreshAgents(automatic: true)
@@ -234,14 +234,15 @@ import ScreenClipCore
   func handOver(_ id: UUID, from agent: AgentKind, to next: AgentKind, detail: String) {
     usageLimitedUntil[agent] = Date().addingTimeInterval(usageLimitWait)
     guard let issue = model.issue(id) else { return }
-    let progress = issue.activities.filter { $0.kind == "update" }.suffix(12).map(\.text)
+    let progress = issue.activities.filter { $0.kind == "update" && !Self.isOwnActivity($0.text) }
+      .suffix(12).map(\.text)
     let note = """
       \(agent.title) started this report and stopped because it is out of quota (\(String(detail.prefix(200)))). You are taking over in the same worktree and branch.
       Its changes so far are uncommitted in the worktree: run `git status` and `git diff` first, keep what is right, and finish the fix rather than starting over. Then validate and retest as usual.
       \(issue.resultSummary.map { "Its last summary:\n" + $0 } ?? "")
       Its last progress messages, oldest first:
       \(progress.map { "- " + $0 }.joined(separator: "\n"))
-      """
+      """ + (issue.handover.map { "\n\nAn earlier handover on this report:\n" + String($0.prefix(3000)) } ?? "")
     model.perform {
       try model.updateIssue(id) {
         $0.agent = next
@@ -259,6 +260,17 @@ import ScreenClipCore
           status: .queued)
       }
     }
+  }
+  /// ScreenClip's own timeline lines, left out of a handover so it carries the agent's progress.
+  static func isOwnActivity(_ text: String) -> Bool {
+    let prefixes = [
+      "Capture submitted", "Preparing isolated workspace", "Investigating capture revision",
+      "Queued to continue", "Running project validation", "The turn ran past",
+      "Previous Claude Code session was not found", "No Claude Code process survived",
+      "New evidence arrived", "Session reconciled",
+    ]
+    return prefixes.contains { text.hasPrefix($0) } || text.contains(" is at its usage limit")
+      || text.contains(" is out of quota; handing this report to ")
   }
   /// A turn hit `turnTimeLimit`. The work so far is in the worktree and the session, so carry
   /// on once in the same session; a second stop on the same revision waits for the tester.
@@ -290,13 +302,31 @@ import ScreenClipCore
       && !issue.dispatchUncertain && !isActive(issue.id)
       && issue.questions.allSatisfy({ $0.reply != nil })
     {
-      guard let error = issue.lastError, Self.isTransientFailure(error) else { continue }
+      guard let error = issue.lastError, Self.isTransientFailure(error),
+        issue.autoRetriedRevision != issue.revision
+      else { continue }
+      // Once per revision, so a report that keeps failing the same way waits for the tester.
+      model.perform { try model.updateIssue(issue.id) { $0.autoRetriedRevision = $0.revision } }
       model.retry(issue.id)
     }
   }
+  /// Only errors ScreenClip or the agent CLI wrote as the whole failure, never project output:
+  /// validation logs can mention limits, timeouts, or `.gitignore` for their own reasons.
   static func isTransientFailure(_ text: String) -> Bool {
-    AgentDetector.isUsageLimitError(text) || isTimeLimitError(text)
-      || (text.contains("ignored by one of your .gitignore files") && text.contains(".screenclip"))
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.hasPrefix("Validation failed") || trimmed.hasPrefix("Project validation failed") {
+      return false
+    }
+    if trimmed.hasPrefix("You've reached your") || trimmed.hasPrefix("You’ve reached your") {
+      return AgentDetector.isUsageLimitError(trimmed)
+    }
+    if trimmed.hasPrefix("Claude Code did not finish within")
+      || trimmed.hasPrefix("Codex did not finish within")
+    {
+      return isTimeLimitError(trimmed)
+    }
+    return trimmed.hasPrefix("The following paths are ignored by one of your .gitignore files")
+      && trimmed.contains(".screenclip")
   }
   /// Applies the close requests coding agents sent through the MCP server (`close_issue`): an
   /// agent that finished a report itself, or found it no longer applies, closes it instead of

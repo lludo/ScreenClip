@@ -408,7 +408,7 @@ import XCTest
   func testEveryModelUsedUpHoldsTheReportAndStartsAgainLater() async throws {
     let claude = try limitedClaude(limitedModels: ["fable", "opus", "sonnet"])
     let model = try makeModel()
-    model.worker.usageLimitWait = 0.5
+    model.worker.usageLimitWait = 3600
     try model.commit {
       $0.settings.claudePath = claude
       $0.settings.claudeModel = "fable"
@@ -424,7 +424,7 @@ import XCTest
     XCTAssertTrue(model.worker.isHeld(.claude))
 
     // Once the wait is over the queue picks the report up again by itself.
-    try await Task.sleep(nanoseconds: 600_000_000)
+    model.worker.usageLimitedUntil[.claude] = Date().addingTimeInterval(-1)
     model.worker.pump()
     try await wait { self.runModels().count > 3 }
   }
@@ -447,10 +447,25 @@ import XCTest
         "The following paths are ignored by one of your .gitignore files:\n.screenclip\n"
       $0.record("publish", status: .needsYou)
     }
+    let noisyValidation = try submit(model, agent: .claude)
+    try model.updateIssue(noisyValidation) {
+      $0.lastError =
+        "Validation failed after two repair attempts.\nRetry limit reached\nTest did not finish within 60 seconds and was stopped"
+      $0.record("failed", status: .failed)
+    }
     model.worker.recoverTransientFailures()
     XCTAssertEqual(model.issue(limited)?.status, .queued)
     XCTAssertEqual(model.issue(ignored)?.status, .queued)
     XCTAssertEqual(model.issue(real)?.status, .failed)
+    XCTAssertEqual(model.issue(noisyValidation)?.status, .failed)
+
+    // At most once per revision: failing the same way again waits for the tester.
+    try model.updateIssue(limited) {
+      $0.lastError = "You've reached your Fable limit."
+      $0.record("limit again", status: .failed)
+    }
+    model.worker.recoverTransientFailures()
+    XCTAssertEqual(model.issue(limited)?.status, .failed)
   }
 
   func testOutOfQuotaAgentHandsTheReportAndItsWorkToTheNextAgent() throws {
@@ -532,6 +547,13 @@ import XCTest
     XCTAssertTrue(AgentDetector.isUsageLimitError(
       "You've reached your Fable limit. Switch to another model, or manage usage credits"))
     XCTAssertFalse(AgentDetector.isUsageLimitError("Tests failed: 3 of 120"))
+    XCTAssertTrue(AgentDetector.isUsageLimitError("Claude AI usage limit reached|1764000000"))
+    XCTAssertFalse(AgentDetector.isUsageLimitError("Context limit reached · /compact or /clear to continue"))
+    XCTAssertFalse(AgentDetector.isUsageLimitError("API Error: 529 {\"type\":\"overloaded_error\"}"))
+    XCTAssertFalse(AgentDetector.isUsageLimitError("Retry limit reached"))
+    XCTAssertEqual(AgentModelCatalog.claudeFallbacks(after: "haiku"), [])
+    XCTAssertTrue(AgentWorker.isTimeLimitError("Claude Code did not finish within 120 minutes and was stopped."))
+    XCTAssertFalse(AgentWorker.isTimeLimitError("Claude Code reported an error."))
     XCTAssertFalse(AgentDetector.isSignInError("You've reached your Fable limit."))
   }
 

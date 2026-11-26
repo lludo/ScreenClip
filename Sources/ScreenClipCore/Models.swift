@@ -364,6 +364,9 @@ public struct Issue: Codable, Identifiable, Equatable {
   /// What the previous agent did before it ran out of quota and the report moved to another
   /// agent. The next agent's first prompt includes it, so it carries on instead of starting over.
   public var handover: String? = nil
+  /// The revision ScreenClip already queued again by itself after a transient failure (a usage
+  /// limit, a time limit) found on launch, so it does that at most once per revision.
+  public var autoRetriedRevision: Int? = nil
   public var resolvedAgent: AgentKind { agent ?? .codex }
   public init(
     id: UUID = UUID(), projectID: UUID?, title: String, capture: Capture, draft: Bool = false,

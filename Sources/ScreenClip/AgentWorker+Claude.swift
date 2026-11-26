@@ -45,7 +45,9 @@ extension AgentWorker {
     var request = ClaudeTurnRequest(
       executable: executable, cwd: path, sessionID: sessionID, resume: resume,
       name: "ScreenClip: " + issue.referencedTitle,
-      model: issue.agentModel ?? model.snapshot.settings.claudeModel,
+      model: (issue.agentModel ?? model.snapshot.settings.claudeModel).flatMap {
+        $0.trimmingCharacters(in: .whitespaces).isEmpty ? nil : $0
+      },
       effort: issue.agentModel == nil ? nil : issue.agentEffort, prompt: turn.text,
       images: turn.captures.compactMap { allImages[$0.id] }, schema: AgentPrompt.resultSchema)
     request.timeout = turnTimeLimit
@@ -106,9 +108,13 @@ extension AgentWorker {
       let next = fallbacks.removeFirst()
       let previous = request.model.map(Self.modelTitle) ?? "The default model"
       if !request.resume {
-        // The limited turn may never have started its session; start a clean one.
+        // The limited turn may never have started its session; start a clean one. It may still
+        // have edited the worktree before the limit, so the new session looks first.
         let fresh = UUID().uuidString.lowercased()
         request.sessionID = fresh
+        if !request.prompt.contains(Self.partialChangesNote) {
+          request.prompt += "\n\n" + Self.partialChangesNote
+        }
         model.perform {
           try model.updateIssue(id) {
             $0.threadID = fresh
@@ -141,6 +147,11 @@ extension AgentWorker {
     }
     if let limitText {
       model.perform { try model.updateIssue(id) { $0.turnID = nil } }
+      // Canceled during the last attempt: leave it canceled.
+      guard model.issue(id)?.status == .working, jobs.contains(id) else {
+        jobs.remove(id)
+        return
+      }
       holdForUsageLimit(id, agent: .claude, detail: limitText)
       return
     }
@@ -190,6 +201,8 @@ extension AgentWorker {
     }
     await finishOnce(id)
   }
+  static let partialChangesNote =
+    "An earlier attempt on this report stopped at a model usage limit and may have left uncommitted changes in this worktree. Run `git status` and `git diff` first, keep what is right, and build on it rather than starting over."
   static func modelTitle(_ id: String) -> String {
     AgentModelCatalog.claude.first { $0.id == id.lowercased() }?.title ?? id
   }
