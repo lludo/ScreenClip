@@ -101,18 +101,26 @@ public enum AnnotationDrawing {
   }
 
   /// The annotated image as PNG data, drawn at the source image's pixel size.
-  public static func renderPNG(image source: CGImage, marks: [Annotation]) -> Data? {
+  /// An optional outline uses source pixels measured from the top-left corner.
+  public static func renderPNG(image source: CGImage, marks: [Annotation], outline: CGPath? = nil) -> Data? {
     guard let space = CGColorSpace(name: CGColorSpace.sRGB),
       let graphics = CGContext(
         data: nil, width: source.width, height: source.height, bitsPerComponent: 8,
         bytesPerRow: source.width * 4, space: space,
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
     else { return nil }
-    let size = CGSize(width: source.width, height: source.height)
-    graphics.draw(source, in: CGRect(origin: .zero, size: size))
-    graphics.translateBy(x: 0, y: size.height)
+    let bounds = CGRect(x: 0, y: 0, width: source.width, height: source.height)
+    graphics.draw(source, in: bounds)
+    graphics.translateBy(x: 0, y: bounds.height)
     graphics.scaleBy(x: 1, y: -1)
-    draw(marks, in: CGRect(origin: .zero, size: size), context: graphics)
+    draw(marks, in: bounds, context: graphics)
+    if let outline {
+      // Clear the exterior once, after flattening, so even edge redactions cover the source.
+      graphics.setBlendMode(.clear)
+      graphics.addRect(bounds)
+      graphics.addPath(outline)
+      graphics.drawPath(using: .eoFill)
+    }
     guard let rendered = graphics.makeImage() else { return nil }
     return PNG.encode(rendered)
   }

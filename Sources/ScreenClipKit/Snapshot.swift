@@ -7,6 +7,20 @@
     let image: UIImage
     let cornerRadii: RectangleCornerRadii
 
+    func outline(scale: CGFloat) -> UnevenRoundedRectangle {
+      UnevenRoundedRectangle(cornerRadii: RectangleCornerRadii(
+        topLeading: cornerRadii.topLeading * scale, bottomLeading: cornerRadii.bottomLeading * scale,
+        bottomTrailing: cornerRadii.bottomTrailing * scale, topTrailing: cornerRadii.topTrailing * scale),
+        style: .continuous)
+    }
+
+    func renderPNG(marks: [Annotation]) -> Data? {
+      guard let source = image.cgImage else { return nil }
+      let bounds = CGRect(x: 0, y: 0, width: source.width, height: source.height)
+      let mask = cornerRadii == .init() ? nil : outline(scale: image.scale).path(in: bounds).cgPath
+      return AnnotationDrawing.renderPNG(image: source, marks: marks, outline: mask)
+    }
+
     static func activeScene() -> UIWindowScene? {
       let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
       return scenes.first { $0.activationState == .foregroundActive }

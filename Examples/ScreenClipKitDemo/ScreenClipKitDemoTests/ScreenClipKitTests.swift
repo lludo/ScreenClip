@@ -4,17 +4,22 @@ import XCTest
 #if os(iOS) && DEBUG
 import Network
 import ScreenClipWire
+import SwiftUI
 import UIKit
 
 @MainActor final class ScreenClipKitTests: XCTestCase {
-  func testCaptureKeepsTheFullImageAndTheScenesCornerGeometry() throws {
+  func testCaptureExportsAtFullResolutionWithTheScenesCornerGeometry() throws {
     let scene = try XCTUnwrap(Snapshot.activeScene())
     let host = try XCTUnwrap(Snapshot.appWindow(in: scene, excluding: []))
     let snapshot = try XCTUnwrap(Snapshot.capture(in: scene, excluding: []))
     XCTAssertTrue(host.isKeyWindow)
     XCTAssertEqual(snapshot.image.size, scene.coordinateSpace.bounds.size)
     let original = try XCTUnwrap(snapshot.image.cgImage)
-    let exported = try XCTUnwrap(AnnotationDrawing.renderPNG(image: original, marks: []))
+    let exported = try XCTUnwrap(snapshot.renderPNG(marks: []))
+    let attachment = XCTAttachment(data: exported, uniformTypeIdentifier: "public.png")
+    attachment.name = "Exported demo report.png"
+    attachment.lifetime = .keepAlways
+    add(attachment)
     let output = try XCTUnwrap(UIImage(data: exported)?.cgImage)
     XCTAssertEqual(output.width, original.width)
     XCTAssertEqual(output.height, original.height)
@@ -33,6 +38,48 @@ import UIKit
       }
     #endif
     XCTAssertEqual(snapshot.cornerRadii, .init())
+  }
+
+  func testReportPNGAppliesAsymmetricDeviceCornersToFlattenedAnnotations() throws {
+    let format = UIGraphicsImageRendererFormat()
+    format.scale = 3
+    format.opaque = true
+    let size = CGSize(width: 100, height: 60)
+    let image = UIGraphicsImageRenderer(size: size, format: format).image { renderer in
+      UIColor.white.setFill()
+      renderer.fill(CGRect(origin: .zero, size: size))
+    }
+    let radii = RectangleCornerRadii(topLeading: 24, bottomLeading: 12, bottomTrailing: 0, topTrailing: 6)
+    let snapshot = Snapshot(image: image, cornerRadii: radii)
+    let redact = Annotation(kind: .redact, points: [MarkPoint(0, 0), MarkPoint(0.5, 1)])
+
+    func pixels(_ snapshot: Snapshot) throws -> [UInt8] {
+      let decoded = try XCTUnwrap(PNG.decode(XCTUnwrap(snapshot.renderPNG(marks: [redact]))))
+      XCTAssertEqual(decoded.width, 300)
+      XCTAssertEqual(decoded.height, 180)
+      let context = try XCTUnwrap(CGContext(data: nil, width: decoded.width, height: decoded.height,
+        bitsPerComponent: 8, bytesPerRow: decoded.width * 4, space: CGColorSpaceCreateDeviceRGB(),
+        bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
+      context.draw(decoded, in: CGRect(x: 0, y: 0, width: decoded.width, height: decoded.height))
+      let data = try XCTUnwrap(context.data).assumingMemoryBound(to: UInt8.self)
+      return Array(UnsafeBufferPointer(start: data, count: context.bytesPerRow * decoded.height))
+    }
+
+    let rounded = try pixels(snapshot)
+    let square = try pixels(Snapshot(image: image, cornerRadii: .init()))
+    for (x, y, alpha) in [(0, 0, 0), (299, 0, 0), (0, 179, 0), (299, 179, 255),
+      (12, 12, 0), (287, 12, 255), (35, 35, 255), (150, 0, 255)] {
+      let offset = 4 * (y * 300 + x)
+      XCTAssertEqual(rounded[offset + 3], UInt8(alpha), "Alpha at (\(x), \(y))")
+      XCTAssertEqual(square[offset + 3], 255)
+      if alpha == 255 {
+        XCTAssertEqual(rounded[offset..<offset + 4], square[offset..<offset + 4])
+      }
+    }
+    // The redaction stays black through the antialiased top-left edge.
+    let edge = (0..<72).map { 4 * (8 * 300 + $0) }.first { (1..<255).contains(rounded[$0 + 3]) }
+    let offset = try XCTUnwrap(edge)
+    XCTAssertEqual(Array(rounded[offset..<offset + 3]), [0, 0, 0])
   }
 
   private func temporaryDirectory() -> URL {

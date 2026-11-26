@@ -131,7 +131,7 @@
               saving = true
               Task { @MainActor in
                 defer { saving = false }
-                guard let image = snapshot.image.cgImage, let png = AnnotationDrawing.renderPNG(image: image, marks: model.marks) else {
+                guard let png = snapshot.renderPNG(marks: model.marks) else {
                   saveError = "Could not render the annotated screenshot."
                   return
                 }
@@ -291,11 +291,7 @@
         let image = snapshot.image
         let scale = min(proxy.size.width / image.size.width, proxy.size.height / image.size.height)
         let rect = CGRect(x: 0, y: 0, width: image.size.width * scale, height: image.size.height * scale)
-        let radii = snapshot.cornerRadii
-        let shape = UnevenRoundedRectangle(cornerRadii: RectangleCornerRadii(
-          topLeading: radii.topLeading * scale, bottomLeading: radii.bottomLeading * scale,
-          bottomTrailing: radii.bottomTrailing * scale, topTrailing: radii.topTrailing * scale),
-          style: .continuous)
+        let shape = snapshot.outline(scale: scale)
         ZStack {
           Image(uiImage: image).resizable()
           Canvas { context, _ in
