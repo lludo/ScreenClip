@@ -85,6 +85,11 @@ public enum GitHubService {
   /// Stages every change for the fix commit. A deletion that is already staged has no path
   /// left to add: a base merge left in progress stages the files the base deleted or renamed,
   /// and naming them would make `git add` fail.
+  ///
+  /// `--force` because the evidence step force-adds `.screenclip/` screenshots, which a project
+  /// may ignore (Genealogy ignores `/.screenclip/`): re-adding an ignored index entry without it
+  /// fails. Every path here is already in the index or an untracked file `--exclude-standard`
+  /// let through, so forcing never brings in an ignored file ScreenClip did not stage itself.
   public static func stageChanges(cwd path: String) async throws {
     func list(_ arguments: [String]) async throws -> Set<String> {
       let result = try await CommandRunner.run(GitWorkspace.git, arguments, cwd: path)
@@ -101,7 +106,7 @@ public enum GitHubService {
     }
     let paths = unstaged.union(staged.subtracting(stagedDeletions)).sorted()
     guard !paths.isEmpty else { return }
-    _ = try await CommandRunner.checked(GitWorkspace.git, ["--literal-pathspecs", "add", "--"] + paths, cwd: path)
+    _ = try await CommandRunner.checked(GitWorkspace.git, ["--literal-pathspecs", "add", "--force", "--"] + paths, cwd: path)
   }
   public static func state(url: String, path: String, gh: String) async throws -> PRState {
     guard URL(string: url)?.host == "github.com" else {
