@@ -34,7 +34,7 @@ Until the Apple secrets are set in the repository, every release is built and pu
 - [ ] `docs/getting-started.md`: add the release to the "later changes" list.
 - [ ] `docs/user-guide.md`, `docs/product-spec.md`, `docs/agents/`, `docs/ios-sdk.md`, `plugins/screenclip/README.md` and its skills, and `SECURITY.md` describe every new or changed behavior.
 - [ ] Version statements in `docs/ios-sdk.md` and the DocC articles in `Sources/ScreenClipKit/ScreenClipKit.docc` (which SDK version added an API, which ScreenClip the Mac needs).
-- [ ] `version` in `plugins/screenclip/.claude-plugin/plugin.json` matches `serverInfo` in `plugins/screenclip/server.py` when the server's tools changed.
+- [ ] `version` in `plugins/screenclip/plugin.json` and `plugins/screenclip/.claude-plugin/plugin.json` matches `serverInfo` in `plugins/screenclip/server.py` when the server's tools changed.
 
 ## 6. Website
 
