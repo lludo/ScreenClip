@@ -22,11 +22,31 @@
       get { defaults.object(forKey: "attachDiagnostics") as? Bool ?? true }
       set { defaults.set(newValue, forKey: "attachDiagnostics") }
     }
-    static var deviceID: UUID {
-      if let text = defaults.string(forKey: "deviceID"), let id = UUID(uuidString: text) { return id }
-      let id = UUID()
-      defaults.set(id.uuidString, forKey: "deviceID")
-      return id
+    static var deviceID: UUID { deviceID(store: deviceIDStore, defaults: defaults) }
+    static let deviceIDStore = PairingKeychain<UUID>(service: "com.mirageteam.screenclip.kit", account: "deviceID")
+
+    /// The id the Mac knows this device by. It lives in the Keychain next to the pairing keys, so
+    /// it survives the host app being deleted and reinstalled just as they do; an id kept only in
+    /// UserDefaults would be replaced on reinstall and the Mac would ask to pair again. An id
+    /// already in UserDefaults moves into the Keychain, so existing pairings keep working.
+    static func deviceID(store: PairingKeychain<UUID>, defaults: UserDefaults) -> UUID {
+      let saved = defaults.string(forKey: "deviceID").flatMap(UUID.init(uuidString:))
+      do {
+        if let id = try store.load().first {
+          if saved != id { defaults.set(id.uuidString, forKey: "deviceID") }
+          return id
+        }
+        let id = saved ?? UUID()
+        defaults.set(id.uuidString, forKey: "deviceID")
+        do { try store.save([id]) } catch { kitLog.error("Could not save the device id: \(error.localizedDescription)") }
+        return id
+      } catch {
+        // The Keychain cannot be read yet (before first unlock); never replace a stored id then.
+        if let saved { return saved }
+        let id = UUID()
+        defaults.set(id.uuidString, forKey: "deviceID")
+        return id
+      }
     }
   }
 

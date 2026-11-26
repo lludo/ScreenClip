@@ -23,8 +23,9 @@ public enum GitHubService {
       throw ScreenClipError.message(
         "The source or issue changed after validation. Publication stopped.")
     }
-    if !changes.isEmpty {
-      try await stageChanges(cwd: path)
+    let merging = await GitWorkspace.mergeInProgress(path: path)
+    if !changes.isEmpty || merging {
+      if !changes.isEmpty { try await stageChanges(cwd: path) }
       guard await shouldContinue() else { throw CancellationError() }
       _ = try await CommandRunner.checked(
         GitWorkspace.git, ["commit", "-m", "Fix: " + String(issue.title.prefix(120))], cwd: path)
