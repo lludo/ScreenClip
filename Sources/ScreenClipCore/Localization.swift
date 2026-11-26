@@ -56,7 +56,7 @@ public enum CoreChrome {
   }
 
   static let exact: Set<String> = [
-    "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant.",
+    "Not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant.",
     "Codex CLI not found.",
     "Claude Code CLI not found. Install it from claude.com/claude-code.",
     "Connected",
@@ -85,7 +85,7 @@ public enum CoreChrome {
     "Draft PR. Automatic merge waits until the pull request is marked ready.",
     "ScreenClip restarted while sending to Grok Bot. Retry delivers the same report and revision again.",
     "ScreenClip restarted. Watching for Grok Bot's pull request.",
-    "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant.",
+    "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant.",
     "Choose a working Claude Code executable in Settings.",
     "Update Claude Code to start work. This version has no automatic permission review.",
     "This Claude Code session already has a running turn.",

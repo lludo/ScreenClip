@@ -237,16 +237,25 @@ extension AgentWorker {
       "Codex did not finish within \(minutes) minutes and was stopped. Retry to continue in the same chat."
     // Record first, so the interrupted turn's late events cannot publish a result.
     jobs.remove(id)
+    // The first stop on a revision continues by itself, as for Claude Code.
+    let revision = model.issue(id)?.revision
+    let continues = revision != nil && timeoutContinuations[id] != revision
+    if continues { timeoutContinuations[id] = revision }
     model.perform {
       try model.updateIssue(id) {
         $0.turnID = nil
         $0.dispatchUncertain = false
-        $0.lastError = message
-        $0.unread = true
-        $0.record(message, status: .failed, kind: "error")
+        if continues {
+          $0.lastError = nil
+          $0.record(Self.timeLimitContinuation(minutes: minutes), status: .queued)
+        } else {
+          $0.lastError = message
+          $0.unread = true
+          $0.record(message, status: .failed, kind: "error")
+        }
       }
     }
-    if let issue = model.issue(id) { model.notify(issue, text: message) }
+    if !continues, let issue = model.issue(id) { model.notify(issue, text: message) }
     canceledTurns.insert(turnID)
     await interrupt(threadID: threadID, turnID: turnID)
     pump()

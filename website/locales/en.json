@@ -73,13 +73,13 @@
     "localBody": "Both run on your Mac in a separate Git worktree for each report. Answer questions in ScreenClip. ScreenClip runs your project checks and opens the pull request."
   },
   "download": {
-    "title": "ScreenClip 1.2.0 for macOS",
+    "title": "ScreenClip 1.2.1 for macOS",
     "price": "Free for noncommercial use.",
     "source": "Commercial licenses are available on request. {link:license}.",
     "sourceMissing": "The source is not public yet.",
     "github": "View on GitHub",
     "donate": "Support the project",
-    "noteReady": "ScreenClip 1.2.0 · Apple Silicon · macOS 14 or later",
+    "noteReady": "ScreenClip 1.2.1 · Apple Silicon · macOS 14 or later",
     "noteSoon": "Mac download coming soon.",
     "macSoon": "Mac download coming soon.",
     "needsTitle": "What you need",
@@ -97,7 +97,7 @@
       },
       {
         "q": "Can my coding agent check what’s open in ScreenClip?",
-        "a": "In Settings › Connections, use “Check tasks from your agents” to give Codex or Claude Code read-only access to your report queue."
+        "a": "In Settings › AI Agents, use “Check tasks from your agents” to give Codex or Claude Code read-only access to your report queue."
       },
       {
         "q": "What leaves my Mac?",
@@ -181,7 +181,7 @@
   },
   "support": {
     "title": "Support",
-    "statusReady": "{link:download} gets the latest disk image from GitHub Releases. ScreenClip 1.2.0 is free for noncommercial use.",
+    "statusReady": "{link:download} gets the latest disk image from GitHub Releases. ScreenClip 1.2.1 is free for noncommercial use.",
     "statusSoon": "ScreenClip is coming soon. There is no download available yet.",
     "issues": "Report a bug or ask a question in {link:issues}. Include your macOS version, the agent you used, and what happened. Redact private details before sharing screenshots.",
     "issuesMissing": "Public support is not available yet.",

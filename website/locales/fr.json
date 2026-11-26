@@ -73,13 +73,13 @@
     "localBody": "Les deux travaillent sur votre Mac, dans un worktree Git distinct pour chaque rapport. Répondez à leurs questions dans ScreenClip, qui lance les vérifications du projet et ouvre la pull request."
   },
   "download": {
-    "title": "ScreenClip 1.2.0 pour macOS.",
+    "title": "ScreenClip 1.2.1 pour macOS.",
     "price": "Gratuit pour un usage non commercial.",
     "source": "Une licence commerciale est disponible sur demande. {link:license}.",
     "sourceMissing": "Le code source n’est pas encore public.",
     "github": "Voir sur GitHub",
     "donate": "Soutenir le projet",
-    "noteReady": "ScreenClip 1.2.0 · Apple Silicon · macOS 14 ou ultérieur",
+    "noteReady": "ScreenClip 1.2.1 · Apple Silicon · macOS 14 ou ultérieur",
     "noteSoon": "Le téléchargement Mac arrive bientôt.",
     "macSoon": "Le téléchargement Mac arrive bientôt.",
     "needsTitle": "Ce qu’il vous faut",
@@ -97,7 +97,7 @@
       },
       {
         "q": "Mon agent de code peut-il voir ce qui est ouvert dans ScreenClip ?",
-        "a": "Dans Réglages › Connexions, utilisez l’option de consultation des tâches pour donner à Codex ou Claude Code un accès en lecture seule aux rapports."
+        "a": "Dans Réglages › Agents IA, utilisez l’option de consultation des tâches pour donner à Codex ou Claude Code un accès en lecture seule aux rapports."
       },
       {
         "q": "Qu’est-ce qui quitte le Mac ?",
@@ -181,7 +181,7 @@
   },
   "support": {
     "title": "Assistance",
-    "statusReady": "ScreenClip 1.2.0 est gratuit pour un usage non commercial. {link:download} ouvre la dernière image disque sur GitHub Releases.",
+    "statusReady": "ScreenClip 1.2.1 est gratuit pour un usage non commercial. {link:download} ouvre la dernière image disque sur GitHub Releases.",
     "statusSoon": "ScreenClip arrive bientôt. Aucun téléchargement n’est encore disponible.",
     "issues": "Signalez un bug ou posez une question sur {link:issues}. Précisez votre version de macOS, l’agent utilisé et ce qui s’est passé. Masquez les informations privées sur vos captures.",
     "issuesMissing": "L’assistance publique n’est pas encore disponible.",

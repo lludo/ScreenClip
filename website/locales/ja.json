@@ -73,13 +73,13 @@
     "localBody": "どちらも Mac 上で動作し、レポートごとに独立した Git ワークツリーを使います。質問には ScreenClip で回答します。プロジェクトの検証とプルリクエストの作成も ScreenClip が行います。"
   },
   "download": {
-    "title": "macOS向けScreenClip 1.2.0。",
+    "title": "macOS向けScreenClip 1.2.1。",
     "price": "非商用利用は無料です。",
     "source": "商用ライセンスはお問い合わせください。{link:license}。",
     "sourceMissing": "ソースコードはまだ公開されていません。",
     "github": "GitHubで見る",
     "donate": "プロジェクトを支援",
-    "noteReady": "ScreenClip 1.2.0 · Apple Silicon · macOS 14以降",
+    "noteReady": "ScreenClip 1.2.1 · Apple Silicon · macOS 14以降",
     "noteSoon": "Mac版のダウンロードは近日公開予定です。",
     "macSoon": "Mac版のダウンロードは近日公開です。",
     "needsTitle": "必要なもの",
@@ -97,7 +97,7 @@
       },
       {
         "q": "コーディングエージェントから ScreenClip の未完了の作業を確認できますか？",
-        "a": "「設定 › 接続」から、Codex または Claude Code にレポート一覧の読み取り権限を付与できます。"
+        "a": "「設定 › AI エージェント」から、Codex または Claude Code にレポート一覧の読み取り権限を付与できます。"
       },
       {
         "q": "Macから出るものは何ですか？",
@@ -181,7 +181,7 @@
   },
   "support": {
     "title": "サポート",
-    "statusReady": "ScreenClip 1.2.0は非商用の利用は無料です。{link:download}からGitHub Releases上の最新のディスクイメージを開けます。",
+    "statusReady": "ScreenClip 1.2.1は非商用の利用は無料です。{link:download}からGitHub Releases上の最新のディスクイメージを開けます。",
     "statusSoon": "ScreenClipは近日公開予定です。現在ダウンロードは提供されていません。",
     "issues": "不具合の報告や質問は {link:issues} へ。macOS のバージョン、使用したエージェント、起きたことをお知らせください。スクリーンショットを共有する前に個人情報を塗りつぶしてください。",
     "issuesMissing": "一般向けのサポートはまだ提供されていません。",

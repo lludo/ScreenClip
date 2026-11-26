@@ -6205,68 +6205,68 @@
         }
       }
     },
-    "Connections": {
+    "AI Agents": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connections"
+            "value": "AI Agents"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "连接"
+            "value": "AI 代理"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conexiones"
+            "value": "Agentes de IA"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "接続"
+            "value": "AI エージェント"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Conexões"
+            "value": "Agentes de IA"
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verbindungen"
+            "value": "KI-Agenten"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Connexions"
+            "value": "Agents IA"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "연결"
+            "value": "AI 에이전트"
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Подключения"
+            "value": "ИИ-агенты"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "連線"
+            "value": "AI 代理"
           }
         }
       }
@@ -10693,68 +10693,68 @@
         }
       }
     },
-    "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant.": {
+    "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant."
+            "value": "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot 未配置。请在“设置 → 连接 → 外部助手”中添加 Webhook URL 和 Authorization 标头。"
+            "value": "Grok Bot 未配置。请在“设置 → AI 代理 → 外部助手”中添加 Webhook URL 和 Authorization 标头。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot no está configurado. Añade la URL del webhook y el encabezado Authorization en Ajustes → Conexiones → Asistente externo."
+            "value": "Grok Bot no está configurado. Añade la URL del webhook y el encabezado Authorization en Ajustes → Agentes de IA → Asistente externo."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot は未設定です。設定 → 接続 → 外部アシスタントで Webhook URL と Authorization ヘッダーを追加してください。"
+            "value": "Grok Bot は未設定です。設定 → AI エージェント → 外部アシスタントで Webhook URL と Authorization ヘッダーを追加してください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Grok Bot não está configurado. Adicione a URL do webhook e o cabeçalho Authorization em Ajustes → Conexões → Assistente externo."
+            "value": "O Grok Bot não está configurado. Adicione a URL do webhook e o cabeçalho Authorization em Ajustes → Agentes de IA → Assistente externo."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot ist nicht konfiguriert. Füge Webhook-URL und Authorization-Header unter Einstellungen → Verbindungen → Externer Assistent hinzu."
+            "value": "Grok Bot ist nicht konfiguriert. Füge Webhook-URL und Authorization-Header unter Einstellungen → KI-Agenten → Externer Assistent hinzu."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot n’est pas configuré. Ajoutez l’URL du webhook et l’en-tête Authorization dans Réglages → Connexions → Assistant externe."
+            "value": "Grok Bot n’est pas configuré. Ajoutez l’URL du webhook et l’en-tête Authorization dans Réglages → Agents IA → Assistant externe."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot이 구성되지 않았습니다. 설정 → 연결 → 외부 도우미에서 Webhook URL과 Authorization 헤더를 추가하세요."
+            "value": "Grok Bot이 구성되지 않았습니다. 설정 → AI 에이전트 → 외부 도우미에서 Webhook URL과 Authorization 헤더를 추가하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot не настроен. Добавьте URL вебхука и заголовок Authorization в Настройки → Подключения → Внешний ассистент."
+            "value": "Grok Bot не настроен. Добавьте URL вебхука и заголовок Authorization в Настройки → ИИ-агенты → Внешний ассистент."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot 未設定。請在「設定 → 連線 → 外部助手」中加入 Webhook URL 和 Authorization 標頭。"
+            "value": "Grok Bot 未設定。請在「設定 → AI 代理 → 外部助手」中加入 Webhook URL 和 Authorization 標頭。"
           }
         }
       }
@@ -14191,134 +14191,134 @@
         }
       }
     },
-    "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant.": {
+    "Not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant."
+            "value": "Not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未配置。请在“设置 → 连接 → 外部助手”中添加 Webhook URL 和 Authorization 标头。"
+            "value": "未配置。请在“设置 → AI 代理 → 外部助手”中添加 Webhook URL 和 Authorization 标头。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No configurado. Añade la URL del webhook y el encabezado Authorization en Ajustes → Conexiones → Asistente externo."
+            "value": "No configurado. Añade la URL del webhook y el encabezado Authorization en Ajustes → Agentes de IA → Asistente externo."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "未設定です。設定 → 接続 → 外部アシスタントで Webhook URL と Authorization ヘッダーを追加してください。"
+            "value": "未設定です。設定 → AI エージェント → 外部アシスタントで Webhook URL と Authorization ヘッダーを追加してください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não configurado. Adicione a URL do webhook e o cabeçalho Authorization em Ajustes → Conexões → Assistente externo."
+            "value": "Não configurado. Adicione a URL do webhook e o cabeçalho Authorization em Ajustes → Agentes de IA → Assistente externo."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht konfiguriert. Füge Webhook-URL und Authorization-Header unter Einstellungen → Verbindungen → Externer Assistent hinzu."
+            "value": "Nicht konfiguriert. Füge Webhook-URL und Authorization-Header unter Einstellungen → KI-Agenten → Externer Assistent hinzu."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non configuré. Ajoutez l’URL du webhook et l’en-tête Authorization dans Réglages → Connexions → Assistant externe."
+            "value": "Non configuré. Ajoutez l’URL du webhook et l’en-tête Authorization dans Réglages → Agents IA → Assistant externe."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "구성되지 않았습니다. 설정 → 연결 → 외부 도우미에서 Webhook URL과 Authorization 헤더를 추가하세요."
+            "value": "구성되지 않았습니다. 설정 → AI 에이전트 → 외부 도우미에서 Webhook URL과 Authorization 헤더를 추가하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не настроено. Добавьте URL вебхука и заголовок Authorization в Настройки → Подключения → Внешний ассистент."
+            "value": "Не настроено. Добавьте URL вебхука и заголовок Authorization в Настройки → ИИ-агенты → Внешний ассистент."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "未設定。請在「設定 → 連線 → 外部助手」中加入 Webhook URL 和 Authorization 標頭。"
+            "value": "未設定。請在「設定 → AI 代理 → 外部助手」中加入 Webhook URL 和 Authorization 標頭。"
           }
         }
       }
     },
-    "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → Connections → External assistant.": {
+    "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → AI Agents → External assistant.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → Connections → External assistant."
+            "value": "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → AI Agents → External assistant."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未配置。Webhook URL 必须是 http 或 https 地址，并且必须填写 Authorization 标头。请在“设置 → 连接 → 外部助手”中修改。"
+            "value": "未配置。Webhook URL 必须是 http 或 https 地址，并且必须填写 Authorization 标头。请在“设置 → AI 代理 → 外部助手”中修改。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No configurado. La URL del webhook debe ser http o https, y el encabezado Authorization es obligatorio. Edítalos en Ajustes → Conexiones → Asistente externo."
+            "value": "No configurado. La URL del webhook debe ser http o https, y el encabezado Authorization es obligatorio. Edítalos en Ajustes → Agentes de IA → Asistente externo."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "未設定です。Webhook URL は http または https で、Authorization ヘッダーの値も必要です。設定 → 接続 → 外部アシスタントで編集してください。"
+            "value": "未設定です。Webhook URL は http または https で、Authorization ヘッダーの値も必要です。設定 → AI エージェント → 外部アシスタントで編集してください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não configurado. A URL do webhook precisa ser http ou https, e o valor do cabeçalho Authorization é obrigatório. Edite em Ajustes → Conexões → Assistente externo."
+            "value": "Não configurado. A URL do webhook precisa ser http ou https, e o valor do cabeçalho Authorization é obrigatório. Edite em Ajustes → Agentes de IA → Assistente externo."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht konfiguriert. Die Webhook-URL muss http oder https sein, und der Authorization-Header ist erforderlich. Bearbeite beides unter Einstellungen → Verbindungen → Externer Assistent."
+            "value": "Nicht konfiguriert. Die Webhook-URL muss http oder https sein, und der Authorization-Header ist erforderlich. Bearbeite beides unter Einstellungen → KI-Agenten → Externer Assistent."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non configuré. L’URL du webhook doit être en http ou https, et la valeur de l’en-tête Authorization est requise. Modifiez-les dans Réglages → Connexions → Assistant externe."
+            "value": "Non configuré. L’URL du webhook doit être en http ou https, et la valeur de l’en-tête Authorization est requise. Modifiez-les dans Réglages → Agents IA → Assistant externe."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "구성되지 않았습니다. Webhook URL은 http 또는 https여야 하고 Authorization 헤더 값이 필요합니다. 설정 → 연결 → 외부 도우미에서 수정하세요."
+            "value": "구성되지 않았습니다. Webhook URL은 http 또는 https여야 하고 Authorization 헤더 값이 필요합니다. 설정 → AI 에이전트 → 외부 도우미에서 수정하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не настроено. URL вебхука должен быть http или https, и нужен заголовок Authorization. Измените их в Настройки → Подключения → Внешний ассистент."
+            "value": "Не настроено. URL вебхука должен быть http или https, и нужен заголовок Authorization. Измените их в Настройки → ИИ-агенты → Внешний ассистент."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "未設定。Webhook URL 必須是 http 或 https 位址，並且必須填寫 Authorization 標頭。請在「設定 → 連線 → 外部助手」中修改。"
+            "value": "未設定。Webhook URL 必須是 http 或 https 位址，並且必須填寫 Authorization 標頭。請在「設定 → AI 代理 → 外部助手」中修改。"
           }
         }
       }
@@ -47169,6 +47169,270 @@
           "stringUnit": {
             "state": "translated",
             "value": "Codex 在 %lld 分鐘內沒有完成，已停止。重試可在同一聊天中繼續。"
+          }
+        }
+      }
+    },
+    "activity.timeLimitContinues": {
+      "comment": "Activity log. %lld is the time limit in minutes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The turn ran past %lld minutes and was stopped. Continuing the same conversation automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本轮运行超过 %lld 分钟，已停止。正在自动继续同一对话。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El turno superó los %lld minutos y se detuvo. Se continúa automáticamente la misma conversación."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ターンが %lld 分を超えたため停止しました。同じ会話を自動で続けます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A rodada passou de %lld minutos e foi interrompida. Continuando a mesma conversa automaticamente."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Durchlauf hat %lld Minuten überschritten und wurde gestoppt. Dieselbe Unterhaltung wird automatisch fortgesetzt."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le tour a dépassé %lld minutes et a été arrêté. La même conversation continue automatiquement."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "턴이 %lld분을 넘겨 중지되었습니다. 같은 대화를 자동으로 이어갑니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ход превысил %lld мин. и был остановлен. Тот же разговор продолжается автоматически."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本輪執行超過 %lld 分鐘，已停止。正在自動繼續同一對話。"
+          }
+        }
+      }
+    },
+    "activity.modelFallback": {
+      "comment": "Activity log. %1$@ is the used-up model (or “The default model”), %2$@ the next model. Model names stay unchanged.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is at its usage limit; continuing with %2$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 已达到用量上限；改用 %2$@ 继续"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ alcanzó su límite de uso; se continúa con %2$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ は利用上限に達しました。%2$@ で続けます"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ atingiu o limite de uso; continuando com %2$@"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ hat sein Nutzungslimit erreicht; weiter mit %2$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ a atteint sa limite d’utilisation ; la suite se fait avec %2$@"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@의 사용 한도에 도달했습니다. %2$@(으)로 계속합니다"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ достиг лимита использования; продолжаем с %2$@"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 已達到用量上限；改用 %2$@ 繼續"
+          }
+        }
+      }
+    },
+    "activity.usageLimitHold": {
+      "comment": "Activity log. %1$@ is the agent name (Codex, Claude Code), %2$lld minutes.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is at its usage limit. This report starts again by itself in %2$lld minutes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 已达到用量上限。此报告将在 %2$lld 分钟后自动重新开始。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ alcanzó su límite de uso. Este informe se reanudará solo en %2$lld minutos."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ は利用上限に達しました。このレポートは %2$lld 分後に自動で再開します。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ atingiu o limite de uso. Este relatório recomeça sozinho em %2$lld minutos."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ hat sein Nutzungslimit erreicht. Dieser Bericht startet in %2$lld Minuten von selbst neu."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ a atteint sa limite d’utilisation. Ce rapport reprendra tout seul dans %2$lld minutes."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@의 사용 한도에 도달했습니다. 이 보고서는 %2$lld분 후에 자동으로 다시 시작됩니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ достиг лимита использования. Этот отчёт запустится снова сам через %2$lld мин."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 已達到用量上限。此回報將在 %2$lld 分鐘後自動重新開始。"
+          }
+        }
+      }
+    },
+    "activity.agentHandover": {
+      "comment": "Activity log. %1$@ is the agent that ran out of quota, %2$@ the agent taking over. Keep agent names.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ is out of quota; handing this report to %2$@ with the work so far."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 额度已用尽；正在把此报告连同已完成的工作交给 %2$@。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ se quedó sin cuota; este informe pasa a %2$@ con el trabajo hecho hasta ahora."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ の利用枠が尽きました。ここまでの作業とともにこのレポートを %2$@ に引き継ぎます。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ ficou sem cota; este relatório passa para %2$@ com o trabalho feito até agora."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ hat kein Kontingent mehr; dieser Bericht geht mit der bisherigen Arbeit an %2$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ n’a plus de quota ; ce rapport passe à %2$@ avec le travail déjà fait."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@의 사용량이 소진되었습니다. 지금까지의 작업과 함께 이 보고서를 %2$@에게 넘깁니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "У %1$@ закончилась квота; отчёт вместе с проделанной работой передаётся %2$@."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ 額度已用盡；正在把此回報連同已完成的工作交給 %2$@。"
           }
         }
       }

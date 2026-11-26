@@ -262,7 +262,11 @@ import ScreenClipCore
   }
   /// A turn hit `turnTimeLimit`. The work so far is in the worktree and the session, so carry
   /// on once in the same session; a second stop on the same revision waits for the tester.
+  static func timeLimitContinuation(minutes: Int) -> String {
+    "The turn ran past \(minutes) minutes and was stopped. Continuing the same conversation automatically."
+  }
   func continueAfterTimeLimit(_ id: UUID, message: String) -> Bool {
+    let minutes = max(1, Int((turnTimeLimit / 60).rounded()))
     guard let issue = model.issue(id), issue.status == .working, !issue.dispatchUncertain,
       timeoutContinuations[id] != issue.revision
     else { return false }
@@ -272,7 +276,7 @@ import ScreenClipCore
       try model.updateIssue(id) {
         $0.turnID = nil
         $0.lastError = nil
-        $0.record(message + " Continuing the same session automatically.", status: .queued)
+        $0.record(Self.timeLimitContinuation(minutes: minutes), status: .queued)
       }
     }
     return true

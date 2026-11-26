@@ -10,13 +10,13 @@ ScreenClip captures an observation and hands it to a coding agent. Codex and Cla
 | Claude Code | `claude -p` (one stream-json process per turn) | Session UUID chosen by ScreenClip | Copy `cd <worktree> && claude --resume <id>` | `claude auth login` in Terminal | [claude-code.md](claude-code.md) |
 | Grok Bot | Webhook `screenclip.external.v1` after a Git push of approved screenshots | Report number and `screenclip/<number>-<slug>-<workspace>` branch | Pull request link, or a note that the chat is in Grok Bot | **Connect Grok Bot** with **POST to** and **key** (or **header**) from the ScreenClip reports routine. The address and secret stay in the Keychain | [external-assistant.md](external-assistant.md) |
 
-Separately from automatic dispatch, Codex and Claude Code can **read** the queue through the optional MCP plugin. Settings › Connections › **Check tasks from your agents** installs it for either agent. See [the plugin README](../../plugins/screenclip/README.md).
+Separately from automatic dispatch, Codex and Claude Code can **read** the queue through the optional MCP plugin. Settings › AI Agents › **Check tasks from your agents** installs it for either agent. See [the plugin README](../../plugins/screenclip/README.md).
 
 The one-off prompts once used to have each agent investigate its own integration are archived in [Claude Code and Grok Bot handoffs](../archive/claude-grok-handoffs.md).
 
 ## Choosing an agent
 
-- **System default.** Settings → Connections → **AI agent** → **System default** sets `AppSettings.defaultAgent`. Missing in older queues means Codex.
+- **System default.** Settings → AI Agents → **AI agent** → **System default** sets `AppSettings.defaultAgent`. Missing in older queues means Codex.
 - **Project default.** Project settings stores either inherit (`defaultAgent` null) or an explicit provider. Inherit follows the system default. An explicit provider stays when the system default changes. An older project with screenshot sharing on migrates to Grok Bot; every other older project inherits.
 - **Per report.** The capture window's **Agent** picker starts at the project's effective default (or its last submitted agent, model, and effort when enabled in Project settings) and can be changed for a new report or a draft. The choice is stamped on the issue (`Issue.agent`).
 - **Follow-ups keep their agent.** Adding a capture to a submitted issue locks the picker to that issue's agent, because conversation IDs are not interchangeable between agents. Switching a submitted issue to another agent is not supported; cancel it and submit a new report.
@@ -24,7 +24,7 @@ The one-off prompts once used to have each agent investigate its own integration
 
 ## Default prompt add-on
 
-**Settings → Connections → Agent instructions → Default prompt add-on** stores instructions shared by all projects and agents. Edit the multiline text and choose **Save settings**. Leave it empty to disable it, or choose **Restore default prompt** to restore the built-in text. Older queues use the built-in default automatically, and so does a queue that saved an earlier built-in text unchanged (`AppSettings.retiredPromptAddOnTexts`).
+**Settings → AI Agents → Agent instructions → Default prompt add-on** stores instructions shared by all projects and agents. Edit the multiline text and choose **Save settings**. Leave it empty to disable it, or choose **Restore default prompt** to restore the built-in text. Older queues use the built-in default automatically, and so does a queue that saved an earlier built-in text unchanged (`AppSettings.retiredPromptAddOnTexts`).
 
 The built-in text asks for a PR description a reviewer can scan: **What was the issue** (the reported problem and its root cause), **How we addressed it** (the approach and key changes), and **How we verified it** (checks, results, and the retest), followed by the **Before / After** comparison for visual fixes. For local agents ScreenClip appends that comparison right after the agent's summary, so the agent does not repeat the images.
 
@@ -52,6 +52,8 @@ Codex and Claude Code receive this contract and the current add-on on every turn
 - Settings lists installed agents and the system default. The capture window offers connected providers, including Grok Bot once its webhook is saved. A follow-up retains its original agent.
 - The queue holds a queued issue whose agent detection reports missing, signed out, or not configured (`AgentDetection.usable == false`), and Codex reports while Codex sign-in is known to be signed out. The once-a-minute check resumes them after you sign in or install the agent; **Detect agents** resumes them at once.
 - A run that fails because its agent is signed out goes back to the queue, held, instead of failing. It and the reports queued after it wait for sign-in. Because `claude auth status` can still say signed in (an expired token, for example), the automatic check keeps that agent held for 10 minutes after such a failure; **Detect agents** clears it immediately.
+- A run that fails on a usage limit is never marked failed. Claude Code first tries the next lower model (Fable, Opus, Sonnet). When the agent is out of quota on every model, **Settings → AI Agents → Hand reports to another agent when one is out of quota** (on by default, `AppSettings.rotateAgentsOnQuota`) moves the report to the other local agent if it is ready. The report keeps its worktree; the new agent starts a fresh conversation whose prompt carries `Issue.handover`, the previous agent's last summary and progress, and an instruction to start from `git status` and `git diff`. Otherwise, or with no other agent ready, the report goes back to the queue and its agent is held for 15 minutes (`AgentWorker.usageLimitWait`), then starts again by itself.
+- On launch, reports that an earlier version failed for a usage limit, a time limit, or the ignored `.screenclip` publishing error are queued again automatically (`AgentWorker.recoverTransientFailures`).
 - The queue sidebar shows each provider's status (`AppModel.agentStatus`) as **Codex ready**, **Claude Code ready**, or **Grok Bot ready**, and the same shape for not connected, not found, and sign-in.
 
 ## The agent contract
@@ -78,7 +80,7 @@ Codex and Claude Code follow the same contract, so the rest of ScreenClip stays 
 
 **Lifecycle hooks every agent implements:** dispatch (start or resume a turn), progress messages into the activity log, cancel, and reconcile after a restart or interruption.
 
-**Every turn ends.** A Claude Code or Codex turn running longer than 45 minutes (`AgentWorker.turnTimeLimit`) is stopped and the report fails with a note; Continue resumes the same conversation. Time a Codex turn spends waiting for your answer does not count. Cancel and the time limit stop the agent and every process it started, and kill whatever ignores SIGTERM after 3 seconds. Only reports ScreenClip is actually dispatching, running or publishing count toward the per-project parallel limit.
+**Every turn ends.** A Claude Code or Codex turn running longer than 2 hours (`AgentWorker.turnTimeLimit`) is stopped. The first stop on a revision continues the same conversation automatically; a second one fails the report with a note, and Continue resumes the same conversation. Time a Codex turn spends waiting for your answer does not count. Cancel and the time limit stop the agent and every process it started, and kill whatever ignores SIGTERM after 3 seconds. Only reports ScreenClip is actually dispatching, running or publishing count toward the per-project parallel limit.
 
 ## Usage and cost
 

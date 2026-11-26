@@ -73,13 +73,13 @@
     "localBody": "兩者都在 Mac 上執行，每份回報使用獨立的 Git 工作樹。你可以在 ScreenClip 裡回答問題。ScreenClip 會執行專案檢查並建立提取請求。"
   },
   "download": {
-    "title": "適用於 macOS 的 ScreenClip 1.2.0。",
+    "title": "適用於 macOS 的 ScreenClip 1.2.1。",
     "price": "非商業用途免費。",
     "source": "如需商業授權，請與我們聯絡。{link:license}。",
     "sourceMissing": "原始碼尚未公開。",
     "github": "在 GitHub 上查看",
     "donate": "支持這個專案",
-    "noteReady": "ScreenClip 1.2.0 · Apple Silicon · macOS 14 或更新版本",
+    "noteReady": "ScreenClip 1.2.1 · Apple Silicon · macOS 14 或更新版本",
     "noteSoon": "Mac 版即將開放下載。",
     "macSoon": "Mac 版下載即將提供。",
     "needsTitle": "你需要",
@@ -97,7 +97,7 @@
       },
       {
         "q": "程式代理能查看 ScreenClip 裡有哪些未完成的報告嗎？",
-        "a": "在「設定 › 連線」中，可以授予 Codex 或 Claude Code 讀取回報清單的權限。"
+        "a": "在「設定 › AI 代理」中，可以授予 Codex 或 Claude Code 讀取回報清單的權限。"
       },
       {
         "q": "什麼會離開這台 Mac？",
@@ -181,7 +181,7 @@
   },
   "support": {
     "title": "支援",
-    "statusReady": "ScreenClip 1.2.0 非商業使用免費。{link:download} 開啟 GitHub Releases 上最新的磁碟映像。",
+    "statusReady": "ScreenClip 1.2.1 非商業使用免費。{link:download} 開啟 GitHub Releases 上最新的磁碟映像。",
     "statusSoon": "ScreenClip 即將推出，目前尚未開放下載。",
     "issues": "如需回報問題或提問，請前往 {link:issues}。請註明 macOS 版本、使用的代理程式及實際狀況。分享截圖前，請先遮蓋私人資訊。",
     "issuesMissing": "公開支援尚未提供。",
