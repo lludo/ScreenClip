@@ -198,6 +198,7 @@ extension AgentWorker {
       for issue in model.snapshot.issues where Self.awaitsMergeOutsideScreenClip(issue) {
         await refreshStalledPR(issue.id)
       }
+      await closeReportsFixedElsewhere(force: discoverInterval == 0)
     }
     for issue in model.snapshot.issues where issue.status == .prOpen { await refreshPR(issue.id) }
   }
@@ -621,11 +622,13 @@ extension AgentWorker {
       $0.record(summary)
     }
   }
-  func recordMerge(_ id: UUID, commit: String?, coveredRevision: Int) throws {
+  /// `cleanUp` is false when the merged fix came from another branch: the report's
+  /// worktree and branch are then left for the tester, who archives the report.
+  func recordMerge(_ id: UUID, commit: String?, coveredRevision: Int, cleanUp: Bool = true) throws {
     let finished = model.issue(id)
     defer {
       // The merged fix no longer needs its checkout; free the disk and the local branch.
-      if let finished, let path = finished.worktreePath,
+      if cleanUp, let finished, let path = finished.worktreePath,
         let project = model.project(finished.projectID)
       {
         Task { await removeWorkspace(id, path: path, branch: finished.branch, project: project) }

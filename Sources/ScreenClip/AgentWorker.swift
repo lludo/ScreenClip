@@ -24,6 +24,8 @@ import ScreenClipCore
   /// How long a head's rollup must stay empty before it counts as having no checks.
   var emptyRollupGrace: TimeInterval = 180
   var lastExternalDiscovery = Date.distantPast
+  /// When each project's merged pull requests were last searched for reports fixed elsewhere.
+  var lastExternalFixSearch: [UUID: Date] = [:]
   /// The run that currently owns each Grok Bot report. Cancel clears it, so a run still in
   /// flight stops at its next check and cannot remove a later run's job after a retry.
   var externalRuns: [UUID: UUID] = [:]
@@ -302,11 +304,41 @@ import ScreenClipCore
       guard let issue = model.issue(closure.issueID), !issue.archived,
         ![.merged, .verified, .canceled].contains(issue.status)
       else { continue }
-      if isActive(issue.id) || issue.status == .working { await cancel(issue.id) }
+      // "Done" with a pull request counts only once GitHub confirms that pull request is merged
+      // into the project's base branch, in the project's own repository.
+      var verified = false, verifiedCommit: String?
+      if closure.resolution == .done, let pullRequest = closure.pullRequest {
+        let refusal: String?
+        if let project = model.project(issue.projectID) {
+          (refusal, verifiedCommit) = await refusalForMergedPullRequest(pullRequest, project: project)
+        } else {
+          refusal = "The report has no project, so the pull request cannot be checked."
+        }
+        if let refusal {
+          model.perform {
+            try model.updateIssue(closure.issueID) {
+              $0.unread = true
+              $0.record(
+                "Not closed: \(refusal) The report stays as it was.\n\(closure.summary)",
+                kind: "agent-closure")
+            }
+          }
+          continue
+        }
+        verified = true
+        // The tester may have finished or archived the report while GitHub was checked.
+        guard let current = model.issue(closure.issueID), !current.archived,
+          ![.merged, .verified, .canceled].contains(current.status)
+        else { continue }
+      }
+      if isActive(issue.id) || model.issue(issue.id)?.status == .working { await cancel(issue.id) }
       model.perform {
         try model.updateIssue(closure.issueID) {
-          if let pullRequest = closure.pullRequest, $0.prURL == nil { $0.prURL = pullRequest }
-          if let commit = closure.commit { $0.mergeCommit = commit }
+          if let pullRequest = closure.pullRequest {
+            // A verified pull request is the fix, even over ScreenClip's own unmerged one.
+            if verified || $0.prURL == nil { $0.prURL = pullRequest }
+          }
+          if let commit = closure.commit ?? verifiedCommit { $0.mergeCommit = commit }
           $0.lastError = nil
           $0.validationFeedback = nil
           $0.dispatchUncertain = false

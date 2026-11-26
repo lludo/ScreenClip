@@ -500,14 +500,15 @@ import XCTest
     try model.updateIssue(duplicate) { $0.record("waiting", status: .needsYou) }
     try AgentClosureInbox.write(
       AgentClosure(
-        issueID: done, resolution: .done, pullRequest: "https://github.com/o/r/pull/7",
-        summary: "Fixed in my own PR.", closer: "claude-code"), root: model.store.root)
+        issueID: done, resolution: .done, commit: "abc1234",
+        summary: "Fixed in my own commit.", closer: "claude-code"), root: model.store.root)
     try AgentClosureInbox.write(
       AgentClosure(issueID: duplicate, resolution: .canceled, summary: "Duplicate."),
       root: model.store.root)
     await model.worker.applyAgentClosures()
     XCTAssertEqual(model.issue(done)?.status, .merged)
-    XCTAssertEqual(model.issue(done)?.prURL, "https://github.com/o/r/pull/7")
+    // A commit is recorded as given; a pull request is checked with GitHub (PRRefreshTests).
+    XCTAssertEqual(model.issue(done)?.mergeCommit, "abc1234")
     XCTAssertTrue(model.issue(done)?.activities.last?.text.contains("Closed by claude-code") == true)
     XCTAssertEqual(model.issue(duplicate)?.status, .canceled)
     XCTAssertTrue(AgentClosureInbox.load(root: model.store.root).isEmpty)
