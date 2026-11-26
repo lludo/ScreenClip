@@ -7,6 +7,33 @@ import ScreenClipWire
 import UIKit
 
 @MainActor final class ScreenClipKitTests: XCTestCase {
+  func testCaptureKeepsTheFullImageAndTheScenesCornerGeometry() throws {
+    let scene = try XCTUnwrap(Snapshot.activeScene())
+    let host = try XCTUnwrap(Snapshot.appWindow(in: scene, excluding: []))
+    let snapshot = try XCTUnwrap(Snapshot.capture(in: scene, excluding: []))
+    XCTAssertTrue(host.isKeyWindow)
+    XCTAssertEqual(snapshot.image.size, scene.coordinateSpace.bounds.size)
+    let original = try XCTUnwrap(snapshot.image.cgImage)
+    let exported = try XCTUnwrap(AnnotationDrawing.renderPNG(image: original, marks: []))
+    let output = try XCTUnwrap(UIImage(data: exported)?.cgImage)
+    XCTAssertEqual(output.width, original.width)
+    XCTAssertEqual(output.height, original.height)
+    #if compiler(>=6.2)
+      if #available(iOS 26.0, *) {
+        let reference = UIView(frame: host.bounds)
+        reference.cornerConfiguration = .corners(radius: .containerConcentric())
+        host.addSubview(reference)
+        defer { reference.removeFromSuperview() }
+        XCTAssertEqual(snapshot.cornerRadii.topLeading, reference.effectiveRadius(corner: .topLeft))
+        XCTAssertEqual(snapshot.cornerRadii.topTrailing, reference.effectiveRadius(corner: .topRight))
+        XCTAssertEqual(snapshot.cornerRadii.bottomLeading, reference.effectiveRadius(corner: .bottomLeft))
+        XCTAssertEqual(snapshot.cornerRadii.bottomTrailing, reference.effectiveRadius(corner: .bottomRight))
+        return
+      }
+    #endif
+    XCTAssertEqual(snapshot.cornerRadii, .init())
+  }
+
   private func temporaryDirectory() -> URL {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     addTeardownBlock { try FileManager.default.removeItem(at: directory) }

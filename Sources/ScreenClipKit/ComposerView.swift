@@ -40,7 +40,7 @@
   }
 
   struct ComposerView: View {
-    let image: UIImage
+    let snapshot: Snapshot
     let link: MacLink
     let outbox: Outbox
     let followUp: FollowUpTarget
@@ -58,9 +58,10 @@
         VStack(spacing: 0) {
           HStack(spacing: 4) {
             AnnotationPalette { colorButtons }
-            AnnotationCanvasView(image: image, model: model)
+            AnnotationCanvasView(snapshot: snapshot, model: model)
             AnnotationPalette { toolButtons }
           }
+          .environment(\.layoutDirection, .leftToRight)
           .padding(4)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
           .background(Color.black)
@@ -130,7 +131,7 @@
               saving = true
               Task { @MainActor in
                 defer { saving = false }
-                guard let image = image.cgImage, let png = AnnotationDrawing.renderPNG(image: image, marks: model.marks) else {
+                guard let image = snapshot.image.cgImage, let png = AnnotationDrawing.renderPNG(image: image, marks: model.marks) else {
                   saveError = "Could not render the annotated screenshot."
                   return
                 }
@@ -282,38 +283,38 @@
 
   /// The screenshot with marks drawn by the shared renderer. Points are fractions of the image.
   struct AnnotationCanvasView: View {
-    let image: UIImage
+    let snapshot: Snapshot
     let model: ComposerModel
 
     var body: some View {
       GeometryReader { proxy in
-        let rect = fittedRect(in: proxy.size)
-        ZStack(alignment: .topLeading) {
-          Image(uiImage: image).resizable().frame(width: rect.width, height: rect.height)
-            .offset(x: rect.minX, y: rect.minY)
+        let image = snapshot.image
+        let scale = min(proxy.size.width / image.size.width, proxy.size.height / image.size.height)
+        let rect = CGRect(x: 0, y: 0, width: image.size.width * scale, height: image.size.height * scale)
+        let radii = snapshot.cornerRadii
+        let shape = UnevenRoundedRectangle(cornerRadii: RectangleCornerRadii(
+          topLeading: radii.topLeading * scale, bottomLeading: radii.bottomLeading * scale,
+          bottomTrailing: radii.bottomTrailing * scale, topTrailing: radii.topTrailing * scale),
+          style: .continuous)
+        ZStack {
+          Image(uiImage: image).resizable()
           Canvas { context, _ in
             let marks = model.marks + (model.draft.map { [$0] } ?? [])
             context.withCGContext { cg in AnnotationDrawing.draw(marks, in: rect, context: cg) }
           }
           .allowsHitTesting(false)
         }
-        .contentShape(Rectangle())
+        .frame(width: rect.width, height: rect.height)
+        .clipShape(shape)
+        .contentShape(shape)
         .gesture(
           DragGesture(minimumDistance: 0)
             .onChanged { value in changed(value, rect: rect) }
             .onEnded { value in ended(value, rect: rect) })
+        .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
       }
       .accessibilityLabel("Screenshot. Draw to annotate.")
       .accessibilityIdentifier("screenclip.canvas")
-    }
-
-    private func fittedRect(in size: CGSize) -> CGRect {
-      guard image.size.width > 0, image.size.height > 0 else { return CGRect(origin: .zero, size: size) }
-      let scale = min(size.width / image.size.width, size.height / image.size.height)
-      let fitted = CGSize(width: image.size.width * scale, height: image.size.height * scale)
-      return CGRect(
-        x: (size.width - fitted.width) / 2, y: (size.height - fitted.height) / 2, width: fitted.width,
-        height: fitted.height)
     }
 
     private func point(_ location: CGPoint, rect: CGRect) -> MarkPoint {

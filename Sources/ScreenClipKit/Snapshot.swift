@@ -1,8 +1,12 @@
 #if os(iOS) && DEBUG
   import ScreenClipWire
+  import SwiftUI
   import UIKit
 
-  @MainActor enum Snapshot {
+  @MainActor struct Snapshot {
+    let image: UIImage
+    let cornerRadii: RectangleCornerRadii
+
     static func activeScene() -> UIWindowScene? {
       let scenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
       return scenes.first { $0.activationState == .foregroundActive }
@@ -10,7 +14,7 @@
     }
 
     /// The app's windows in the scene, composited bottom to top, without ScreenClip's own.
-    static func image(of scene: UIWindowScene, excluding: [UIWindow]) -> UIImage? {
+    static func capture(in scene: UIWindowScene, excluding: [UIWindow]) -> Snapshot? {
       let windows = scene.windows
         .filter { window in !window.isHidden && window.alpha > 0 && !excluding.contains(where: { $0 === window }) }
         .sorted { $0.windowLevel < $1.windowLevel }
@@ -19,7 +23,7 @@
       let format = UIGraphicsImageRendererFormat()
       format.scale = scene.screen.scale
       format.opaque = true
-      return UIGraphicsImageRenderer(bounds: bounds, format: format).image { context in
+      let image = UIGraphicsImageRenderer(bounds: bounds, format: format).image { context in
         UIColor.black.setFill()
         context.fill(bounds)
         for window in windows {
@@ -35,6 +39,24 @@
           context.cgContext.restoreGState()
         }
       }
+      return Snapshot(image: image, cornerRadii: sceneCornerRadii(in: scene))
+    }
+
+    private static func sceneCornerRadii(in scene: UIWindowScene) -> RectangleCornerRadii {
+      #if compiler(>=6.2)
+        if #available(iOS 26.0, *) {
+          // A hidden window fills this scene and resolves its container corners without
+          // changing the host window or making another window key.
+          let window = UIWindow(windowScene: scene)
+          window.cornerConfiguration = .corners(radius: .containerConcentric())
+          return RectangleCornerRadii(
+            topLeading: window.effectiveRadius(corner: .topLeft),
+            bottomLeading: window.effectiveRadius(corner: .bottomLeft),
+            bottomTrailing: window.effectiveRadius(corner: .bottomRight),
+            topTrailing: window.effectiveRadius(corner: .topRight))
+        }
+      #endif
+      return RectangleCornerRadii()
     }
 
     /// The app's main window in the scene: the key window unless it is ScreenClip's own.
