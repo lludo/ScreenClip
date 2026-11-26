@@ -179,6 +179,25 @@ import SwiftUI
       try bitmap.representation(using: .png, properties: [:])?.write(
         to: root.appendingPathComponent("settings-preview.png"))
     }
+    if let project = model.snapshot.projects.first {
+      // The sheet form of the editor, shown from Settings > Projects > Edit.
+      for scheme in [ColorScheme.light, .dark] {
+        let host = NSHostingView(
+          rootView: ProjectEditor(model: model, project: project)
+            .background(scheme == .light ? Color.white : Color(white: 0.16)).preferredColorScheme(scheme))
+        window.contentView = host
+        window.setContentSize(host.fittingSize)
+        window.display()
+        RunLoop.main.run(until: Date().addingTimeInterval(0.5))
+        if let view = window.contentView,
+          let bitmap = view.bitmapImageRepForCachingDisplay(in: view.bounds)
+        {
+          view.cacheDisplay(in: view.bounds, to: bitmap)
+          try bitmap.representation(using: .png, properties: [:])?.write(
+            to: root.appendingPathComponent("project-editor-\(scheme == .light ? "light" : "dark")-preview.png"))
+        }
+      }
+    }
     window.setContentSize(NSSize(width: 370, height: 440))
     for scheme in [ColorScheme.light, .dark] {
       window.contentView = NSHostingView(
