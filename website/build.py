@@ -603,10 +603,11 @@ def check_output(config, pages):
     joined = text + (DIST / "sitemap.xml").read_text() + (DIST / "manifest.webmanifest").read_text()
     if "0.99" in joined or "App Store" in text:
         raise SystemExit("App Store copy leaked into the site")
+    download_button = re.search(r'<a class="button button-primary" href="[^"]*">Download for Mac</a>', text)
     if config.download_url:
-        if "Download for Mac (free)" not in text:
+        if not download_button:
             raise SystemExit("downloadUrl is set, but the download label is missing")
-    elif "Download for Mac (free)" in text:
+    elif download_button:
         raise SystemExit("Download label rendered without downloadUrl")
     if config.donate_url:
         if "Support the project" not in text:
@@ -882,7 +883,7 @@ def self_test():
     if "offers" in unavailable or "downloadUrl" in unavailable:
         raise SystemExit("Unreleased site must not advertise a download offer")
     free_actions = render_actions(free)
-    if "Download for Mac (free)" not in free_actions:
+    if ">Download for Mac</a>" not in free_actions:
         raise SystemExit("Download label missing")
     if "Support the project" in render_actions(free):
         raise SystemExit("Donate link rendered while empty")
