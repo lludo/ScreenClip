@@ -48,6 +48,9 @@ import ScreenClipCore
   /// The revision each report already continued automatically after a time limit, so a turn
   /// that keeps hanging stops for the tester instead of looping.
   var timeoutContinuations: [UUID: Int] = [:]
+  /// One pass over the close requests at a time: a pass can wait on GitHub or `git fetch`, and
+  /// the next timer tick must not apply the same request again meanwhile.
+  var applyingClosures = false
   /// A Codex request left unanswered this long is answered for an absent tester. 0 disables.
   var questionTimeLimit: TimeInterval {
     TimeInterval(model.snapshot.settings.unattendedAnswerDelay * 60)
@@ -317,7 +320,11 @@ import ScreenClipCore
     if trimmed.hasPrefix("Validation failed") || trimmed.hasPrefix("Project validation failed") {
       return false
     }
-    if trimmed.hasPrefix("You've reached your") || trimmed.hasPrefix("You’ve reached your") {
+    let usagePrefixes = [
+      "You've reached your", "You’ve reached your", "You've hit your", "You’ve hit your",
+      "Claude AI usage limit reached", "5-hour limit reached", "Weekly limit reached",
+    ]
+    if usagePrefixes.contains(where: { trimmed.hasPrefix($0) }) {
       return AgentDetector.isUsageLimitError(trimmed)
     }
     if trimmed.hasPrefix("Claude Code did not finish within")
@@ -333,6 +340,9 @@ import ScreenClipCore
   /// leaving it blocked. A running turn for that report is stopped first. The worktree and branch
   /// stay, since the agent's own PR may still need them.
   func applyAgentClosures() async {
+    guard !applyingClosures else { return }
+    applyingClosures = true
+    defer { applyingClosures = false }
     for closure in AgentClosureInbox.load(root: model.store.root) {
       // A report being validated or published keeps the request for a later tick: closing it
       // mid-publish would be undone when the publish stops and records its own outcome.
@@ -348,9 +358,11 @@ import ScreenClipCore
         let refusal: String?
         if let project = model.project(issue.projectID) {
           if let pullRequest = closure.pullRequest {
-            (refusal, verifiedCommit) = await refusalForMergedPullRequest(pullRequest, project: project)
+            (refusal, verifiedCommit) = await refusalForMergedPullRequest(
+              pullRequest, project: project, after: ExternalFix.latestEvidence(issue))
           } else {
-            refusal = await refusalForLandedCommit(closure.commit ?? "", project: project)
+            refusal = await refusalForLandedCommit(
+              closure.commit ?? "", project: project, after: ExternalFix.latestEvidence(issue))
           }
         } else {
           refusal = "The report has no project, so the fix cannot be checked."
@@ -372,6 +384,11 @@ import ScreenClipCore
           ![.merged, .verified, .canceled].contains(current.status)
         else { continue }
       }
+      // A publish may have started while GitHub or git was checked: try again on a later tick.
+      if finishing.contains(closure.issueID) || publishing.contains(closure.issueID) {
+        try? AgentClosureInbox.write(closure, root: model.store.root)
+        continue
+      }
       if isActive(issue.id) || model.issue(issue.id)?.status == .working { await cancel(issue.id) }
       model.perform {
         try model.updateIssue(closure.issueID) {
@@ -379,7 +396,8 @@ import ScreenClipCore
             // A verified pull request is the fix, even over ScreenClip's own unmerged one.
             if verified || $0.prURL == nil { $0.prURL = pullRequest }
           }
-          if let commit = closure.commit ?? verifiedCommit { $0.mergeCommit = commit }
+          if let commit = verifiedCommit ?? closure.commit { $0.mergeCommit = commit }
+          $0.handover = nil
           $0.lastError = nil
           $0.validationFeedback = nil
           $0.dispatchUncertain = false
@@ -397,7 +415,7 @@ import ScreenClipCore
   }
   /// Why `commit` does not count as a landed fix, or nil when it is on the project's base branch
   /// on `origin`. A commit only in a local worktree has not landed.
-  func refusalForLandedCommit(_ commit: String, project: Project) async -> String? {
+  func refusalForLandedCommit(_ commit: String, project: Project, after evidence: Date) async -> String? {
     guard !commit.isEmpty else { return "A done close needs a pull request or a commit." }
     _ = try? await CommandRunner.run(
       GitWorkspace.git, ["fetch", "--quiet", "origin", project.baseBranch], cwd: project.path,
@@ -407,6 +425,12 @@ import ScreenClipCore
       ["merge-base", "--is-ancestor", commit, "origin/" + project.baseBranch], cwd: project.path)
     guard result?.status == 0 else {
       return "Commit \(commit) is not on \(project.baseBranch) on origin."
+    }
+    // A commit from before the report's newest evidence cannot fix what that evidence shows.
+    let time = try? await CommandRunner.checked(
+      GitWorkspace.git, ["show", "-s", "--format=%ct", commit], cwd: project.path)
+    if let seconds = time.flatMap(TimeInterval.init), Date(timeIntervalSince1970: seconds) < evidence.addingTimeInterval(-300) {
+      return "Commit \(commit) is older than the report's latest evidence."
     }
     return nil
   }

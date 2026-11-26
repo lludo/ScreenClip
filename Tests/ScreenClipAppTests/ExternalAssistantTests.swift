@@ -13,7 +13,7 @@ import XCTest
       AgentDetection(kind: .codex, path: "/codex", version: "1", signedIn: nil, detail: "Codex 1"),
       AgentDetection(
         kind: .external, path: "", version: nil, signedIn: false,
-        detail: "Not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant."
+        detail: "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant."
       ),
     ]
     XCTAssertEqual(model.availableAgents, [.codex, .external])

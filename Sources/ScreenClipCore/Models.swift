@@ -502,8 +502,10 @@ public struct Issue: Codable, Identifiable, Equatable {
       handoffCommit = nil
       handoffRevision = nil
       handoffAttempts = nil
-      // The follow-up runs in a new worktree, so the agent gets the full prompt again.
+      // The follow-up runs in a new worktree, so the agent gets the full prompt again, and an
+      // earlier handover no longer describes what is in it.
       deliveredContext = nil
+      handover = nil
     }
   }
   /// Sets a failure for the agent's next turn. A resumed turn only sends feedback that differs

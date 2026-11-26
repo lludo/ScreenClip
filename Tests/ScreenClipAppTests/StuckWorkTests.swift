@@ -510,20 +510,24 @@ import XCTest
   func testAgentCloseRequestClosesTheReport() async throws {
     let model = try makeModel()
     let repo = try XCTUnwrap(model.snapshot.projects.first?.path)
-    // The project's origin has the landed commit; a second commit exists only locally.
-    let origin = root.appendingPathComponent("origin.git").path
-    _ = try git(["init", "-q", "--bare", origin], in: root.path)
-    _ = try git(["remote", "add", "origin", origin], in: repo)
-    _ = try git(["push", "-q", "origin", "main"], in: repo)
-    let landed = try git(["rev-parse", "HEAD"], in: repo)
-    _ = try git(
-      ["-c", "user.name=T", "-c", "user.email=t@example.invalid", "commit", "-q", "--allow-empty",
-       "-m", "local"], in: repo)
-    let local = try git(["rev-parse", "HEAD"], in: repo)
-
     let done = try submit(model, agent: .claude)
     let unpushed = try submit(model, agent: .claude)
     let duplicate = try submit(model, agent: .claude)
+    // The project's origin has the landed commit; a second commit exists only locally.
+    let commit = { (message: String) in
+      try self.git(
+        ["-c", "user.name=T", "-c", "user.email=t@example.invalid", "commit", "-q", "--allow-empty",
+         "-m", message], in: repo)
+    }
+    let origin = root.appendingPathComponent("origin.git").path
+    _ = try git(["init", "-q", "--bare", origin], in: root.path)
+    _ = try git(["remote", "add", "origin", origin], in: repo)
+    try commit("fix")
+    _ = try git(["push", "-q", "origin", "main"], in: repo)
+    let landed = try git(["rev-parse", "HEAD"], in: repo)
+    try commit("local")
+    let local = try git(["rev-parse", "HEAD"], in: repo)
+
     for id in [done, unpushed] { try model.updateIssue(id) { $0.record("failed", status: .failed) } }
     try model.updateIssue(duplicate) { $0.record("waiting", status: .needsYou) }
     try AgentClosureInbox.write(
@@ -597,6 +601,10 @@ import XCTest
     XCTAssertFalse(AgentDetector.isUsageLimitError("Context limit reached · /compact or /clear to continue"))
     XCTAssertFalse(AgentDetector.isUsageLimitError("API Error: 529 {\"type\":\"overloaded_error\"}"))
     XCTAssertFalse(AgentDetector.isUsageLimitError("Retry limit reached"))
+    XCTAssertTrue(AgentDetector.isUsageLimitError("5-hour limit reached ∙ resets 1am"))
+    XCTAssertTrue(AgentDetector.isUsageLimitError("Weekly limit reached ∙ resets Mon 9am"))
+    XCTAssertTrue(AgentWorker.isTransientFailure("You've hit your usage limit. Try again later."))
+    XCTAssertTrue(AgentWorker.isTransientFailure("Claude AI usage limit reached|1764000000"))
     XCTAssertEqual(AgentModelCatalog.claudeFallbacks(after: "haiku"), [])
     XCTAssertTrue(AgentWorker.isTimeLimitError("Claude Code did not finish within 120 minutes and was stopped."))
     XCTAssertFalse(AgentWorker.isTimeLimitError("Claude Code reported an error."))

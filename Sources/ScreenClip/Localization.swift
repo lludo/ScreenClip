@@ -235,6 +235,11 @@ enum ActivityPatterns {
         locale: locale,
         comment: "Activity log for an automatic repair. First %lld is the attempt, second is the limit.")
     }
+    if let url = capture(#"^Fixed outside ScreenClip by (\S+), which is merged\.$"#, text) {
+      return Chrome.format(
+        "activity.fixedOutside", "Fixed outside ScreenClip by \(url), which is merged.", locale: locale,
+        comment: "Activity log. %@ is a pull request URL and stays unchanged. Keep ScreenClip.")
+    }
     if let url = remainder("Previous fix: ", text) {
       return Chrome.format(
         "activity.previousFix", "Previous fix: \(url)", locale: locale,

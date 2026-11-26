@@ -10693,68 +10693,68 @@
         }
       }
     },
-    "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant.": {
+    "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant."
+            "value": "Grok Bot is not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot 未配置。请在“设置 → AI 代理 → 外部助手”中添加 Webhook URL 和 Authorization 标头。"
+            "value": "Grok Bot 未配置。请在“设置 → 连接 → 外部助手”中添加 Webhook URL 和 Authorization 标头。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot no está configurado. Añade la URL del webhook y el encabezado Authorization en Ajustes → Agentes de IA → Asistente externo."
+            "value": "Grok Bot no está configurado. Añade la URL del webhook y el encabezado Authorization en Ajustes → Conexiones → Asistente externo."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot は未設定です。設定 → AI エージェント → 外部アシスタントで Webhook URL と Authorization ヘッダーを追加してください。"
+            "value": "Grok Bot は未設定です。設定 → 接続 → 外部アシスタントで Webhook URL と Authorization ヘッダーを追加してください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "O Grok Bot não está configurado. Adicione a URL do webhook e o cabeçalho Authorization em Ajustes → Agentes de IA → Assistente externo."
+            "value": "O Grok Bot não está configurado. Adicione a URL do webhook e o cabeçalho Authorization em Ajustes → Conexões → Assistente externo."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot ist nicht konfiguriert. Füge Webhook-URL und Authorization-Header unter Einstellungen → KI-Agenten → Externer Assistent hinzu."
+            "value": "Grok Bot ist nicht konfiguriert. Füge Webhook-URL und Authorization-Header unter Einstellungen → Verbindungen → Externer Assistent hinzu."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot n’est pas configuré. Ajoutez l’URL du webhook et l’en-tête Authorization dans Réglages → Agents IA → Assistant externe."
+            "value": "Grok Bot n’est pas configuré. Ajoutez l’URL du webhook et l’en-tête Authorization dans Réglages → Connexions → Assistant externe."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot이 구성되지 않았습니다. 설정 → AI 에이전트 → 외부 도우미에서 Webhook URL과 Authorization 헤더를 추가하세요."
+            "value": "Grok Bot이 구성되지 않았습니다. 설정 → 연결 → 외부 도우미에서 Webhook URL과 Authorization 헤더를 추가하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot не настроен. Добавьте URL вебхука и заголовок Authorization в Настройки → ИИ-агенты → Внешний ассистент."
+            "value": "Grok Bot не настроен. Добавьте URL вебхука и заголовок Authorization в Настройки → Подключения → Внешний ассистент."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grok Bot 未設定。請在「設定 → AI 代理 → 外部助手」中加入 Webhook URL 和 Authorization 標頭。"
+            "value": "Grok Bot 未設定。請在「設定 → 連線 → 外部助手」中加入 Webhook URL 和 Authorization 標頭。"
           }
         }
       }
@@ -14191,134 +14191,134 @@
         }
       }
     },
-    "Not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant.": {
+    "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not configured. Add the webhook URL and Authorization header in Settings → AI Agents → External assistant."
+            "value": "Not configured. Add the webhook URL and Authorization header in Settings → Connections → External assistant."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未配置。请在“设置 → AI 代理 → 外部助手”中添加 Webhook URL 和 Authorization 标头。"
+            "value": "未配置。请在“设置 → 连接 → 外部助手”中添加 Webhook URL 和 Authorization 标头。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No configurado. Añade la URL del webhook y el encabezado Authorization en Ajustes → Agentes de IA → Asistente externo."
+            "value": "No configurado. Añade la URL del webhook y el encabezado Authorization en Ajustes → Conexiones → Asistente externo."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "未設定です。設定 → AI エージェント → 外部アシスタントで Webhook URL と Authorization ヘッダーを追加してください。"
+            "value": "未設定です。設定 → 接続 → 外部アシスタントで Webhook URL と Authorization ヘッダーを追加してください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não configurado. Adicione a URL do webhook e o cabeçalho Authorization em Ajustes → Agentes de IA → Assistente externo."
+            "value": "Não configurado. Adicione a URL do webhook e o cabeçalho Authorization em Ajustes → Conexões → Assistente externo."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht konfiguriert. Füge Webhook-URL und Authorization-Header unter Einstellungen → KI-Agenten → Externer Assistent hinzu."
+            "value": "Nicht konfiguriert. Füge Webhook-URL und Authorization-Header unter Einstellungen → Verbindungen → Externer Assistent hinzu."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non configuré. Ajoutez l’URL du webhook et l’en-tête Authorization dans Réglages → Agents IA → Assistant externe."
+            "value": "Non configuré. Ajoutez l’URL du webhook et l’en-tête Authorization dans Réglages → Connexions → Assistant externe."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "구성되지 않았습니다. 설정 → AI 에이전트 → 외부 도우미에서 Webhook URL과 Authorization 헤더를 추가하세요."
+            "value": "구성되지 않았습니다. 설정 → 연결 → 외부 도우미에서 Webhook URL과 Authorization 헤더를 추가하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не настроено. Добавьте URL вебхука и заголовок Authorization в Настройки → ИИ-агенты → Внешний ассистент."
+            "value": "Не настроено. Добавьте URL вебхука и заголовок Authorization в Настройки → Подключения → Внешний ассистент."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "未設定。請在「設定 → AI 代理 → 外部助手」中加入 Webhook URL 和 Authorization 標頭。"
+            "value": "未設定。請在「設定 → 連線 → 外部助手」中加入 Webhook URL 和 Authorization 標頭。"
           }
         }
       }
     },
-    "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → AI Agents → External assistant.": {
+    "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → Connections → External assistant.": {
       "comment": "ScreenClip interface text.",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → AI Agents → External assistant."
+            "value": "Not configured. The webhook URL must be an http or https address, and the Authorization header value is required. Edit them in Settings → Connections → External assistant."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未配置。Webhook URL 必须是 http 或 https 地址，并且必须填写 Authorization 标头。请在“设置 → AI 代理 → 外部助手”中修改。"
+            "value": "未配置。Webhook URL 必须是 http 或 https 地址，并且必须填写 Authorization 标头。请在“设置 → 连接 → 外部助手”中修改。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "No configurado. La URL del webhook debe ser http o https, y el encabezado Authorization es obligatorio. Edítalos en Ajustes → Agentes de IA → Asistente externo."
+            "value": "No configurado. La URL del webhook debe ser http o https, y el encabezado Authorization es obligatorio. Edítalos en Ajustes → Conexiones → Asistente externo."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "未設定です。Webhook URL は http または https で、Authorization ヘッダーの値も必要です。設定 → AI エージェント → 外部アシスタントで編集してください。"
+            "value": "未設定です。Webhook URL は http または https で、Authorization ヘッダーの値も必要です。設定 → 接続 → 外部アシスタントで編集してください。"
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Não configurado. A URL do webhook precisa ser http ou https, e o valor do cabeçalho Authorization é obrigatório. Edite em Ajustes → Agentes de IA → Assistente externo."
+            "value": "Não configurado. A URL do webhook precisa ser http ou https, e o valor do cabeçalho Authorization é obrigatório. Edite em Ajustes → Conexões → Assistente externo."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht konfiguriert. Die Webhook-URL muss http oder https sein, und der Authorization-Header ist erforderlich. Bearbeite beides unter Einstellungen → KI-Agenten → Externer Assistent."
+            "value": "Nicht konfiguriert. Die Webhook-URL muss http oder https sein, und der Authorization-Header ist erforderlich. Bearbeite beides unter Einstellungen → Verbindungen → Externer Assistent."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Non configuré. L’URL du webhook doit être en http ou https, et la valeur de l’en-tête Authorization est requise. Modifiez-les dans Réglages → Agents IA → Assistant externe."
+            "value": "Non configuré. L’URL du webhook doit être en http ou https, et la valeur de l’en-tête Authorization est requise. Modifiez-les dans Réglages → Connexions → Assistant externe."
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "구성되지 않았습니다. Webhook URL은 http 또는 https여야 하고 Authorization 헤더 값이 필요합니다. 설정 → AI 에이전트 → 외부 도우미에서 수정하세요."
+            "value": "구성되지 않았습니다. Webhook URL은 http 또는 https여야 하고 Authorization 헤더 값이 필요합니다. 설정 → 연결 → 외부 도우미에서 수정하세요."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Не настроено. URL вебхука должен быть http или https, и нужен заголовок Authorization. Измените их в Настройки → ИИ-агенты → Внешний ассистент."
+            "value": "Не настроено. URL вебхука должен быть http или https, и нужен заголовок Authorization. Измените их в Настройки → Подключения → Внешний ассистент."
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "未設定。Webhook URL 必須是 http 或 https 位址，並且必須填寫 Authorization 標頭。請在「設定 → AI 代理 → 外部助手」中修改。"
+            "value": "未設定。Webhook URL 必須是 http 或 https 位址，並且必須填寫 Authorization 標頭。請在「設定 → 連線 → 外部助手」中修改。"
           }
         }
       }
@@ -44265,6 +44265,72 @@
           "stringUnit": {
             "state": "translated",
             "value": "檢查失敗；開始第 %lld 次修復，共 %lld 次"
+          }
+        }
+      }
+    },
+    "activity.fixedOutside": {
+      "comment": "Activity log. %@ is a pull request URL and stays unchanged. Keep ScreenClip.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixed outside ScreenClip by %@, which is merged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在 ScreenClip 之外由 %@ 修复，该请求已合并。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corregido fuera de ScreenClip con %@, que ya está fusionada."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip の外で %@ により修正され、マージ済みです。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corrigido fora do ScreenClip por %@, que já foi mesclado."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Außerhalb von ScreenClip durch %@ behoben, der gemergt ist."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Corrigé en dehors de ScreenClip par %@, qui est fusionnée."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ScreenClip 밖에서 %@(으)로 수정되었으며 병합되었습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Исправлено вне ScreenClip в %@, который слит."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已在 ScreenClip 之外由 %@ 修復，該請求已合併。"
           }
         }
       }

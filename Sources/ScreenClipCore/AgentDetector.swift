@@ -199,6 +199,12 @@ public enum AgentDetector {
     {
       return true
     }
+    // Claude Code's plan limits: "5-hour limit reached ∙ resets 1am", "Weekly limit reached".
+    if lower.range(of: #"\b(5-hour|five-hour|weekly|daily|session) limit reached"#, options: .regularExpression)
+      != nil || (lower.contains("limit reached") && lower.contains("resets"))
+    {
+      return true
+    }
     return ["usage limit", "hit your limit", "out of usage credits", "quota exceeded"]
       .contains { lower.contains($0) }
   }
