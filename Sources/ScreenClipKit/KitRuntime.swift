@@ -92,7 +92,7 @@
     private func capture(in scene: UIWindowScene?, offerFirst: Bool = false) {
       guard !overlay.isPresentingSheet, let scene else { return }
       overlay.dismissToast()
-      guard let image = Snapshot.image(of: scene, excluding: overlay.windows)
+      guard let snapshot = Snapshot.capture(in: scene, excluding: overlay.windows)
       else {
         kitLog.error("ScreenClipKit could not find a visible window to capture.")
         return
@@ -111,19 +111,19 @@
       if let console = ConsoleCapture.shared.file() { immediate.append(console) }
       if offerFirst {
         overlay.toast("Report this screen to ScreenClip?", in: scene, action: "Report") { [weak self] in
-          self?.compose(image: image, in: scene, device: device, capturedAt: capturedAt, immediate: immediate)
+          self?.compose(snapshot: snapshot, in: scene, device: device, capturedAt: capturedAt, immediate: immediate)
         }
       } else {
-        compose(image: image, in: scene, device: device, capturedAt: capturedAt, immediate: immediate)
+        compose(snapshot: snapshot, in: scene, device: device, capturedAt: capturedAt, immediate: immediate)
       }
     }
 
-    private func compose(image: UIImage, in scene: UIWindowScene, device: DeviceContext, capturedAt: Date, immediate: [DiagnosticFile]) {
+    private func compose(snapshot: Snapshot, in scene: UIWindowScene, device: DeviceContext, capturedAt: Date, immediate: [DiagnosticFile]) {
       guard !overlay.isPresentingSheet, scene.activationState == .foregroundActive else { return }
       let logs = Task.detached(priority: .utility) { Diagnostics.recentLogs(until: capturedAt) }
       overlay.presentSheet(in: scene) { dismiss in
         ComposerView(
-          image: image, link: self.link, outbox: self.outbox, followUp: self.followUp,
+          snapshot: snapshot, link: self.link, outbox: self.outbox, followUp: self.followUp,
           stillBroken: { [weak self] entry in self?.followUp.entry = entry }
         ) { note, png, attach in
           let target = self.followUp.entry

@@ -95,7 +95,7 @@
       var budget = 2000
       let root = node(for: window, in: window, depth: 0, budget: &budget)
       let encoder = JSONEncoder()
-      encoder.outputFormatting = [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes]
+      encoder.outputFormatting = [.sortedKeys, .withoutEscapingSlashes]
       guard let data = try? encoder.encode(root) else { return nil }
       return DiagnosticFile(
         name: "view-tree.json",

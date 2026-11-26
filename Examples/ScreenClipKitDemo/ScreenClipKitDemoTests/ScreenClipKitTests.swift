@@ -7,6 +7,34 @@ import ScreenClipWire
 import UIKit
 
 @MainActor final class ScreenClipKitTests: XCTestCase {
+  func testCaptureKeepsTheFullImageAndTheScenesCornerGeometry() throws {
+    let scene = try XCTUnwrap(Snapshot.activeScene())
+    let host = try XCTUnwrap(Snapshot.appWindow(in: scene, excluding: []))
+    let snapshot = try XCTUnwrap(Snapshot.capture(in: scene, excluding: []))
+    XCTAssertTrue(host.isKeyWindow)
+    XCTAssertEqual(snapshot.image.size, scene.coordinateSpace.bounds.size)
+    let original = try XCTUnwrap(snapshot.image.cgImage)
+    let exported = try XCTUnwrap(AnnotationDrawing.renderPNG(image: original, marks: []))
+    let output = try XCTUnwrap(UIImage(data: exported)?.cgImage)
+    XCTAssertEqual(output.width, original.width)
+    XCTAssertEqual(output.height, original.height)
+    #if compiler(>=6.2)
+      if #available(iOS 26.0, *) {
+        let reference = UIView(frame: host.bounds)
+        reference.cornerConfiguration = .corners(radius: .containerConcentric())
+        host.addSubview(reference)
+        defer { reference.removeFromSuperview() }
+        reference.layoutIfNeeded()
+        XCTAssertEqual(snapshot.cornerRadii.topLeading, reference.effectiveRadius(corner: .topLeft))
+        XCTAssertEqual(snapshot.cornerRadii.topTrailing, reference.effectiveRadius(corner: .topRight))
+        XCTAssertEqual(snapshot.cornerRadii.bottomLeading, reference.effectiveRadius(corner: .bottomLeft))
+        XCTAssertEqual(snapshot.cornerRadii.bottomTrailing, reference.effectiveRadius(corner: .bottomRight))
+        return
+      }
+    #endif
+    XCTAssertEqual(snapshot.cornerRadii, .init())
+  }
+
   private func temporaryDirectory() -> URL {
     let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
     addTeardownBlock { try FileManager.default.removeItem(at: directory) }
@@ -143,6 +171,22 @@ import UIKit
   func testDiagnosticFramesHandleSentinelCoordinates() {
     XCTAssertEqual(Diagnostics.rounded(.infinite), [0, 0, 0, 0])
     XCTAssertEqual(Diagnostics.rounded(CGRect(x: 2.5, y: -4, width: 8, height: 12)), [3, -4, 8, 12])
+  }
+
+  func testViewTreePreservesLabelsAndChildrenInCompactJSON() throws {
+    let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 320, height: 480))
+    window.isHidden = false
+    let label = UILabel()
+    label.accessibilityIdentifier = "report-note"
+    label.isAccessibilityElement = true
+    label.accessibilityLabel = "First line\nSecond line"
+    window.addSubview(label)
+    let data = try XCTUnwrap(Diagnostics.viewTree(of: window)?.data)
+    XCTAssertFalse(data.contains(0x0A))
+    let root = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [String: Any])
+    let children = try XCTUnwrap(root["children"] as? [[String: Any]])
+    let child = try XCTUnwrap(children.first { $0["id"] as? String == "report-note" })
+    XCTAssertEqual(child["label"] as? String, label.accessibilityLabel)
   }
 
   func testRedactionNeedsSeparateOptInToDiagnostics() {
