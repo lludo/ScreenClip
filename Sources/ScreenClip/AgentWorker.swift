@@ -301,56 +301,62 @@ import ScreenClipCore
   func applyAgentClosures() async {
     for closure in AgentClosureInbox.load(root: model.store.root) {
       AgentClosureInbox.remove(closure.id, root: model.store.root)
-      guard let issue = model.issue(closure.issueID), !issue.archived,
-        ![.merged, .verified, .canceled].contains(issue.status)
-      else { continue }
-      // "Done" with a pull request counts only once GitHub confirms that pull request is merged
-      // into the project's base branch, in the project's own repository.
-      var verified = false, verifiedCommit: String?
-      if closure.resolution == .done, let pullRequest = closure.pullRequest {
-        let refusal: String?
-        if let project = model.project(issue.projectID) {
-          (refusal, verifiedCommit) = await refusalForMergedPullRequest(pullRequest, project: project)
-        } else {
-          refusal = "The report has no project, so the pull request cannot be checked."
-        }
-        if let refusal {
-          model.perform {
-            try model.updateIssue(closure.issueID) {
-              $0.unread = true
-              $0.record(
-                "Not closed: \(refusal) The report stays as it was.\n\(closure.summary)",
-                kind: "agent-closure")
-            }
-          }
-          continue
-        }
-        verified = true
-        // The tester may have finished or archived the report while GitHub was checked.
-        guard let current = model.issue(closure.issueID), !current.archived,
-          ![.merged, .verified, .canceled].contains(current.status)
-        else { continue }
+      await applyClosure(closure)
+    }
+  }
+  /// The one way a report is closed from outside ScreenClip's own runs: an agent's
+  /// `close_issue`, or a merged pull request that names the report (`closeReportsFixedElsewhere`,
+  /// which found it merged already and passes `pullRequestVerified`).
+  func applyClosure(_ closure: AgentClosure, pullRequestVerified: Bool = false) async {
+    guard let issue = model.issue(closure.issueID), !issue.archived,
+      ![.merged, .verified, .canceled].contains(issue.status)
+    else { return }
+    // "Done" with a pull request counts only once GitHub confirms that pull request is merged
+    // into the project's base branch, in the project's own repository.
+    var verified = pullRequestVerified, verifiedCommit: String?
+    if closure.resolution == .done, let pullRequest = closure.pullRequest, !verified {
+      let refusal: String?
+      if let project = model.project(issue.projectID) {
+        (refusal, verifiedCommit) = await refusalForMergedPullRequest(pullRequest, project: project)
+      } else {
+        refusal = "The report has no project, so the pull request cannot be checked."
       }
-      if isActive(issue.id) || model.issue(issue.id)?.status == .working { await cancel(issue.id) }
-      model.perform {
-        try model.updateIssue(closure.issueID) {
-          if let pullRequest = closure.pullRequest {
-            // A verified pull request is the fix, even over ScreenClip's own unmerged one.
-            if verified || $0.prURL == nil { $0.prURL = pullRequest }
+      if let refusal {
+        model.perform {
+          try model.updateIssue(closure.issueID) {
+            $0.unread = true
+            $0.record(
+              "Not closed: \(refusal) The report stays as it was.\n\(closure.summary)",
+              kind: "agent-closure")
           }
-          if let commit = closure.commit ?? verifiedCommit { $0.mergeCommit = commit }
-          $0.lastError = nil
-          $0.validationFeedback = nil
-          $0.dispatchUncertain = false
-          $0.turnID = nil
-          for i in $0.questions.indices where $0.questions[i].reply == nil {
-            $0.questions[i].reply = "Closed by an agent"
-          }
-          $0.unread = true
-          $0.record(
-            closure.activity, status: closure.resolution == .done ? .merged : .canceled,
-            kind: "agent-closure")
         }
+        return
+      }
+      verified = true
+      // The tester may have finished or archived the report while GitHub was checked.
+      guard let current = model.issue(closure.issueID), !current.archived,
+        ![.merged, .verified, .canceled].contains(current.status)
+      else { return }
+    }
+    if isActive(issue.id) || model.issue(issue.id)?.status == .working { await cancel(issue.id) }
+    model.perform {
+      try model.updateIssue(closure.issueID) {
+        if let pullRequest = closure.pullRequest {
+          // A verified pull request is the fix, even over ScreenClip's own unmerged one.
+          if verified || $0.prURL == nil { $0.prURL = pullRequest }
+        }
+        if let commit = closure.commit ?? verifiedCommit { $0.mergeCommit = commit }
+        $0.lastError = nil
+        $0.validationFeedback = nil
+        $0.dispatchUncertain = false
+        $0.turnID = nil
+        for i in $0.questions.indices where $0.questions[i].reply == nil {
+          $0.questions[i].reply = "Closed by an agent"
+        }
+        $0.unread = true
+        $0.record(
+          closure.activity, status: closure.resolution == .done ? .merged : .canceled,
+          kind: "agent-closure")
       }
     }
   }

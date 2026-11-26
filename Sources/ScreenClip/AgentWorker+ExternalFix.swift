@@ -31,31 +31,14 @@ extension AgentWorker {
           !isActive(issue.id), !refreshing.contains(issue.id),
           let pr = ExternalFix.fix(for: current, in: merged, repo: repo, base: project.baseBranch)
         else { continue }
-        closeAsFixedElsewhere(issue.id, url: pr.url, commit: pr.mergeCommit, head: pr.headRefName)
+        // The same path as an agent's close_issue; the search already found it merged into the
+        // project's base branch, so GitHub is not asked again.
+        await applyClosure(
+          AgentClosure(
+            issueID: issue.id, resolution: .done, pullRequest: pr.url, commit: pr.mergeCommit,
+            summary: ExternalFix.activity(pr.url), closer: "ScreenClip"),
+          pullRequestVerified: true)
       }
-    }
-  }
-
-  /// Records `url` as the report's merged fix. The report's own worktree and branch are freed
-  /// only when the fix was merged from that branch; otherwise they may hold other work.
-  func closeAsFixedElsewhere(_ id: UUID, url: String, commit: String?, head: String?) {
-    guard let issue = model.issue(id) else { return }
-    model.perform {
-      try model.updateIssue(id) { issue in
-        issue.prURL = url
-        issue.prRevision = issue.revision
-        issue.checkSummary = nil
-        for i in issue.questions.indices where issue.questions[i].reply == nil {
-          issue.questions[i].reply = "Fixed outside ScreenClip"
-        }
-        issue.record(ExternalFix.activity(url))
-      }
-      try recordMerge(
-        id, commit: commit, coveredRevision: issue.revision,
-        cleanUp: head != nil && head == issue.branch)
-    }
-    if model.issue(id)?.status == .merged {
-      model.notify(issue, text: "Fix merged. Ready to rebuild and retest.")
     }
   }
 
