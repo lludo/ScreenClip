@@ -205,5 +205,59 @@ import UIKit
     next.undo()
     XCTAssertTrue(next.attachDiagnostics)
   }
+  func testAttachmentNamesAreSafeAndUnique() {
+    func name(_ raw: String, _ format: ScreenClipAttachment.Format = .json, taken: Set<String> = []) -> String {
+      AttachmentProviders.fileName(for: ScreenClipAttachment(name: raw, summary: "", format: format, data: Data()), avoiding: taken)
+    }
+    XCTAssertEqual(name("Feature Flags!"), "feature-flags.json")
+    XCTAssertEqual(name("logs", .text, taken: ["logs.txt"]), "logs-2.txt")
+    XCTAssertEqual(name("logs", .text, taken: ["logs.txt", "logs-2.txt"]), "logs-3.txt")
+    XCTAssertEqual(name("✨"), "attachment.json")
+    XCTAssertEqual(name(String(repeating: "a", count: 80)).count, 32 + ".json".count)
+    let sample = DiagnosticFile(name: name("Café & Crème", .text), summary: "", data: Data())
+    XCTAssertTrue(sample.hasSafeName, sample.name)
+  }
+
+  func testAttachmentProvidersRunInOrderWithinTheirTimeout() async throws {
+    let providers = AttachmentProviders()
+    let context = ScreenClipReportContext(screenTitle: "Cart")
+    providers.set("slow", timeout: .milliseconds(200)) { _ in
+      try await Task.sleep(for: .seconds(10))
+      return [.text("never", name: "slow", summary: "")]
+    }
+    providers.set("cart", timeout: .seconds(5)) { context in
+      [try .json(["title": context.screenTitle ?? ""], name: "cart", summary: "  the cart  ")]
+    }
+    providers.set("failing") { _ in throw CancellationError() }
+    providers.set("big") { _ in
+      [.json(Data(count: ScreenClipAttachment.maximumBytes + 1), name: "big", summary: ""), .text("ok", name: "logs", summary: "")]
+    }
+    providers.set("cart", timeout: .seconds(5)) { context in
+      [try .json(["title": context.screenTitle ?? ""], name: "cart", summary: "  the cart  ")]
+    }
+    XCTAssertEqual(providers.registrations.map(\.id), ["slow", "cart", "failing", "big"])
+    let started = Date()
+    let files = await providers.start(context).files(avoiding: ["logs.txt"])
+    XCTAssertLessThan(Date().timeIntervalSince(started), 5)
+    XCTAssertEqual(files.map(\.name), ["cart.json", "logs-2.txt"])
+    XCTAssertEqual(files.first?.summary, "the cart")
+    XCTAssertEqual(files.last?.summary, "attached by the app")
+    XCTAssertEqual(try JSONDecoder().decode([String: String].self, from: files[0].data), ["title": "Cart"])
+    providers.remove("cart")
+    XCTAssertEqual(providers.registrations.map(\.id), ["slow", "failing", "big"])
+  }
+
+  func testCancelledAttachmentProvidersAreCancelled() async {
+    let providers = AttachmentProviders()
+    let cancelled = expectation(description: "Provider sees cancellation")
+    providers.set("wait") { _ in
+      do { try await Task.sleep(for: .seconds(10)) } catch { cancelled.fulfill() }
+      return []
+    }
+    let run = providers.start(ScreenClipReportContext())
+    try? await Task.sleep(for: .milliseconds(50))
+    run.cancel()
+    await fulfillment(of: [cancelled], timeout: 2)
+  }
 }
 #endif

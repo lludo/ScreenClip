@@ -44,6 +44,27 @@ public struct ScreenClipOptions: Sendable {
     public static func capture() { KitRuntime.shared.capture() }
     /// Opens ScreenClip settings: Mac pairing, saved reports, and triggers.
     public static func showSettings() { KitRuntime.shared.showSettings() }
+    /// Adds your app's own files to every report: state, records, anything an agent would want
+    /// to see next to the screenshot.
+    ///
+    /// ```swift
+    /// ScreenClipKit.setAttachmentProvider("cart") { context in
+    ///   let cart = await MainActor.run { CartStore.shared.snapshot }
+    ///   return [try .json(cart, name: "cart", summary: "the cart's \(cart.items.count) items and promo codes")]
+    /// }
+    /// ```
+    /// The provider starts when the report sheet opens and runs while the tester annotates, off
+    /// the main actor. After the tester taps Send, ScreenClip waits up to `timeout` more (at most
+    /// 30 seconds), then sends the report without whatever hasn't arrived. It is cancelled when
+    /// the tester cancels or turns off **Attach logs and diagnostics**. Registering the same `id`
+    /// again replaces the provider, so calling this more than once is safe.
+    public static func setAttachmentProvider(
+      _ id: String, timeout: Duration = .seconds(5), _ provider: @escaping ScreenClipAttachmentProvider
+    ) {
+      KitRuntime.shared.attachments.set(id, timeout: timeout, provider: provider)
+    }
+    /// Stops adding the files from the provider registered with `id`.
+    public static func removeAttachmentProvider(_ id: String) { KitRuntime.shared.attachments.remove(id) }
     /// True in builds where the SDK is active.
     public static var isActive: Bool { true }
   }
@@ -54,6 +75,10 @@ public struct ScreenClipOptions: Sendable {
     public static func start(triggers: Set<ScreenClipTrigger>) {}
     public static func capture() {}
     public static func showSettings() {}
+    public static func setAttachmentProvider(
+      _ id: String, timeout: Duration = .seconds(5), _ provider: @escaping ScreenClipAttachmentProvider
+    ) {}
+    public static func removeAttachmentProvider(_ id: String) {}
     public static var isActive: Bool { false }
   }
 #endif

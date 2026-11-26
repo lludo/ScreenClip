@@ -89,6 +89,39 @@ Reports from iOS use the **Agent for iOS reports** chosen in Settings > iOS (age
 | `view-tree.json` | UIKit views and the accessibility elements the host exposes at capture time, with identifiers, labels, values, traits, and frames in points | Uses public APIs and preserves the device’s accessibility settings. The detail available for SwiftUI depends on which elements the app currently exposes. Secure text fields omit their values. |
 | `device-state.json` | Memory footprint, CPU, thermal state, Low Power Mode, battery, free disk, network type, color scheme, Dynamic Type, Reduce Motion, Bold Text, Increase Contrast, VoiceOver, time zone, languages | Read at the moment of capture |
 | `console.txt` | The last 300 lines printed to stdout and stderr (`print`) | Only with `ScreenClipKit.start(ScreenClipOptions(captureConsoleOutput: true))`. Output still reaches Xcode's console |
+| Your own files | Whatever your app attaches | Only with a provider; see [Attach your own files](#attach-your-own-files) |
+
+### Attach your own files
+
+Your app knows things ScreenClip can't see: the signed-in account, what's in the cart, which feature flags are on, the last request the backend answered. Register a provider and its files ride along with every report, next to the built-in ones.
+
+```swift
+#if DEBUG
+ScreenClipKit.setAttachmentProvider("cart") { context in
+  let cart = await MainActor.run { CartStore.shared.snapshot }   // any Encodable
+  let flags = try await FeatureFlags.shared.current()             // can be async work
+  return [
+    try .json(cart, name: "cart", summary: "the cart's \(cart.items.count) items and applied promo codes"),
+    .text(flags.description, name: "feature-flags", summary: "remote feature flags in effect"),
+  ]
+}
+#endif
+```
+
+| Question | Answer |
+| --- | --- |
+| When does it run? | When the report sheet opens, so its data matches the screen the tester captured, and it has all the time the tester spends annotating. After **Send**, ScreenClip waits up to `timeout` more (default 5 seconds, at most 30), with "Saving report…" on screen, then sends the report without whatever hasn't arrived. |
+| On which thread? | Off the main actor. Read main-actor state with `await MainActor.run { … }`, and keep heavy work out of it. |
+| What does it return? | `[ScreenClipAttachment]`, each built with `.text(_:name:summary:)`, `.json(_ data: Data, name:summary:)`, or `.json(_ value: some Encodable, name:summary:)` (pretty-printed, sorted keys, ISO 8601 dates). Return `[]` to add nothing this time. |
+| What is `context`? | `reportID` (log it next to your own records, such as a backend request id, to tie them to the report), `capturedAt`, `screenTitle`, and `screenPath`. |
+| Can it be stopped? | It is cancelled when the tester cancels the report or turns off **Attach logs and diagnostics**, so honor `Task.isCancelled` or use cancellable APIs. |
+| What if it fails? | A thrown error or a missed timeout leaves only that provider's files out and logs a line under the `ScreenClipKit` subsystem. The report is still sent. |
+| Registering several times? | Each `id` holds one provider. Registering the same `id` again replaces it, so calling this from `init` or `onAppear` is safe. `ScreenClipKit.removeAttachmentProvider("cart")` removes it. Providers run concurrently, and their files are listed in registration order. |
+| File names | `name` becomes a file name the Mac accepts: lowercased, anything other than letters, digits, and `-` turned into `-`, at most 32 characters, plus `.txt` or `.json`. A name already taken (by `logs.txt`, say, or another provider) gets `-2`, `-3`, and so on. |
+| Size | Each attachment can be up to 1 MB (`ScreenClipAttachment.maximumBytes`). Larger ones are left out. All files in a report share the 4 MB limit below, and the largest are dropped first. |
+| Release builds | `setAttachmentProvider` is a no-op and the closure is never called. Keep the call inside `#if DEBUG` anyway, so the code that gathers the data stays out of Release. |
+
+The summary is what the agent reads in its prompt, so say what is in the file. Don't attach secrets: text files have token-like strings hidden on the Mac, but JSON files are stored as sent, and any file can reach an agent. The demo app registers a `session` provider in [`ScreenClipKitDemoApp.swift`](../Examples/ScreenClipKitDemo/ScreenClipKitDemo/ScreenClipKitDemoApp.swift).
 
 On the Mac:
 - **Storage:** each report's files go in their own folder under `diagnostics/` in ScreenClip's data folder, deleted along with the report.

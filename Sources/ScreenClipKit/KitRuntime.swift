@@ -44,6 +44,7 @@
     let followUp = FollowUpTarget()
     lazy var link = MacLink(outbox: outbox, sent: sent)
     let overlay = OverlayPresenter()
+    let attachments = AttachmentProviders()
     private var observers: [NSObjectProtocol] = []
     private(set) var startedAt = Date()
 
@@ -121,6 +122,10 @@
     private func compose(snapshot: Snapshot, in scene: UIWindowScene, device: DeviceContext, capturedAt: Date, immediate: [DiagnosticFile]) {
       guard !overlay.isPresentingSheet, scene.activationState == .foregroundActive else { return }
       let logs = Task.detached(priority: .utility) { Diagnostics.recentLogs(until: capturedAt) }
+      let reportID = UUID()
+      let provided = attachments.start(
+        ScreenClipReportContext(
+          reportID: reportID, capturedAt: capturedAt, screenTitle: device.screenTitle, screenPath: device.screenPath))
       overlay.presentSheet(in: scene) { dismiss in
         ComposerView(
           snapshot: snapshot, link: self.link, outbox: self.outbox, followUp: self.followUp,
@@ -129,12 +134,15 @@
           let target = self.followUp.entry
           var files: [DiagnosticFile]?
           if attach {
-            let log = await Self.value(of: logs, timeout: 8)
-            files = ([log].compactMap { $0 } + immediate).fittingSizeLimit()
+            let builtIn = Set(["logs.txt"] + immediate.map(\.name))
+            async let log = Self.value(of: logs, timeout: 8)
+            async let extra = provided.files(avoiding: builtIn)
+            files = ([await log].compactMap { $0 } + immediate + (await extra)).fittingSizeLimit()
           } else {
             logs.cancel()
+            provided.cancel()
           }
-          var report = WireReport(createdAt: capturedAt, note: note, image: png, device: device, diagnostics: files)
+          var report = WireReport(id: reportID, createdAt: capturedAt, note: note, image: png, device: device, diagnostics: files)
           report.followUpOf = target?.id
           report.destination = target?.destination
           if target == nil, let id = self.link.connectedMacID, let name = self.link.connectedMacName {
@@ -146,6 +154,7 @@
           self.deliver(report)
         } cancel: {
           logs.cancel()
+          provided.cancel()
           dismiss()
         }
       }
