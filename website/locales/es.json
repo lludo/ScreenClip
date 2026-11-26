@@ -97,7 +97,7 @@
       },
       {
         "q": "¿Puede mi agente de código ver lo que está abierto en ScreenClip?",
-        "a": "En Ajustes › Agentes de IA puedes dar a Codex o Claude Code acceso de solo lectura a la lista de informes."
+        "a": "En Ajustes › Agentes de IA, usa “Consultar tareas desde tus agentes” para que Codex o Claude Code vean la lista de informes y cierren los que hayan corregido ellos mismos."
       },
       {
         "q": "¿Qué sale de mi Mac?",
@@ -125,13 +125,13 @@
       "Capturas de sitios y de apps nativas de Mac",
       "Codex, Claude Code y Grok Bot",
       "Validación del proyecto, pull requests de GitHub, fusión opcional y cola de nuevas pruebas",
-      "Claude Code y Codex pueden leer los informes del proyecto y proponer ajustes para que los apruebes",
+      "Claude Code y Codex pueden leer los informes del proyecto, proponer ajustes para que los apruebes y cerrar los informes que corrigieron",
       "Informes desde tus propias apps de iPhone y iPad con ScreenClipKit, en compilaciones Debug"
     ]
   },
   "privacy": {
     "title": "Política de privacidad",
-    "updated": "Actualizada el 25 de noviembre de 2026.",
+    "updated": "Actualizada el 26 de noviembre de 2026.",
     "intro": "ScreenClip guarda los informes en tu Mac. Tu agente puede enviarlos a su proveedor. Las capturas guardadas en el repositorio de GitHub son visibles para quienes tienen acceso a él.",
     "staysTitle": "Qué se queda en el Mac",
     "stays1": "Los informes, capturas, notas, anotaciones, ajustes de proyecto, preguntas y actividad se guardan en el Mac, en {code:appSupport}. La cola es una base SQLite más archivos de imagen. El trabajo del agente corre en un Git worktree dentro de esa misma carpeta. Tu propia copia del proyecto no es el directorio de trabajo.",
@@ -148,10 +148,10 @@
     "localTitle": "Codex y Claude Code",
     "local1": "Codex y Claude Code se ejecutan en tu Mac. ScreenClip pasa la captura aprobada, tu nota y la petición a ese agente local. No interviene ningún servidor de ScreenClip. ScreenClip sí publica las capturas del informe en el repositorio de GitHub del proyecto junto con el arreglo, como se describe más abajo en GitHub.",
     "local2": "El agente usa la cuenta con la que iniciaste sesión: Codex a través de su app-server, Claude Code con su propio inicio de sesión. Ese agente puede enviar la petición y las imágenes a su proveedor según las condiciones de esa cuenta. ScreenClip arranca estos agentes sin tokens de GitHub en su entorno. ScreenClip, no el agente, envía ramas y abre pull requests.",
-    "local3": "Si instalas el servidor MCP de ScreenClip para Claude Code o Codex, las sesiones de ese agente pueden leer tus informes: títulos, notas, estados, preguntas y actividad. El servidor se ejecuta en tu Mac y no envía nada por sí mismo, pero el agente puede enviar lo que lee a su proveedor, como hace con el prompt. Quita el servidor del agente para evitarlo.",
+    "local3": "Si instalas el servidor MCP de ScreenClip para Claude Code o Codex, las sesiones de ese agente pueden leer tus informes: títulos, notas, estados, preguntas y actividad. Los agentes también pueden sugerir ajustes del proyecto para que los aceptes y cerrar informes que corrigieron ellos mismos. El servidor se ejecuta en tu Mac y no envía nada por sí mismo, pero el agente puede enviar lo que lee a su proveedor, como hace con el prompt. Quita el servidor del agente para evitarlo.",
     "iosTitle": "Apps de iOS con ScreenClipKit",
     "githubTitle": "GitHub",
-    "github1": "La automatización de pull requests usa el GitHub CLI que instalas y la cuenta de GitHub con la que ese CLI ha iniciado sesión. ScreenClip envía una rama {code:branch} y, para Codex y Claude Code, abre la pull request. Lee el estado de las comprobaciones y fusiona solo cuando la fusión automática está activada en ese proyecto y pasan las comprobaciones y las reglas de revisión.",
+    "github1": "La automatización de pull requests usa el GitHub CLI que instalas y la cuenta de GitHub con la que ese CLI ha iniciado sesión. ScreenClip envía una rama {code:branch} y, para Codex y Claude Code, abre la pull request. Lee el estado de las comprobaciones y fusiona solo cuando la fusión automática está activada en ese proyecto y pasan las comprobaciones y las reglas de revisión. También consulta las pull requests fusionadas del proyecto para encontrar las que nombran un informe como “ScreenClip #N”, y pasa esos informes a Por retestar.",
     "grokTitle": "Grok Bot",
     "grok1": "No se envía nada a Grok Bot hasta que guardas una URL de webhook y un Authorization header. Una vez guardada esa conexión, cada informe que envías a Grok Bot comparte sus capturas aprobadas. No hay un ajuste de envío aparte para cada proyecto, sea su repositorio privado o público.",
     "grok3": "Quien pueda leer el repositorio puede acceder a las pruebas; en un repositorio público, cualquier persona en internet. Borrar archivos en un commit posterior no los elimina del historial de Git. Grok Bot abre la pull request desde esa rama. Cancel detiene el registro local y, si la conexión lo admite, envía una solicitud de cancelación sin garantía; la ejecución remota puede terminar igualmente. Las preguntas quedan en el chat de Grok Bot.",
@@ -168,7 +168,7 @@
     "changesTitle": "Cambios",
     "changes": "Los cambios importantes de esta política se publicarán en esta página, con la fecha actualizada.",
     "github2a": "El cuerpo de la pull request incluye el resumen del agente, el comando de validación del proyecto con los valores que parecen secretos ocultos y la referencia del informe.",
-    "github2b": "Con Codex y Claude Code, ScreenClip también incluye las capturas del informe en el commit del arreglo y las inserta en la pull request como una comparación Before / After: las capturas finales que aprobaste, con tus anotaciones y tachados, y las capturas que el agente tomó al volver a probar el arreglo. No hay ningún ajuste que lo desactive.",
+    "github2b": "Con Codex y Claude Code, ScreenClip también incluye las capturas del informe en el commit del arreglo y las inserta en la pull request como una comparación Before / After: las capturas finales que aprobaste, con tus anotaciones y tachados, y las capturas que el agente tomó al volver a probar el arreglo. Está activado por defecto. Desactiva “Hacer commit de las capturas en el repositorio” en los ajustes del proyecto para no incluir capturas; sus pull requests describirán entonces el antes y el después con palabras.",
     "github2c": "Cualquiera que pueda leer el repositorio puede ver esas imágenes; en un repositorio público, eso incluye a cualquier persona en internet. Quitar los archivos en un commit posterior no los borra del historial de Git. Solo se publican las capturas finales, nunca el recorte sin tachar.",
     "grok2a": "Entonces ScreenClip envía los PNG aprobados y un archivo {code:reportJson} a una rama {code:branch} del repositorio del proyecto, y manda un webhook JSON pequeño. El webhook no contiene bytes de imagen.",
     "grok2b": "Incluye el número de informe, el issue id, la revisión, el título, las notas, las notas de contexto posteriores, el nombre de la app de origen, el bundle ID, el nombre del proyecto, el repositorio, la rama base, el comando de validación y la rama de evidencia, el commit y las rutas de archivo. La URL del navegador y el título de la ventana solo se incluyen si {ui:browserUrl} está activado. El webhook también incluye un ID de espacio de trabajo, URL de pull requests anteriores e identificadores de entrega.",

@@ -97,7 +97,7 @@
       },
       {
         "q": "Can my coding agent check what’s open in ScreenClip?",
-        "a": "In Settings › AI Agents, use “Check tasks from your agents” to give Codex or Claude Code read-only access to your report queue."
+        "a": "In Settings › AI Agents, use “Check tasks from your agents” to let Codex or Claude Code see your report queue and close reports they fixed themselves."
       },
       {
         "q": "What leaves my Mac?",
@@ -125,13 +125,13 @@
       "Capture from websites and native Mac apps",
       "Codex, Claude Code, and Grok Bot",
       "Project validation, GitHub pull requests, optional merge, and a retest queue",
-      "Claude Code and Codex can read project reports and suggest settings for you to approve",
+      "Claude Code and Codex can read project reports, suggest settings for you to approve, and close reports they fixed",
       "Reports from your own iPhone and iPad apps with ScreenClipKit, in Debug builds"
     ]
   },
   "privacy": {
     "title": "Privacy policy",
-    "updated": "Updated November 25, 2026.",
+    "updated": "Updated November 26, 2026.",
     "intro": "ScreenClip stores reports on your Mac. Your coding agent may send them to its provider, and screenshots committed to GitHub are visible to everyone with access to the repository.",
     "staysTitle": "What stays on your Mac",
     "stays1": "ScreenClip saves reports, screenshots, notes, annotations, settings, questions, and activity in {code:appSupport}. Reports use a SQLite database and separate image files. Local agents use Git worktrees in this folder, separate from your project checkout.",
@@ -148,10 +148,10 @@
     "localTitle": "Codex and Claude Code",
     "local1": "Codex and Claude Code receive the approved screenshot, note, and prompt on your Mac. ScreenClip also publishes report screenshots to the project’s GitHub repository with the fix.",
     "local2": "Each agent uses your account and may send the prompt and images to its provider under that account’s terms. Codex uses its app-server, and Claude Code uses its own login. ScreenClip starts them without GitHub tokens and handles pushes and pull requests itself.",
-    "local3": "Installing ScreenClip’s local MCP server lets agent sessions read report titles, notes, statuses, questions, and activity. The agent may send these details to its provider. The server sends nothing itself. Remove it from the agent to stop access.",
+    "local3": "Installing ScreenClip’s local MCP server lets agent sessions read report titles, notes, statuses, questions, and activity. Agents can also suggest project settings for you to accept, and close reports they fixed themselves. The agent may send these details to its provider. The server sends nothing itself. Remove it from the agent to stop access.",
     "iosTitle": "iOS apps with ScreenClipKit",
     "githubTitle": "GitHub",
-    "github1": "Pull request automation uses the GitHub CLI you install and the GitHub account that CLI is logged into. ScreenClip pushes a {code:branch} branch, and for Codex and Claude Code it opens the pull request. It reads check status, and it merges only when automatic merge is enabled for that project and the checks and review rules pass.",
+    "github1": "Pull request automation uses the GitHub CLI you install and the GitHub account that CLI is logged into. ScreenClip pushes a {code:branch} branch, and for Codex and Claude Code it opens the pull request. It reads check status, and it merges only when automatic merge is enabled for that project and the checks and review rules pass. It also lists the project’s merged pull requests to find any that name a report as “ScreenClip #N”, and moves those reports to To retest.",
     "grokTitle": "Grok Bot",
     "grok1": "Nothing is sent to Grok Bot until you save a webhook URL and Authorization header. Once that connection is saved, every report you send to Grok Bot shares its approved screenshots. There is no separate sharing setting for a project, whether its repository is private or public.",
     "grok3": "Anyone who can read the repository can access the evidence; in a public repository, that includes anyone on the internet. Removing files from a later commit does not erase them from Git history. Grok Bot opens the pull request from that branch. Cancel stops the local record and, if the connection supports cancellation, sends a best-effort request; the remote run may still finish. Grok Bot questions stay in its chat.",
@@ -168,7 +168,7 @@
     "changesTitle": "Changes",
     "changes": "Material changes to this policy will be posted on this page, with an updated date.",
     "github2a": "The pull request includes the agent’s summary, the report reference, and the validation command with secret-like values redacted.",
-    "github2b": "For Codex and Claude Code, ScreenClip commits the annotated, redacted screenshots you approved and the agent’s retest screenshots. It embeds them in the pull request for comparison. This publishing step is always on.",
+    "github2b": "For Codex and Claude Code, ScreenClip commits the annotated, redacted screenshots you approved and the agent’s retest screenshots. It embeds them in the pull request for comparison. It is on by default. Turn off “Commit screenshots to the repository” in a project’s settings to commit no screenshots; its pull requests then describe Before and After in words.",
     "github2c": "Everyone with repository access can see these images. In a public repository, anyone can see them. Deleting files in a later commit leaves them in Git history. ScreenClip never publishes the unredacted crop.",
     "grok2a": "ScreenClip then pushes the approved PNGs and a {code:reportJson} file to a {code:branch} branch in the project repository, and sends a small JSON webhook. The webhook does not contain image bytes.",
     "grok2b": "It includes the report number, issue id, revision, title, notes, later context notes, source app name, bundle ID, project name, repository, base branch, validation command, and the evidence branch, commit, and file paths. The browser URL and window title are included only when {ui:browserUrl} is on. The webhook also includes a workspace ID, previous pull request URLs, and delivery identifiers.",

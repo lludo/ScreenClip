@@ -97,7 +97,7 @@
       },
       {
         "q": "程式代理能查看 ScreenClip 裡有哪些未完成的報告嗎？",
-        "a": "在「設定 › AI 代理」中，可以授予 Codex 或 Claude Code 讀取回報清單的權限。"
+        "a": "在「設定 › AI 代理」中，可以讓 Codex 或 Claude Code 查看你的回報清單，並關閉它們自己修復的回報。"
       },
       {
         "q": "什麼會離開這台 Mac？",
@@ -125,13 +125,13 @@
       "從網站和原生 Mac App 截取",
       "Codex、Claude Code 和 Grok Bot",
       "專案驗證、GitHub 拉取請求、可選合併和再測佇列",
-      "Claude Code 和 Codex 可以讀取專案報告並提出設定變更，供你核准",
+      "Claude Code 和 Codex 可以讀取專案報告、提出設定變更供你核准，並關閉它們修復的回報",
       "透過 ScreenClipKit 從你自己的 iPhone 與 iPad App 回報（Debug 建置）"
     ]
   },
   "privacy": {
     "title": "隱私權政策",
-    "updated": "更新於 2026 年 11 月 25 日。",
+    "updated": "更新於 2026 年 11 月 26 日。",
     "intro": "ScreenClip 會將回報儲存在 Mac 上。程式設計代理程式可能會將回報傳送給服務提供者。提交至 GitHub 儲存庫的截圖，對所有有權存取該儲存庫的人可見。",
     "staysTitle": "留在 Mac 上的內容",
     "stays1": "報告、截圖、備註、標註、專案設定、問題和活動保存在 Mac 上的 {code:appSupport}。佇列是 SQLite 資料庫加上影像檔。代理的工作在同一資料夾下的 Git worktree 中進行。你自己的專案檢出目錄不是工作目錄。",
@@ -148,10 +148,10 @@
     "localTitle": "Codex 和 Claude Code",
     "local1": "Codex 與 Claude Code 在你的 Mac 上執行。ScreenClip 把已確認的截圖、備註和提示交給該本機代理。其中不涉及任何 ScreenClip 伺服器。不過，ScreenClip 會把報告的截圖隨修正一起發布到專案的 GitHub 儲存庫，詳見下文的 GitHub 部分。",
     "local2": "代理使用你登入的帳戶：Codex 透過 app-server，Claude Code 透過它自己的登入。該代理可能依該帳戶的條款把提示和影像傳給自己的提供方。ScreenClip 啟動這些代理時，環境裡沒有 GitHub 權杖。推送分支和開啟拉取請求的是 ScreenClip，不是代理。",
-    "local3": "如果你為 Claude Code 或 Codex 安裝 ScreenClip 的 MCP 伺服器，該代理的工作階段就能讀取你的報告：標題、備註、狀態、問題和活動記錄。伺服器在你的 Mac 上執行，本身不傳送任何內容，但代理可能像處理提示詞一樣，把讀到的內容傳送給它的服務供應商。從代理中移除該伺服器即可停止。",
+    "local3": "如果你為 Claude Code 或 Codex 安裝 ScreenClip 的 MCP 伺服器，該代理的工作階段就能讀取你的報告：標題、備註、狀態、問題和活動記錄。代理還可以提出專案設定供你接受，並關閉它們自己修復的回報。伺服器在你的 Mac 上執行，本身不傳送任何內容，但代理可能像處理提示詞一樣，把讀到的內容傳送給它的服務供應商。從代理中移除該伺服器即可停止。",
     "iosTitle": "整合 ScreenClipKit 的 iOS App",
     "githubTitle": "GitHub",
-    "github1": "拉取請求自動化使用你安裝的 GitHub CLI，以及該 CLI 登入的 GitHub 帳戶。ScreenClip 推送 {code:branch} 分支，並為 Codex 與 Claude Code 開啟拉取請求。它讀取檢查狀態，並且只在該專案啟用自動合併、檢查和審查規則都通過時才合併。",
+    "github1": "拉取請求自動化使用你安裝的 GitHub CLI，以及該 CLI 登入的 GitHub 帳戶。ScreenClip 推送 {code:branch} 分支，並為 Codex 與 Claude Code 開啟拉取請求。它讀取檢查狀態，並且只在該專案啟用自動合併、檢查和審查規則都通過時才合併。它也會查看該專案已合併的拉取請求，找出以「ScreenClip #N」提到某個回報的請求，並把這些回報移到待重測。",
     "grokTitle": "Grok Bot",
     "grok1": "在你儲存 webhook URL 和 Authorization header 之前，不會向 Grok Bot 傳送任何內容。儲存該連線後，你傳給 Grok Bot 的每份報告都會分享其已確認的截圖。無論儲存庫是私有還是公開，都沒有個別的專案分享設定。",
     "grok3": "能讀取儲存庫的人都能存取證據；公開儲存庫則包括網際網路上的任何人。在後續提交中刪除檔案不會將其從 Git 歷史中移除。Grok Bot 從該分支開啟提取請求。Cancel 會停止本機記錄，並在連線支援時嘗試傳送取消請求；遠端執行仍可能完成。問題留在 Grok Bot 的對話中。",
@@ -168,7 +168,7 @@
     "changesTitle": "變更",
     "changes": "本政策的實質變更會發布在本頁，並更新日期。",
     "github2a": "拉取請求正文包含代理的摘要、已塗掉疑似祕密值的專案驗證命令，以及報告引用。",
-    "github2b": "對 Codex 與 Claude Code，ScreenClip 還會把報告的截圖隨修正一起提交，並以 Before / After 對比的形式嵌入拉取請求：你已確認的最終截圖（含你的標註和遮蓋），以及代理重新測試修正時截取的截圖。沒有可以關閉這項行為的設定。",
+    "github2b": "對 Codex 與 Claude Code，ScreenClip 還會把報告的截圖隨修正一起提交，並以 Before / After 對比的形式嵌入拉取請求：你已確認的最終截圖（含你的標註和遮蓋），以及代理重新測試修正時截取的截圖。此功能預設開啟。在專案設定中關閉「將截圖提交到儲存庫」即可不提交任何截圖，此時拉取請求會用文字描述前後對比。",
     "github2c": "任何能讀取該儲存庫的人都能看到這些圖片；在公開儲存庫中，這表示網際網路上的任何人。在後續提交中移除這些檔案，並不會把它們從 Git 歷史中抹去。發布的只有最終截圖，絕不包括未遮蓋的裁切。",
     "grok2a": "然後 ScreenClip 會把已確認的 PNG 和 {code:reportJson} 推送到專案儲存庫的 {code:branch} 分支，並傳送一個很小的 JSON webhook。webhook 不含影像位元組。",
     "grok2b": "它包含報告編號、issue id、修訂、標題、備註、後來的內容備註、來源 App 名稱、bundle ID、專案名稱、儲存庫、基準分支、驗證命令，以及證據分支、提交和檔案路徑。只有在 {ui:browserUrl} 打開時，才會包含瀏覽器 URL 和視窗標題。webhook 也包含工作區 ID、先前的提取請求 URL 和傳送識別碼。",
