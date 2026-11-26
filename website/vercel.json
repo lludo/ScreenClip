@@ -28,6 +28,16 @@
       ],
       "destination": "https://screenclipai.com/:path*",
       "permanent": true
+    },
+    {
+      "source": "/sdk",
+      "destination": "/sdk/documentation/screenclipkit",
+      "permanent": false
+    },
+    {
+      "source": "/sdk/documentation",
+      "destination": "/sdk/documentation/screenclipkit",
+      "permanent": false
     }
   ],
   "headers": [
@@ -36,7 +46,7 @@
       "headers": [
         {
           "key": "Content-Security-Policy",
-          "value": "default-src 'self'; script-src 'self' 'sha256-vrrA1mg/Kmb1w/UP8NFM6mcqod54VegW9vZ5PrsHk6U=' 'sha256-UrRmHEL75PQalqUkc7njeP2lQzbi1L0pU6qjhcSQ704=' 'sha256-/yibc8aoYKuqxJP947vUWELloyM528Sqln0g07ndRPk=' 'sha256-u5GPgLQ4uLYwUgVbf03QWWobFWZvae9zELmqyk0DKAY=' 'sha256-egA4Mf+Yi9uu4LHhrjmYVpdfwaXk9cPFYXRIwDB9O2Q=' 'sha256-w+UKU8bIsnxV5x/sq+t3QuCRa7cDPjq+Xr6YOUUTu8I=' 'sha256-VfzPMAU7eQeWAfPZwrtL6EI5fxxMHx0toIqF/vdmJRs=' 'sha256-qPV+4pl32ZZHp0shi8m4XpfascnE1c9LJZHmdGkjli0=' 'sha256-ZyjZOcvuFtWRjKSJMl6kHHtt502ybKgRSLmhG0aqPLY=' 'sha256-2hFS2VfKAcYqQcXKGrUKjQ0PT2DrmwaSYVFJzCqaNOU='; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
+          "value": "default-src 'self'; script-src 'self' 'sha256-UQeN6PHbX24qXyLDtQZUKu6hhOAFauGhsV11ybtb5eY=' 'sha256-QCdPgWlBSNBmsj1j47eiv/A2oWJKdEbufdWI1aRUicQ=' 'sha256-/wRZKWVJogQNnl74YLaDJGnx15a11tkjGcf/NTDevJs=' 'sha256-ZmvvfWiNwpkO6GaZLP9rb3JfmecFOpDC+Loo0yAnzr4=' 'sha256-shEBHskiv7uy1cFi5FQMFDQHPnUjEEM3uBImlM8MLu0=' 'sha256-w2EUBIpwbtQzo9b7etAMXWp5dGOzOF8BMhL07n9jpws=' 'sha256-Jh8PCpswCVUJ8VlL21uAcrdzXCar6rhdSID57sqwBaM=' 'sha256-FrScZjgscwUprrlV5aJdYu6pbF7fQJ+CXkP9oAnAeIM=' 'sha256-PswePGomu8vbUzTxJW4UKxpwYhoZZmFMR1R3+Lvsm9g=' 'sha256-w2Ce0sBCDlzZxJDCzAojnExIiimVUqdv8lc0spR2XFA='; style-src 'self'; img-src 'self'; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; upgrade-insecure-requests"
         },
         {
           "key": "X-Content-Type-Options",
@@ -58,6 +68,15 @@
     },
     {
       "source": "/assets/h/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/sdk/(css|js)/(.*)",
       "headers": [
         {
           "key": "Cache-Control",

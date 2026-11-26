@@ -131,6 +131,7 @@ def render_link(name, catalog, config):
         "privacyLead": "privacy",
         "support": "support",
         "site": "home",
+        "iosGuide": "ios",
     }
     if name in internal:
         href = catalog.page(internal[name])
@@ -141,7 +142,6 @@ def render_link(name, catalog, config):
         "issues": config.issues_url,
         "download": config.download_url,
         "author": AUTHOR_URL,
-        "iosGuide": f"{config.github_url}/blob/main/docs/ios-sdk.md" if config.github_url else "",
     }
     if name not in urls:
         raise KeyError(f"Unknown link token {name}")

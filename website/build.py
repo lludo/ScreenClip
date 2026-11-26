@@ -21,6 +21,9 @@ import i18n
 ROOT = Path(__file__).resolve().parent
 SRC = ROOT / "src"
 DIST = ROOT / "dist"
+# The ScreenClipKit DocC site, generated on a Mac by scripts/build_sdk_docs.py and committed.
+SDK_DOCS = ROOT / "sdk"
+SDK_DOCS_HOME = "/sdk/documentation/screenclipkit"
 
 @dataclass(frozen=True)
 class Config:
@@ -238,15 +241,16 @@ def fragment_href(catalog, slug, fragment):
 
 def nav(catalog, slug):
     items = [
-        (fragment_href(catalog, slug, "loop"), catalog.get("nav.how"), ""),
-        (fragment_href(catalog, slug, "ios"), catalog.get("nav.ios"), ""),
-        (fragment_href(catalog, slug, "agents"), catalog.get("nav.agents"), ""),
-        (fragment_href(catalog, slug, "faq"), catalog.get("nav.questions"), ""),
+        (fragment_href(catalog, slug, "loop"), catalog.get("nav.how"), "", False),
+        (catalog.page("ios"), catalog.get("nav.ios"), "", slug == "ios"),
+        (fragment_href(catalog, slug, "agents"), catalog.get("nav.agents"), "", False),
+        (fragment_href(catalog, slug, "faq"), catalog.get("nav.questions"), "", False),
     ]
     parts = []
-    for href, label, class_name in items:
+    for href, label, class_name, current in items:
         class_attr = f' class="{class_name}"' if class_name else ""
-        parts.append(f'<a href="{esc(href)}"{class_attr}>{esc(label)}</a>')
+        current_attr = ' aria-current="page"' if current else ""
+        parts.append(f'<a href="{esc(href)}"{class_attr}{current_attr}>{esc(label)}</a>')
     return "".join(parts)
 
 
@@ -307,11 +311,13 @@ def layout(config, catalogs, catalog, *, slug, robots, body, json_ld, css_href, 
         "home": "meta.homeTitle",
         "privacy": "meta.privacyTitle",
         "support": "meta.supportTitle",
+        "ios": "meta.iosTitle",
     }[slug])
     description = catalog.plain({
         "home": "meta.homeDescription",
         "privacy": "meta.privacyDescription",
         "support": "meta.supportDescription",
+        "ios": "meta.iosDescription",
         "404": "meta.notFoundDescription",
     }[slug])
     og_title = catalog.plain("hero.title") if slug == "home" else title
@@ -582,10 +588,11 @@ def check_vercel_csp(hashes):
 
 
 def check_output(config, pages):
-    text = "\n".join(path.read_text() for path in DIST.rglob("*.html"))
+    site_pages = [path for path in DIST.rglob("*.html") if DIST / "sdk" not in path.parents]
+    text = "\n".join(path.read_text() for path in site_pages)
     if re.search(r"@@[A-Z0-9_]+@@", text):
         raise SystemExit("Unresolved template token in HTML")
-    for path in DIST.rglob("*.html"):
+    for path in site_pages:
         page = path.read_text()
         if page.count("<h1") != 1:
             raise SystemExit(f"{path.name} should have exactly one h1")
@@ -622,8 +629,13 @@ def check_output(config, pages):
         raise SystemExit("The demo video needs explicit width and height")
     if " muted" not in demo.group(0) or " playsinline" not in demo.group(0) or " controls" in demo.group(0):
         raise SystemExit("The demo video must be muted and inline, without browser controls")
+    for path in site_pages:
+        page = path.read_text()
+        for fragment in re.findall(r'href="#([^"]+)"', page):
+            if f'id="{fragment}"' not in page:
+                raise SystemExit(f"Missing fragment #{fragment} in {path.relative_to(DIST)}")
     for href in re.findall(r'(?:href|src|srcset)="([^"]+)"', text):
-        if href.startswith(("https://", "http://", "mailto:")):
+        if href.startswith(("https://", "http://", "mailto:")) or href.startswith("#"):
             continue
         if href.startswith("/_vercel/"):
             # Served by Vercel at deploy time (Web Analytics), not built into dist.
@@ -632,6 +644,34 @@ def check_output(config, pages):
     og = (DIST / "assets" / "og.png").read_bytes()
     if og[16:24] != struct.pack(">II", 1200, 630):
         raise SystemExit("og.png must be 1200 by 630")
+
+
+def copy_sdk_docs():
+    if not (SDK_DOCS / "index.html").is_file() or not (SDK_DOCS / "base-url.js").is_file():
+        raise SystemExit("website/sdk is missing. Run python3 scripts/build_sdk_docs.py on a Mac.")
+    for page in SDK_DOCS.rglob("*.html"):
+        if re.search(r"<script>(?!</script>)", page.read_text()):
+            raise SystemExit(f"{page} has an inline script, which the CSP blocks. Run scripts/build_sdk_docs.py.")
+    shutil.copytree(SDK_DOCS, DIST / "sdk")
+
+
+def png_size(path):
+    header = path.read_bytes()[:24]
+    if header[:8] != b"\x89PNG\r\n\x1a\n":
+        raise SystemExit(f"{path} is not a PNG")
+    return struct.unpack(">II", header[16:24])
+
+
+def pairing_figure(image, catalog):
+    """The Mac side of pairing, once its screenshot is in src/assets/ios/mac-pairing.png."""
+    if not image:
+        return ""
+    href, (width, height) = image
+    return (
+        f'<figure class="queue-figure"><a href="{esc(href)}" aria-label="{esc(catalog.plain("iosPage.pairOpen"))}">'
+        f'<img src="{esc(href)}" width="{width}" height="{height}" alt="{esc(catalog.plain("iosPage.pairAlt"))}" '
+        'loading="lazy" decoding="async"></a></figure>'
+    )
 
 
 def resolve_output(url):
@@ -680,6 +720,10 @@ def build():
     demo_video = fingerprinted(SRC / "assets" / "demo.mp4", hashed)
     demo_poster = fingerprinted(SRC / "assets" / "demo-poster.jpg", hashed)
     demo_js = fingerprinted(SRC / "demo.js", hashed)
+    ios_composer = fingerprinted(SRC / "assets" / "ios" / "composer.png", hashed)
+    pairing_source = SRC / "assets" / "ios" / "mac-pairing.png"
+    pairing_image = (fingerprinted(pairing_source, hashed), png_size(pairing_source)) if pairing_source.is_file() else None
+    copy_sdk_docs()
     home_preloads = [(demo_poster, "", "image/jpeg")]
     print("Drawing icons…")
     write_icons(assets)
@@ -698,6 +742,7 @@ def build():
         ("home", "index.html", "index, follow, max-image-preview:large", True),
         ("privacy", "privacy.html", "index, follow", False),
         ("support", "support.html", "index, follow", False),
+        ("ios", "ios.html", "index, follow", False),
         ("404", "404.html", "noindex", False),
     ]
     written = {}
@@ -723,6 +768,9 @@ def build():
             "DEMO_MP4": demo_video,
             "DEMO_POSTER": demo_poster,
             "DEMO_JS": demo_js,
+            "SDK_DOCS": SDK_DOCS_HOME,
+            "IOS_COMPOSER_PNG": ios_composer,
+            "PAIRING_FIGURE": pairing_figure(pairing_image, catalog),
         }
         for slug, filename, robots, with_json in page_specs:
             body = (SRC / "pages" / ("home.html" if slug == "home" else f"{slug}.html")).read_text()
@@ -752,7 +800,7 @@ def build():
             hashes.extend(csp_hashes(document))
     if config.origin:
         blocks = []
-        for slug in ("home", "privacy", "support"):
+        for slug in ("home", "ios", "privacy", "support"):
             for catalog in catalogs:
                 loc = i18n.absolute(config.origin, catalog.page(slug))
                 alternates = []
@@ -875,6 +923,12 @@ class PreviewHandler(SimpleHTTPRequestHandler):
         parsed = urlsplit(self.path)
         path, query = parsed.path, parsed.query
         suffix = f"?{query}" if query else ""
+        if path.rstrip("/") in ("/sdk", "/sdk/documentation"):
+            # Same as the redirect in vercel.json.
+            self.send_response(307)
+            self.send_header("Location", SDK_DOCS_HOME)
+            self.end_headers()
+            return False
         if path != "/" and path.endswith("/"):
             self.send_response(308)
             self.send_header("Location", (path.rstrip("/") or "/") + suffix)

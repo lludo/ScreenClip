@@ -1,5 +1,7 @@
 # ScreenClip for iOS (ScreenClipKit)
 
+> The public overview is [screenclipai.com/ios](https://screenclipai.com/ios), and the API reference is [screenclipai.com/sdk](https://screenclipai.com/sdk/documentation/screenclipkit). The reference is generated from `Sources/ScreenClipKit/ScreenClipKit.docc` and the SDK's doc comments; see [Website](website.md#ios-page-and-sdk-documentation). This page is the maintainer's reference.
+
 ScreenClip captures anything on a Mac screen, but it cannot see a physical iPhone. ScreenClipKit is a small Swift package you add to the **Debug** build of your own iOS app. A tester shakes the device (or takes a screenshot), annotates the app's screen, adds a note, and taps **Send**. The report goes straight into ScreenClip on the Mac. If the Mac is not reachable, the report is saved on the device and sent later.
 
 ## Install

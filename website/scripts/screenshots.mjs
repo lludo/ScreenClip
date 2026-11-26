@@ -33,6 +33,7 @@ const LOCALES = [
 ];
 const PAGES = [
   { id: "home", slug: "" },
+  { id: "ios", slug: "ios" },
   { id: "privacy", slug: "privacy" },
   { id: "support", slug: "support" },
 ];
