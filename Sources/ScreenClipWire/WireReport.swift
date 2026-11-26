@@ -23,7 +23,7 @@ public struct DeviceContext: Codable, Equatable, Sendable {
   public var screenPath: [String]
   public var screenTitle: String?
   /// Set when the tester replaced the live capture with an existing screenshot from Photos. The
-  /// image may show an older build, and the screen path and view tree describe the live screen.
+  /// image may show an older build, and the screen path describes the live screen.
   public var pickedScreenshot: PickedScreenshot?
   public init(
     platform: String = "iOS", deviceModel: String = "", deviceName: String = "",
