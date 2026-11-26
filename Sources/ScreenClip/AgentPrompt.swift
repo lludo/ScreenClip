@@ -104,9 +104,18 @@ enum AgentPrompt {
       // Sent from ScreenClipKit inside the iOS app: the screenshot is the app's own windows.
       text +=
         "\niOS app capture: \(device.appName) (\(device.bundleID)) on \(device.deviceModel), \(device.platform) \(device.osVersion), \(device.orientation), \(Int(device.screenWidth))x\(Int(device.screenHeight)) pt @\(Int(device.screenScale))x, locale \(device.locale); visible view controllers: \(device.screenPath.isEmpty ? "unknown" : device.screenPath.joined(separator: " > "))"
-      if let picked = device.pickedScreenshot { text += "\n\(picked.caveat)" }
+      if let picked = device.pickedScreenshot { text += "\n" + caveat(picked) }
     }
     return text
+  }
+  /// The tester swapped the live capture for an older screenshot, so the image and the device
+  /// details may disagree.
+  static func caveat(_ picked: PickedScreenshot) -> String {
+    var text = "Screenshot picked from the device's photo library instead of captured live"
+    if let takenAt = picked.takenAt { text += ", taken \(takenAt.formatted(.iso8601))" }
+    if !picked.matchesDevice { text += ", on a screen of a different size" }
+    return text
+      + ". It may show an older build than the one installed; the visible view controllers and view tree describe the live screen, not this image."
   }
   private static func describe(_ note: ContextNote) -> String {
     "Context added at \(note.date.formatted(.iso8601)):\n\(note.text)"

@@ -76,6 +76,9 @@ import XCTest
     let prompt = AgentPrompt.text(for: issue, project: project)
     XCTAssertTrue(prompt.contains("Screenshot picked from the device's photo library instead of captured live."))
     XCTAssertTrue(prompt.contains("may show an older build"))
+    XCTAssertFalse(prompt.contains("different size"))
+    let dated = AgentPrompt.caveat(PickedScreenshot(takenAt: Date(timeIntervalSince1970: 1_700_000_000), matchesDevice: false))
+    XCTAssertTrue(dated.contains(", taken 2023-11-14T22:13:20Z, on a screen of a different size."))
   }
 
   func testResentReportIsADuplicateAndUnknownAppNeedsAProject() throws {
