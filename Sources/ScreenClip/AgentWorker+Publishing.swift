@@ -99,6 +99,11 @@ extension AgentWorker {
         $0.resultSummary = summary
         $0.status = .working
       }
+      // Without a command nothing can be published, so say so before spending a base update
+      // or the agent's repair attempts on a conflict.
+      guard !project.validationCommand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+        throw ScreenClipError.message(GitWorkspace.missingValidationMessage)
+      }
       do {
         try await PRScreenshotEvidence.prepare(issue: issue, worktree: path)
       } catch {

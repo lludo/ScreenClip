@@ -135,6 +135,9 @@ final class IntegrationTests: XCTestCase {
       } catch let conflict as GitWorkspace.BaseConflict {
         XCTAssertEqual(conflict.files, ["source.txt"])
       }
+      // The stash list is shared with the tester's own checkout.
+      let stashes = try await CommandRunner.checked(git, ["stash", "list"], cwd: source.path)
+      XCTAssertEqual(stashes, "")
     }
     try Data("base and fix\n".utf8).write(to: work.appendingPathComponent("source.txt"))
     try await GitWorkspace.updateBaseBeforeValidation(project: project, path: work.path, branch: "fix")

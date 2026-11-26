@@ -146,6 +146,17 @@ import XCTest
     XCTAssertFalse(FileManager.default.fileExists(atPath: diagnostics.folder))
   }
 
+  func testDiagnosticsKeepAtMostTheFileLimit() throws {
+    let (model, _) = try makeModel()
+    var incoming = try report()
+    incoming.diagnostics = (0..<DiagnosticFile.maximumCount + 10).map {
+      DiagnosticFile(name: "file-\($0).txt", summary: "", data: Data())
+    }
+    try model.importIOSReport(incoming)
+    let issue = try XCTUnwrap(try model.store.load().issues.first)
+    XCTAssertEqual(issue.captures.first?.diagnostics?.files.count, DiagnosticFile.maximumCount)
+  }
+
   func testUnknownBundleIDRoutesToTheProjectWhoseSourceDeclaresIt() throws {
     let (model, root) = try makeModel()
     // "Shop" matches the app name, but the source of "Storefront" declares the bundle ID.

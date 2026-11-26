@@ -60,7 +60,7 @@
     }
 
     /// An existing screenshot in place of `live`. It keeps the device's rounded corners only when
-    /// its pixel size matches this screen; anything else is shown square and scaled to fit this
+    /// its pixel size matches the live capture; anything else is shown square and scaled to fit this
     /// screen's longest side, so the report stays the size of a live capture.
     static func picked(_ data: Data, replacing live: Snapshot) async -> (Snapshot, PickedScreenshot)? {
       let scale = live.image.scale
@@ -72,10 +72,15 @@
       guard let (image, originalSize, takenAt) = decoded else { return nil }
       let matches = originalSize == CGSize(width: width, height: height)
         || originalSize == CGSize(width: height, height: width)
+      // In Split View or Stage Manager the scene is smaller than the screen, and a screenshot
+      // from this device is the size of the screen.
+      let screen = activeScene()?.screen.nativeBounds.size
+      let matchesScreen = matches || (originalSize != nil
+        && (originalSize == screen || originalSize == screen.map { CGSize(width: $0.height, height: $0.width) }))
       let snapshot = Snapshot(
-        image: UIImage(cgImage: image, scale: matches ? scale : 1, orientation: .up),
+        image: UIImage(cgImage: image, scale: matchesScreen ? scale : 1, orientation: .up),
         cornerRadii: matches ? live.cornerRadii : RectangleCornerRadii())
-      return (snapshot, PickedScreenshot(takenAt: takenAt, matchesDevice: matches))
+      return (snapshot, PickedScreenshot(takenAt: takenAt, matchesDevice: matchesScreen))
     }
 
     /// The upright image, no larger than `maximumPixelSize` on its longest side, and its capture date.

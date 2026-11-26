@@ -85,6 +85,8 @@ public struct DiagnosticFile: Codable, Equatable, Sendable {
     self.data = data
   }
   public static let maximumTotalBytes = 4 * 1024 * 1024
+  /// The most files the Mac keeps from one report: ScreenClip's own plus the app's attachments.
+  public static let maximumCount = 24
   public var hasSafeName: Bool {
     name.range(of: #"\A[a-z0-9-]{1,40}\.(txt|json)\z"#, options: .regularExpression) != nil
   }

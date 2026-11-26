@@ -36,7 +36,6 @@ Updated: November 16, 2026. The local app is working: capture, markup, the queue
 - **GitHub sign-in check.** `gh auth status` is run without a host, so a stale login for another host or account can block publishing even when github.com is signed in.
 - **Login-shell PATH.** The PATH is read from the login shell once per launch with a five-second limit. A slow shell start leaves agents installed under nvm or Volta undetected until relaunch.
 - **Claude Code result after the time limit.** A result the CLI printed is discarded if the process then lingers until the watchdog stops it.
-- **Closed pull requests.** A pull request closed without merging stays **PR open** (or **Needs you** / **Failed**) until the report is canceled. Merges done on GitHub are detected; closes are not.
 - **Untranslated.** The signed-out detail under Settings → Connections is English in every language.
 - **Add project from a report.** **Add project…** on a Needs-project report opens Settings on General instead of Projects.
 

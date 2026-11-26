@@ -41845,6 +41845,204 @@
         }
       }
     },
+    "No issue branch exists.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No issue branch exists."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有问题分支。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No existe la rama del informe."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このレポートのブランチがありません。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não existe a branch do relatório."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Für diesen Bericht gibt es keinen Branch."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune branche n’existe pour ce rapport."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 리포트의 브랜치가 없습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для этого отчёта нет ветки."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "沒有問題分支。"
+          }
+        }
+      }
+    },
+    "Add a validation command in this project's settings before publishing a fix.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a validation command in this project's settings before publishing a fix."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发布修复前，请先在此项目的设置中添加验证命令。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Añade un comando de validación en los ajustes de este proyecto antes de publicar una corrección."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "修正を公開する前に、このプロジェクトの設定に検証コマンドを追加してください。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adicione um comando de validação nos ajustes deste projeto antes de publicar uma correção."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Füge in den Einstellungen dieses Projekts einen Validierungsbefehl hinzu, bevor ein Fix veröffentlicht wird."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ajoutez une commande de validation dans les réglages de ce projet avant de publier un correctif."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "수정을 게시하기 전에 이 프로젝트 설정에 검증 명령을 추가하세요."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Добавьте команду проверки в настройках этого проекта, прежде чем публиковать исправление."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "發布修復前，請先在此專案的設定中加入驗證指令。"
+          }
+        }
+      }
+    },
+    "The worktree is not on the pull request's head, so ScreenClip did not remove its evidence files.": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The worktree is not on the pull request's head, so ScreenClip did not remove its evidence files."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作树不在该拉取请求的最新提交上，因此 ScreenClip 没有移除证据文件。"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "El árbol de trabajo no está en el último commit de la pull request, así que ScreenClip no quitó sus archivos de evidencia."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ワークツリーがプルリクエストの先頭コミットにないため、ScreenClip は証拠ファイルを削除しませんでした。"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A worktree não está no commit mais recente do pull request, então o ScreenClip não removeu seus arquivos de evidência."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Worktree steht nicht auf dem Head des Pull Requests, daher hat ScreenClip seine Belegdateien nicht entfernt."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Le worktree n’est pas sur le dernier commit de la pull request ; ScreenClip n’a donc pas retiré ses fichiers de preuve."
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "작업 트리가 pull request의 최신 커밋에 있지 않아 ScreenClip이 증거 파일을 제거하지 않았습니다."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Рабочая копия не на последнем коммите pull request, поэтому ScreenClip не удалил файлы с материалами."
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "工作樹不在該拉取請求的最新提交上，因此 ScreenClip 沒有移除證據檔案。"
+          }
+        }
+      }
+    },
     "menu.update.install": {
       "comment": "Installs a downloaded app update. %@ is a version number and is not translated.",
       "extractionState": "manual",

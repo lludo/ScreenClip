@@ -53,11 +53,12 @@ The job runs, in order:
 1. **Shell script syntax** — `bash -n` on every `scripts/*.sh`.
 2. **App Sandbox diagnostic** — `bash scripts/sandbox-diagnostic.sh`. This is the check behind [why there is no Mac App Store build](release/app-store-sandbox.md).
 3. **Native tests** — `bash scripts/test.sh` (catalog check, then `swift test`).
-4. **Python tests** — `scripts/test_plugin.py`, `scripts/test_review_queue.py`, and `scripts/test_external_assistant.py`.
-5. **Website build** — `python3 website/build.py`. This does not run Playwright or `website/test_locale.mjs`.
-6. **Xcode Debug app build** — `bash scripts/build.sh debug`.
-7. **Xcode Release app build** — `bash scripts/build.sh release`.
-8. **Upload** the Release app as the artifact `ScreenClip-macOS`.
+4. **iOS SDK tests and Release isolation** — `python3 scripts/test_ios_sdk.py`: the demo app's unit and UI tests on a simulator, then a check that the Release build contains none of the SDK.
+5. **Python tests** — `scripts/test_plugin.py`, `scripts/test_review_queue.py`, and `scripts/test_external_assistant.py`.
+6. **Website build** — `python3 website/build.py`. This does not run Playwright or `website/test_locale.mjs`.
+7. **Xcode Debug app build** — `bash scripts/build.sh debug`.
+8. **Xcode Release app build** — `bash scripts/build.sh release`.
+9. **Upload** the Release app as the artifact `ScreenClip-macOS`.
 
 The upload is an unsigned CI product. It is not the notarized download.
 

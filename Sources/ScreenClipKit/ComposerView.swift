@@ -63,6 +63,7 @@
     @State private var picked: (snapshot: Snapshot, info: PickedScreenshot)?
     @State private var photoItem: PhotosPickerItem?
     @State private var loadingPhoto = false
+    @State private var photoTask: Task<Void, Never>?
     @State private var photoError: String?
     @State private var showingSettings = false
     @State private var saving = false
@@ -210,7 +211,16 @@
         if saving {
           ProgressView("Saving report…").padding().background(.regularMaterial, in: Capsule())
         } else if loadingPhoto {
-          ProgressView().padding().background(.regularMaterial, in: Capsule())
+          // An original that is only in iCloud can take a while, so the tester can give up on it.
+          HStack(spacing: 12) {
+            ProgressView()
+            Button("Cancel") {
+              photoTask?.cancel()
+              loadingPhoto = false
+              photoItem = nil
+            }
+          }
+          .padding().background(.regularMaterial, in: Capsule())
         }
       }
       .tint(.orange)
@@ -220,22 +230,26 @@
 
     private func loadPhoto(_ item: PhotosPickerItem) {
       loadingPhoto = true
-      Task { @MainActor in
-        defer {
-          loadingPhoto = false
-          photoItem = nil
-        }
+      photoTask = Task { @MainActor in
+        var failure: String?
+        var result: (Snapshot, PickedScreenshot)?
         do {
-          guard let data = try await item.loadTransferable(type: Data.self),
-            let result = await Snapshot.picked(data, replacing: snapshot)
-          else {
-            photoError = "The image could not be read."
-            return
+          if let data = try await item.loadTransferable(type: Data.self) {
+            result = await Snapshot.picked(data, replacing: snapshot)
           }
+          if result == nil { failure = "The image could not be read." }
+        } catch {
+          failure = error.localizedDescription
+        }
+        // Cancelled from the spinner: the composer has already moved on.
+        guard !Task.isCancelled else { return }
+        loadingPhoto = false
+        photoItem = nil
+        if let result {
           model.clearMarks()
           picked = result
-        } catch {
-          photoError = error.localizedDescription
+        } else {
+          photoError = failure
         }
       }
     }

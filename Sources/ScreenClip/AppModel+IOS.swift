@@ -173,6 +173,7 @@ extension AppModel {
     var total = 0
     var accepted: [DiagnosticFile] = []
     for var file in files ?? [] where file.hasSafeName && !seen.contains(file.name) {
+      guard accepted.count < DiagnosticFile.maximumCount else { break }
       guard file.data.count <= DiagnosticFile.maximumTotalBytes else { continue }
       if file.name.hasSuffix(".txt") {
         file.data = Data(GitHubService.redactTokens(String(decoding: file.data, as: UTF8.self)).utf8)

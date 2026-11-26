@@ -1,6 +1,6 @@
 # ScreenClip documentation
 
-ScreenClip is a macOS menu bar app. You capture a region, optionally annotate it, and keep going. Codex, Claude Code, or Grok Bot does the follow-up, and ScreenClip tracks the GitHub pull request.
+ScreenClip is a macOS menu bar app, with an SDK for reporting from your own iOS apps. You capture a region, optionally annotate it, and keep going. Codex, Claude Code, or Grok Bot does the follow-up, and ScreenClip tracks the GitHub pull request.
 
 The [root README](../README.md) is the short introduction. This page is the map.
 
@@ -10,6 +10,7 @@ The [root README](../README.md) is the short introduction. This page is the map.
 - [User guide](user-guide.md) — capture, the queue, moving a report, agent permissions, what each agent can see, and screen-recording recovery.
 - [ScreenClip for iOS](ios-sdk.md) — ScreenClipKit in your app's Debug build: shake to report, pairing, the local server, Fetch, and AirDrop.
 - [Release checklist](release/checklist.md) — every step for cutting a release.
+- [1.2.0 release notes](release/v1.2.0.md) — report an existing iPhone or iPad screenshot, attach your app's own files, and let agents suggest project settings; pull request evidence stays off the base branch.
 - [1.1.0 release notes](release/v1.1.0.md) — ScreenClip for iOS: ScreenClipKit in your app's Debug build, shake to report, live status and retest from the phone; new projects use the repository's default branch.
 - [1.0.5 release notes](release/v1.0.5.md) — Claude Code and Codex can check each project's reports, installed from Settings, and reports merged by hand are detected.
 - [1.0.4 release notes](release/v1.0.4.md) — the popover lists the reports behind each count, review fixes, and the first automatic update.
@@ -24,7 +25,7 @@ The [root README](../README.md) is the short introduction. This page is the map.
   - [Codex](agents/codex.md) — `codex app-server`, threads, permissions, and desktop links.
   - [Claude Code](agents/claude-code.md) — headless `claude -p` turns, sessions, and the Claude Desktop hand-off.
   - [Grok Bot](agents/external-assistant.md) — the webhook, the `screenclip/<N>-<slug>-<workspace>` evidence branch, pull-request discovery (`ScreenClip: #N`), and Connect Grok Bot (**POST to** and **key**).
-- [Optional MCP plugin](../plugins/screenclip/README.md) — read-only queue access for Codex and Claude Code.
+- [Optional MCP plugin](../plugins/screenclip/README.md) — queue access for Codex and Claude Code: read reports, and suggest project settings for you to accept.
 
 ## How it works
 
@@ -41,11 +42,11 @@ The [root README](../README.md) is the short introduction. This page is the map.
 ## Release and distribution
 
 - [Release and distribution](release/README.md) — the index for this section, and why there is no Mac App Store build.
-- [v1.0.0 readiness](release/v1.0.0-status.md) — what is done for the first release and what is left before it is published.
+- [v1.0.0 readiness](release/v1.0.0-status.md) — the validation record of the first release.
 - [Direct distribution](release/direct-distribution.md) — the tag workflow, secrets, `scripts/release-dmg.sh`, `SHA256SUMS`, the Homebrew cask, and updates.
 - [Mac App Store sandbox](release/app-store-sandbox.md) — the sandbox blocks `git` and `gh`.
-- [Publishing checklist](release/publishing-checklist.md) — open items before the repository is public: support channel, Sponsors, and release secrets.
-- [Publication audit](release/publication-audit.md) — the November 15, 2026 history cleanup, and what GitHub still has to purge.
+- [Publishing checklist](release/publishing-checklist.md) — open items: support channel, Sponsors, and release secrets.
+- [Publication audit](release/publication-audit.md) — the November 15, 2026 history cleanup, and the pull-request refs GitHub still has to purge.
 
 ## Project
 

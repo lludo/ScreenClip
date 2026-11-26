@@ -4,7 +4,7 @@ ScreenClip is source-available under the [PolyForm Noncommercial License 1.0.0](
 
 The agent icons under `Sources/ScreenClip/Assets.xcassets` are from Lobe Icons and already carry an MIT notice in `Sources/ScreenClip/AgentIcons-LICENSE.txt`. That notice covers those icons. It is not a license for the app.
 
-The [publication audit](publication-audit.md) records the November 15, 2026 history cleanup. The private fixture database and flagged image blobs were removed from rewritten history, and every branch except `main` was deleted. GitHub still retains private data through read-only pull-request refs. GitHub must purge the retained private objects before this repository becomes public.
+The [publication audit](publication-audit.md) records the November 15, 2026 history cleanup. The private fixture database and flagged image blobs were removed from rewritten history, and every branch except `main` was deleted. GitHub still retains private data through read-only pull-request refs until it purges them; the audit has the details.
 
 The repository is public. Release progress is in [v1.0.0 readiness](v1.0.0-status.md). The other release pages are listed in [Release and distribution](README.md).
 
@@ -26,11 +26,11 @@ The in-app tip buttons and `.github/FUNDING.yml` (`github: lludo`) point at `htt
 
 Configure the six Apple secrets named in [`.github/workflows/release.yml`](../../.github/workflows/release.yml) before relying on a tag to publish a notarized download. What each one is, and how the workflow behaves with none, some or all of them set, is in [Direct distribution](direct-distribution.md#maintainer-setup-one-time). With none configured, a tag push finishes green without signing or uploading anything; a partial set fails the release gate.
 
-## Before the repository is public
+## Open items
 
 1. Have GitHub purge the retained pull-request refs and cached private objects. Rewriting main again cannot remove GitHub-owned refs.
 2. Root `CONTRIBUTING.md` and `SECURITY.md` exist. Add a support email to `SECURITY.md` if you want one besides GitHub private reporting.
 3. Add a monitored support channel if the public site should list one.
 4. Decide whether the Sponsors link and `donateUrl` should go live with the first public download.
 
-Publishing does not require the Apple secrets. The first DMG is signed and notarized locally. The site's download URL already points at the latest release asset, and the v1.0.0 release is published; the link works for the public once the repository is public. See [Direct distribution](direct-distribution.md).
+Publishing does not require the Apple secrets. The first DMG is signed and notarized locally. The site's download URL already points at the latest release asset, and the v1.0.0 release is published; and each later release replaces it. See [Direct distribution](direct-distribution.md).

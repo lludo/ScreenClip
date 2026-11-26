@@ -97,9 +97,16 @@ public enum SettingsProposalInbox {
     for field in SettingsProposal.Field.allCases {
       guard let value = rawChanges[field.rawValue] as? String else { continue }
       let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-      guard !trimmed.isEmpty, trimmed.count <= maximumCommand, !trimmed.contains("\u{0}") else {
-        return nil
+      // The tester approves what the card shows, so nothing in the value may be invisible
+      // or reorder the text, and a branch can't read as a Git option.
+      let hidden = trimmed.unicodeScalars.contains {
+        // A validation command can span lines.
+        if field == .validationCommand, $0 == "\n" || $0 == "\t" { return false }
+        return $0.properties.generalCategory == .control || $0.properties.generalCategory == .format
       }
+      guard !trimmed.isEmpty, trimmed.count <= maximumCommand, !hidden,
+        field != .baseBranch || (!trimmed.hasPrefix("-") && !trimmed.contains(" ") && trimmed.count <= 255)
+      else { return nil }
       changes[field] = trimmed
     }
     guard !changes.isEmpty else { return nil }

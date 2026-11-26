@@ -284,12 +284,20 @@ import XCTest
   /// Grok Bot's last commit deletes its hand-off folder, which is how ScreenClip knows the routine
   /// finished. Any other `.screenclip/` file ScreenClip removes itself instead of waiting.
   func testGrokBotPullRequestWaitsForItsHandoffAndLeftoverEvidenceIsRemoved() async throws {
+    try await leftoverEvidenceIsRemovedBeforeTheMerge(autoMerge: true)
+  }
+
+  func testAConfirmedMergeIsConfirmedAgainAfterTheEvidenceRemoval() async throws {
+    try await leftoverEvidenceIsRemovedBeforeTheMerge(autoMerge: false)
+  }
+
+  private func leftoverEvidenceIsRemovedBeforeTheMerge(autoMerge: Bool) async throws {
     let number = try XCTUnwrap(model.issue(id)?.reportNumber)
     let branch = "screenclip/\(number)-grok"
     let (_, worktree) = try await remoteWorktree(branch: branch)
     let git = GitWorkspace.git, remote = root.appendingPathComponent("remote.git").path
     try model.commit {
-      $0.projects[0].autoMerge = true
+      $0.projects[0].autoMerge = autoMerge
       $0.projects[0].validationCommand = "true"
     }
     func commit(_ message: String, add: [String] = [], remove: [String] = []) async throws -> String {
@@ -328,6 +336,10 @@ import XCTest
     let finished = try await commit("Remove hand-off", remove: [".screenclip/\(number)"])
     try passingChecks(finished)
     await model.worker.refreshPR(id)
+    if !autoMerge {
+      XCTAssertEqual(model.worker.manualMergeHeads[id], finished)
+      await model.worker.refreshPR(id, mergeReviewedHead: finished)
+    }
     XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("merge-request").path))
     pushed = try await CommandRunner.checked(git, ["rev-parse", branch], cwd: remote)
     XCTAssertNotEqual(pushed, finished)
@@ -337,6 +349,12 @@ import XCTest
     XCTAssertEqual(model.issue(id)?.checkSummary, PRScreenshotEvidence.removedBeforeMergeSummary)
     try passingChecks(pushed)
     await model.worker.refreshPR(id)
+    if !autoMerge {
+      // The tester confirmed another commit, so the new one waits for its own confirmation.
+      XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("merge-request").path))
+      XCTAssertEqual(model.worker.manualMergeHeads[id], pushed)
+      await model.worker.refreshPR(id, mergeReviewedHead: pushed)
+    }
     XCTAssertTrue(try String(contentsOf: root.appendingPathComponent("merge-request"), encoding: .utf8)
       .contains("--match-head-commit " + pushed))
   }

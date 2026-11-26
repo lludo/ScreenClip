@@ -10,7 +10,7 @@ The fastest way is to let your coding agent do it. In ScreenClip, open **Setting
 
 By hand:
 
-1. Add the package `https://github.com/lludo/ScreenClip` and link the product **ScreenClipKit** to your app target. It needs iOS 17 or later and a Swift 6 toolchain (Xcode 16 or newer). Select a version whose tag includes the SDK, or use the `main` branch until such a tag is published. On the Mac, use a ScreenClip build that includes **Settings > iOS**.
+1. Add the package `https://github.com/lludo/ScreenClip` and link the product **ScreenClipKit** to your app target. It needs iOS 17 or later and a Swift 6 toolchain (Xcode 16 or newer). Use version 1.2.0 or later (attachment providers and reports from an existing screenshot arrived in 1.2.0). On the Mac, use ScreenClip 1.2 or later: an older ScreenClip still receives the reports, but doesn't tell the agent when a screenshot was picked from Photos.
 2. Start it once:
    ```swift
    #if DEBUG
@@ -52,14 +52,14 @@ Reports from iOS use the **Agent for iOS reports** chosen in Settings > iOS (age
 | Mac wants it now | **Fetch** in Settings > iOS asks every connected device to send its saved reports. iOS apps cannot listen in the background, so this reaches devices with the app open. |
 | No network at all | In the SDK's settings, **Export or AirDrop to your Mac** shares `.screenclipreport` files. Open one on the Mac, or use **Import report file…**. Each report imports once. |
 
-**Triggers.** By default the SDK listens for shake, and after a system screenshot it shows a small "Report this screen?" banner. Both can be turned off in the SDK's settings, or chosen in code: `ScreenClipKit.start(triggers: [.screenshot])`. To use your own debug menu, call `ScreenClipKit.capture()` or `ScreenClipKit.showSettings()`.
+**Triggers.** By default the SDK listens for shake, and after a system screenshot it shows a small "Report this screen to ScreenClip?" banner. Both can be turned off in the SDK's settings, or chosen in code: `ScreenClipKit.start(triggers: [.screenshot])`. To use your own debug menu, call `ScreenClipKit.capture()` or `ScreenClipKit.showSettings()`.
 
 **Other tools that use shake.** ScreenClipKit doesn't take the gesture over. It wraps `-[UIWindow motionEnded:withEvent:]` and always calls the previous implementation first, so the app's own handling, shake-to-undo, and other debugging tools still receive it. Tools that install the same kind of hook later chain to it. A shake doesn't open the report sheet while an alert or another tool's overlay window is on screen. If the app already uses shake, the cleanest setup is `triggers: [.screenshot]` plus `capture()` from your existing menu.
 
 ## The loop: file from the couch, install the fix tomorrow
 
 1. **Mac, once:**
-   - Turn on **Open at login** (General) and **Receive reports from iOS devices** (iOS).
+   - Turn on **Open ScreenClip at login** (General) and **Receive reports from iOS devices** (iOS).
    - Leave **Keep this Mac awake while receiving iOS reports** on.
    - Pick the **Agent for iOS reports** (agent, model, effort), or keep **Project default**.
    - Turn on the project's automatic merge if you want fixes merged without you. Its validation command (for example `xcodebuild test`) and GitHub checks still have to pass.
@@ -120,14 +120,14 @@ ScreenClipKit.setAttachmentProvider("cart") { context in
 | What if it fails? | A thrown error or a missed timeout leaves only that provider's files out and logs a line under the `ScreenClipKit` subsystem. The report is still sent. |
 | Registering several times? | Each `id` holds one provider. Registering the same `id` again replaces it, so calling this from `init` or `onAppear` is safe. `ScreenClipKit.removeAttachmentProvider("cart")` removes it. Providers run concurrently, and their files are listed in registration order. |
 | File names | `name` becomes a file name the Mac accepts: lowercased, anything other than letters, digits, and `-` turned into `-`, at most 32 characters, plus `.txt` or `.json`. A name already taken (by `logs.txt`, say, or another provider) gets `-2`, `-3`, and so on. |
-| Size | Each attachment can be up to 1 MB (`ScreenClipAttachment.maximumBytes`). Larger ones are left out. All files in a report share the 4 MB limit below, and the largest are dropped first. |
+| Size | Each attachment can be up to 1 MB (`ScreenClipAttachment.maximumBytes`). Larger ones are left out. A report takes up to 16 attachments (`ScreenClipAttachment.maximumCount`); later ones are left out. All files in a report share the 4 MB limit below, and the largest are dropped first. |
 | Release builds | `setAttachmentProvider` is a no-op and the closure is never called. Keep the call inside `#if DEBUG` anyway, so the code that gathers the data stays out of Release. |
 
 The summary is what the agent reads in its prompt, so say what is in the file. Don't attach secrets: text files have token-like strings hidden on the Mac, but JSON files are stored as sent, and any file can reach an agent. The demo app registers a `session` provider in [`ScreenClipKitDemoApp.swift`](../Examples/ScreenClipKitDemo/ScreenClipKitDemo/ScreenClipKitDemoApp.swift).
 
 On the Mac:
 - **Storage:** each report's files go in their own folder under `diagnostics/` in ScreenClip's data folder, deleted along with the report.
-- **Limits:** only plain `.txt` and `.json` names are accepted, 4 MB in total.
+- **Limits:** only plain `.txt` and `.json` names are accepted, up to 24 files and 4 MB in total.
 - **Redaction:** token-like strings in text files are replaced with `…`.
 - **Viewing:** the report's **Captured context** lists the files and has **Show diagnostics in Finder**.
 - **Agents:** Claude Code gets the folder with `--add-dir`, so it can read it without a permission prompt.
@@ -140,7 +140,8 @@ Grok Bot does not receive diagnostics.
 Only the approved image leaves the device: the screenshot with annotations and redactions burned in, at full pixel size. The device keeps no unredacted original. Each report carries:
 
 - app name, bundle ID, version, build, and an optional git SHA (Info.plist key `ScreenClipGitSHA`)
-- device model, OS version, locale, orientation, screen size and scale
+- device name and model, OS version, locale, orientation, screen size and scale
+- for a screenshot picked from Photos, that it was picked and its capture date when the file has one
 - the visible view-controller chain and the innermost screen title
 - optional diagnostics, described above
 
@@ -159,7 +160,7 @@ flowchart LR
 ```
 
 - **Targets.** `ScreenClipWire` holds the shared annotation model, the Core Graphics renderer (the Mac app draws with the same code), the report and device types, and the protocol. `ScreenClipKit` is the iOS SDK. `IOSReceiver` in `ScreenClipCore` is the Mac listener. On iOS outside Debug, the wire implementation is excluded and the SDK exposes its no-op API.
-- **Isolation.** The SDK draws in its own `UIWindow` above the app, so the app's view hierarchy, navigation, and SwiftUI state are never touched. Preferences live in their own defaults suite. Pairings are kept in the Keychain on this device only. Saved reports are kept in Application Support, excluded from backups.
+- **Isolation.** The SDK draws in its own `UIWindow` above the app, so the app's view hierarchy, navigation, and SwiftUI state are never touched. Preferences live in their own defaults suite. Pairings and the device's id are kept in the Keychain on this device only, so a reinstalled Debug build stays paired. Saved reports are kept in Application Support, excluded from backups.
 - **Pairing is required.** Reports become prompts for agents that can write to your repositories, so an unpaired device can never deliver one. The Mac accepts pairing only while the **Pair a device** sheet is open. Pairing is an ephemeral P-256 key agreement. Both sides derive a 32-byte key and a 6-digit comparison code from the shared secret, both public keys, and both nonces. A relay that swaps keys would show different codes. The Mac sends its welcome only after you confirm.
 - **Transport.** Length-prefixed JSON frames over TCP. After the clear `hello` / `challenge` handshake, every frame is sealed with ChaCha20-Poly1305 under per-direction keys derived from the pairing key and both nonces, with counter nonces, so frames can't be read, forged, replayed, or reordered. A device that claims a paired id without the key fails at the first sealed frame, and nothing is imported.
 - **Delivery.** The device removes a report only after the Mac's `ack`, which comes after the store commit. The capture keeps the report's id, so a resend after a lost ack is recognized as a duplicate.

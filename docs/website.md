@@ -58,13 +58,13 @@ Edit `website/site.config.json`, then rebuild. Every value is either an absolute
 Current values:
 
 - `siteUrl` is `https://screenclipai.com`.
-- `githubUrl` is `https://github.com/lludo/ScreenClip`. The link works for visitors only once the repository is public.
+- `githubUrl` is `https://github.com/lludo/ScreenClip`.
 - `downloadUrl` is `https://github.com/lludo/ScreenClip/releases/latest/download/ScreenClip.dmg`, which tracks the newest published release. ScreenClip is not on the Mac App Store.
 - `donateUrl` is empty, so the site shows no tip link.
 
-The header **Download** button scrolls to the download section on every page, in every availability state. The localized v1.0.0 copy and the public links are in place. Production deploys from `main`, so merge this configuration only when the [release gates](release/v1.0.0-status.md) are complete.
+The header **Download** button scrolls to the download section on every page, in every availability state. Production deploys from `main`.
 
-The structured data includes a zero-price offer and the current version (`softwareVersion` in `build.py`) only when a download URL is configured. Each release updates that value and the version in the `download.title`, `download.noteReady` and `support.statusReady` strings of every locale, then regenerates the CSP hashes in `vercel.json` (`python3 website/build.py` prints the expected header when they are stale). The site explains the noncommercial-use restriction.
+The structured data includes a zero-price offer and the current version (`softwareVersion` in `build.py`) only when a download URL is configured. Each release updates that value and the version in the `download.title`, `download.noteReady` and `support.statusReady` strings of every locale (plus `iosPage.setupIntro` when the SDK needs a newer ScreenClip), then regenerates the CSP hashes in `vercel.json` (`python3 website/build.py` prints the expected header when they are stale). The site explains the noncommercial-use restriction.
 
 There is no monitored support inbox yet. With `githubUrl` set, the support page sends people to GitHub issues; with it empty, the page says public support is not available rather than showing an unusable address.
 

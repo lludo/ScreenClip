@@ -10,7 +10,7 @@ The SQLite store holds a versioned snapshot of projects, issues, ordered capture
 
 Recovery reconciles and resumes acknowledged interrupted Codex work and reports stranded on command or file approval when the project uses automatic review or full access. Genuine unanswered questions, manual approval projects, uncertain dispatches, active chats, and mismatched worktrees still wait for user action. An interrupted Claude Code session continues when no process for that session survived.
 
-Each issue goes to Codex, Claude Code, or Grok Bot. Codex and Claude Code share the local contract in [Coding agents](agents/README.md). Grok Bot is the remote webhook. The optional plugin is read-only (`task_summary`, `list_projects`, `list_issues`, `get_issue`); the app bundles its server and Settings can register it with Claude Code or Codex. The app is the only writer.
+Each issue goes to Codex, Claude Code, or Grok Bot. Codex and Claude Code share the local contract in [Coding agents](agents/README.md). Grok Bot is the remote webhook. The optional plugin reads the queue (`task_summary`, `list_projects`, `list_issues`, `get_issue`) and can suggest project settings (`propose_project_settings`), which change nothing until the tester accepts them; the app bundles its server and Settings can register it with Claude Code or Codex. The app is the only writer of the queue and its settings.
 
 A project runs up to `AppSettings.parallelReportLimit` reports at once (default 3, allowed range 1–6). A slot is held only while ScreenClip is dispatching, running, or publishing that report. A report that is merely waiting on CI does not hold one. Git worktree creation and removal for one project are serialized, because concurrent `git fetch` and `git worktree` calls share ref locks. Merges in one project are taken one at a time.
 
@@ -33,7 +33,7 @@ flowchart LR
     H --> I
     I --> J[Menu bar and issue detail]
     J --> K[Exact agent conversation]
-    D -. read-only .-> L[Optional MCP plugin]
+    D -. read, suggest settings .-> L[Optional MCP plugin]
     M[ScreenClipKit in an iOS app] -- paired local network --> D
 ```
 

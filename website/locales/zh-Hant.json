@@ -2,7 +2,7 @@
   "languageName": "繁體中文",
   "meta": {
     "homeTitle": "ScreenClip — 給 AI 程式代理的截圖回饋",
-    "homeDescription": "在 Mac App 或網站上標出問題，把截圖傳給程式設計代理程式。代理程式處理問題時，你可以繼續測試。",
+    "homeDescription": "在 Mac App、iPhone App 或網站上標出問題，把截圖傳給程式設計代理程式。代理程式處理問題時，你可以繼續測試。",
     "privacyTitle": "隱私權政策 — ScreenClip",
     "privacyDescription": "ScreenClip 存在 Mac 上的內容、可能傳給 Codex、Claude Code、Grok Bot 或 GitHub 的資料，以及遮蓋如何運作。",
     "supportTitle": "支援 — ScreenClip",
@@ -42,7 +42,7 @@
   },
   "hero": {
     "title": "用截圖回報問題",
-    "lead": "在 Mac App 或網站上標出問題，把截圖傳給程式設計代理程式。代理程式處理問題時，你可以繼續測試。",
+    "lead": "在 Mac App、iPhone App 或網站上標出問題，把截圖傳給程式設計代理程式。代理程式處理問題時，你可以繼續測試。",
     "shortcut": "擷取 Mac 上的部分畫面",
     "keysLabel": "Command Shift 2"
   },
@@ -69,13 +69,13 @@
     "localBody": "兩者都在 Mac 上執行，每份回報使用獨立的 Git 工作樹。你可以在 ScreenClip 裡回答問題。ScreenClip 會執行專案檢查並建立提取請求。"
   },
   "download": {
-    "title": "適用於 Mac 的 ScreenClip 1.1.0。",
+    "title": "適用於 Mac 的 ScreenClip 1.2.0。",
     "price": "非商業用途免費。",
     "source": "如需商業授權，請與我們聯絡。{link:license}。",
     "sourceMissing": "原始碼尚未公開。",
     "github": "在 GitHub 上查看",
     "donate": "支持這個專案",
-    "noteReady": "ScreenClip 1.1.0 · Apple Silicon · macOS 14 或更新版本",
+    "noteReady": "ScreenClip 1.2.0 · Apple Silicon · macOS 14 或更新版本",
     "noteSoon": "Mac 版即將開放下載。",
     "macSoon": "Mac 版下載即將提供。",
     "needsTitle": "你需要",
@@ -177,7 +177,7 @@
   },
   "support": {
     "title": "支援",
-    "statusReady": "ScreenClip 1.1.0 非商業使用免費。{link:download} 開啟 GitHub Releases 上最新的磁碟映像。",
+    "statusReady": "ScreenClip 1.2.0 非商業使用免費。{link:download} 開啟 GitHub Releases 上最新的磁碟映像。",
     "statusSoon": "ScreenClip 即將推出，目前尚未開放下載。",
     "issues": "如需回報問題或提問，請前往 {link:issues}。請註明 macOS 版本、使用的代理程式及實際狀況。分享截圖前，請先遮蓋私人資訊。",
     "issuesMissing": "公開支援尚未提供。",
@@ -224,7 +224,7 @@
     "shotAlt": "示範 App 上方的 ScreenClipKit 報告面板。紅框和箭頭標出文字被截斷的 Add to order 按鈕，備註寫著價格被截斷了。",
     "howTitle": "配對裝置並傳送回報",
     "step1Title": "搖一搖並標註",
-    "step1Body": "搖一搖裝置，或截圖後點一下 Report。畫箭頭、方框和文字，遮蓋隱私內容，再加上一則備註。",
+    "step1Body": "搖一搖裝置，或截圖後點一下 Report。畫箭頭、方框和文字，遮蓋隱私內容，再加上一則備註。也可以選擇先前截取的截圖。",
     "step2Body": "報告透過區域網路傳輸，並為配對的 Mac 加密。Mac 無法連線時，報告會在 iPhone 上等待，之後自動傳送。",
     "step4Title": "在 iPhone 上重新測試",
     "step4Body": "iPhone 上會顯示每份報告的即時狀態。修正合併後，點一下 Looks fixed；如果還有問題，點一下 Still broken，把下一次截圖送回同一份報告。",
@@ -233,7 +233,7 @@
     "pairAlt": "Mac 上 ScreenClip 的設定 › iOS，要求確認 iPhone 上顯示的 6 位數代碼。",
     "pairOpen": "開啟原尺寸的配對截圖",
     "setupTitle": "設定 ScreenClipKit",
-    "setupIntro": "你需要在 Mac 上安裝 ScreenClip 1.1 或以上版本，App 需支援 iOS 17 或以上版本，並使用 Xcode 16 或更新版本建置。",
+    "setupIntro": "你需要在 Mac 上安裝 ScreenClip 1.2 或以上版本，App 需支援 iOS 17 或以上版本，並使用 Xcode 16 或更新版本建置。",
     "setup1Title": "加入套件",
     "setup1Body": "在 Xcode 中選擇 File › Add Package Dependencies，輸入此 URL，並把 ScreenClipKit 連結到你的 App target。",
     "setup2Title": "在 Debug 中啟動",
