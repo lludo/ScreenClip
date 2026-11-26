@@ -138,7 +138,7 @@ public enum ExternalAssistant {
     """
 
   public static let screenshotPublicationInstructions = """
-    Screenshot publication to this repository is authorized for this report; no separate sharing approval is required. For a visual fix, rebuild and retest, capture real After PNGs, and embed a clearly labeled Before / After comparison in the PR description. The original capture PNGs are in evidence.paths at evidence.commit; link them using immutable GitHub commit URLs. Commit the new retest images outside .screenclip/ before deleting the temporary handoff directory, and link those images at their immutable commit too, so removing .screenclip/ and deleting the branch do not break the comparison. Update the comparison on follow-up revisions. Do not substitute mockups or claim unavailable evidence. If a retest capture is impossible, still finish the fix and pull request, and state in the description which After screenshot is missing and the concrete obstacle.
+    Screenshot publication to this repository is authorized for this report; no separate sharing approval is required. For a visual fix, rebuild and retest, capture real After PNGs, and embed a clearly labeled Before / After comparison in the PR description. The original capture PNGs are in evidence.paths at evidence.commit; link them using immutable GitHub commit URLs. Commit the new retest images inside the handoff directory too (never elsewhere in the repository), link them at their immutable commit as well, and delete .screenclip/ in your last commit. Screenshots must not reach the base branch: they appear only in the PR description, and ScreenClip removes any .screenclip/ files still present before it merges. Immutable links keep working after that removal and after the branch is deleted. Update the comparison on follow-up revisions. Do not substitute mockups or claim unavailable evidence. If a retest capture is impossible, still finish the fix and pull request, and state in the description which After screenshot is missing and the concrete obstacle.
     """
 
   /// The file committed to GitHub cannot contain its own commit id. `commit` is null in that
@@ -215,9 +215,18 @@ public enum ExternalAssistant {
   }
 
   public static func containsScreenclipEvidence(_ paths: [String]) -> Bool {
+    contains(paths, folder: ".screenclip")
+  }
+  /// Grok Bot deletes its hand-off folder in its last commit, which is how ScreenClip knows the
+  /// routine finished the revision. Other `.screenclip/` files ScreenClip removes itself before
+  /// merging. Without a report number, any `.screenclip/` path counts.
+  public static func containsHandoff(_ paths: [String], reportNumber: Int?) -> Bool {
+    contains(paths, folder: reportNumber.map(evidenceDirectory(reportNumber:)) ?? ".screenclip")
+  }
+  private static func contains(_ paths: [String], folder: String) -> Bool {
     paths.contains { path in
       let normalized = path.replacingOccurrences(of: "\\", with: "/")
-      return normalized == ".screenclip" || normalized.hasPrefix(".screenclip/")
+      return normalized == folder || normalized.hasPrefix(folder + "/")
     }
   }
 

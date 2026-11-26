@@ -166,4 +166,88 @@ final class PRScreenshotEvidenceTests: XCTestCase {
       XCTFail("Symlink must fail")
     } catch { XCTAssertTrue(error.localizedDescription.contains("symbolic links")) }
   }
+
+  /// The description links the commit that added the evidence; the branch head then drops it, so
+  /// a squash merge carries nothing into the base. Republishing the same revision brings its
+  /// After images back for the new description; the next revision does not reuse them.
+  func testEvidenceIsRemovedFromTheBranchButStaysAtItsCommit() async throws {
+    let (root, issue) = try await fixture()
+    let git = GitWorkspace.git
+    for (key, value) in ["user.name": "ScreenClip Test", "user.email": "test@example.invalid"] {
+      _ = try await CommandRunner.checked(git, ["config", key, value], cwd: root.path)
+    }
+    try Data("app".utf8).write(to: root.appendingPathComponent("app.txt"))
+    _ = try await CommandRunner.checked(git, ["add", "app.txt"], cwd: root.path)
+    _ = try await CommandRunner.checked(git, ["commit", "-q", "-m", "base"], cwd: root.path)
+    let none = try await PRScreenshotEvidence.removeFromBranch(worktree: root.path)
+    XCTAssertNil(none, "A head without .screenclip/ gets no commit")
+
+    let folder = PRScreenshotEvidence.directory(for: issue)
+    let after = root.appendingPathComponent(folder + "/after")
+    try FileManager.default.createDirectory(at: after, withIntermediateDirectories: true)
+    try image.write(to: after.appendingPathComponent("1.png"))
+    try await PRScreenshotEvidence.prepare(issue: issue, worktree: root.path)
+    // Unrelated staged work must not ride along in the removal commit.
+    try Data("fix".utf8).write(to: root.appendingPathComponent("app.txt"))
+    _ = try await CommandRunner.checked(git, ["commit", "-q", "-am", "Fix"], cwd: root.path)
+    let evidence = try await CommandRunner.checked(git, ["rev-parse", "HEAD"], cwd: root.path)
+    try Data("staged".utf8).write(to: root.appendingPathComponent("other.txt"))
+    _ = try await CommandRunner.checked(git, ["add", "other.txt"], cwd: root.path)
+
+    let removed = try await PRScreenshotEvidence.removeFromBranch(worktree: root.path)
+    let head = try XCTUnwrap(removed)
+    let parent = try await CommandRunner.checked(git, ["rev-parse", "HEAD^"], cwd: root.path)
+    XCTAssertEqual(parent, evidence)
+    let remaining = try await GitHubService.listScreenclipPaths(revision: head, cwd: root.path)
+    XCTAssertEqual(remaining, [])
+    let linked = try await GitHubService.listScreenclipPaths(revision: evidence, cwd: root.path)
+    XCTAssertEqual(linked.sorted(), [folder + "/after/1.png", folder + "/before/1.png"])
+    let subject = try await CommandRunner.checked(git, ["log", "-1", "--format=%s", head], cwd: root.path)
+    XCTAssertEqual(subject, PRScreenshotEvidence.removalCommitMessage)
+    let changed = try await CommandRunner.checked(
+      git, ["show", "--name-only", "--format=", head], cwd: root.path)
+    XCTAssertFalse(changed.contains("other.txt"), changed)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: after.path))
+
+    // A CI repair or base update republishes the same revision.
+    try await PRScreenshotEvidence.prepare(issue: issue, worktree: root.path)
+    XCTAssertEqual(try Data(contentsOf: after.appendingPathComponent("1.png")), image)
+    let markdown = try PRScreenshotEvidence.markdown(
+      issue: issue, worktree: root.path, remote: "git@github.com:owner/demo.git", head: evidence)
+    XCTAssertTrue(markdown.contains("![After 1](https://github.com/owner/demo/blob/\(evidence)/"))
+
+    // A new revision needs its own retest.
+    _ = try await CommandRunner.checked(git, ["commit", "-q", "-m", "Republish"], cwd: root.path)
+    _ = try await PRScreenshotEvidence.removeFromBranch(worktree: root.path)
+    var next = issue
+    next.revision += 1
+    try await PRScreenshotEvidence.prepare(issue: next, worktree: root.path)
+    XCTAssertTrue(try PRScreenshotEvidence.markdown(
+      issue: next, worktree: root.path, remote: "git@github.com:owner/demo.git", head: evidence
+    ).contains(PRScreenshotEvidence.missingAfterNote))
+  }
+
+  /// Previews read each image at the commit its link names, never at the pull request's head,
+  /// which no longer has `.screenclip/` once ScreenClip removed it.
+  func testPreviewEndpointsStayPinnedToTheEvidenceCommit() throws {
+    let pr = try XCTUnwrap(URL(string: "https://github.com/example/app/pull/24"))
+    let id = UUID()
+    let first = String(repeating: "c", count: 40), second = String(repeating: "d", count: 40)
+    let folder = ".screenclip/pr/\(id.uuidString.lowercased())"
+    let html = """
+      <p><img src="https://github.com/example/app/blob/\(first)/\(folder)/revision-1/before/1.png?raw=true"></p>
+      <p><img src="https://github.com/example/app/blob/\(second)/\(folder)/revision-2/after/1.png?raw=true"></p>
+      """
+    let refs = PRScreenshotEvidence.imageEndpoints(html: html, pullRequest: pr, issueID: id)
+      .compactMap { $0.components(separatedBy: "?ref=").last }
+    XCTAssertEqual(refs, [first, second], "Each revision keeps the commit its description linked")
+  }
+
+  func testOnlyGrokBotsHandoffFolderMeansTheRoutineIsStillWorking() {
+    XCTAssertTrue(ExternalAssistant.containsHandoff([".screenclip/234/report.json"], reportNumber: 234))
+    XCTAssertFalse(ExternalAssistant.containsHandoff([".screenclip/2345/report.json"], reportNumber: 234))
+    XCTAssertFalse(ExternalAssistant.containsHandoff([".screenclip/pr/x/revision-1/before/1.png"], reportNumber: 234))
+    XCTAssertTrue(ExternalAssistant.containsHandoff([".screenclip/pr/x/1.png"], reportNumber: nil))
+    XCTAssertTrue(ExternalAssistant.containsScreenclipEvidence([".screenclip/pr/x/1.png"]))
+  }
 }

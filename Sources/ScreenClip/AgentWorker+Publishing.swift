@@ -394,6 +394,10 @@ extension AgentWorker {
         noChecksSettled = false
       }
       let receipt = loadReceipt(id, issue: issue)
+      // The worktree is on the pull request's head here whenever a merge is possible: ScreenClip
+      // pushed it, or the Grok Bot inspection fast-forwarded to it.
+      let carriesEvidence = ExternalAssistant.containsScreenclipEvidence(
+        try await GitHubService.listScreenclipPaths(revision: "HEAD", cwd: path))
       guard let currentIssue = model.issue(id), currentIssue.status == .prOpen,
         currentIssue.prURL == url, currentIssue.workspaceID == issue.workspaceID
       else { return }
@@ -406,8 +410,8 @@ extension AgentWorker {
         mergeable: pr.mergeable && pr.base == project.baseBranch,
         reviewSatisfied: pr.reviewSatisfied,
         unresolvedQuestions: currentIssue.questions.contains { $0.reply == nil },
-        // Grok Bot pull requests that still carry evidence returned `.blocked` above.
-        screenclipEvidenceCleared: true, draft: pr.draft)
+        // Grok Bot pull requests that still have their hand-off folder returned `.blocked` above.
+        screenclipEvidenceCleared: !carriesEvidence, draft: pr.draft)
       let checkSummary: String
       if pr.draft {
         checkSummary = ExternalAssistant.draftPullRequestSummary
@@ -451,13 +455,20 @@ extension AgentWorker {
         && (issue.resolvedAgent != .external || project.autoMerge)
       // A clean PR whose check rollup has stayed empty can be merged by the tester after
       // local validation. Automatic merge still requires at least one passing GitHub check.
-      let mergesNow = evidence.canMerge && (mergeReviewedHead != nil || (project.autoMerge && pr.checksPassed))
-      if !mergesNow, evidence.readyForValidation, currentIssue.revision == currentIssue.coveredRevision,
-        evidence.canMerge || (!validatedHere && !project.validationCommand.isEmpty)
+      let approved = mergeReviewedHead != nil || (project.autoMerge && pr.checksPassed)
+      let mergesNow = evidence.canMerge && approved
+      // A head with `.screenclip/` is never merged. ScreenClip removes the folder and pushes;
+      // the merge follows once checks pass on that commit.
+      let removesEvidence = evidence.removesEvidenceFirst && approved
+      if !mergesNow, !removesEvidence, evidence.readyForValidation,
+        currentIssue.revision == currentIssue.coveredRevision,
+        evidence.canMerge || evidence.removesEvidenceFirst
+          || (!validatedHere && !project.validationCommand.isEmpty)
       {
         eligibleHead = pr.head
       }
-      guard (mergesNow || resolvesConflict) && !model.snapshot.settings.paused else { return }
+      guard (mergesNow || removesEvidence || resolvesConflict) && !model.snapshot.settings.paused
+      else { return }
       // Re-check after the awaits above: parallel reports in one project must merge one at a
       // time, so each later merge revalidates against the base that already includes the earlier.
       guard !mergingProjects.contains(project.id), model.issue(id)?.status == .prOpen else { return }
@@ -538,13 +549,17 @@ extension AgentWorker {
         return
       }
       // Recheck local revision immediately before submitting a guarded merge.
-      guard mergesNow, let latest = model.issue(id), latest.status == .prOpen,
+      guard mergesNow || removesEvidence, let latest = model.issue(id), latest.status == .prOpen,
         latest.revision == issue.coveredRevision, latest.prURL == url, latest.prHead == pr.head,
         latest.questions.allSatisfy({ $0.reply != nil }), !model.snapshot.settings.paused,
         let latestProject = model.project(latest.projectID), latestProject.baseBranch == pr.base,
         latestProject.validationCommand == project.validationCommand,
         latestProject.autoMerge || mergeReviewedHead == pr.head
       else { return }
+      if removesEvidence {
+        try await removeEvidenceBeforeMerge(id, issue: issue, path: path, pullHead: pr.head)
+        return
+      }
       try await GitHubService.merge(
         url: url, head: pr.head, path: path, gh: AgentDetector.ghPath(model.snapshot.settings))
       let confirmed = try await GitHubService.state(
@@ -556,6 +571,38 @@ extension AgentWorker {
       }
     } catch {
       model.perform { try model.updateIssue(id) { $0.lastError = error.localizedDescription } }
+    }
+  }
+  /// Removes `.screenclip/` from the pull request in a commit of its own and pushes it, so the
+  /// squash merge cannot carry evidence into the base. The description keeps its images: they are
+  /// linked at the commit that added them. The validation receipt moves to the new head, which
+  /// only deletes ScreenClip's evidence files; GitHub checks run again before the merge.
+  func removeEvidenceBeforeMerge(_ id: UUID, issue: Issue, path: String, pullHead: String) async throws {
+    guard let branch = issue.branch else { throw ScreenClipError.message("No issue branch exists.") }
+    let head = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
+    guard head == pullHead else {
+      throw ScreenClipError.message(
+        "The worktree is not on the pull request's head, so ScreenClip did not remove its evidence files.")
+    }
+    guard let removed = try await PRScreenshotEvidence.removeFromBranch(worktree: path) else { return }
+    do {
+      _ = try await CommandRunner.checked(
+        GitWorkspace.git, ["push", "origin", "HEAD:" + branch], cwd: path)
+    } catch {
+      // Unpushed, the local commit would diverge from the pull request and block later refreshes.
+      _ = try? await CommandRunner.checked(GitWorkspace.git, ["reset", "--hard", head], cwd: path)
+      throw error
+    }
+    if var receipt = loadReceipt(id, issue: issue), receipt.head == pullHead {
+      receipt.head = removed
+      try saveReceipt(receipt, for: id, issue: issue)
+    }
+    let summary = PRScreenshotEvidence.removedBeforeMergeSummary
+    try model.updateIssue(id) {
+      $0.prHead = removed
+      $0.lastError = nil
+      $0.checkSummary = summary
+      $0.record(summary)
     }
   }
   func recordMerge(_ id: UUID, commit: String?, coveredRevision: Int) throws {

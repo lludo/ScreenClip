@@ -84,14 +84,15 @@ import XCTest
 
   private let failedChecks = JSONValue.array([.object(["conclusion": .string("FAILURE")])])
 
-  func testPublishValidatesTheCurrentBaseAndChecksItAgainBeforeMerge() async throws {
-    var project = try XCTUnwrap(model.snapshot.projects.first)
-    let repo = project.path, worktree = root.appendingPathComponent("agent")
+  private let prURL = "https://github.com/example/app/pull/1"
+
+  /// Routes a GitHub-shaped origin to a local bare repository, so fetch and push are real, and
+  /// adds a worktree on `branch` from the `release` base. The stand-in gh records a merge in
+  /// `merge-request` and the latest pull request body in `body.md`.
+  private func remoteWorktree(branch: String) async throws -> (repo: String, worktree: URL) {
+    let repo = try XCTUnwrap(model.snapshot.projects.first).path
+    let worktree = root.appendingPathComponent("agent")
     let git = GitWorkspace.git, gh = root.appendingPathComponent("gh")
-    let beforeMerge = root.appendingPathComponent("merge-request")
-    let validations = root.appendingPathComponent("validated-bases")
-    let prURL = "https://github.com/example/app/pull/1"
-    // Route the GitHub-shaped origin to a local bare repository. Exercise real fetch and push.
     let transport = root.appendingPathComponent("ssh")
     try """
       #!/bin/sh
@@ -105,6 +106,8 @@ import XCTest
     try """
       #!/bin/sh
       dir="$(dirname "$0")"
+      prev=
+      for arg in "$@"; do [ "$prev" = --body-file ] && cp "$arg" "$dir/body.md"; prev="$arg"; done
       case "$1 $2" in
         'auth status'|'pr edit') ;;
         'pr list') cat "$dir/list.json" 2>/dev/null || echo '[]' ;;
@@ -114,7 +117,6 @@ import XCTest
         *) exit 1 ;;
       esac
       """.write(to: gh, atomically: false, encoding: .utf8)
-    let branch = "screenclip/validation-test"
     for args in [
       ["branch", "-m", "release"], ["clone", "--bare", repo, root.appendingPathComponent("remote.git").path],
       ["config", "user.name", "Test"], ["config", "user.email", "test@example.invalid"],
@@ -122,6 +124,25 @@ import XCTest
       ["remote", "add", "origin", "ssh://git@github.com/example/app.git"],
       ["worktree", "add", "-b", branch, worktree.path, "release"],
     ] { _ = try await CommandRunner.checked(git, args, cwd: repo) }
+    var project = try XCTUnwrap(model.snapshot.projects.first)
+    project.baseBranch = "release"
+    try model.saveProject(project)
+    return (repo, worktree)
+  }
+
+  private func passingChecks(_ head: String) throws {
+    try pullRequest(["headRefOid": .string(head), "baseRefName": .string("release"),
+      "mergeable": .string("MERGEABLE"), "mergeStateStatus": .string("CLEAN"),
+      "statusCheckRollup": .array([.object(["conclusion": .string("SUCCESS")])])])
+  }
+
+  func testPublishValidatesTheCurrentBaseAndChecksItAgainBeforeMerge() async throws {
+    let branch = "screenclip/validation-test"
+    let (repo, worktree) = try await remoteWorktree(branch: branch)
+    var project = try XCTUnwrap(model.snapshot.projects.first)
+    let git = GitWorkspace.git
+    let beforeMerge = root.appendingPathComponent("merge-request")
+    let validations = root.appendingPathComponent("validated-bases")
     func advance(_ value: String) async throws {
       try (value + "\n").write(toFile: repo + "/base.txt", atomically: true, encoding: .utf8)
       for args in [["add", "base.txt"], ["commit", "-m", value], ["push", "origin", "release"]] {
@@ -129,7 +150,6 @@ import XCTest
       }
     }
 
-    project.baseBranch = "release"
     project.validationCommand = "test -f fix.txt && cat base.txt >> '\(validations.path)'"
     project.autoMerge = true
     try model.saveProject(project)
@@ -145,11 +165,6 @@ import XCTest
     let firstHead = try XCTUnwrap(issue.prHead)
     XCTAssertEqual(try String(contentsOf: validations, encoding: .utf8), "first\n")
 
-    func passingChecks(_ head: String) throws {
-      try pullRequest(["headRefOid": .string(head), "baseRefName": .string("release"),
-        "mergeable": .string("MERGEABLE"), "mergeStateStatus": .string("CLEAN"),
-        "statusCheckRollup": .array([.object(["conclusion": .string("SUCCESS")])])])
-    }
     try mergedList([["url": .string(prURL), "baseRefName": .string("release"), "isCrossRepository": .bool(false)]])
     try await advance("second")
     try passingChecks(firstHead)
@@ -161,6 +176,148 @@ import XCTest
     await model.worker.refreshPR(id)
     XCTAssertEqual(try String(contentsOf: validations, encoding: .utf8), "first\nsecond\n")
     XCTAssertTrue(try String(contentsOf: beforeMerge, encoding: .utf8).contains("--match-head-commit " + secondHead))
+  }
+
+  /// The description links Before / After images at the commit that added them, while the
+  /// pushed head drops `.screenclip/`. A head that still carries evidence (an older pull request)
+  /// is never merged: ScreenClip removes the folder, pushes, and merges once checks pass again.
+  func testEvidenceNeverReachesTheMergeAndPreviewsKeepTheirCommit() async throws {
+    let branch = "screenclip/evidence-test"
+    let (_, worktree) = try await remoteWorktree(branch: branch)
+    var project = try XCTUnwrap(model.snapshot.projects.first)
+    let git = GitWorkspace.git, remote = root.appendingPathComponent("remote.git").path
+    let mergeRequest = root.appendingPathComponent("merge-request")
+    project.validationCommand = "test -f fix.txt"
+    project.autoMerge = true
+    try model.saveProject(project)
+    let png = Data(base64Encoded:
+      "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aV1sAAAAASUVORK5CYII=")!
+    let capture = root.appendingPathComponent("capture.png")
+    try png.write(to: capture)
+    try model.updateIssue(id) {
+      $0.status = .working; $0.prURL = nil; $0.prHead = nil
+      $0.worktreePath = worktree.path; $0.branch = branch; $0.captures[0].imagePath = capture.path
+    }
+    let issue = try XCTUnwrap(model.issue(id))
+    let folder = PRScreenshotEvidence.directory(for: issue)
+    let after = worktree.appendingPathComponent(folder + "/after")
+    try FileManager.default.createDirectory(at: after, withIntermediateDirectories: true)
+    try png.write(to: after.appendingPathComponent("1.png"))
+    try Data("agent edit".utf8).write(to: worktree.appendingPathComponent("fix.txt"))
+
+    await model.worker.publish(id, project: project, summary: "Fixed")
+    XCTAssertEqual(model.issue(id)?.status, .prOpen, model.issue(id)?.lastError ?? "")
+    let head = try XCTUnwrap(model.issue(id)?.prHead)
+    let pushed = try await CommandRunner.checked(git, ["rev-parse", branch], cwd: remote)
+    XCTAssertEqual(pushed, head)
+    let headPaths = try await GitHubService.listScreenclipPaths(revision: head, cwd: remote)
+    XCTAssertEqual(headPaths, [], "The pull request's head carries no evidence")
+    let evidence = try await CommandRunner.checked(git, ["rev-parse", head + "^"], cwd: remote)
+    let evidencePaths = try await GitHubService.listScreenclipPaths(revision: evidence, cwd: remote)
+    XCTAssertEqual(evidencePaths.sorted(), [folder + "/after/1.png", folder + "/before/1.png"])
+    let body = try String(contentsOf: root.appendingPathComponent("body.md"), encoding: .utf8)
+    XCTAssertTrue(body.contains("![Before 1](https://github.com/example/app/blob/\(evidence)/\(folder)/before/1.png"))
+    XCTAssertTrue(body.contains("![After 1](https://github.com/example/app/blob/\(evidence)/\(folder)/after/1.png"))
+    XCTAssertFalse(body.contains("/blob/\(head)/"))
+    // The in-app preview reads each image at the commit its link names.
+    let html = "<p><img src=\"https://github.com/example/app/blob/\(evidence)/\(folder)/after/1.png?raw=true\"></p>"
+    let endpoints = PRScreenshotEvidence.imageEndpoints(
+      html: html, pullRequest: try XCTUnwrap(URL(string: prURL)), issueID: id)
+    XCTAssertEqual(endpoints.count, 1)
+    XCTAssertTrue(endpoints[0].hasSuffix("?ref=" + evidence))
+
+    // An older pull request whose head still carries `.screenclip/`.
+    try FileManager.default.createDirectory(
+      at: worktree.appendingPathComponent(".screenclip/legacy"), withIntermediateDirectories: true)
+    try png.write(to: worktree.appendingPathComponent(".screenclip/legacy/1.png"))
+    for args in [["add", "--force", ".screenclip"], ["commit", "-q", "-m", "Legacy evidence"], ["push", "-q", "origin", branch]] {
+      _ = try await CommandRunner.checked(git, args, cwd: worktree.path)
+    }
+    let legacy = try await CommandRunner.checked(git, ["rev-parse", "HEAD"], cwd: worktree.path)
+    try model.worker.saveReceipt(
+      ValidationReceipt(head: legacy, command: project.validationCommand, passed: true, date: Date(),
+        output: "", fingerprint: "fixture"), for: id, issue: issue)
+    try model.updateIssue(id) { $0.prHead = legacy }
+    try passingChecks(legacy)
+    await model.worker.refreshPR(id)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: mergeRequest.path), "Never merged with .screenclip/")
+    let stripped = try XCTUnwrap(model.issue(id)?.prHead)
+    XCTAssertNotEqual(stripped, legacy)
+    let remoteHead = try await CommandRunner.checked(git, ["rev-parse", branch], cwd: remote)
+    XCTAssertEqual(remoteHead, stripped)
+    let strippedPaths = try await GitHubService.listScreenclipPaths(revision: stripped, cwd: remote)
+    XCTAssertEqual(strippedPaths, [])
+    let subject = try await CommandRunner.checked(git, ["log", "-1", "--format=%s", stripped], cwd: remote)
+    XCTAssertEqual(subject, PRScreenshotEvidence.removalCommitMessage)
+    XCTAssertEqual(model.worker.loadReceipt(id, issue: issue)?.head, stripped)
+    XCTAssertEqual(model.issue(id)?.checkSummary, PRScreenshotEvidence.removedBeforeMergeSummary)
+
+    // Checks still report the old head: nothing merges until they cover the new one.
+    await model.worker.refreshPR(id)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: mergeRequest.path))
+    try passingChecks(stripped)
+    await model.worker.refreshPR(id)
+    XCTAssertTrue(try String(contentsOf: mergeRequest, encoding: .utf8).contains("--match-head-commit " + stripped))
+  }
+
+  /// Grok Bot's last commit deletes its hand-off folder, which is how ScreenClip knows the routine
+  /// finished. Any other `.screenclip/` file ScreenClip removes itself instead of waiting.
+  func testGrokBotPullRequestWaitsForItsHandoffAndLeftoverEvidenceIsRemoved() async throws {
+    let number = try XCTUnwrap(model.issue(id)?.reportNumber)
+    let branch = "screenclip/\(number)-grok"
+    let (_, worktree) = try await remoteWorktree(branch: branch)
+    let git = GitWorkspace.git, remote = root.appendingPathComponent("remote.git").path
+    try model.commit {
+      $0.projects[0].autoMerge = true
+      $0.projects[0].validationCommand = "true"
+    }
+    func commit(_ message: String, add: [String] = [], remove: [String] = []) async throws -> String {
+      for path in add {
+        let file = worktree.appendingPathComponent(path)
+        try FileManager.default.createDirectory(
+          at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try Data(path.utf8).write(to: file)
+        _ = try await CommandRunner.checked(git, ["add", "--force", path], cwd: worktree.path)
+      }
+      for path in remove { _ = try await CommandRunner.checked(git, ["rm", "-r", "-q", path], cwd: worktree.path) }
+      for args in [["commit", "-q", "-m", message], ["push", "-q", "origin", branch]] {
+        _ = try await CommandRunner.checked(git, args, cwd: worktree.path)
+      }
+      return try await CommandRunner.checked(git, ["rev-parse", "HEAD"], cwd: worktree.path)
+    }
+    let handoff = try await commit(
+      "ScreenClip: #\(number) evidence revision 1",
+      add: [".screenclip/\(number)/report.json", ".screenclip/pr/old/revision-1/before/1.png"])
+    try model.updateIssue(id) {
+      $0.agent = .external
+      $0.worktreePath = worktree.path
+      $0.branch = branch
+      $0.prRevision = $0.revision
+      $0.handoffRevision = $0.revision
+      $0.handoffCommit = handoff
+      $0.prHead = handoff
+    }
+    let working = try await commit("Fix", add: ["fix.txt"])
+    try passingChecks(working)
+    await model.worker.refreshPR(id)
+    XCTAssertEqual(model.issue(id)?.checkSummary, ExternalAssistant.evidenceStillPresentSummary)
+    var pushed = try await CommandRunner.checked(git, ["rev-parse", branch], cwd: remote)
+    XCTAssertEqual(pushed, working, "ScreenClip does not touch the branch while Grok Bot works")
+
+    let finished = try await commit("Remove hand-off", remove: [".screenclip/\(number)"])
+    try passingChecks(finished)
+    await model.worker.refreshPR(id)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: root.appendingPathComponent("merge-request").path))
+    pushed = try await CommandRunner.checked(git, ["rev-parse", branch], cwd: remote)
+    XCTAssertNotEqual(pushed, finished)
+    let left = try await GitHubService.listScreenclipPaths(revision: pushed, cwd: remote)
+    XCTAssertEqual(left, [])
+    XCTAssertEqual(model.issue(id)?.prHead, pushed)
+    XCTAssertEqual(model.issue(id)?.checkSummary, PRScreenshotEvidence.removedBeforeMergeSummary)
+    try passingChecks(pushed)
+    await model.worker.refreshPR(id)
+    XCTAssertTrue(try String(contentsOf: root.appendingPathComponent("merge-request"), encoding: .utf8)
+      .contains("--match-head-commit " + pushed))
   }
 
   func testFailedInitialFetchPreservesTheFixAndSkipsValidation() async throws {

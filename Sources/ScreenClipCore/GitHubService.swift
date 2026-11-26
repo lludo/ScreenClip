@@ -37,13 +37,18 @@ public enum GitHubService {
       throw ScreenClipError.message(
         "No fix commit was produced. Open the \(issue.resolvedAgent.title) conversation to review the result.")
     }
-    let head = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
+    let evidenceCommit = try await CommandRunner.checked(GitWorkspace.git, ["rev-parse", "HEAD"], cwd: path)
     guard await shouldContinue(),
       try await GitWorkspace.fingerprint(path: path) == receipt.fingerprint
     else {
       throw ScreenClipError.message("The source or issue changed before push. Publication stopped.")
     }
-    let screenshots = try PRScreenshotEvidence.markdown(issue: issue, worktree: path, remote: remote, head: head)
+    let screenshots = try PRScreenshotEvidence.markdown(
+      issue: issue, worktree: path, remote: remote, head: evidenceCommit)
+    // The description links the evidence at `evidenceCommit`; the pull request's head drops it, so
+    // checks, review and the squash merge see a branch without `.screenclip/`. Validation still
+    // covers that head: the commit only deletes ScreenClip's own evidence files.
+    let head = try await PRScreenshotEvidence.removeFromBranch(worktree: path) ?? evidenceCommit
     try await pushBranch(branch, cwd: path)
     let existing = try await CommandRunner.checked(
       gh, ["pr", "list", "--head", branch, "--state", "open", "--json", "url,baseRefName,isCrossRepository"],
