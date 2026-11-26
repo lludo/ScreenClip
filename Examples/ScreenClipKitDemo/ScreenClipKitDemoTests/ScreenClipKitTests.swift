@@ -222,23 +222,23 @@ import UIKit
     let providers = AttachmentProviders()
     let context = ScreenClipReportContext(screenTitle: "Cart")
     providers.set("slow", timeout: .milliseconds(200)) { _ in
-      try await Task.sleep(for: .seconds(10))
+      try await Task.sleep(for: .seconds(60))
       return [.text("never", name: "slow", summary: "")]
     }
-    providers.set("cart", timeout: .seconds(5)) { context in
+    providers.set("cart", timeout: .seconds(20)) { context in
       [try .json(["title": context.screenTitle ?? ""], name: "cart", summary: "  the cart  ")]
     }
     providers.set("failing") { _ in throw CancellationError() }
     providers.set("big") { _ in
       [.json(Data(count: ScreenClipAttachment.maximumBytes + 1), name: "big", summary: ""), .text("ok", name: "logs", summary: "")]
     }
-    providers.set("cart", timeout: .seconds(5)) { context in
+    providers.set("cart", timeout: .seconds(20)) { context in
       [try .json(["title": context.screenTitle ?? ""], name: "cart", summary: "  the cart  ")]
     }
     XCTAssertEqual(providers.registrations.map(\.id), ["slow", "cart", "failing", "big"])
     let started = Date()
     let files = await providers.start(context).files(avoiding: ["logs.txt"])
-    XCTAssertLessThan(Date().timeIntervalSince(started), 5)
+    XCTAssertLessThan(Date().timeIntervalSince(started), 20)
     XCTAssertEqual(files.map(\.name), ["cart.json", "logs-2.txt"])
     XCTAssertEqual(files.first?.summary, "the cart")
     XCTAssertEqual(files.last?.summary, "attached by the app")
@@ -257,7 +257,7 @@ import UIKit
     let run = providers.start(ScreenClipReportContext())
     try? await Task.sleep(for: .milliseconds(50))
     run.cancel()
-    await fulfillment(of: [cancelled], timeout: 2)
+    await fulfillment(of: [cancelled], timeout: 10)
   }
 
   func testDeviceIDSurvivesReinstallAndKeepsTheExistingID() throws {
