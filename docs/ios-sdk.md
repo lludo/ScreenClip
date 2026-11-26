@@ -10,7 +10,7 @@ The fastest way is to let your coding agent do it. In ScreenClip, open **Setting
 
 By hand:
 
-1. Add the package `https://github.com/lludo/ScreenClip` and link the product **ScreenClipKit** to your app target. It needs iOS 17 or later and a Swift 6 toolchain (Xcode 16 or newer). Use version 1.2.0 or later (attachment providers and reports from an existing screenshot arrived in 1.2.0). On the Mac, use ScreenClip 1.2 or later: an older ScreenClip still receives the reports, but doesn't tell the agent when a screenshot was picked from Photos.
+1. Add the package `https://github.com/lludo/ScreenClip` and link the product **ScreenClipKit** to your app target. It needs iOS 17 or later and a Swift 6 toolchain (Xcode 16 or newer). Use version 1.2.0 or later (attachment providers and reports from an existing screenshot arrived in 1.2.0). On the Mac, use ScreenClip 1.2.0 or later: an older ScreenClip still receives the reports, but doesn't tell the agent when a screenshot was picked from Photos.
 2. Start it once:
    ```swift
    #if DEBUG

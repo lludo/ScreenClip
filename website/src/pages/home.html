@@ -1,6 +1,6 @@
 <div class="intro wrap">
       <section class="hero" aria-labelledby="hero-title">
-        <h1 id="hero-title">{{hero.title}}</h1>
+        <h1 id="hero-title">@@HERO_TITLE@@</h1>
         <p class="lead">{{hero.lead}}</p>
         <p class="shortcut"><span class="keys" role="img" aria-label="{{hero.keysLabel}}"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>2</kbd></span><span>{{hero.shortcut}}</span></p>
         @@ACTIONS@@
@@ -29,15 +29,44 @@
 
     <section class="section section-rule" id="loop" aria-labelledby="loop-title">
       <div class="wrap">
-        <h2 id="loop-title">{{nav.how}}</h2>
+        <div class="section-intro section-intro-wide">
+          <p class="eyebrow">{{loop.eyebrow}}</p>
+          <h2 id="loop-title">{{loop.title}}</h2>
+        </div>
         <ol class="flow">
-          <li><h3>{{flow.s1Title}}</h3><p>{{flow.s1Body}}</p></li>
-          <li><h3>{{flow.s3Title}}</h3><p>{{flow.s3Body}}</p></li>
-          <li><h3>{{flow.s4Title}}</h3><p>{{flow.s4Body}}</p></li>
+          <li class="flow-step">
+            <p class="flow-who"><span class="who">{{flow.you}}</span><span class="step-num">01</span></p>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></svg></span>
+            <h3>{{flow.s1Title}}</h3>
+            <p>{{flow.s1Body}}</p>
+          </li>
+          <li class="flow-step">
+            <p class="flow-who"><span class="who">{{flow.you}}</span><span class="step-num">02</span></p>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3z"/><path d="M14.5 7.5l3 3"/></svg></span>
+            <h3>{{flow.s2Title}}</h3>
+            <p>{{flow.s2Body}}</p>
+          </li>
+          <li class="flow-step flow-agent">
+            <p class="flow-who"><span class="who">{{flow.agent}} · {{flow.background}}</span><span class="step-num">03</span></p>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="2.2"/><circle cx="6" cy="18" r="2.2"/><circle cx="18" cy="18" r="2.2"/><path d="M6 8.2v7.6M18 15.8V10a3 3 0 0 0-3-3h-3.5"/><path d="M13.5 4.5 11 7l2.5 2.5"/></svg></span>
+            <h3>{{flow.s3Title}}</h3>
+            <p>{{flow.s3Body}}</p>
+            <ul class="chips">
+              <li>{{flow.chipWorking}}</li>
+              <li>{{flow.chipPr}}</li>
+              <li>{{flow.chipMerged}}</li>
+            </ul>
+          </li>
+          <li class="flow-step">
+            <p class="flow-who"><span class="who">{{flow.you}}</span><span class="step-num">04</span></p>
+            <span class="icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9.5a6 6 0 1 1 12 0c0 5 2 6.5 2 6.5H4s2-1.500 2-6.5z"/><path d="M10 19.500a2.100 2.100 0 0 0 4 0"/></svg></span>
+            <h3>{{flow.s4Title}}</h3>
+            <p>{{flow.s4Body}}</p>
+          </li>
         </ol>
         <figure class="queue-figure" id="queue">
           <a href="@@QUEUE_PNG@@" aria-label="{{queue.open}}"><img src="@@QUEUE_PNG@@" width="2292" height="1412" alt="{{queue.alt}}" loading="lazy" decoding="async"></a>
-          <figcaption>{{queue.caption}} <a id="notifications" href="@@NOTIFICATION_PNG@@">{{notifications.open}}</a></figcaption>
+          <figcaption>{{queue.caption}}</figcaption>
         </figure>
       </div>
     </section>

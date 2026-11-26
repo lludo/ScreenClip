@@ -9,7 +9,7 @@
     "supportDescription": "Get ScreenClip help through GitHub issues, plus what you need to run or build the Mac app.",
     "notFoundTitle": "Page not found — ScreenClip",
     "notFoundDescription": "That page is not on the ScreenClip site.",
-    "ogAlt": "ScreenClip — Report bugs with a screenshot",
+    "ogAlt": "ScreenClip. File bugs as you go, without breaking your flow.",
     "iosTitle": "ScreenClip for iPhone and iPad: ScreenClipKit",
     "iosDescription": "Add ScreenClipKit to your app’s Debug build. Shake the device to send a screenshot and a note to your Mac."
   },
@@ -41,7 +41,7 @@
     "license": "PolyForm Noncommercial 1.0.0"
   },
   "hero": {
-    "title": "Report bugs with a screenshot",
+    "title": "File bugs as you go, without breaking your flow.",
     "lead": "Mark what’s wrong in a Mac app, an iPhone app, or a website and send it to your coding agent. Keep testing while it works on a fix.",
     "shortcut": "Capture a region on your Mac",
     "keysLabel": "Command Shift 2"
@@ -59,6 +59,10 @@
     "step7": "Or open the queue to see every report and its status",
     "step8": "Get notified when the fix is merged and ready to retest"
   },
+  "loop": {
+    "eyebrow": "How it works",
+    "title": "A few seconds from you. The rest runs in the background."
+  },
   "ios": {
     "intro": "Add ScreenClipKit to your app’s Debug build. Shake the device to send a screenshot and a note to your Mac."
   },
@@ -69,7 +73,7 @@
     "localBody": "Both run on your Mac in a separate Git worktree for each report. Answer questions in ScreenClip. ScreenClip runs your project checks and opens the pull request."
   },
   "download": {
-    "title": "ScreenClip 1.2.0 for Mac",
+    "title": "ScreenClip 1.2.0 for macOS",
     "price": "Free for noncommercial use.",
     "source": "Commercial licenses are available on request. {link:license}.",
     "sourceMissing": "The source is not public yet.",
@@ -202,23 +206,28 @@
     "title": "Page not found"
   },
   "flow": {
-    "s1Title": "Show the problem",
-    "s1Body": "Select part of the screen. Add a note, draw an arrow, or black out private details.",
-    "s3Title": "Review the fix",
-    "s3Body": "Your agent works on the report. Open its GitHub pull request to review the changes.",
-    "s4Title": "Retest after merge",
-    "s4Body": "Turn on notifications to hear when a fix merges. Rebuild your app and try it again."
+    "you": "You",
+    "agent": "Your agent",
+    "background": "In the background",
+    "s1Title": "Capture",
+    "s1Body": "Press ⌘⇧2 and drag over what you noticed, in any Mac app or website. On iPhone or iPad, shake the device.",
+    "s2Title": "Add a few words",
+    "s2Body": "Type a quick note. Mark it up or black out anything private if you want, then send.",
+    "s3Title": "Keep going",
+    "s3Body": "Your coding agent picks up the report, makes the fix, and opens a pull request. Nothing to watch.",
+    "s4Title": "Retest",
+    "s4Body": "ScreenClip notifies you when the fix merges. Pull requests for visual fixes include before and after screenshots.",
+    "chipWorking": "Working",
+    "chipPr": "Pull request",
+    "chipMerged": "Merged"
   },
   "queue": {
     "open": "Open the full-size report queue screenshot",
     "alt": "ScreenClip report queue showing projects, a list of merged reports, and the details of a selected report.",
     "caption": "The report queue shows the screenshot, conversation, and pull request together."
   },
-  "notifications": {
-    "open": "View a retest notification"
-  },
   "iosPage": {
-    "title": "Report bugs from your iPhone or iPad",
+    "title": "Report bugs from iOS",
     "setupButton": "Set up ScreenClipKit",
     "docsButton": "SDK documentation",
     "shotAlt": "The ScreenClipKit report sheet over a demo app. A red box and an arrow mark a clipped Add to order button, and the note says the price is cut off.",
@@ -233,7 +242,7 @@
     "pairAlt": "ScreenClip Settings › iOS on the Mac, asking to confirm the 6-digit code shown on the iPhone.",
     "pairOpen": "Open the full-size pairing screenshot",
     "setupTitle": "Set up ScreenClipKit",
-    "setupIntro": "You need ScreenClip 1.2 or later on your Mac, and an app for iOS 17 or later built with Xcode 16 or newer.",
+    "setupIntro": "You need ScreenClip 1.2.0 or later on your Mac, and an app for iOS 17 or later built with Xcode 16 or newer.",
     "setup1Title": "Add the package",
     "setup1Body": "In Xcode, choose File › Add Package Dependencies, enter this URL, and link ScreenClipKit to your app target.",
     "setup2Title": "Start it in Debug",

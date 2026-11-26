@@ -9,7 +9,7 @@
     "supportDescription": "GitHub issuesでの問い合わせと、Macアプリの実行またはビルドに必要なもの。",
     "notFoundTitle": "ページが見つかりません — ScreenClip",
     "notFoundDescription": "そのページはScreenClipのサイトにありません。",
-    "ogAlt": "ScreenClip — スクリーンショットで不具合を報告",
+    "ogAlt": "ScreenClip。流れを止めずに、気づいた不具合を記録。",
     "iosTitle": "iPhone・iPad 版 ScreenClip：ScreenClipKit",
     "iosDescription": "アプリの Debug ビルドに ScreenClipKit を追加します。端末を振ると、スクリーンショットとメモを Mac に送れます。"
   },
@@ -41,7 +41,7 @@
     "license": "PolyForm Noncommercial 1.0.0"
   },
   "hero": {
-    "title": "スクリーンショットで不具合を報告",
+    "title": "流れを止めずに、気づいた不具合を記録。",
     "lead": "Mac アプリ、iPhone アプリ、Web サイトの気になる箇所に印を付け、コーディングエージェントに送信。修正を待つ間もテストを続けられます。",
     "shortcut": "Mac の画面の一部を撮影",
     "keysLabel": "Command Shift 2"
@@ -59,6 +59,10 @@
     "step7": "キューを開けば、すべての報告とその状態を確認できます",
     "step8": "修正がマージされ再テストできるようになると通知が届く"
   },
+  "loop": {
+    "eyebrow": "使い方",
+    "title": "あなたの手間は数秒。あとはバックグラウンドで進みます。"
+  },
   "ios": {
     "intro": "アプリの Debug ビルドに ScreenClipKit を追加します。端末を振ると、スクリーンショットとメモを Mac に送れます。"
   },
@@ -69,7 +73,7 @@
     "localBody": "どちらも Mac 上で動作し、レポートごとに独立した Git ワークツリーを使います。質問には ScreenClip で回答します。プロジェクトの検証とプルリクエストの作成も ScreenClip が行います。"
   },
   "download": {
-    "title": "Mac向けScreenClip 1.2.0。",
+    "title": "macOS向けScreenClip 1.2.0。",
     "price": "非商用利用は無料です。",
     "source": "商用ライセンスはお問い合わせください。{link:license}。",
     "sourceMissing": "ソースコードはまだ公開されていません。",
@@ -202,23 +206,28 @@
     "title": "そのページはありません。"
   },
   "flow": {
-    "s1Title": "問題の箇所を示す",
-    "s1Body": "画面の一部を選びます。メモや矢印を添えたり、個人情報を黒く塗りつぶしたりできます。",
-    "s3Title": "修正内容を確認する",
-    "s3Body": "エージェントが報告をもとに作業します。変更内容は GitHub のプルリクエストで確認できます。",
-    "s4Title": "マージ後に再テストする",
-    "s4Body": "通知を有効にするとマージ時にお知らせします。アプリをビルドし直して確認してください。"
+    "you": "あなた",
+    "agent": "エージェント",
+    "background": "バックグラウンド",
+    "s1Title": "キャプチャ",
+    "s1Body": "⌘⇧2 を押して、気になった部分をドラッグ。Mac アプリでもウェブサイトでも使えます。iPhone や iPad ではデバイスを振るだけ。",
+    "s2Title": "一言添える",
+    "s2Body": "短いメモを入力。必要なら注釈を加えたり、見せたくない部分を塗りつぶしたりして送信します。",
+    "s3Title": "作業を続ける",
+    "s3Body": "コーディングエージェントが報告を受け取り、修正してプルリクエストを作成します。見守る必要はありません。",
+    "s4Title": "再テスト",
+    "s4Body": "修正がマージされるとScreenClipがお知らせします。見た目の修正のプルリクエストには、修正前後のスクリーンショットが付きます。",
+    "chipWorking": "作業中",
+    "chipPr": "プルリクエスト",
+    "chipMerged": "マージ済み"
   },
   "queue": {
     "open": "報告キューの画像を原寸で開く",
     "alt": "プロジェクト、マージ済みの報告一覧、選択した報告の詳細を表示するScreenClipのキュー。",
     "caption": "各レポートでスクリーンショット、やり取り、プルリクエストをまとめて確認できます。"
   },
-  "notifications": {
-    "open": "再テストの通知を見る"
-  },
   "iosPage": {
-    "title": "iPhone や iPad から不具合を報告",
+    "title": "iOS から不具合を報告",
     "setupButton": "ScreenClipKit を導入",
     "docsButton": "SDK ドキュメント",
     "shotAlt": "デモアプリの上に表示された ScreenClipKit のレポートシート。赤い枠と矢印が文字の切れた Add to order ボタンを示し、メモには価格が切れていると書かれています。",
@@ -233,7 +242,7 @@
     "pairAlt": "Mac の ScreenClip 設定 › iOS。iPhone に表示された 6 桁のコードを確認するよう求めています。",
     "pairOpen": "ペアリングのスクリーンショットを実寸で開く",
     "setupTitle": "ScreenClipKit の設定",
-    "setupIntro": "Mac に ScreenClip 1.2 以降、そして Xcode 16 以降でビルドする iOS 17 以降のアプリが必要です。",
+    "setupIntro": "Mac に ScreenClip 1.2.0 以降、そして Xcode 16 以降でビルドする iOS 17 以降のアプリが必要です。",
     "setup1Title": "パッケージを追加",
     "setup1Body": "Xcode で File › Add Package Dependencies を選び、この URL を入力して、ScreenClipKit をアプリのターゲットにリンクします。",
     "setup2Title": "Debug で起動",
