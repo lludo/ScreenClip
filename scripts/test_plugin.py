@@ -224,6 +224,30 @@ class PluginTests(unittest.TestCase):
     def proposal_files(self):
         folder = plugin.ROOT / "proposals"
         return sorted(folder.glob("*.json")) if folder.is_dir() else []
+    def test_close_issue_writes_a_close_request_with_evidence(self):
+        self.issue["reportNumber"] = 12
+        self.save()
+        database = (plugin.ROOT / "screenclip.sqlite").read_bytes()
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("close_issue", {"issue_id": "#12", "summary": "Fixed it."})
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("close_issue", {"issue_id": "#12", "summary": "Fixed.", "commit": "nothex!"})
+        with self.assertRaises(plugin.InvalidParams):
+            plugin.call("close_issue", {"issue_id": "#99", "summary": "Fixed.", "commit": "abcdef1"})
+        result = json.loads(plugin.call("close_issue", {"issue_id": "#12", "summary": "Landed in my own PR.", "pull_request": "https://github.com/o/r/pull/7"})["content"][0]["text"])
+        self.assertEqual(result["status"], "closing")
+        self.assertEqual((plugin.ROOT / "screenclip.sqlite").read_bytes(), database)
+        files = list((plugin.ROOT / "closures").glob("*.json"))
+        self.assertEqual(len(files), 1)
+        self.assertEqual(files[0].stat().st_mode & 0o777, 0o600)
+        request = json.loads(files[0].read_text())
+        self.assertEqual((request["issueID"], request["resolution"], request["pullRequest"]), (self.id, "done", "https://github.com/o/r/pull/7"))
+        canceled = json.loads(plugin.call("close_issue", {"issue_id": self.id, "resolution": "canceled", "summary": "Duplicate of #11."})["content"][0]["text"])
+        self.assertEqual(canceled["resolution"], "canceled")
+        self.issue["status"] = "merged"
+        self.save()
+        unchanged = json.loads(plugin.call("close_issue", {"issue_id": "#12", "summary": "Again.", "commit": "abcdef1"})["content"][0]["text"])
+        self.assertEqual(unchanged["status"], "unchanged")
     def test_proposing_settings_writes_only_a_proposal_file(self):
         repo = plugin.ROOT / "repos/App"
         (repo / ".git").mkdir(parents=True)
@@ -326,10 +350,11 @@ class PluginTests(unittest.TestCase):
         messages = [json.loads(line) for line in result.stdout.splitlines()]
         self.assertEqual(len(messages), 3)
         self.assertEqual(messages[0]["result"]["serverInfo"]["name"], "screenclip")
-        self.assertEqual({t["name"] for t in messages[1]["result"]["tools"]}, {"task_summary", "list_issues", "get_issue", "list_projects", "propose_project_settings"})
+        self.assertEqual({t["name"] for t in messages[1]["result"]["tools"]}, {"task_summary", "list_issues", "get_issue", "list_projects", "propose_project_settings", "close_issue"})
         tools = {t["name"]: t for t in messages[1]["result"]["tools"]}
         self.assertFalse(tools["propose_project_settings"]["annotations"]["readOnlyHint"])
-        self.assertTrue(all(t["annotations"]["readOnlyHint"] for name, t in tools.items() if name != "propose_project_settings"))
+        self.assertTrue(all(t["annotations"]["readOnlyHint"] for name, t in tools.items() if name not in {"propose_project_settings", "close_issue"}))
+        self.assertFalse(tools["close_issue"]["annotations"]["readOnlyHint"])
         self.assertEqual(json.loads(messages[2]["result"]["content"][0]["text"])["id"], self.id)
 
 if __name__ == "__main__":

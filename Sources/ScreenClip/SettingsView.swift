@@ -351,6 +351,14 @@ struct SettingsView: View {
                 comment: "Parallel report limit. %lld is the number of reports."))
                 .fixedSize(horizontal: false, vertical: true)
             }
+            Toggle(isOn: Binding(
+              get: { settings.shouldRotateAgentsOnQuota },
+              set: { settings.rotateAgentsOnQuota = $0 })) {
+              Text(
+                chrome: "Hand reports to another agent when one is out of quota",
+                comment: "When an agent hits its usage limit, the report and its work so far move to the next installed agent."
+              ).fixedSize(horizontal: false, vertical: true)
+            }
             Picker(selection: Binding(
               get: { settings.unattendedAnswerDelay }, set: { settings.unattendedAnswerMinutes = $0 })
             ) {
