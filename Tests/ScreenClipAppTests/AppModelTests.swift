@@ -123,6 +123,90 @@ import XCTest
     XCTAssertFalse(model.shouldShowDonationPrompt())
   }
 
+  func testAcceptingAProposedValidationCommandContinuesReportsBlockedOnIt() throws {
+    let (model, root) = try makeModel()
+    try FileManager.default.createDirectory(at: root.appendingPathComponent(".git"), withIntermediateDirectories: false)
+    let project = Project(name: "Quantified", path: root.path)
+    try model.saveProject(project)
+    func report(_ error: String) throws -> UUID {
+      try model.submit(
+        imageData: Data([1]), originalData: nil, annotations: [], note: "Clipped",
+        context: CaptureContext(), projectID: project.id, existingID: nil, draft: false)
+      let id = try XCTUnwrap(model.snapshot.issues.last?.id)
+      try model.updateIssue(id) {
+        $0.record("Publishing failed", status: .failed)
+        $0.lastError = error
+      }
+      return id
+    }
+    let blocked = try report(GitWorkspace.missingValidationMessage)
+    let other = try report("Merge conflict")
+    let proposal = SettingsProposal(
+      projectID: project.id, changes: [.validationCommand: "make test"], reason: "Runs the tests",
+      proposer: "claude-code")
+    try SettingsProposalInbox.write(proposal, root: root)
+    model.refreshSettingsProposals()
+    XCTAssertEqual(model.settingsProposal(for: project.id)?.id, proposal.id)
+    XCTAssertEqual(model.reportsBlockedOnValidation(project.id).map(\.id), [blocked])
+    XCTAssertEqual(model.project(project.id)?.validationCommand, "", "Nothing changes before Accept")
+
+    model.acceptSettingsProposal(proposal.id)
+    XCTAssertEqual(model.project(project.id)?.validationCommand, "make test")
+    XCTAssertEqual(try model.store.load().projects.first?.validationCommand, "make test")
+    XCTAssertTrue(model.settingsProposals.isEmpty)
+    XCTAssertTrue(SettingsProposalInbox.load(root: root).isEmpty)
+    XCTAssertEqual(model.issue(blocked)?.status, .queued)
+    XCTAssertNil(model.issue(blocked)?.lastError)
+    XCTAssertEqual(model.issue(other)?.status, .failed, "Only reports blocked on the missing command continue")
+  }
+
+  func testRejectedAndOutdatedProposalsAreRemovedWithoutChangingTheProject() throws {
+    let (model, root) = try makeModel()
+    try FileManager.default.createDirectory(at: root.appendingPathComponent(".git"), withIntermediateDirectories: false)
+    let project = Project(name: "App", path: root.path, validationCommand: "make test")
+    try model.saveProject(project)
+    let rejected = SettingsProposal(projectID: project.id, changes: [.baseBranch: "develop"])
+    try SettingsProposalInbox.write(rejected, root: root)
+    model.refreshSettingsProposals()
+    model.rejectSettingsProposal(rejected.id)
+    XCTAssertEqual(model.project(project.id)?.baseBranch, Project.defaultBaseBranch)
+    XCTAssertTrue(SettingsProposalInbox.load(root: root).isEmpty)
+
+    // Already applied, or for a project that no longer exists: nothing to decide.
+    let applied = SettingsProposal(projectID: project.id, changes: [.validationCommand: "make test"])
+    let orphan = SettingsProposal(projectID: UUID(), changes: [.validationCommand: "make"])
+    try SettingsProposalInbox.write(applied, root: root)
+    try SettingsProposalInbox.write(orphan, root: root)
+    // A newer proposal for one project replaces the older one.
+    let older = SettingsProposal(projectID: project.id, changes: [.baseBranch: "a"], createdAt: Date(timeIntervalSinceNow: -60))
+    let newer = SettingsProposal(projectID: project.id, changes: [.baseBranch: "b"])
+    try SettingsProposalInbox.write(older, root: root)
+    try SettingsProposalInbox.write(newer, root: root)
+    model.refreshSettingsProposals()
+    XCTAssertEqual(model.settingsProposals.map(\.id), [newer.id])
+    XCTAssertEqual(SettingsProposalInbox.load(root: root).map(\.id), [newer.id])
+  }
+
+  func testMalformedProposalFilesAreIgnored() throws {
+    let (_, root) = try makeModel()
+    let folder = SettingsProposalInbox.folder(root: root)
+    try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+    let id = UUID()
+    let project = UUID()
+    func write(_ name: String, _ object: Any) throws {
+      try JSONSerialization.data(withJSONObject: object).write(to: folder.appendingPathComponent(name))
+    }
+    try write("\(UUID().uuidString).json", ["id": id.uuidString, "projectID": project.uuidString, "changes": ["validationCommand": "x"]])
+    try write("\(id.uuidString).json", ["id": id.uuidString, "projectID": project.uuidString, "changes": ["unknown": "x"]])
+    try Data("not json".utf8).write(to: folder.appendingPathComponent("\(UUID().uuidString).json"))
+    XCTAssertTrue(SettingsProposalInbox.load(root: root).isEmpty)
+    try write("\(id.uuidString).json", ["id": id.uuidString, "projectID": project.uuidString, "changes": ["validationCommand": " make test ", "future": "y"], "proposer": "codex-mcp-client", "createdAt": 1_700_000_000.0])
+    let loaded = try XCTUnwrap(SettingsProposalInbox.load(root: root).first)
+    XCTAssertEqual(loaded.changes, [.validationCommand: "make test"])
+    XCTAssertEqual(loaded.proposer, "codex-mcp-client")
+    XCTAssertEqual(SettingsProposalCard.proposerName("codex-mcp-client"), "Codex")
+  }
+
   func testRecordingAMergeClearsAnErrorLeftByAnEarlierRefresh() throws {
     let (model, _) = try makeModel()
     try model.submit(

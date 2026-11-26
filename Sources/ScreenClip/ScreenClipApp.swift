@@ -303,13 +303,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCent
     }
   }
   func refreshBadge() {
+    model.refreshSettingsProposals()
     // The same rules as the queue sidebar and the popover, so the badge never disagrees with them.
     let active = model.snapshot.issues.filter { QueueFilter.active.includes($0) }.count
+    // A settings proposal waits on the tester just like a question does.
     let attention = model.snapshot.issues.filter { QueueFilter.attention.includes($0) }.count
+      + model.settingsProposals.count
     statusItem.button?.image = NSImage(
       systemSymbolName: "viewfinder", accessibilityDescription: "ScreenClip")
     let count = active.formatted(.number)
-    statusItem.button?.title = active > 0 ? " \(count)\(attention > 0 ? " •" : "")" : ""
+    let dot = attention > 0 ? " •" : ""
+    statusItem.button?.title = active > 0 ? " \(count)\(dot)" : dot
     let open = Chrome.format(
       "tooltip.open", "\(active) open", comment: "Menu bar tooltip. %lld is the open count.")
     let needs = Chrome.format(

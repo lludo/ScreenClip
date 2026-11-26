@@ -426,6 +426,11 @@ struct QueueView: View {
   }
   private func projectSettings(_ project: Project, isNew: Bool) -> some View {
     ScrollView {
+      if !isNew, let proposal = model.settingsProposal(for: project.id) {
+        SettingsProposalCard(model: model, proposal: proposal)
+          .frame(maxWidth: 632, alignment: .leading).padding(.top, 24)
+          .frame(maxWidth: .infinity, alignment: .leading)
+      }
       ProjectEditor(
         model: model, project: project,
         onSaved: { selection = .project($0) },
@@ -477,9 +482,17 @@ struct QueueView: View {
           Button {
             selection = .project(project.id)
           } label: {
-            Label(project.name, systemImage: project.displaySymbol)
-              .fontWeight(selection == .project(project.id) ? .bold : .regular)
-              .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
+            HStack(spacing: 6) {
+              Label(project.name, systemImage: project.displaySymbol)
+                .fontWeight(selection == .project(project.id) ? .bold : .regular)
+              Spacer(minLength: 4)
+              if model.settingsProposal(for: project.id) != nil {
+                // Settings an agent proposed wait here for Accept or Reject.
+                Circle().fill(.orange).frame(width: 8, height: 8)
+                  .accessibilityLabel(Text(chrome: "Suggested settings waiting", comment: "Sidebar badge on a project with settings a coding agent proposed."))
+              }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
           }.help(
             Text(chrome: "Project settings", comment: "Opens settings for this project."))
             .sidebarRow(selected: selection == .project(project.id))

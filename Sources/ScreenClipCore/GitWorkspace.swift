@@ -185,10 +185,14 @@ public enum GitWorkspace {
     return result?.status == 0
   }
 
+  /// The publishing error for a project without a validation command. Reports blocked on it
+  /// continue once the tester accepts a proposed command.
+  public static let missingValidationMessage =
+    "Add a validation command in this project's settings before publishing a fix."
+
   public static func validate(project: Project, path: String) async throws -> ValidationReceipt {
     guard !project.validationCommand.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-      throw ScreenClipError.message(
-        "Add a validation command in this project's settings before publishing a fix.")
+      throw ScreenClipError.message(missingValidationMessage)
     }
     let before = try await fingerprint(path: path)
     let result = try await CommandRunner.run(

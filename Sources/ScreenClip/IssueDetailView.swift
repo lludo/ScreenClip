@@ -168,6 +168,11 @@ struct IssueDetailView: View {
             Image(systemName: "exclamationmark.circle")
           }.font(.callout).foregroundStyle(.orange)
         }
+        if issue.lastError == GitWorkspace.missingValidationMessage,
+          let proposal = model.settingsProposal(for: issue.projectID)
+        {
+          SettingsProposalCard(model: model, proposal: proposal)
+        }
         if let url = issue.prURL.flatMap(URL.init(string:)) {
           PullRequestCard(model: model, worker: model.worker, issue: issue, url: url)
             .id(url)

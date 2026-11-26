@@ -224,6 +224,61 @@ struct GrokConnectionCheck: Equatable {
     perform { try commit { $0.settings.paused.toggle() } }
     worker.pump()
   }
+  /// Settings proposals from coding agents, waiting for the tester. Read from the data folder.
+  @Published private(set) var settingsProposals: [SettingsProposal] = []
+  func settingsProposal(for projectID: UUID?) -> SettingsProposal? {
+    settingsProposals.last { $0.projectID == projectID }
+  }
+  /// Rereads the proposals the MCP server dropped. Ones for a removed project, or that the
+  /// project already matches, are cleared without asking.
+  func refreshSettingsProposals() {
+    var waiting: [SettingsProposal] = []
+    for proposal in SettingsProposalInbox.load(root: store.root) {
+      guard let project = project(proposal.projectID), !proposal.isApplied(to: project) else {
+        SettingsProposalInbox.remove(proposal.id, root: store.root)
+        continue
+      }
+      // A newer proposal for the same project replaces an older one the server could not remove.
+      if let older = waiting.firstIndex(where: { $0.projectID == proposal.projectID }) {
+        SettingsProposalInbox.remove(waiting[older].id, root: store.root)
+        waiting.remove(at: older)
+      }
+      waiting.append(proposal)
+    }
+    if waiting != settingsProposals { settingsProposals = waiting }
+  }
+  /// Reports in a project that stopped only because it had no validation command.
+  func reportsBlockedOnValidation(_ projectID: UUID) -> [Issue] {
+    snapshot.issues.filter {
+      $0.projectID == projectID && !$0.archived && [.needsYou, .failed].contains($0.status)
+        && $0.lastError == GitWorkspace.missingValidationMessage && !$0.dispatchUncertain
+        && $0.questions.allSatisfy { $0.reply != nil }
+    }
+  }
+  /// Applies the proposal, then continues the reports that were waiting for a validation command.
+  func acceptSettingsProposal(_ id: UUID) {
+    guard let proposal = settingsProposals.first(where: { $0.id == id }) else { return }
+    var blocked: [Issue] = []
+    perform {
+      guard project(proposal.projectID) != nil else {
+        throw ScreenClipError.message("Report or project no longer exists.")
+      }
+      if proposal.changes[.validationCommand] != nil {
+        blocked = reportsBlockedOnValidation(proposal.projectID)
+      }
+      try commit { state in
+        guard let index = state.projects.firstIndex(where: { $0.id == proposal.projectID }) else { return }
+        state.projects[index] = proposal.applied(to: state.projects[index])
+      }
+      SettingsProposalInbox.remove(id, root: store.root)
+      settingsProposals.removeAll { $0.id == id }
+    }
+    for issue in blocked { retry(issue.id) }
+  }
+  func rejectSettingsProposal(_ id: UUID) {
+    SettingsProposalInbox.remove(id, root: store.root)
+    settingsProposals.removeAll { $0.id == id }
+  }
   func saveProject(_ project: Project) throws {
     guard FileManager.default.fileExists(atPath: project.path + "/.git") else {
       throw ScreenClipError.message("Choose a Git repository root containing .git.")

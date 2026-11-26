@@ -1,6 +1,6 @@
 # Optional ScreenClip plugin
 
-This local MCP plugin lets a Codex or Claude Code session read the queue, notes, approved screenshots, and status. Grok Bot does not install this plugin; its questions stay in Grok Bot's chat. The native ScreenClip app owns automatic dispatch, replies, publication, and merge verification. This bridge is read-only to avoid competing agents and queue writers.
+This local MCP plugin lets a Codex or Claude Code session read the queue, notes, approved screenshots, and status. Grok Bot does not install this plugin; its questions stay in Grok Bot's chat. The native ScreenClip app owns automatic dispatch, replies, publication, and merge verification. This bridge never writes the queue, to avoid competing agents and queue writers. The one thing it can write is a settings proposal, which changes nothing until you accept it in ScreenClip.
 
 ## Install from ScreenClip (easiest)
 
@@ -22,7 +22,8 @@ For one session only, run `claude --plugin-dir /absolute/path/to/plugins/screenc
 The default data folder is `~/Library/Application Support/ScreenClip`. For a development instance, set `SCREENCLIP_DATA_DIR` on the server process. Tools:
 
 - `task_summary(project?)`: how many reports are **open** (draft, needsProject, queued), **in progress** (working, prOpen), **blocked** (needsYou, failed), and **done** (merged, verified, canceled), plus the blocked reports. Start here.
-- `list_projects()`: each project's name, repository path, and the same counts.
+- `list_projects()`: each project's name, repository path, base branch, whether a validation command is set (`hasValidationCommand`; the command itself is left out because it can hold tokens), whether a settings proposal is waiting (`settingsProposalPending`), and the same counts.
+- `propose_project_settings(project, validation_command?, base_branch?, reason?)`: proposes a project's validation command or base branch. ScreenClip refuses to publish a fix until a project has a validation command, so an agent can propose one when reports are blocked on it. The server writes the proposal to `proposals/<id>.json` in the data folder and nothing else. ScreenClip shows it in the menu bar popover, on the project in the queue sidebar (orange dot), on reports blocked by the missing command, and above the project's settings, with **Accept** and **Reject**. Accepting saves the settings and continues the reports that were waiting for a validation command. A newer proposal for the same project replaces the waiting one, and a proposal the project already matches is dropped.
 - `list_issues(project?, status?, include_closed=false, limit=50)`: non-archived reports with report numbers, project, group, agents, and statuses, most recently updated first. `status` takes a group (`open`, `in_progress`, `blocked`, `done`) or one status. Merged, verified, and canceled reports are left out unless `include_closed` is true or `status` names them. The `agent` value is `codex`, `claude`, or `external` (Grok Bot). Older issues with no agent field are reported as Codex.
 - `get_issue(issue_id, include_images=false, activity_limit=20)`: issue context, the most recent activity entries (with `activityCount` for the total), and optional approved images. Accepts a UUID or report number such as `#234` or `234`, including archived reports. Original captures and private settings are excluded.
 
