@@ -1,4 +1,5 @@
 #if os(iOS) && DEBUG
+  import ImageIO
   import ScreenClipWire
   import SwiftUI
   import UIKit
@@ -54,6 +55,52 @@
         }
       }
       return Snapshot(image: image, cornerRadii: sceneCornerRadii(in: scene))
+    }
+
+    /// An existing screenshot in place of `live`. It keeps the device's rounded corners only when
+    /// its pixel size matches this screen; anything else is shown square and scaled to fit this
+    /// screen's longest side, so the report stays the size of a live capture.
+    static func picked(_ data: Data, replacing live: Snapshot) async -> (Snapshot, PickedScreenshot)? {
+      let scale = live.image.scale
+      let width = Int((live.image.size.width * scale).rounded())
+      let height = Int((live.image.size.height * scale).rounded())
+      let decoded = await Task.detached(priority: .userInitiated) {
+        decode(data, maximumPixelSize: max(width, height))
+      }.value
+      guard let (image, takenAt) = decoded else { return nil }
+      let matches = (image.width, image.height) == (width, height) || (image.width, image.height) == (height, width)
+      let snapshot = Snapshot(
+        image: UIImage(cgImage: image, scale: matches ? scale : 1, orientation: .up),
+        cornerRadii: matches ? live.cornerRadii : RectangleCornerRadii())
+      return (snapshot, PickedScreenshot(takenAt: takenAt, matchesDevice: matches))
+    }
+
+    /// The upright image, no larger than `maximumPixelSize` on its longest side, and its capture date.
+    nonisolated static func decode(_ data: Data, maximumPixelSize: Int) -> (CGImage, Date?)? {
+      guard let source = CGImageSourceCreateWithData(data as CFData, nil) else { return nil }
+      let options: [CFString: Any] = [
+        kCGImageSourceCreateThumbnailFromImageAlways: true,
+        kCGImageSourceCreateThumbnailWithTransform: true,
+        kCGImageSourceThumbnailMaxPixelSize: maximumPixelSize,
+      ]
+      guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else { return nil }
+      let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any]
+      return (image, takenAt(properties))
+    }
+
+    /// The capture date in the image's EXIF metadata, which iOS screenshots carry.
+    nonisolated static func takenAt(_ properties: [CFString: Any]?) -> Date? {
+      guard let exif = properties?[kCGImagePropertyExifDictionary] as? [CFString: Any],
+        let text = exif[kCGImagePropertyExifDateTimeOriginal] as? String
+      else { return nil }
+      let formatter = DateFormatter()
+      formatter.locale = Locale(identifier: "en_US_POSIX")
+      if let offset = exif[kCGImagePropertyExifOffsetTimeOriginal] as? String {
+        formatter.dateFormat = "yyyy:MM:dd HH:mm:ssxxx"
+        if let date = formatter.date(from: text + offset) { return date }
+      }
+      formatter.dateFormat = "yyyy:MM:dd HH:mm:ss"
+      return formatter.date(from: text)
     }
 
     private static func sceneCornerRadii(in scene: UIWindowScene) -> RectangleCornerRadii {

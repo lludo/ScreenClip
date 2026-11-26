@@ -41713,6 +41713,72 @@
         }
       }
     },
+    "From Photos; may not match the installed build": {
+      "comment": "ScreenClip interface text.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From Photos; may not match the installed build"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自照片；可能与已安装的版本不一致"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De Fotos; puede no coincidir con la versión instalada"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写真から選択。インストール済みのビルドと一致しない可能性があります"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Fotos; pode não corresponder à versão instalada"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus Fotos; passt eventuell nicht zum installierten Build"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depuis Photos ; peut ne pas correspondre à la version installée"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사진에서 선택함. 설치된 빌드와 다를 수 있음"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Из «Фото»; может не совпадать с установленной сборкой"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "來自照片；可能與已安裝的版本不一致"
+          }
+        }
+      }
+    },
     "menu.update.install": {
       "comment": "Installs a downloaded app update. %@ is a version number and is not translated.",
       "extractionState": "manual",
@@ -49473,6 +49539,72 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "capture.pickedScreenshot.dated": {
+      "comment": "Capture context value when the tester picked an existing screenshot. %@ is when it was taken.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From Photos, taken %@; may not match the installed build"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "来自照片，拍摄于 %@；可能与已安装的版本不一致"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De Fotos, tomada el %@; puede no coincidir con la versión instalada"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "写真から選択（撮影: %@）。インストール済みのビルドと一致しない可能性があります"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Das Fotos, capturada em %@; pode não corresponder à versão instalada"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aus Fotos, aufgenommen am %@; passt eventuell nicht zum installierten Build"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Depuis Photos, prise le %@ ; peut ne pas correspondre à la version installée"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "사진에서 선택함(촬영: %@). 설치된 빌드와 다를 수 있음"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Из «Фото», снято %@; может не совпадать с установленной сборкой"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "來自照片，拍攝於 %@；可能與已安裝的版本不一致"
           }
         }
       }

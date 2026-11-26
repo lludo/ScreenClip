@@ -63,6 +63,21 @@ import XCTest
     XCTAssertTrue(prompt.contains("UITabBarController > CheckoutViewController"))
   }
 
+  func testPickedScreenshotIsFlaggedToTheAgent() throws {
+    let (model, root) = try makeModel()
+    var project = Project(name: "Shop", path: root.path)
+    project.bundleIDs = ["com.example.shop"]
+    try model.commit { $0.projects.append(project) }
+    var incoming = try report()
+    incoming.device.pickedScreenshot = PickedScreenshot(matchesDevice: true)
+    try model.importIOSReport(incoming)
+    let issue = try XCTUnwrap(try model.store.load().issues.first)
+    XCTAssertEqual(issue.captures.first?.context.device?.pickedScreenshot, PickedScreenshot(matchesDevice: true))
+    let prompt = AgentPrompt.text(for: issue, project: project)
+    XCTAssertTrue(prompt.contains("Screenshot picked from the device's photo library instead of captured live."))
+    XCTAssertTrue(prompt.contains("may show an older build"))
+  }
+
   func testResentReportIsADuplicateAndUnknownAppNeedsAProject() throws {
     let (model, _) = try makeModel()
     let incoming = try report(bundleID: "com.example.unknown")

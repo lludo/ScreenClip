@@ -104,6 +104,7 @@ enum AgentPrompt {
       // Sent from ScreenClipKit inside the iOS app: the screenshot is the app's own windows.
       text +=
         "\niOS app capture: \(device.appName) (\(device.bundleID)) on \(device.deviceModel), \(device.platform) \(device.osVersion), \(device.orientation), \(Int(device.screenWidth))x\(Int(device.screenHeight)) pt @\(Int(device.screenScale))x, locale \(device.locale); visible view controllers: \(device.screenPath.isEmpty ? "unknown" : device.screenPath.joined(separator: " > "))"
+      if let picked = device.pickedScreenshot { text += "\n\(picked.caveat)" }
     }
     return text
   }

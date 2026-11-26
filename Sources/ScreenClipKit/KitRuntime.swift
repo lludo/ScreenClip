@@ -150,8 +150,10 @@
         ComposerView(
           snapshot: snapshot, link: self.link, outbox: self.outbox, followUp: self.followUp,
           stillBroken: { [weak self] entry in self?.followUp.entry = entry }
-        ) { note, png, attach in
+        ) { note, png, attach, picked in
           let target = self.followUp.entry
+          var device = device
+          device.pickedScreenshot = picked
           var files: [DiagnosticFile]?
           if attach {
             let builtIn = Set(["logs.txt"] + immediate.map(\.name))

@@ -648,6 +648,12 @@ FORMATS = {
         "ru": ("Принятие продолжит %lld заблокированный отчёт.", "Принятие продолжит %lld заблокированных отчёта.", "Принятие продолжит %lld заблокированных отчётов.", "Принятие продолжит %lld заблокированного отчёта."),
         "zh-Hant": "接受後將繼續 %lld 個受阻的報告。",
     }),
+    "capture.pickedScreenshot.dated": S("app", "Capture context value when the tester picked an existing screenshot. %@ is when it was taken.",
+        "From Photos, taken %@; may not match the installed build", "来自照片，拍摄于 %@；可能与已安装的版本不一致",
+        "De Fotos, tomada el %@; puede no coincidir con la versión instalada", "写真から選択（撮影: %@）。インストール済みのビルドと一致しない可能性があります",
+        "Das Fotos, capturada em %@; pode não corresponder à versão instalada", "Aus Fotos, aufgenommen am %@; passt eventuell nicht zum installierten Build",
+        "Depuis Photos, prise le %@ ; peut ne pas correspondre à la version installée", "사진에서 선택함(촬영: %@). 설치된 빌드와 다를 수 있음",
+        "Из «Фото», снято %@; может не совпадать с установленной сборкой", "來自照片，拍攝於 %@；可能與已安裝的版本不一致"),
 }
 
 INFO_PLIST = {

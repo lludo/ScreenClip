@@ -306,6 +306,17 @@ struct IssueDetailView: View {
                   contextLine(
                     Chrome.text("Screen", locale: locale, comment: "Capture context label for the visible iOS screen."),
                     device.screenPath.joined(separator: " › "))
+                  if let picked = device.pickedScreenshot {
+                    contextLine(
+                      Chrome.text("Screenshot", locale: locale, comment: "Capture context label for an iOS screenshot picked from Photos."),
+                      picked.takenAt.map {
+                        Chrome.format(
+                          "capture.pickedScreenshot.dated", "From Photos, taken \($0.formatted(date: .abbreviated, time: .shortened)); may not match the installed build",
+                          locale: locale, comment: "Capture context value when the tester picked an existing screenshot. %@ is when it was taken.")
+                      } ?? Chrome.text(
+                        "From Photos; may not match the installed build", locale: locale,
+                        comment: "Capture context value when the tester picked an existing screenshot."))
+                  }
                 }
                 if let diagnostics = capture.diagnostics, !diagnostics.files.isEmpty {
                   contextLine(
