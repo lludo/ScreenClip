@@ -9,7 +9,7 @@
     "supportDescription": "Aide ScreenClip via GitHub Issues, et ce qu’il faut pour lancer ou compiler l’app Mac.",
     "notFoundTitle": "Page introuvable — ScreenClip",
     "notFoundDescription": "Cette page n’existe pas sur le site ScreenClip.",
-    "ogAlt": "ScreenClip — Signaler un bug avec une capture d’écran",
+    "ogAlt": "ScreenClip. Signalez les bugs au fil de l’eau, sans casser votre rythme.",
     "iosTitle": "ScreenClip pour iPhone et iPad : ScreenClipKit",
     "iosDescription": "Ajoutez ScreenClipKit à la version Debug de votre app. Secouez l’appareil pour envoyer une capture et une note à votre Mac."
   },
@@ -41,7 +41,7 @@
     "license": "PolyForm Noncommercial 1.0.0"
   },
   "hero": {
-    "title": "Signaler un bug avec une capture d’écran",
+    "title": "Signalez les bugs au fil de l’eau, sans casser votre rythme.",
     "lead": "Montrez le problème dans une app Mac, une app iPhone ou sur un site et envoyez la capture à votre agent de code. Vous pouvez poursuivre vos tests pendant la correction.",
     "shortcut": "Capturer une zone sur le Mac",
     "keysLabel": "Commande Majuscule 2"
@@ -59,6 +59,10 @@
     "step7": "Ou ouvrez la file pour voir chaque signalement et son statut",
     "step8": "Recevez une notification quand le correctif est fusionné et prêt à retester"
   },
+  "loop": {
+    "eyebrow": "Fonctionnement",
+    "title": "Quelques secondes de votre temps. Le reste se passe en arrière-plan."
+  },
   "ios": {
     "intro": "Ajoutez ScreenClipKit à la version Debug de votre app. Secouez l’appareil pour envoyer une capture et une note à votre Mac."
   },
@@ -69,7 +73,7 @@
     "localBody": "Les deux travaillent sur votre Mac, dans un worktree Git distinct pour chaque rapport. Répondez à leurs questions dans ScreenClip, qui lance les vérifications du projet et ouvre la pull request."
   },
   "download": {
-    "title": "ScreenClip 1.2.0 pour votre Mac.",
+    "title": "ScreenClip 1.2.0 pour macOS.",
     "price": "Gratuit pour un usage non commercial.",
     "source": "Une licence commerciale est disponible sur demande. {link:license}.",
     "sourceMissing": "Le code source n’est pas encore public.",
@@ -202,23 +206,28 @@
     "title": "Cette page n’est pas ici."
   },
   "flow": {
-    "s1Title": "Montrer le problème",
-    "s1Body": "Sélectionnez une zone. Ajoutez une note, tracez une flèche ou masquez les informations privées.",
-    "s3Title": "Examiner le correctif",
-    "s3Body": "Votre agent traite le rapport. Ouvrez la pull request sur GitHub pour examiner les modifications.",
-    "s4Title": "Retester après la fusion",
-    "s4Body": "Activez les notifications pour savoir quand le correctif est fusionné. Recompilez l’app et refaites le test."
+    "you": "Vous",
+    "agent": "Votre agent",
+    "background": "En arrière-plan",
+    "s1Title": "Capturez",
+    "s1Body": "Appuyez sur ⌘⇧2 et sélectionnez ce que vous avez remarqué, dans n’importe quelle app Mac ou site web. Sur iPhone ou iPad, secouez l’appareil.",
+    "s2Title": "Ajoutez quelques mots",
+    "s2Body": "Tapez une courte note. Annotez ou masquez ce qui est privé si vous le souhaitez, puis envoyez.",
+    "s3Title": "Continuez",
+    "s3Body": "Votre agent de code prend le signalement, fait le correctif et ouvre une pull request. Rien à surveiller.",
+    "s4Title": "Retestez",
+    "s4Body": "ScreenClip vous prévient lorsque le correctif est fusionné. Les pull requests de correctifs visuels incluent des captures avant et après.",
+    "chipWorking": "En cours",
+    "chipPr": "Pull request",
+    "chipMerged": "Fusionné"
   },
   "queue": {
     "open": "Ouvrir la capture de la file en taille réelle",
     "alt": "File ScreenClip affichant des projets, des signalements fusionnés et le détail d’un signalement sélectionné.",
     "caption": "La capture, la conversation et la pull request sont réunies dans le rapport."
   },
-  "notifications": {
-    "open": "Voir une notification de retest"
-  },
   "iosPage": {
-    "title": "Signaler un bug depuis un iPhone ou un iPad",
+    "title": "Signaler un bug depuis iOS",
     "setupButton": "Installer ScreenClipKit",
     "docsButton": "Documentation du SDK",
     "shotAlt": "La feuille de rapport ScreenClipKit au-dessus d’une app de démonstration. Un cadre rouge et une flèche signalent un bouton Add to order tronqué, et la note indique que le prix est coupé.",
@@ -233,7 +242,7 @@
     "pairAlt": "Réglages › iOS de ScreenClip sur le Mac, qui demande de confirmer le code à 6 chiffres affiché sur l’iPhone.",
     "pairOpen": "Ouvrir la capture du jumelage en taille réelle",
     "setupTitle": "Configurer ScreenClipKit",
-    "setupIntro": "Il vous faut ScreenClip 1.2 ou ultérieur sur votre Mac, et une app pour iOS 17 ou ultérieur compilée avec Xcode 16 ou plus récent.",
+    "setupIntro": "Il vous faut ScreenClip 1.2.0 ou ultérieur sur votre Mac, et une app pour iOS 17 ou ultérieur compilée avec Xcode 16 ou plus récent.",
     "setup1Title": "Ajoutez le package",
     "setup1Body": "Dans Xcode, choisissez File › Add Package Dependencies, saisissez cette URL et liez ScreenClipKit à la cible de votre app.",
     "setup2Title": "Démarrez-le en Debug",

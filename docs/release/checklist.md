@@ -40,7 +40,7 @@ Until the Apple secrets are set in the repository, every release is built and pu
 
 The site deploys from `main`, so these changes go live when the release PR merges. Publish the GitHub Release (step 11) right after merging.
 
-- [ ] Version in `download.title`, `download.noteReady` and `support.statusReady`, in all 10 `website/locales/*.json` files. `iosPage.setupIntro` names the ScreenClip version the SDK needs on the Mac.
+- [ ] Version in `download.title`, `download.noteReady` and `support.statusReady`, in all 10 `website/locales/*.json` files. `iosPage.setupIntro` names the ScreenClip version the SDK needs on the Mac. Write versions in full everywhere (1.2.0, never 1.2).
 - [ ] If the report sheet on iOS changed: `python3 scripts/sdk_screenshots.py` redraws `composer.png` for the site and the SDK documentation.
 - [ ] If the SDK's public API, doc comments or `ScreenClipKit.docc` changed, or the screenshot was redrawn: `python3 scripts/build_sdk_docs.py`, and commit `website/sdk/`.
 - [ ] `app["softwareVersion"]` in `website/build.py`.

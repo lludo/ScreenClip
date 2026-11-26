@@ -9,7 +9,7 @@
     "supportDescription": "通过 GitHub issues 获取 ScreenClip 帮助，以及运行或构建 Mac 应用所需的条件。",
     "notFoundTitle": "找不到页面 — ScreenClip",
     "notFoundDescription": "ScreenClip 网站上没有这个页面。",
-    "ogAlt": "ScreenClip — 用截图报告问题",
+    "ogAlt": "ScreenClip。边用边记问题，不打断你的节奏。",
     "iosTitle": "iPhone 和 iPad 版 ScreenClip：ScreenClipKit",
     "iosDescription": "将 ScreenClipKit 添加到应用的 Debug 构建。摇动设备，即可将截图和备注发送到 Mac。"
   },
@@ -41,7 +41,7 @@
     "license": "PolyForm Noncommercial 1.0.0"
   },
   "hero": {
-    "title": "用截图报告问题",
+    "title": "边用边记问题，不打断你的节奏。",
     "lead": "在 Mac 应用、iPhone 应用或网站上标出问题，把截图发给编程代理。代理处理问题时，你可以继续测试。",
     "shortcut": "截取 Mac 上的部分屏幕",
     "keysLabel": "Command Shift 2"
@@ -59,6 +59,10 @@
     "step7": "或打开队列，查看每份报告及其状态",
     "step8": "修复合并并可重新测试时，你会收到通知"
   },
+  "loop": {
+    "eyebrow": "如何使用",
+    "title": "你只花几秒钟，其余都在后台完成。"
+  },
   "ios": {
     "intro": "将 ScreenClipKit 添加到应用的 Debug 构建。摇动设备，即可将截图和备注发送到 Mac。"
   },
@@ -69,7 +73,7 @@
     "localBody": "两者都在 Mac 上运行，每份报告使用独立的 Git 工作树。你可以在 ScreenClip 中回答问题。ScreenClip 会运行项目检查并创建拉取请求。"
   },
   "download": {
-    "title": "适用于 Mac 的 ScreenClip 1.2.0。",
+    "title": "适用于 macOS 的 ScreenClip 1.2.0。",
     "price": "非商业用途免费。",
     "source": "如需商业许可，请联系我们。{link:license}。",
     "sourceMissing": "源代码尚未公开。",
@@ -202,23 +206,28 @@
     "title": "这里没有这个页面。"
   },
   "flow": {
-    "s1Title": "标出问题",
-    "s1Body": "选取屏幕区域，写下备注或画个箭头。私人信息可以涂黑。",
-    "s3Title": "检查修复",
-    "s3Body": "代理会根据报告处理问题。打开 GitHub 拉取请求即可查看改动。",
-    "s4Title": "合并后复测",
-    "s4Body": "打开通知，就能在修复合并时收到提醒。重新构建应用，再试一次。"
+    "you": "你",
+    "agent": "你的代理",
+    "background": "后台进行",
+    "s1Title": "截取",
+    "s1Body": "按下 ⌘⇧2，拖选你注意到的内容，任何 Mac App 或网站都可以。在 iPhone 或 iPad 上，摇动设备即可。",
+    "s2Title": "写几个字",
+    "s2Body": "输入简短备注。需要的话可以添加标记或涂黑隐私内容，然后发送。",
+    "s3Title": "继续做你的事",
+    "s3Body": "AI 代理接手报告、完成修复并发起拉取请求。无需盯着。",
+    "s4Title": "复测",
+    "s4Body": "修复合并后，ScreenClip 会通知你。视觉修复的拉取请求会附上修复前后的截图。",
+    "chipWorking": "处理中",
+    "chipPr": "拉取请求",
+    "chipMerged": "已合并"
   },
   "queue": {
     "open": "打开完整尺寸的报告队列截图",
     "alt": "ScreenClip 报告队列，显示项目、已合并的报告列表以及所选报告的详情。",
     "caption": "每份报告都会集中显示截图、对话和拉取请求。"
   },
-  "notifications": {
-    "open": "查看复测通知示例"
-  },
   "iosPage": {
-    "title": "在 iPhone 或 iPad 上报告问题",
+    "title": "在 iOS 上报告问题",
     "setupButton": "设置 ScreenClipKit",
     "docsButton": "SDK 文档",
     "shotAlt": "演示 App 上方的 ScreenClipKit 报告面板。红框和箭头标出了文字被截断的 Add to order 按钮，备注写着价格被截断了。",
@@ -233,7 +242,7 @@
     "pairAlt": "Mac 上 ScreenClip 的设置 › iOS，请求确认 iPhone 上显示的 6 位数代码。",
     "pairOpen": "打开原尺寸的配对截图",
     "setupTitle": "设置 ScreenClipKit",
-    "setupIntro": "你需要在 Mac 上安装 ScreenClip 1.2 或更高版本，App 需支持 iOS 17 或更高版本，并使用 Xcode 16 或更新版本构建。",
+    "setupIntro": "你需要在 Mac 上安装 ScreenClip 1.2.0 或更高版本，App 需支持 iOS 17 或更高版本，并使用 Xcode 16 或更新版本构建。",
     "setup1Title": "添加包",
     "setup1Body": "在 Xcode 中选择 File › Add Package Dependencies，输入此 URL，并把 ScreenClipKit 链接到你的 App target。",
     "setup2Title": "在 Debug 中启动",

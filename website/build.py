@@ -137,6 +137,15 @@ def source_html(config, catalog):
     return result + " " + catalog.html("support.build", config) if config.github_url else result
 
 
+def hero_title(catalog, config):
+    """The headline breaks after its first comma, in whichever script the language uses."""
+    title = catalog.html("hero.title", config)
+    for comma in (", ", "、", "，"):
+        if comma in title:
+            return title.replace(comma, comma.rstrip() + "<br>", 1)
+    return title
+
+
 def render_faq(config, catalog):
     blocks = []
     for item in catalog.strings["faq"]["items"]:
@@ -675,7 +684,6 @@ def build():
     shutil.copyfile(ROOT / "analytics-events.js", DIST / "analytics-events.js")
     css_href = fingerprinted(SRC / "styles.css", hashed)
     queue_image = fingerprinted(SRC / "assets" / "report-queue-example.png", hashed)
-    notification_image = fingerprinted(SRC / "assets" / "retest-notifications.png", hashed)
     demo_video = fingerprinted(SRC / "assets" / "demo.mp4", hashed)
     demo_poster = fingerprinted(SRC / "assets" / "demo-poster.jpg", hashed)
     demo_js = fingerprinted(SRC / "demo.js", hashed)
@@ -708,7 +716,7 @@ def build():
     hashes = []
     for catalog in catalogs:
         tokens = {
-            "NOTIFICATION_PNG": notification_image,
+            "HERO_TITLE": hero_title(catalog, config),
             "QUEUE_PNG": queue_image,
             "DOWNLOAD_TITLE": catalog.html("download.title" if config.download_url else "download.titleSoon", config),
             "ACTIONS": render_actions(config, catalog, hero=True),
