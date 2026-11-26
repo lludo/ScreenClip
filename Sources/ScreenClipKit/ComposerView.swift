@@ -78,7 +78,7 @@
           .environment(\.layoutDirection, .leftToRight)
           .padding(4)
           .frame(maxWidth: .infinity, maxHeight: .infinity)
-          .background(Color.black)
+          .background(Color.gray)
           Divider()
           if picked != nil {
             banner("Screenshot from Photos", symbol: "photo.on.rectangle", dismiss: "Use the live capture instead") {
