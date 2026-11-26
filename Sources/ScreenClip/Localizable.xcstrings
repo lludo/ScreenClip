@@ -14719,6 +14719,72 @@
         }
       }
     },
+    "Hand reports to another agent when one is out of quota": {
+      "comment": "When an agent hits its usage limit, the report and its work so far move to the next installed agent.",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hand reports to another agent when one is out of quota"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "某个代理额度用尽时，将报告交给另一个代理"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pasar los informes a otro agente cuando uno se quede sin cuota"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "エージェントの利用枠が尽きたら別のエージェントにレポートを引き継ぐ"
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Passar relatórios para outro agente quando um ficar sem cota"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Berichte an einen anderen Agenten übergeben, wenn einer kein Kontingent mehr hat"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confier les rapports à un autre agent quand l’un n’a plus de quota"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "에이전트의 사용량이 소진되면 다른 에이전트에게 보고서 넘기기"
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Передавать отчёты другому агенту, когда у одного закончилась квота"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "某個代理額度用盡時，將報告交給另一個代理"
+          }
+        }
+      }
+    },
     "Notify me about questions and merged fixes": {
       "comment": "Enables notifications for questions and merges.",
       "extractionState": "manual",

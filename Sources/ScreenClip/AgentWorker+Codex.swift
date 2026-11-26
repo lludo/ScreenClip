@@ -444,6 +444,12 @@ extension AgentWorker {
           pump()
           return
         }
+        if issue.status != .canceled, AgentDetector.isUsageLimitError(error) {
+          model.perform { try model.updateIssue(id) { $0.turnID = nil } }
+          holdForUsageLimit(id, agent: .codex, detail: error)
+          pump()
+          return
+        }
         jobs.remove(id)
         model.perform {
           try model.updateIssue(id) {

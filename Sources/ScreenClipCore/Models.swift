@@ -351,6 +351,9 @@ public struct Issue: Codable, Identifiable, Equatable {
   /// What the agent's current conversation already received, so a resumed turn sends only
   /// what is new. Nil, or bound to another conversation, means the next turn sends everything.
   public var deliveredContext: DeliveredContext? = nil
+  /// What the previous agent did before it ran out of quota and the report moved to another
+  /// agent. The next agent's first prompt includes it, so it carries on instead of starting over.
+  public var handover: String? = nil
   public var resolvedAgent: AgentKind { agent ?? .codex }
   public init(
     id: UUID = UUID(), projectID: UUID?, title: String, capture: Capture, draft: Bool = false,
@@ -592,6 +595,10 @@ public struct AppSettings: Codable, Equatable {
   public var keepAwakeForIOS: Bool?
   /// Agent, model, and effort for every report from iOS. Nil uses each project's default.
   public var iosAgentChoice: ReportAgentChoice?
+  /// When a report's agent is out of quota on every model, hand the report and the work so far
+  /// to the next installed agent instead of waiting. Missing means on.
+  public var rotateAgentsOnQuota: Bool?
+  public var shouldRotateAgentsOnQuota: Bool { rotateAgentsOnQuota ?? true }
   public init() {}
 }
 

@@ -5,7 +5,7 @@ description: Fix a ScreenClip report interactively in this session. Use when the
 
 # Fix a ScreenClip report
 
-ScreenClip is a macOS app that captures screenshots with notes, on the Mac or from an iOS app's Debug build. Its MCP tools read the queue (`task_summary`, `list_projects`, `list_issues`, `get_issue`); `propose_project_settings` only suggests a validation command or base branch for the user to accept in ScreenClip. Pass your working directory as `project` to see only this repository's reports.
+ScreenClip is a macOS app that captures screenshots with notes, on the Mac or from an iOS app's Debug build. Its MCP tools read the queue (`task_summary`, `list_projects`, `list_issues`, `get_issue`); `propose_project_settings` only suggests a validation command or base branch for the user to accept in ScreenClip. When you resolved a report yourself (your own PR or commit) or it no longer applies, close it with `close_issue` so it stops showing as blocked. Pass your working directory as `project` to see only this repository's reports.
 
 1. Find the report. If the user gave a number, call `get_issue` with it (`"#234"` or `"234"`) and `include_images: true`. Otherwise call `list_issues` with `project` set to your working directory (optionally with a `status` group such as `blocked` or `open`, or one status such as `failed`) and ask which report to work on.
 2. Check ownership before editing:

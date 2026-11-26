@@ -142,6 +142,18 @@ enum AgentPrompt {
     After rebuilding, retest the reported scenario and save actual PNG screenshots of the fixed UI in \(PRScreenshotEvidence.directory(for: issue))/after/ inside the isolated worktree (create the directory). Use filenames such as 1.png and 2.png corresponding to the original captures, with comparable view, state, and scale. These must be real retest captures, not generated mockups or copies of the originals. Keep them as source changes for ScreenClip to commit. ScreenClip supplies the Before images from this report; do not access its queue. If capture is impossible after reasonable attempts, do not return blocked for that alone: return implemented when the fix is done, and say in your summary which After screenshot is missing and the specific obstacle. ScreenClip then opens the PR without an After image. Describe the retest in your summary.
     """
   }
+  /// The previous agent's work, when the report moved here because that agent ran out of quota.
+  static func handoverSection(_ issue: Issue) -> String {
+    guard let handover = issue.handover?.trimmingCharacters(in: .whitespacesAndNewlines),
+      !handover.isEmpty
+    else { return "" }
+    return """
+
+      <handover>
+      \(handover)
+      </handover>
+      """
+  }
   static func text(for issue: Issue, project: Project, settings: AppSettings = AppSettings()) -> String {
     let captures = issue.captures.enumerated().map { describe($0.element, number: $0.offset + 1) }
       .joined(separator: "\n\n")
@@ -173,6 +185,6 @@ enum AgentPrompt {
       Existing pull request: \(issue.prURL ?? "none")
       \(issue.validationFeedback ?? "No previous validation failure")
       </validation_feedback>
-      """
+      """ + handoverSection(issue)
   }
 }

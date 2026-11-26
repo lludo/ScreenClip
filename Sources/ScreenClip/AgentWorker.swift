@@ -73,6 +73,7 @@ import ScreenClipCore
   func start() {
     timer = Timer.scheduledTimer(withTimeInterval: 15, repeats: true) { [weak self] _ in
       Task { @MainActor in
+        await self?.applyAgentClosures()
         self?.pump()
         await self?.answerUnattendedQuestions()
         await self?.recheckHeldAgents()
@@ -198,6 +199,12 @@ import ScreenClipCore
   /// try again after `usageLimitWait`, instead of failing it and every report queued after it.
   func holdForUsageLimit(_ id: UUID, agent: AgentKind, detail: String) {
     jobs.remove(id)
+    if model.snapshot.settings.shouldRotateAgentsOnQuota,
+      let next = rotationTarget(after: agent)
+    {
+      handOver(id, from: agent, to: next, detail: detail)
+      return
+    }
     usageLimitedUntil[agent] = Date().addingTimeInterval(usageLimitWait)
     let minutes = max(1, Int((usageLimitWait / 60).rounded()))
     model.perform {
@@ -208,6 +215,45 @@ import ScreenClipCore
         $0.record(String(detail.prefix(500)), kind: "usage-limit")
         $0.record(
           "\(agent.title) is at its usage limit. This report starts again by itself in \(minutes) minutes.",
+          status: .queued)
+      }
+    }
+  }
+  /// The next local agent that can take a report from `agent`: installed, signed in, and not
+  /// itself out of quota. Grok Bot is never a target; it works from a pushed commit, not the
+  /// worktree the previous agent left.
+  func rotationTarget(after agent: AgentKind) -> AgentKind? {
+    let order: [AgentKind] = [.claude, .codex]
+    guard let index = order.firstIndex(of: agent) else { return nil }
+    let candidates = order[(index + 1)...] + order[..<index]
+    return candidates.first { model.detection($0)?.usable == true && !isHeld($0) }
+  }
+  /// Moves a report to another agent in the same worktree, with a note of what was done so far.
+  func handOver(_ id: UUID, from agent: AgentKind, to next: AgentKind, detail: String) {
+    usageLimitedUntil[agent] = Date().addingTimeInterval(usageLimitWait)
+    guard let issue = model.issue(id) else { return }
+    let progress = issue.activities.filter { $0.kind == "update" }.suffix(12).map(\.text)
+    let note = """
+      \(agent.title) started this report and stopped because it is out of quota (\(String(detail.prefix(200)))). You are taking over in the same worktree and branch.
+      Its changes so far are uncommitted in the worktree: run `git status` and `git diff` first, keep what is right, and finish the fix rather than starting over. Then validate and retest as usual.
+      \(issue.resultSummary.map { "Its last summary:\n" + $0 } ?? "")
+      Its last progress messages, oldest first:
+      \(progress.map { "- " + $0 }.joined(separator: "\n"))
+      """
+    model.perform {
+      try model.updateIssue(id) {
+        $0.agent = next
+        $0.agentModel = nil
+        $0.agentEffort = nil
+        $0.threadID = nil
+        $0.turnID = nil
+        $0.deliveredContext = nil
+        $0.dispatchUncertain = false
+        $0.lastError = nil
+        $0.handover = note
+        $0.record(String(detail.prefix(500)), kind: "usage-limit")
+        $0.record(
+          "\(agent.title) is out of quota; handing this report to \(next.title) with the work so far.",
           status: .queued)
       }
     }
@@ -245,6 +291,36 @@ import ScreenClipCore
   static func isTransientFailure(_ text: String) -> Bool {
     AgentDetector.isUsageLimitError(text) || isTimeLimitError(text)
       || (text.contains("ignored by one of your .gitignore files") && text.contains(".screenclip"))
+  }
+  /// Applies the close requests coding agents sent through the MCP server (`close_issue`): an
+  /// agent that finished a report itself, or found it no longer applies, closes it instead of
+  /// leaving it blocked. A running turn for that report is stopped first. The worktree and branch
+  /// stay, since the agent's own PR may still need them.
+  func applyAgentClosures() async {
+    for closure in AgentClosureInbox.load(root: model.store.root) {
+      AgentClosureInbox.remove(closure.id, root: model.store.root)
+      guard let issue = model.issue(closure.issueID), !issue.archived,
+        ![.merged, .verified, .canceled].contains(issue.status)
+      else { continue }
+      if isActive(issue.id) || issue.status == .working { await cancel(issue.id) }
+      model.perform {
+        try model.updateIssue(closure.issueID) {
+          if let pullRequest = closure.pullRequest, $0.prURL == nil { $0.prURL = pullRequest }
+          if let commit = closure.commit { $0.mergeCommit = commit }
+          $0.lastError = nil
+          $0.validationFeedback = nil
+          $0.dispatchUncertain = false
+          $0.turnID = nil
+          for i in $0.questions.indices where $0.questions[i].reply == nil {
+            $0.questions[i].reply = "Closed by an agent"
+          }
+          $0.unread = true
+          $0.record(
+            closure.activity, status: closure.resolution == .done ? .merged : .canceled,
+            kind: "agent-closure")
+        }
+      }
+    }
   }
   static func isTimeLimitError(_ text: String) -> Bool {
     text.contains("did not finish within") && text.contains("was stopped")

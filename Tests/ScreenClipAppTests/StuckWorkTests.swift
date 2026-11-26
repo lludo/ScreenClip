@@ -453,6 +453,76 @@ import XCTest
     XCTAssertEqual(model.issue(real)?.status, .failed)
   }
 
+  func testOutOfQuotaAgentHandsTheReportAndItsWorkToTheNextAgent() throws {
+    let model = try makeModel()
+    model.agents = [
+      AgentDetection(kind: .claude, path: "/c", version: "1", signedIn: true, detail: ""),
+      AgentDetection(kind: .codex, path: "/x", version: "1", signedIn: true, detail: ""),
+    ]
+    let id = try submit(model, agent: .claude)
+    try model.updateIssue(id) {
+      $0.threadID = "claude-session"
+      $0.agentModel = "fable"
+      $0.record("Found the clipping in PersonCard; fixing the frame", status: .working)
+    }
+    model.worker.holdForUsageLimit(id, agent: .claude, detail: "You've reached your Sonnet limit.")
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.status, .queued)
+    XCTAssertEqual(issue.agent, .codex)
+    XCTAssertNil(issue.threadID)
+    XCTAssertNil(issue.agentModel)
+    XCTAssertTrue(issue.handover?.contains("Found the clipping in PersonCard") == true)
+    XCTAssertTrue(model.worker.isHeld(.claude))
+    let project = try XCTUnwrap(model.snapshot.projects.first)
+    let prompt = AgentPrompt.turn(for: issue, project: project, threadID: nil).text
+    XCTAssertTrue(prompt.contains("<handover>"))
+    XCTAssertTrue(prompt.contains("git diff"))
+  }
+
+  func testRotationOffKeepsTheReportWithItsAgent() throws {
+    let model = try makeModel()
+    try model.commit { $0.settings.rotateAgentsOnQuota = false }
+    model.agents = [
+      AgentDetection(kind: .codex, path: "/x", version: "1", signedIn: true, detail: "")
+    ]
+    let id = try submit(model, agent: .claude)
+    model.worker.holdForUsageLimit(id, agent: .claude, detail: "You've reached your limit.")
+    XCTAssertEqual(model.issue(id)?.agent, .claude)
+    XCTAssertEqual(model.issue(id)?.status, .queued)
+    XCTAssertNil(model.issue(id)?.handover)
+  }
+
+  func testAgentCloseRequestClosesTheReport() async throws {
+    let model = try makeModel()
+    let done = try submit(model, agent: .claude)
+    let duplicate = try submit(model, agent: .claude)
+    try model.updateIssue(done) { $0.record("failed", status: .failed) }
+    try model.updateIssue(duplicate) { $0.record("waiting", status: .needsYou) }
+    try AgentClosureInbox.write(
+      AgentClosure(
+        issueID: done, resolution: .done, pullRequest: "https://github.com/o/r/pull/7",
+        summary: "Fixed in my own PR.", closer: "claude-code"), root: model.store.root)
+    try AgentClosureInbox.write(
+      AgentClosure(issueID: duplicate, resolution: .canceled, summary: "Duplicate."),
+      root: model.store.root)
+    await model.worker.applyAgentClosures()
+    XCTAssertEqual(model.issue(done)?.status, .merged)
+    XCTAssertEqual(model.issue(done)?.prURL, "https://github.com/o/r/pull/7")
+    XCTAssertTrue(model.issue(done)?.activities.last?.text.contains("Closed by claude-code") == true)
+    XCTAssertEqual(model.issue(duplicate)?.status, .canceled)
+    XCTAssertTrue(AgentClosureInbox.load(root: model.store.root).isEmpty)
+  }
+
+  func testDoneCloseRequestWithoutEvidenceIsIgnored() async throws {
+    let model = try makeModel()
+    let id = try submit(model, agent: .claude)
+    try model.updateIssue(id) { $0.record("failed", status: .failed) }
+    try AgentClosureInbox.write(
+      AgentClosure(issueID: id, resolution: .done, summary: "Trust me."), root: model.store.root)
+    await model.worker.applyAgentClosures()
+    XCTAssertEqual(model.issue(id)?.status, .failed)
+  }
+
   func testUsageLimitFallbackChain() {
     XCTAssertEqual(AgentModelCatalog.claudeFallbacks(after: "fable"), ["opus", "sonnet"])
     XCTAssertEqual(AgentModelCatalog.claudeFallbacks(after: "opus"), ["sonnet"])
