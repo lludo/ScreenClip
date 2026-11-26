@@ -24,6 +24,7 @@ import UIKit
         reference.cornerConfiguration = .corners(radius: .containerConcentric())
         host.addSubview(reference)
         defer { reference.removeFromSuperview() }
+        reference.layoutIfNeeded()
         XCTAssertEqual(snapshot.cornerRadii.topLeading, reference.effectiveRadius(corner: .topLeft))
         XCTAssertEqual(snapshot.cornerRadii.topTrailing, reference.effectiveRadius(corner: .topRight))
         XCTAssertEqual(snapshot.cornerRadii.bottomLeading, reference.effectiveRadius(corner: .bottomLeft))

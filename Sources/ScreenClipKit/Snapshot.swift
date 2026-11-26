@@ -49,6 +49,7 @@
           // changing the host window or making another window key.
           let window = UIWindow(windowScene: scene)
           window.cornerConfiguration = .corners(radius: .containerConcentric())
+          window.layoutIfNeeded()
           return RectangleCornerRadii(
             topLeading: window.effectiveRadius(corner: .topLeft),
             bottomLeading: window.effectiveRadius(corner: .bottomLeft),
