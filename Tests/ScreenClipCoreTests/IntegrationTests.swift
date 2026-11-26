@@ -110,6 +110,65 @@ final class IntegrationTests: XCTestCase {
       project: project, path: workspace.path, keepConflicts: true)
     XCTAssertFalse(current)
   }
+  private func prevalidationFixture() async throws -> (URL, URL, Project) {
+    let source = try await repo()
+    let work = source.appendingPathComponent("agent")
+    for args in [
+      ["config", "user.name", "Test"], ["config", "user.email", "test@example.invalid"],
+      ["remote", "add", "origin", source.path], ["worktree", "add", "-b", "fix", work.path],
+    ] { _ = try await CommandRunner.checked(GitWorkspace.git, args, cwd: source.path) }
+    return (source, work, Project(name: "Test", path: source.path, validationCommand: #"test -z "$(git ls-files -u)" && cat source.txt new.txt"#))
+  }
+
+  func testRestoredEditsConflictBeforeValidationAndSurviveRepair() async throws {
+    let (source, work, project) = try await prevalidationFixture()
+    let git = GitWorkspace.git
+    try Data("base\n".utf8).write(to: source.appendingPathComponent("source.txt"))
+    _ = try await CommandRunner.checked(git, ["commit", "-am", "Advance the base"], cwd: source.path)
+    try Data("fix\n".utf8).write(to: work.appendingPathComponent("source.txt"))
+    try Data("new file\n".utf8).write(to: work.appendingPathComponent("new.txt"))
+
+    for _ in 0..<2 {
+      do {
+        try await GitWorkspace.updateBaseBeforeValidation(project: project, path: work.path, branch: "fix")
+        XCTFail("Validation must wait for the conflicting edits to be resolved")
+      } catch let conflict as GitWorkspace.BaseConflict {
+        XCTAssertEqual(conflict.files, ["source.txt"])
+      }
+    }
+    try Data("base and fix\n".utf8).write(to: work.appendingPathComponent("source.txt"))
+    try await GitWorkspace.updateBaseBeforeValidation(project: project, path: work.path, branch: "fix")
+    let receipt = try await GitWorkspace.validate(project: project, path: work.path)
+    XCTAssertTrue(receipt.passed)
+    XCTAssertTrue(receipt.output.contains("base and fix\nnew file"))
+  }
+
+  func testPendingEditsAreRestoredAfterRepairingADivergedBranch() async throws {
+    let (source, work, project) = try await prevalidationFixture()
+    let git = GitWorkspace.git
+    try Data("committed fix\n".utf8).write(to: work.appendingPathComponent("source.txt"))
+    _ = try await CommandRunner.checked(git, ["commit", "-am", "Existing fix"], cwd: work.path)
+    try Data("pending addition\n".utf8).write(to: work.appendingPathComponent("new.txt"))
+    try Data("base\n".utf8).write(to: source.appendingPathComponent("source.txt"))
+    _ = try await CommandRunner.checked(git, ["commit", "-am", "Advance"], cwd: source.path)
+    do {
+      try await GitWorkspace.updateBaseBeforeValidation(project: project, path: work.path, branch: "fix")
+      XCTFail("The base conflicts with the committed fix")
+    } catch let conflict as GitWorkspace.BaseConflict {
+      XCTAssertEqual(conflict.files, ["source.txt"])
+    }
+
+    try Data("resolved fix\n".utf8).write(to: work.appendingPathComponent("source.txt"))
+    try Data("another update\n".utf8).write(to: source.appendingPathComponent("later.txt"))
+    _ = try await CommandRunner.checked(git, ["add", "later.txt"], cwd: source.path)
+    _ = try await CommandRunner.checked(git, ["commit", "-m", "Advance during repair"], cwd: source.path)
+    try await GitWorkspace.updateBaseBeforeValidation(project: project, path: work.path, branch: "fix")
+    XCTAssertEqual(try String(contentsOf: work.appendingPathComponent("later.txt"), encoding: .utf8), "another update\n")
+    let receipt = try await GitWorkspace.validate(project: project, path: work.path)
+    XCTAssertTrue(receipt.passed)
+    XCTAssertTrue(receipt.output.contains("resolved fix\npending addition"))
+  }
+
   func repo() async throws -> URL {
     let url = FileManager.default.temporaryDirectory.appendingPathComponent(
       "screenclip-git-" + UUID().uuidString)
@@ -158,6 +217,9 @@ final class IntegrationTests: XCTestCase {
     try FileManager.default.removeItem(at: url.appendingPathComponent("source.txt"))
     let third = try await GitWorkspace.fingerprint(path: url.path)
     XCTAssertNotEqual(second, third)
+    try await GitHubService.stageChanges(cwd: url.path)
+    let staged = try await GitWorkspace.fingerprint(path: url.path)
+    XCTAssertEqual(staged, third)
   }
   func testValidationRefusesSourceChangesDuringChecks() async throws {
     let url = try await repo()

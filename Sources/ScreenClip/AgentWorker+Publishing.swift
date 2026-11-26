@@ -88,7 +88,7 @@ extension AgentWorker {
     jobs.remove(id)
     pump()
   }
-  func publish(_ id: UUID, project: Project, summary: String) async {
+  func publish(_ id: UUID, project: Project, summary: String, baseAlreadyUpdated: Bool = false) async {
     guard !publishing.contains(id), let issue = model.issue(id), issue.status != .canceled,
       let path = issue.worktreePath
     else { return }
@@ -97,7 +97,7 @@ extension AgentWorker {
     do {
       try model.updateIssue(id) {
         $0.resultSummary = summary
-        $0.record("Running project validation", status: .working)
+        $0.status = .working
       }
       do {
         try await PRScreenshotEvidence.prepare(issue: issue, worktree: path)
@@ -105,18 +105,21 @@ extension AgentWorker {
         if scheduleRepair(id, message: error.localizedDescription) { return }
         throw error
       }
-      // A base merge handed to the agent must come back resolved before it is validated.
-      let unresolved = try await GitWorkspace.unresolvedConflicts(path: path)
-      if !unresolved.isEmpty {
-        let feedback =
-          "The base-branch merge in this worktree still has conflict markers in: "
-          + unresolved.joined(separator: ", ")
-          + ". Resolve them in the files and rerun validation; do not abort or commit the merge."
-        if scheduleRepair(id, message: feedback) { return }
-        try model.updateIssue(id) { $0.setValidationFeedback(feedback) }
-        throw ScreenClipError.message(
-          "The base branch still conflicts with this fix in: " + unresolved.joined(separator: ", "))
+      if !baseAlreadyUpdated {
+        do {
+          guard let branch = issue.branch else { throw ScreenClipError.message("No issue branch exists.") }
+          try await GitWorkspace.updateBaseBeforeValidation(project: project, path: path, branch: branch)
+        } catch let conflict as GitWorkspace.BaseConflict {
+          guard model.issue(id)?.status == .working else { return }
+          if scheduleRepair(id, message: conflict.agentInstructions,
+            note: "The base branch conflicts with this fix; resolving the conflict") { return }
+          try model.updateIssue(id) { $0.setValidationFeedback(conflict.agentInstructions) }
+          throw conflict
+        }
       }
+      guard let current = model.issue(id), current.status == .working else { return }
+      guard current.revision == issue.coveredRevision else { throw CancellationError() }
+      try model.updateIssue(id) { $0.record("Running project validation", status: .working) }
       let receipt = try await GitWorkspace.validate(project: project, path: path)
       // Canceled, or canceled and queued again, during validation: leave that decision alone.
       // A queued report starts once this run has ended.
@@ -531,7 +534,7 @@ extension AgentWorker {
         }
         await publish(
           id, project: project,
-          summary: issue.resultSummary ?? "Update fix against the current base branch")
+          summary: issue.resultSummary ?? "Update fix against the current base branch", baseAlreadyUpdated: true)
         return
       }
       // Recheck local revision immediately before submitting a guarded merge.

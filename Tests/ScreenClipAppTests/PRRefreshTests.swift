@@ -84,6 +84,101 @@ import XCTest
 
   private let failedChecks = JSONValue.array([.object(["conclusion": .string("FAILURE")])])
 
+  func testPublishValidatesTheCurrentBaseAndChecksItAgainBeforeMerge() async throws {
+    var project = try XCTUnwrap(model.snapshot.projects.first)
+    let repo = project.path, worktree = root.appendingPathComponent("agent")
+    let git = GitWorkspace.git, gh = root.appendingPathComponent("gh")
+    let beforeMerge = root.appendingPathComponent("merge-request")
+    let validations = root.appendingPathComponent("validated-bases")
+    let prURL = "https://github.com/example/app/pull/1"
+    // Route the GitHub-shaped origin to a local bare repository. Exercise real fetch and push.
+    let transport = root.appendingPathComponent("ssh")
+    try """
+      #!/bin/sh
+      case "$*" in
+        *git-upload-pack*) exec git upload-pack "$(dirname "$0")/remote.git" ;;
+        *git-receive-pack*) exec git receive-pack "$(dirname "$0")/remote.git" ;;
+        *) exit 1 ;;
+      esac
+      """.write(to: transport, atomically: true, encoding: .utf8)
+    try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: transport.path)
+    try """
+      #!/bin/sh
+      dir="$(dirname "$0")"
+      case "$1 $2" in
+        'auth status'|'pr edit') ;;
+        'pr list') cat "$dir/list.json" 2>/dev/null || echo '[]' ;;
+        'pr create') echo '\(prURL)' ;;
+        'pr view') cat "$dir/state.json" ;;
+        'pr merge') echo "$@" > "$dir/merge-request" ;;
+        *) exit 1 ;;
+      esac
+      """.write(to: gh, atomically: false, encoding: .utf8)
+    let branch = "screenclip/validation-test"
+    for args in [
+      ["branch", "-m", "release"], ["clone", "--bare", repo, root.appendingPathComponent("remote.git").path],
+      ["config", "user.name", "Test"], ["config", "user.email", "test@example.invalid"],
+      ["config", "core.sshCommand", "'\(transport.path)'"],
+      ["remote", "add", "origin", "ssh://git@github.com/example/app.git"],
+      ["worktree", "add", "-b", branch, worktree.path, "release"],
+    ] { _ = try await CommandRunner.checked(git, args, cwd: repo) }
+    func advance(_ value: String) async throws {
+      try (value + "\n").write(toFile: repo + "/base.txt", atomically: true, encoding: .utf8)
+      for args in [["add", "base.txt"], ["commit", "-m", value], ["push", "origin", "release"]] {
+        _ = try await CommandRunner.checked(git, args, cwd: repo)
+      }
+    }
+
+    project.baseBranch = "release"
+    project.validationCommand = "test -f fix.txt && cat base.txt >> '\(validations.path)'"
+    project.autoMerge = true
+    try model.saveProject(project)
+    try model.updateIssue(id) {
+      $0.status = .working; $0.prURL = nil; $0.prHead = nil
+      $0.worktreePath = worktree.path; $0.branch = branch; $0.captures[0].imagePath = nil
+    }
+    try Data("agent edit".utf8).write(to: worktree.appendingPathComponent("fix.txt"))
+    try await advance("first")
+    await model.worker.publish(id, project: project, summary: "Fixed")
+    let issue = try XCTUnwrap(model.issue(id))
+    XCTAssertEqual(issue.status, .prOpen, issue.lastError ?? "")
+    let firstHead = try XCTUnwrap(issue.prHead)
+    XCTAssertEqual(try String(contentsOf: validations, encoding: .utf8), "first\n")
+
+    func passingChecks(_ head: String) throws {
+      try pullRequest(["headRefOid": .string(head), "baseRefName": .string("release"),
+        "mergeable": .string("MERGEABLE"), "mergeStateStatus": .string("CLEAN"),
+        "statusCheckRollup": .array([.object(["conclusion": .string("SUCCESS")])])])
+    }
+    try mergedList([["url": .string(prURL), "baseRefName": .string("release"), "isCrossRepository": .bool(false)]])
+    try await advance("second")
+    try passingChecks(firstHead)
+    await model.worker.refreshPR(id)
+    let secondHead = try XCTUnwrap(model.issue(id)?.prHead)
+    XCTAssertNotEqual(secondHead, firstHead)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: beforeMerge.path))
+    try passingChecks(secondHead)
+    await model.worker.refreshPR(id)
+    XCTAssertEqual(try String(contentsOf: validations, encoding: .utf8), "first\nsecond\n")
+    XCTAssertTrue(try String(contentsOf: beforeMerge, encoding: .utf8).contains("--match-head-commit " + secondHead))
+  }
+
+  func testFailedInitialFetchPreservesTheFixAndSkipsValidation() async throws {
+    var project = try XCTUnwrap(model.snapshot.projects.first)
+    let marker = root.appendingPathComponent("validation-ran")
+    project.validationCommand = "touch '\(marker.path)'"
+    let fix = URL(fileURLWithPath: project.path).appendingPathComponent("fix.txt")
+    try Data("local fix".utf8).write(to: fix)
+    try model.updateIssue(id) {
+      $0.status = .working; $0.prURL = nil; $0.prHead = nil; $0.captures[0].imagePath = nil
+    }
+    await model.worker.publish(id, project: project, summary: "Fixed")
+    XCTAssertEqual(model.issue(id)?.status, .needsYou)
+    XCTAssertNil(model.issue(id)?.prURL)
+    XCTAssertFalse(FileManager.default.fileExists(atPath: marker.path))
+    XCTAssertEqual(try String(contentsOf: fix, encoding: .utf8), "local fix")
+  }
+
   func testManualMergeRechecksTheReviewedHeadAndRequiresGitHubConfirmation() async throws {
     try model.commit { $0.projects[0].autoMerge = false }
     let issue = try XCTUnwrap(model.issue(id))

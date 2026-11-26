@@ -20,15 +20,15 @@ public enum GitWorkspace {
     var hash = SHA256()
     for name in Set(listing.output.split(separator: "\0").map(String.init)).sorted() {
       let file = URL(fileURLWithPath: path).appendingPathComponent(name)
-      hash.update(data: Data(name.utf8))
-      hash.update(data: Data([0]))
       let attributes: [FileAttributeKey: Any]
       do {
         attributes = try FileManager.default.attributesOfItem(atPath: file.path)
       } catch CocoaError.fileReadNoSuchFile {
-        hash.update(data: Data("deleted".utf8))
+        // A deletion has the same source fingerprint before and after Git stages it.
         continue
       }
+      hash.update(data: Data(name.utf8))
+      hash.update(data: Data([0]))
       hash.update(data: Data(String(describing: attributes[.posixPermissions]).utf8))
       if attributes[.type] as? FileAttributeType == .typeSymbolicLink {
         hash.update(
@@ -234,9 +234,9 @@ public enum GitWorkspace {
     /// What the agent is told. It may only edit files: committing stays with ScreenClip.
     public var agentInstructions: String {
       """
-      The base branch (origin/\(base)) now conflicts with this fix, so the pull request cannot merge. ScreenClip started merging the base into this worktree and left that merge in progress. Files with conflict markers:
+      The worktree contains conflicts between the base branch (origin/\(base)) and this fix:
       \(files.map { "- " + $0 }.joined(separator: "\n"))
-      Edit these files to resolve every conflict, keeping the base branch's changes together with this fix's behavior, and remove all conflict markers. Then rebuild and rerun the validation. Do not abort, commit, or otherwise conclude the merge, and do not rebase or work in another worktree or branch: ScreenClip commits the merge and pushes it once validation passes.
+      Resolve the conflicts in these files, keeping both the base changes and the intended fix. Remove conflict markers, then rebuild and rerun validation. Stay on this branch and leave the changes for ScreenClip to validate and publish. Do not abort, commit, rebase, or apply a stash.
       """
     }
   }
@@ -265,18 +265,74 @@ public enum GitWorkspace {
     ).split(separator: "\0").map(String.init).sorted()
   }
 
-  /// Files of an in-progress merge that still contain conflict markers. Empty when no merge
-  /// is in progress, so a file that legitimately contains such lines is never reported.
+  /// Check a pending merge or conflicts from restoring local edits after a base update.
   public static func unresolvedConflicts(path: String) async throws -> [String] {
-    guard await mergeInProgress(path: path) else { return [] }
+    let changed: Set<String>
+    if await mergeInProgress(path: path) {
+      changed = Set(try await CommandRunner.checked(
+        git, ["diff", "--name-only", "-z", "HEAD"], cwd: path).split(separator: "\0").map(String.init))
+    } else {
+      changed = Set(try await unmergedFiles(path: path))
+    }
+    guard !changed.isEmpty else { return [] }
     // Exit status 1 means no match. Binary files are skipped.
     let marked = try await CommandRunner.run(
       git, ["grep", "-I", "-l", "-z", "-E", "^(<<<<<<<|>>>>>>>)( |$)"], cwd: path)
-    guard marked.status == 0 else { return [] }
-    let changed = Set(
-      try await CommandRunner.checked(git, ["diff", "--name-only", "-z", "HEAD"], cwd: path)
-        .split(separator: "\0").map(String.init))
+    if marked.status == 1 { return [] }
+    guard marked.status == 0 else { throw ScreenClipError.message(marked.error) }
     return marked.output.split(separator: "\0").map(String.init).filter(changed.contains).sorted()
+  }
+
+  /// Integrate the base into the agent's working changes before running the project command.
+  /// New files are staged so Git's autostash also carries additions across the update.
+  public static func updateBaseBeforeValidation(project: Project, path: String, branch: String) async throws {
+    guard try await CommandRunner.checked(git, ["branch", "--show-current"], cwd: path) == branch else {
+      throw ScreenClipError.message("The issue worktree has an unexpected branch. Inspect it before retrying.")
+    }
+    let unresolved = try await unresolvedConflicts(path: path)
+    if !unresolved.isEmpty { throw BaseConflict(base: project.baseBranch, files: unresolved, kept: true) }
+    let base = try await fetchedBase(project: project, path: path)
+    let resolved = try await unmergedFiles(path: path)
+    if !resolved.isEmpty {
+      // The agent resolves conflicts in the files. Reflect its choices in the index as well.
+      _ = try await CommandRunner.checked(git, ["--literal-pathspecs", "add", "-A", "--"] + resolved, cwd: path)
+    }
+    if await mergeInProgress(path: path) {
+      // Keep an agent's resolved merge intact when it already includes the latest base.
+      // A pending autostash must be restored before validating the combined result.
+      let autostash = try await CommandRunner.run(
+        git, ["rev-parse", "--verify", "--quiet", "MERGE_AUTOSTASH"], cwd: path)
+      if autostash.status == 1, try await isAncestor(base, of: "MERGE_HEAD", path: path) { return }
+      try await stageWorkingChanges(path: path)
+      _ = try await CommandRunner.checked(git, ["-c", "core.editor=true", "merge", "--continue"], cwd: path)
+      try await checkRestoredChanges(project: project, path: path)
+    }
+    guard try await !isAncestor(base, of: "HEAD", path: path) else { return }
+    try await stageWorkingChanges(path: path)
+    try await mergeBase(base, project: project, path: path, keepConflicts: true, autostash: true)
+    // Git can report a successful fast-forward even if reapplying the working edits conflicted.
+    try await checkRestoredChanges(project: project, path: path)
+  }
+
+  private static func stageWorkingChanges(path: String) async throws {
+    let changes = try await CommandRunner.checked(git, ["status", "--porcelain"], cwd: path)
+    if !changes.isEmpty { try await GitHubService.stageChanges(cwd: path) }
+  }
+
+  private static func checkRestoredChanges(project: Project, path: String) async throws {
+    let files = try await unmergedFiles(path: path)
+    if !files.isEmpty { throw BaseConflict(base: project.baseBranch, files: files, kept: true) }
+  }
+
+  private static func fetchedBase(project: Project, path: String) async throws -> String {
+    try await fetch(project.baseBranch, cwd: path)
+    return try await CommandRunner.checked(git, ["rev-parse", "--verify", "FETCH_HEAD^{commit}"], cwd: path)
+  }
+
+  private static func isAncestor(_ base: String, of tip: String, path: String) async throws -> Bool {
+    let result = try await CommandRunner.run(git, ["merge-base", "--is-ancestor", base, tip], cwd: path)
+    guard result.status == 0 || result.status == 1 else { throw ScreenClipError.message(result.error) }
+    return result.status == 0
   }
 
   /// Merges the latest remote base into the issue branch. Returns true when the base had
@@ -296,12 +352,17 @@ public enum GitWorkspace {
         throw BaseConflict(base: project.baseBranch, files: files, kept: true)
       }
     }
-    try await fetch(project.baseBranch, cwd: path)
-    let ancestor = try await CommandRunner.run(
-      git, ["merge-base", "--is-ancestor", "FETCH_HEAD", "HEAD"], cwd: path)
-    if ancestor.status == 0 { return false }
-    guard ancestor.status == 1 else { throw ScreenClipError.message(ancestor.error) }
-    let merge = try await CommandRunner.run(git, ["merge", "--no-edit", "FETCH_HEAD"], cwd: path)
+    let base = try await fetchedBase(project: project, path: path)
+    guard try await !isAncestor(base, of: "HEAD", path: path) else { return false }
+    try await mergeBase(base, project: project, path: path, keepConflicts: keepConflicts, autostash: false)
+    return true
+  }
+
+  private static func mergeBase(
+    _ base: String, project: Project, path: String, keepConflicts: Bool, autostash: Bool
+  ) async throws {
+    let options = autostash ? ["--autostash"] : []
+    let merge = try await CommandRunner.run(git, ["merge", "--no-edit"] + options + [base], cwd: path)
     guard merge.status == 0 else {
       let files = (try? await unmergedFiles(path: path)) ?? []
       if files.isEmpty || !keepConflicts { await abortMerge(path: path) }
@@ -311,6 +372,5 @@ public enum GitWorkspace {
       }
       throw BaseConflict(base: project.baseBranch, files: files, kept: keepConflicts)
     }
-    return true
   }
 }
