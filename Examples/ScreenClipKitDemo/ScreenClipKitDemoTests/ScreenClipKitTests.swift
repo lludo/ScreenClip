@@ -83,6 +83,15 @@ import UIKit
     XCTAssertEqual(Array(rounded[offset..<offset + 3]), [0, 0, 0])
   }
 
+  func testPickedScreenshotLeavesOutTheLiveViewTree() {
+    let files = [
+      DiagnosticFile(name: Diagnostics.viewTreeName, summary: "", data: Data()),
+      DiagnosticFile(name: "device.json", summary: "", data: Data()),
+    ]
+    XCTAssertEqual(Diagnostics.captureFiles(files, picked: false).map(\.name), [Diagnostics.viewTreeName, "device.json"])
+    XCTAssertEqual(Diagnostics.captureFiles(files, picked: true).map(\.name), ["device.json"])
+  }
+
   func testPickedScreenshotKeepsDeviceCornersOnlyWhenItMatchesTheScreen() async throws {
     let radii = RectangleCornerRadii(topLeading: 50, bottomLeading: 50, bottomTrailing: 50, topTrailing: 50)
     let format = UIGraphicsImageRendererFormat()

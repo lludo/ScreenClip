@@ -115,7 +115,7 @@ enum AgentPrompt {
     if let takenAt = picked.takenAt { text += ", taken \(takenAt.formatted(.iso8601))" }
     if !picked.matchesDevice { text += ", on a screen of a different size" }
     return text
-      + ". It may show an older build than the one installed; the visible view controllers and view tree describe the live screen, not this image."
+      + ". It may show an older build than the one installed; the visible view controllers describe the live screen, not this image."
   }
   private static func describe(_ note: ContextNote) -> String {
     "Context added at \(note.date.formatted(.iso8601)):\n\(note.text)"
