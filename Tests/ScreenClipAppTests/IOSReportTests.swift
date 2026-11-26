@@ -20,7 +20,9 @@ import XCTest
         data: nil, width: 30, height: 60, bitsPerComponent: 8, bytesPerRow: 120, space: space,
         bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue))
     context.setFillColor(CGColor(srgbRed: 0, green: 0.5, blue: 1, alpha: 1))
-    context.fill(CGRect(x: 0, y: 0, width: 30, height: 60))
+    let bounds = CGRect(x: 0, y: 0, width: 30, height: 60)
+    context.addPath(CGPath(roundedRect: bounds, cornerWidth: 5, cornerHeight: 5, transform: nil))
+    context.fillPath()
     return try XCTUnwrap(PNG.encode(XCTUnwrap(context.makeImage())))
   }
 
@@ -54,7 +56,8 @@ import XCTest
     XCTAssertEqual(capture.context.testedVersion, "2.0 (88)")
     XCTAssertEqual(capture.context.device?.deviceModel, "iPhone17,1")
     XCTAssertNil(capture.originalPath)
-    XCTAssertNotNil(capture.imagePath)
+    let storedImage = URL(fileURLWithPath: try XCTUnwrap(capture.imagePath))
+    XCTAssertEqual(try Data(contentsOf: storedImage), incoming.image)
     let prompt = AgentPrompt.text(for: issue, project: project)
     XCTAssertTrue(prompt.contains("iOS app capture: Shop (com.example.shop) on iPhone17,1"))
     XCTAssertTrue(prompt.contains("UITabBarController > CheckoutViewController"))
