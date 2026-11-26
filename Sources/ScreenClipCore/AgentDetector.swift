@@ -187,6 +187,17 @@ public enum AgentDetector {
     ].contains { lower.contains($0) }
   }
 
+  /// Whether an agent's error means it ran out of usage for now (a model or plan limit),
+  /// rather than that the work failed. The same report succeeds on another model or later.
+  public static func isUsageLimitError(_ text: String) -> Bool {
+    let lower = text.lowercased()
+    return [
+      "you've reached your", "you’ve reached your", "usage limit", "rate_limit_error",
+      "rate limit reached", "limit reached", "hit your limit", "429 too many requests",
+      "overloaded_error",
+    ].contains { lower.contains($0) }
+  }
+
   /// A path that is missing or not executable has not been found. Only a real executable
   /// that fails `--version` is reported as not responding.
   private static func canRun(_ path: String) -> Bool {

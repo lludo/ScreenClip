@@ -36,7 +36,16 @@ import ScreenClipCore
   var canceledTurns = Set<String>()
   var timer: Timer?
   /// A turn running longer than this, not counting time spent waiting for the tester, is stopped.
-  var turnTimeLimit: TimeInterval = 45 * 60
+  /// Real fixes (build, tests, simulator retest) routinely take most of an hour, so this is a
+  /// guard against a hung agent, not a budget. A stopped turn continues once by itself.
+  var turnTimeLimit: TimeInterval = 120 * 60
+  /// Agents that reported a usage limit on every model, and when to try them again.
+  var usageLimitedUntil: [AgentKind: Date] = [:]
+  /// How long a used-up agent waits before its held reports start again.
+  var usageLimitWait: TimeInterval = 15 * 60
+  /// The revision each report already continued automatically after a time limit, so a turn
+  /// that keeps hanging stops for the tester instead of looping.
+  var timeoutContinuations: [UUID: Int] = [:]
   /// A Codex request left unanswered this long is answered for an absent tester. 0 disables.
   var questionTimeLimit: TimeInterval {
     TimeInterval(model.snapshot.settings.unattendedAnswerDelay * 60)
@@ -76,6 +85,7 @@ import ScreenClipCore
       if model.detection(.codex)?.installed != false { await checkConnection() }
       await recoverCodexAfterRestart()
       await recoverClaudeAfterRestart()
+      recoverTransientFailures()
     }
     pump()
   }
@@ -131,7 +141,11 @@ import ScreenClipCore
   /// Whether queued work for `agent` waits: detection found it missing, signed out, or not
   /// configured, or Codex sign-in is known to be signed out. Grok Bot stays queued until
   /// detection has seen a saved webhook, including before the first check.
-  func isHeld(_ agent: AgentKind) -> Bool {
+  func isHeld(_ agent: AgentKind, now: Date = Date()) -> Bool {
+    if let until = usageLimitedUntil[agent] {
+      if now < until { return true }
+      usageLimitedUntil[agent] = nil
+    }
     switch agent {
     case .external: return model.detection(.external)?.usable != true
     case .codex:
@@ -147,7 +161,7 @@ import ScreenClipCore
       model.snapshot.issues.filter {
         $0.status == .queued && !$0.archived && model.project($0.projectID) != nil
       }.map(\.resolvedAgent)
-    ).filter(isHeld)
+    ).filter { isHeld($0) }
     guard !held.isEmpty else { return }
     if now.timeIntervalSince(model.lastAgentDetection) >= heldRecheckInterval {
       await model.refreshAgents(automatic: true)
@@ -179,6 +193,61 @@ import ScreenClipCore
     if let issue = model.issue(id) {
       model.notify(issue, text: ProviderPhrase.signInToStart.english(agent))
     }
+  }
+  /// Every model the agent can use is at its usage limit. Put the report back in the queue and
+  /// try again after `usageLimitWait`, instead of failing it and every report queued after it.
+  func holdForUsageLimit(_ id: UUID, agent: AgentKind, detail: String) {
+    jobs.remove(id)
+    usageLimitedUntil[agent] = Date().addingTimeInterval(usageLimitWait)
+    let minutes = max(1, Int((usageLimitWait / 60).rounded()))
+    model.perform {
+      try model.updateIssue(id) {
+        $0.turnID = nil
+        $0.dispatchUncertain = false
+        $0.lastError = nil
+        $0.record(String(detail.prefix(500)), kind: "usage-limit")
+        $0.record(
+          "\(agent.title) is at its usage limit. This report starts again by itself in \(minutes) minutes.",
+          status: .queued)
+      }
+    }
+  }
+  /// A turn hit `turnTimeLimit`. The work so far is in the worktree and the session, so carry
+  /// on once in the same session; a second stop on the same revision waits for the tester.
+  func continueAfterTimeLimit(_ id: UUID, message: String) -> Bool {
+    guard let issue = model.issue(id), issue.status == .working, !issue.dispatchUncertain,
+      timeoutContinuations[id] != issue.revision
+    else { return false }
+    timeoutContinuations[id] = issue.revision
+    jobs.remove(id)
+    model.perform {
+      try model.updateIssue(id) {
+        $0.turnID = nil
+        $0.lastError = nil
+        $0.record(message + " Continuing the same session automatically.", status: .queued)
+      }
+    }
+    return true
+  }
+  /// Reports stopped by something that was never about the report itself: a used-up model,
+  /// a turn time limit, or the ignored `.screenclip` publishing failure fixed in #145. Older versions
+  /// failed these outright; start them again so the tester does not have to click each one.
+  func recoverTransientFailures() {
+    for issue in model.snapshot.issues
+    where [.failed, .needsYou].contains(issue.status) && !issue.archived
+      && !issue.dispatchUncertain && !isActive(issue.id)
+      && issue.questions.allSatisfy({ $0.reply != nil })
+    {
+      guard let error = issue.lastError, Self.isTransientFailure(error) else { continue }
+      model.retry(issue.id)
+    }
+  }
+  static func isTransientFailure(_ text: String) -> Bool {
+    AgentDetector.isUsageLimitError(text) || isTimeLimitError(text)
+      || (text.contains("ignored by one of your .gitignore files") && text.contains(".screenclip"))
+  }
+  static func isTimeLimitError(_ text: String) -> Bool {
+    text.contains("did not finish within") && text.contains("was stopped")
   }
   func dispatch(_ id: UUID) async {
     defer {
@@ -251,6 +320,18 @@ import ScreenClipCore
         model.issue(id)?.status == .working, model.issue(id)?.dispatchUncertain != true
       {
         holdForSignIn(id, agent: agent)
+        return
+      }
+      if let agent = model.issue(id)?.resolvedAgent, agent != .external,
+        AgentDetector.isUsageLimitError(error.localizedDescription),
+        model.issue(id)?.status == .working, model.issue(id)?.dispatchUncertain != true
+      {
+        holdForUsageLimit(id, agent: agent, detail: error.localizedDescription)
+        return
+      }
+      if Self.isTimeLimitError(error.localizedDescription),
+        continueAfterTimeLimit(id, message: error.localizedDescription)
+      {
         return
       }
       jobs.remove(id)

@@ -359,6 +359,111 @@ import XCTest
     return (idle, busy, busySession)
   }
 
+  /// The runs file records each run's `--model`, so a test can check which model ran.
+  private func limitedClaude(limitedModels: [String]) throws -> String {
+    let limited = limitedModels.map { "'\($0)'" }.joined(separator: ",")
+    return try script(
+      "fake-claude",
+      """
+      #!/usr/bin/python3
+      import sys,json,os
+      here=os.path.dirname(os.path.abspath(__file__))
+      if '--version' in sys.argv: print('9.9.9 (Claude Code)'); sys.exit(0)
+      if '--help' in sys.argv: sys.exit(0)
+      if 'auth' in sys.argv: print(json.dumps({'loggedIn':True,'authMethod':'claude.ai'})); sys.exit(0)
+      sys.stdin.readline()
+      model=sys.argv[sys.argv.index('--model')+1] if '--model' in sys.argv else 'default'
+      with open(os.path.join(here,'runs'),'a') as log: log.write(model+'\\n')
+      def send(value): print(json.dumps(value),flush=True)
+      if model in [\(limited)]:
+          send({'type':'result','subtype':'success','is_error':True,'result':"You've reached your "+model+" limit."})
+          sys.exit(1)
+      send({'type':'result','subtype':'success','is_error':False,'result':'','structured_output':{'outcome':'question','summary':'','question':'Which width?'}})
+      """)
+  }
+
+  private func runModels() -> [String] {
+    ((try? String(contentsOf: root.appendingPathComponent("runs"), encoding: .utf8)) ?? "")
+      .split(separator: "\n").map(String.init)
+  }
+
+  func testUsedUpModelFallsBackToTheNextModelInsteadOfFailing() async throws {
+    let claude = try limitedClaude(limitedModels: ["fable"])
+    let model = try makeModel()
+    try model.commit {
+      $0.settings.claudePath = claude
+      $0.settings.claudeModel = "fable"
+      $0.settings.paused = false
+    }
+    let id = try submit(model, agent: .claude)
+    try await wait { model.issue(id)?.status == .needsYou }
+    XCTAssertEqual(runModels(), ["fable", "opus"])
+    XCTAssertEqual(model.issue(id)?.questions.last?.title, "Which width?")
+    XCTAssertTrue(
+      model.issue(id)?.activities.contains {
+        $0.text == "Fable is at its usage limit; continuing with Opus"
+      } == true)
+  }
+
+  func testEveryModelUsedUpHoldsTheReportAndStartsAgainLater() async throws {
+    let claude = try limitedClaude(limitedModels: ["fable", "opus", "sonnet"])
+    let model = try makeModel()
+    model.worker.usageLimitWait = 0.5
+    try model.commit {
+      $0.settings.claudePath = claude
+      $0.settings.claudeModel = "fable"
+      $0.settings.paused = false
+    }
+    let id = try submit(model, agent: .claude)
+    try await wait {
+      model.issue(id)?.status == .queued
+        && model.issue(id)?.activities.last?.text.contains("usage limit") == true
+    }
+    XCTAssertEqual(runModels(), ["fable", "opus", "sonnet"])
+    XCTAssertNil(model.issue(id)?.lastError)
+    XCTAssertTrue(model.worker.isHeld(.claude))
+
+    // Once the wait is over the queue picks the report up again by itself.
+    try await Task.sleep(nanoseconds: 600_000_000)
+    model.worker.pump()
+    try await wait { self.runModels().count > 3 }
+  }
+
+  func testReportsFailedByAUsedUpModelStartAgainOnLaunch() throws {
+    let model = try makeModel()
+    let limited = try submit(model, agent: .claude)
+    let real = try submit(model, agent: .claude)
+    let ignored = try submit(model, agent: .claude)
+    try model.updateIssue(limited) {
+      $0.lastError = "You've reached your Fable limit. Switch to another model."
+      $0.record("limit", status: .failed)
+    }
+    try model.updateIssue(real) {
+      $0.lastError = "Validation failed after two repair attempts."
+      $0.record("failed", status: .failed)
+    }
+    try model.updateIssue(ignored) {
+      $0.lastError =
+        "The following paths are ignored by one of your .gitignore files:\n.screenclip\n"
+      $0.record("publish", status: .needsYou)
+    }
+    model.worker.recoverTransientFailures()
+    XCTAssertEqual(model.issue(limited)?.status, .queued)
+    XCTAssertEqual(model.issue(ignored)?.status, .queued)
+    XCTAssertEqual(model.issue(real)?.status, .failed)
+  }
+
+  func testUsageLimitFallbackChain() {
+    XCTAssertEqual(AgentModelCatalog.claudeFallbacks(after: "fable"), ["opus", "sonnet"])
+    XCTAssertEqual(AgentModelCatalog.claudeFallbacks(after: "opus"), ["sonnet"])
+    XCTAssertEqual(AgentModelCatalog.claudeFallbacks(after: "sonnet"), [])
+    XCTAssertEqual(AgentModelCatalog.claudeFallbacks(after: nil), ["opus", "sonnet"])
+    XCTAssertTrue(AgentDetector.isUsageLimitError(
+      "You've reached your Fable limit. Switch to another model, or manage usage credits"))
+    XCTAssertFalse(AgentDetector.isUsageLimitError("Tests failed: 3 of 120"))
+    XCTAssertFalse(AgentDetector.isSignInError("You've reached your Fable limit."))
+  }
+
   private func makeModel(queue: URL? = nil) throws -> AppModel {
     let model = try AppModel(root: queue ?? root.appendingPathComponent("queue"))
     model.loadExternalAssistant = { .empty }

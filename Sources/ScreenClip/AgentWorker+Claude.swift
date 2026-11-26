@@ -93,6 +93,57 @@ extension AgentWorker {
       model.perform { try model.updateIssue(id) { $0.turnID = nil } }
       throw error
     }
+    // A used-up model must not fail the report: carry on with the next model in the chain.
+    var limitText: String? =
+      result.isError && AgentDetector.isUsageLimitError(result.text) ? result.text : nil
+    var fallbacks = AgentModelCatalog.claudeFallbacks(after: request.model)
+    while limitText != nil, !fallbacks.isEmpty {
+      guard model.issue(id)?.status == .working, jobs.contains(id) else {
+        jobs.remove(id)
+        model.perform { try model.updateIssue(id) { $0.turnID = nil } }
+        return
+      }
+      let next = fallbacks.removeFirst()
+      let previous = request.model.map(Self.modelTitle) ?? "The default model"
+      if !request.resume {
+        // The limited turn may never have started its session; start a clean one.
+        let fresh = UUID().uuidString.lowercased()
+        request.sessionID = fresh
+        model.perform {
+          try model.updateIssue(id) {
+            $0.threadID = fresh
+            $0.turnID = Self.claudeTurnID(fresh)
+          }
+        }
+      }
+      model.perform {
+        try model.updateIssue(id) {
+          $0.record("\(previous) is at its usage limit; continuing with \(Self.modelTitle(next))")
+        }
+      }
+      request.model = next
+      // Efforts differ per model; let the fallback use its own default.
+      request.effort = nil
+      do {
+        result = try await claude.run(request, progress: progress)
+        limitText =
+          result.isError && AgentDetector.isUsageLimitError(result.text) ? result.text : nil
+      } catch is CancellationError {
+        jobs.remove(id)
+        model.perform { try model.updateIssue(id) { $0.turnID = nil } }
+        return
+      } catch where AgentDetector.isUsageLimitError(error.localizedDescription) {
+        limitText = error.localizedDescription
+      } catch {
+        model.perform { try model.updateIssue(id) { $0.turnID = nil } }
+        throw error
+      }
+    }
+    if let limitText {
+      model.perform { try model.updateIssue(id) { $0.turnID = nil } }
+      holdForUsageLimit(id, agent: .claude, detail: limitText)
+      return
+    }
     let delivered = AgentPrompt.delivered(issue, threadID: request.sessionID)
     model.perform {
       try model.updateIssue(id) {
@@ -138,6 +189,9 @@ extension AgentWorker {
       texts[id] = json
     }
     await finishOnce(id)
+  }
+  static func modelTitle(_ id: String) -> String {
+    AgentModelCatalog.claude.first { $0.id == id.lowercased() }?.title ?? id
   }
   /// Claude Code has no turn IDs; a running session stands in for its turn.
   static func claudeTurnID(_ session: String) -> String { "claude:" + session }

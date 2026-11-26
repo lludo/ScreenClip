@@ -36,6 +36,17 @@ public enum AgentModelCatalog {
   ]
   static let allClaudeEfforts = ["low", "medium", "high", "xhigh", "max"]
 
+  /// Models to try, in order, when Claude Code reports a usage limit on `model`. A report
+  /// should get done on the next best model rather than fail because one model is used up.
+  /// `nil` (Claude Code's own default) falls back through the same chain.
+  public static func claudeFallbacks(after model: String?) -> [String] {
+    let chain = ["fable", "opus", "sonnet"]
+    let current = model?.trimmingCharacters(in: .whitespaces).lowercased() ?? ""
+    guard let index = chain.firstIndex(where: { current.hasPrefix($0) || current.contains($0) })
+    else { return current.isEmpty ? ["opus", "sonnet"] : chain }
+    return Array(chain[(index + 1)...])
+  }
+
   /// Parses the Codex app-server `model/list` result. Hidden models are left out.
   public static func codex(fromModelList result: JSONValue) -> [AgentModelOption] {
     result["data"].array.compactMap { entry in
