@@ -18,7 +18,10 @@ def simulator_id():
     devices = json.loads(subprocess.check_output(["xcrun", "simctl", "list", "devices", "available", "-j"]))["devices"]
     phones = [d for runtime, group in devices.items() if ".iOS-" in runtime
               and int(runtime.split(".iOS-")[1].split("-")[0]) >= 17
-              for d in group if "iPhone" in d.get("deviceTypeIdentifier", "")]
+              for d in group if "iPhone" in d.get("deviceTypeIdentifier", "")
+              # The UI tests tap fixed positions in the system photo picker, which sit elsewhere
+              # on a foldable iPhone's screens.
+              and "Duo" not in d.get("deviceTypeIdentifier", "")]
     if not phones:
         raise SystemExit("Install an iOS 17 or later iPhone simulator runtime in Xcode.")
     return next((d for d in phones if d["state"] == "Booted"), phones[-1])["udid"]
