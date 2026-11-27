@@ -24,7 +24,7 @@ The in-app tip buttons and `.github/FUNDING.yml` (`github: lludo`) point at `htt
 
 ### Release secrets
 
-Configure the six Apple secrets named in [`.github/workflows/release.yml`](../../.github/workflows/release.yml) before relying on a tag to publish a notarized download. What each one is, and how the workflow behaves with none, some or all of them set, is in [Direct distribution](direct-distribution.md#maintainer-setup-one-time). With none configured, a tag push finishes green without signing or uploading anything; a partial set fails the release gate.
+Configure the six Apple secrets and `SPARKLE_ED_PRIVATE_KEY` named in [`.github/workflows/release.yml`](../../.github/workflows/release.yml) before relying on a tag to publish a notarized download. What each one is, and how the workflow behaves with none, some or all of them set, is in [Direct distribution](direct-distribution.md#maintainer-setup-one-time). With none configured, a tag push finishes green without signing or uploading anything; a partial set fails the release gate.
 
 ## Open items
 

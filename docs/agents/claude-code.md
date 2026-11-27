@@ -1,6 +1,6 @@
 # Claude Code
 
-Updated: November 14, 2026. Part of [Coding agents](README.md), which describes the shared agent contract.
+Updated: November 26, 2026. Part of [Coding agents](README.md), which describes the shared agent contract.
 
 ScreenClip can send any report to Claude Code instead of Codex or Grok Bot. Each turn runs `claude -p` headless in the issue's worktree ([ClaudeCodeClient.swift](../../Sources/ScreenClipCore/ClaudeCodeClient.swift)). One Claude Code session per issue carries the conversation across questions, replies, and new evidence.
 
@@ -88,12 +88,12 @@ Then ask, for example, "fix ScreenClip #234". The skill reads the note, context,
 - Runs only while ScreenClip is running and the Mac is awake, the same as Codex.
 - No human mid-turn permission prompts. Auto mode reviews requests; remaining blocked tools can end the turn as `blocked` or `question` with the denials listed.
 - Reconciliation cannot recover a result that finished while ScreenClip was not running.
-- Switching an issue between Codex and Claude Code after submission is not supported.
+- You cannot switch an issue between Codex and Claude Code after submission. ScreenClip does it only when the report's agent is out of quota and handover is on.
 
 ## Verification status
 
 - **Automated:** fake-CLI tests cover arguments, stdin evidence, progress, structured and fenced results, usage, missing results and non-zero exits, cancellation, detection, and the worker flow (capture → question → reply → `--resume` in the same worktree session), plus holding work for a signed-out agent.
-- **CLI compatibility:** the installed CLI (2.1.311) advertises `auto` permission mode. Automated tests cover the mode and sandbox settings on both new and resumed turns. A live classifier-reviewed build has not been verified. Earlier plugin manifests passed `claude plugin validate`.
+- **CLI compatibility:** the installed CLI (2.1.311 when last checked) advertises `auto` permission mode. Automated tests cover the mode and sandbox settings on both new and resumed turns. A live classifier-reviewed build has not been verified. Earlier plugin manifests passed `claude plugin validate`.
 - **Desktop hand-off:** fake-CLI tests cover version classification, the pseudo-terminal invocation, an old CLI (never executed), an unreadable version, an invalid session ID, CLI failure output, and a running session.
 - **Not yet verified:** a live Claude fix through validation, PR publication, and merge; permanent plugin installation; and an interactive plugin fix.
 

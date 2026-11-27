@@ -444,6 +444,15 @@
         }
         closeLink()
         phase = .searching
+        // closeLink() silences the link's own close callback, which is what schedules the next
+        // attempt. A busy Mac is worth another try, and a pairing that did not happen should
+        // not leave the device off the Mac it was already paired with. A Mac that no longer
+        // knows this device, or speaks another version, would only refuse again.
+        switch reason {
+        case .busy, .pairingClosed, .declined:
+          DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in self?.autoConnect() }
+        case .notPaired, .unsupportedVersion: break
+        }
       case .sendPending:
         retryFailed()
       case .ack(let id):

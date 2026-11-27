@@ -289,6 +289,19 @@ struct ProjectEditor: View {
       .onChange(of: model.project(project.id)?.baseBranch) { old, new in
         if let new, project.baseBranch == (old ?? Project.defaultBaseBranch) { project.baseBranch = new }
       }
+      // Filing a capture from a new app teaches the project that app's bundle ID, and "Allow and
+      // automate this project" changes the Codex approval mode. Keep both through the next Save.
+      .onChange(of: model.project(project.id)?.bundleIDs) { old, new in
+        guard let new else { return }
+        let listed = Set(bundles.split(separator: "\n").map { $0.trimmingCharacters(in: .whitespaces) })
+        let learned = new.filter { !(old ?? []).contains($0) && !listed.contains($0) }
+        if !learned.isEmpty {
+          bundles = (bundles.split(separator: "\n").map(String.init) + learned).joined(separator: "\n")
+        }
+      }
+      .onChange(of: model.project(project.id)?.codexApprovalMode) { old, new in
+        if let new, project.codexApprovalMode == old { project.codexApprovalMode = new }
+      }
       .task(id: project.path) { await detectBundles() }
       .task(id: project.path + "\u{0}" + project.baseBranch) { await checkBaseBranch() }
   }

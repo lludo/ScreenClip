@@ -129,6 +129,8 @@ import Network
 
   // MARK: Server
 
+  static let restartDelay: TimeInterval = 5
+
   /// Starts listening. `port` is for tests; normally the system picks one and Bonjour advertises it.
   public func start(port: NWEndpoint.Port = .any, advertise: Bool = true) {
     guard listener == nil else { return }
@@ -150,6 +152,15 @@ import Network
             case .failed(let error):
               self.state = .failed(error.localizedDescription)
               self.stopListener()
+              // A listener that fails after starting (the network changed, mDNSResponder
+              // restarted) stays down. Try again while the server is still meant to be on,
+              // so devices do not queue reports until someone toggles the setting.
+              DispatchQueue.main.asyncAfter(deadline: .now() + Self.restartDelay) { [weak self] in
+                MainActor.assumeIsolated {
+                  guard let self, case .failed = self.state, self.listener == nil else { return }
+                  self.start(port: port, advertise: advertise)
+                }
+              }
             case .cancelled: break
             default: break
             }

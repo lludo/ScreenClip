@@ -1,6 +1,6 @@
 # Architecture
 
-Updated: November 15, 2026. This page describes the app as it is built. [Validation](validation.md) separates what has been exercised from what is still open. The App Store evaluation is under [Release and distribution](release/README.md). Superseded proposals are in the [archive](archive/README.md).
+Updated: November 26, 2026. This page describes the app as it is built. [Validation](validation.md) separates what has been exercised from what is still open. The App Store evaluation is under [Release and distribution](release/README.md). Superseded proposals are in the [archive](archive/README.md).
 
 ## What the process is
 
@@ -10,7 +10,7 @@ The SQLite store holds a versioned snapshot of projects, issues, ordered capture
 
 Recovery reconciles and resumes acknowledged interrupted Codex work and reports stranded on command or file approval when the project uses automatic review or full access. Genuine unanswered questions, manual approval projects, uncertain dispatches, active chats, and mismatched worktrees still wait for user action. An interrupted Claude Code session continues when no process for that session survived.
 
-Each issue goes to Codex, Claude Code, or Grok Bot. Codex and Claude Code share the local contract in [Coding agents](agents/README.md). Grok Bot is the remote webhook. The optional plugin reads the queue (`task_summary`, `list_projects`, `list_issues`, `get_issue`) and can suggest project settings (`propose_project_settings`), which change nothing until the tester accepts them; the app bundles its server and Settings can register it with Claude Code or Codex. The app is the only writer of the queue and its settings.
+Each issue goes to Codex, Claude Code, or Grok Bot. Codex and Claude Code share the local contract in [Coding agents](agents/README.md). Grok Bot is the remote webhook. The optional plugin reads the queue (`task_summary`, `list_projects`, `list_issues`, `get_issue`) can suggest project settings (`propose_project_settings`), which change nothing until the tester accepts them, and can ask ScreenClip to close a report the agent fixed itself (`close_issue`), which the app checks against GitHub or `origin` before applying; the app bundles its server and Settings can register it with Claude Code or Codex. The app is the only writer of the queue and its settings.
 
 A project runs up to `AppSettings.parallelReportLimit` reports at once (default 3, allowed range 1–6). A slot is held only while ScreenClip is dispatching, running, or publishing that report. A report that is merely waiting on CI does not hold one. Git worktree creation and removal for one project are serialized, because concurrent `git fetch` and `git worktree` calls share ref locks. Merges in one project are taken one at a time.
 
@@ -97,7 +97,7 @@ Secrets ScreenClip stores for itself go in the Keychain. Pull requests include t
 | Path | Contents |
 | --- | --- |
 | `Sources/ScreenClip/` | The app: `AppModel`, capture, queue, settings, and `ExternalAssistantKeychain` |
-| `Sources/ScreenClip/AgentWorker*.swift` | Scheduling (`AgentWorker`), Codex (`+Codex`), Claude Code (`+Claude`), Grok Bot (`+External`), validation and merge (`+Publishing`) |
+| `Sources/ScreenClip/AgentWorker*.swift` | Scheduling (`AgentWorker`), Codex (`+Codex`), Claude Code (`+Claude`), Grok Bot (`+External`), fixes that landed outside ScreenClip and `close_issue` checks (`+ExternalFix`), validation and merge (`+Publishing`) |
 | `Sources/ScreenClip/AgentPrompt.swift` | The prompt and result schema local agents receive |
 | `Sources/ScreenClip/Localization.swift` | String Catalog lookup. User-written report text is not translated |
 | `Sources/ScreenClipCore/` | Model, store, routing, agent clients and their model/effort catalog (`AgentModels`), processes, Git, GitHub, and `MergeGuard` |

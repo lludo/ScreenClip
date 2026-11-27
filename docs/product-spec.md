@@ -1,6 +1,6 @@
 # ScreenClip product specification
 
-Updated: November 22, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md). Closed product questions are under [Decisions](#decisions). The older open-question table is in the [archive](archive/remaining-decisions.md).
+Updated: November 26, 2026. Status: implemented local app with Codex, Claude Code, and Grok Bot. See [validation evidence](validation.md) for exact coverage and remaining hands-on checks. Agent behavior is specified in [Coding agents](agents/README.md). Closed product questions are under [Decisions](#decisions). The older open-question table is in the [archive](archive/remaining-decisions.md).
 
 ## Problem and intended outcome
 
@@ -90,7 +90,7 @@ Menu bar label: icon plus the count of submitted, unresolved issues. A separate 
 
 | Surface | Contents and actions |
 | --- | --- |
-| Menu bar popover | Current project/session, Screenshot task, Text task, status totals (Open, Needs you, To retest) that each list their reports newest first, Open queue, Settings, an Update to … button when an update is ready; the ⋯ menu has Pause/Resume and Check for Updates… |
+| Menu bar popover | Screenshot task, Text task, status totals (Open, Needs you, To retest) that each list their reports newest first, Open queue, Settings, an Update to … button when an update is ready; the ⋯ menu has Pause/Resume, Check for Updates…, Support ScreenClip…, and Quit ScreenClip |
 | Issue row | Permanent report number (for example, #234), thumbnail, short title, project, status, latest update, unread indicator |
 | Issue detail | Click-to-copy report number, ordered images and notes, captured context, concise activity, questions and replies, the agent's conversation link when it has one, PR link, validation result |
 | Queue window | All issues newest first, project/status filters, search, drafts, archive |

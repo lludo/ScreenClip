@@ -69,7 +69,7 @@ Reports from iOS use the **Agent for iOS reports** chosen in Settings > iOS (age
    - **Mac reachable:** the report goes straight into the queue, routed by bundle ID, and the agent starts.
    - **Mac not reachable:** the report waits on the phone and goes out as soon as the app is open and finds the Mac.
    - **Leaving the app right after Send:** the SDK asks iOS for a little background time to finish sending.
-3. **Phone, any time:** the SDK's settings show **Waiting to send** and **Sent to Mac**. Each sent report shows its number, project, agent, and live status: Queued, Agent working, Needs you, PR open, Merged, Verified, Failed. A merged report links its pull request. With several Macs paired, tap **Connect** beside the one you want. Status, verification, and follow-ups belong to the Mac that received the original report.
+3. **Phone, any time:** the SDK's settings show **Waiting to send** and **Sent to Mac**. Each sent report shows its number, project, agent, and live status: Queued, Agent working, Needs you, PR open, Merged, Verified, Failed. A merged report links its pull request. With several Macs paired, tap **Connect** beside the one you want; when the app returns to the foreground it reconnects to the first paired Mac it finds, by name. Status, verification, and follow-ups belong to the Mac that received the original report.
 4. **Next day:** pull and install the new build from Xcode, retest, and on each merged report tap:
    - **Looks fixed:** marks it Verified on the Mac.
    - **Still broken:** your next capture is added to the same report and goes back to its agent in a fresh worktree.
@@ -89,7 +89,7 @@ Reports from iOS use the **Agent for iOS reports** chosen in Settings > iOS (age
 | --- | --- | --- |
 | `logs.txt` | The app's unified-log entries (`Logger`, `os_log`, `NSLog`) from the 2 minutes before the capture, at most 500 lines. `com.apple.*` entries are kept only at error or fault level, and repeated lines are collapsed | `OSLogStore` scoped to the app's own process, read in the background while you annotate. If reading takes more than 8 seconds after you tap Send, the report goes without it |
 | `view-tree.json` | UIKit views and the accessibility elements the host exposes at capture time, with identifiers, labels, values, traits, and frames in points | Uses public APIs and preserves the device’s accessibility settings. The detail available for SwiftUI depends on which elements the app currently exposes. Secure text fields omit their values. Left out when the tester picks a screenshot from Photos, because it would describe the live screen instead. |
-| `device-state.json` | Memory footprint, CPU, thermal state, Low Power Mode, battery, free disk, network type, color scheme, Dynamic Type, Reduce Motion, Bold Text, Increase Contrast, VoiceOver, time zone, languages | Read at the moment of capture |
+| `device-state.json` | Memory footprint, CPU, thermal state, Low Power Mode, battery, free disk, network type, color scheme, Dynamic Type, Reduce Motion, Bold Text, Increase Contrast, VoiceOver, layout direction, horizontal size class, app state, seconds since the SDK started, time zone, languages | Read at the moment of capture |
 | `console.txt` | The last 300 lines printed to stdout and stderr (`print`) | Only with `ScreenClipKit.start(ScreenClipOptions(captureConsoleOutput: true))`. Output still reaches Xcode's console |
 | Your own files | Whatever your app attaches | Only with a provider; see [Attach your own files](#attach-your-own-files) |
 
@@ -140,7 +140,7 @@ Grok Bot does not receive diagnostics.
 Only the approved image leaves the device: the screenshot with annotations and redactions burned in, at full pixel size. The device keeps no unredacted original. Each report carries:
 
 - app name, bundle ID, version, build, and an optional git SHA (Info.plist key `ScreenClipGitSHA`)
-- device name and model, OS version, locale, orientation, screen size and scale
+- device name (iOS gives apps the generic name, such as "iPhone") and model, OS version, locale, orientation, screen size and scale
 - for a screenshot picked from Photos, that it was picked and its capture date when the file has one
 - the visible view-controller chain and the innermost screen title
 - optional diagnostics, described above

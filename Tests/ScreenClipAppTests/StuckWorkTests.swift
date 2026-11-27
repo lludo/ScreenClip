@@ -52,6 +52,62 @@ import XCTest
     await model.worker.resetConnection()
   }
 
+  func testARefusedCodexTurnIsNotLeftUncertain() async throws {
+    let codex = try script(
+      "fake-codex",
+      """
+      #!/usr/bin/python3
+      import sys,json
+      def send(value): print(json.dumps(value),flush=True)
+      for line in sys.stdin:
+          m=json.loads(line)
+          if 'id' not in m: continue
+          method=m.get('method'); result={}
+          if method=='project/list': result={'data':[],'nextCursor':None}
+          if method=='thread/start': result={'thread':{'id':'refused-thread','status':{'type':'idle'}},'approvalsReviewer':m['params'].get('approvalsReviewer','user')}
+          if method=='turn/start':
+              send({'id':m['id'],'error':{'code':-32602,'message':'The requested model is not available.'}})
+              continue
+          send({'id':m['id'],'result':result})
+      """)
+    let model = try makeModel()
+    try model.commit {
+      $0.settings.codexPath = codex
+      $0.settings.paused = false
+    }
+    let id = try submit(model, agent: .codex)
+    // Codex answered, so no turn is running: the report fails plainly and Continue is offered,
+    // instead of asking the tester to reconcile a chat that never started a turn.
+    try await wait { model.issue(id)?.status == .failed }
+    XCTAssertEqual(model.issue(id)?.dispatchUncertain, false)
+    XCTAssertTrue(model.issue(id)?.lastError?.contains("not available") == true)
+    await model.worker.resetConnection()
+  }
+
+  func testGrokBotReminderDoesNotUndoACancelMadeWhileGitHubWasAsked() async throws {
+    let gh = try script("fake-gh", "#!/bin/sh\nsleep 1\necho '[]'\n")
+    let model = try makeModel()
+    model.loadExternalAssistant = {
+      ExternalAssistantConfiguration(
+        webhookURL: "https://assistant.example/hook", authorization: "Bearer secret",
+        testSucceeded: false)
+    }
+    try model.commit { $0.settings.ghPath = gh }
+    let id = try submit(model, agent: .external)
+    try model.updateIssue(id) {
+      $0.branch = "screenclip/1-report-abc"
+      $0.worktreePath = self.root.path
+      $0.record(ExternalAssistant.sentActivity, status: .working)
+      $0.activities[$0.activities.count - 1].date = Date().addingTimeInterval(-3 * 60 * 60)
+    }
+    let discovery = Task { await model.worker.discoverExternalPullRequests() }
+    try await Task.sleep(nanoseconds: 300_000_000)
+    try model.updateIssue(id) { $0.record("Canceled", status: .canceled) }
+    await discovery.value
+    XCTAssertEqual(model.issue(id)?.status, .canceled)
+    XCTAssertNil(model.issue(id)?.lastError)
+  }
+
   func testCodexWatchdogDoesNotExpireImmediatelyAfterAUserReply() async throws {
     let model = try makeModel()
     let id = try submit(model, agent: .codex)

@@ -62,27 +62,28 @@ extension AgentWorker {
 
   /// Why GitHub does not confirm `url` as a merged fix for a report of `project`, or nil when
   /// it is merged into the project's base branch, in the project's own repository. Used before
-  /// an agent's `close_issue` with a pull request marks a report merged.
+  /// an agent's `close_issue` with a pull request marks a report merged. `unreachable` is true when
+  /// GitHub did not answer, which says nothing about the pull request.
   func refusalForMergedPullRequest(
     _ url: String, project: Project, after evidence: Date? = nil
-  ) async -> (refusal: String?, mergeCommit: String?) {
+  ) async -> (refusal: String?, mergeCommit: String?, unreachable: Bool) {
     let repo: String
     do { repo = try await githubRepo(project) } catch {
-      return (error.localizedDescription, nil)
+      return (error.localizedDescription, nil, false)
     }
     guard ExternalFix.pullRequestNumber(url, repo: repo) != nil else {
-      return ("\(url) is not a pull request of \(repo), the repository of project \(project.name).", nil)
+      return ("\(url) is not a pull request of \(repo), the repository of project \(project.name).", nil, false)
     }
     let pr: PRState
     do {
       pr = try await GitHubService.state(
         url: url, path: project.path, gh: AgentDetector.ghPath(model.snapshot.settings))
     } catch {
-      return ("GitHub did not confirm \(url): \(error.localizedDescription)", nil)
+      return ("GitHub did not confirm \(url): \(error.localizedDescription)", nil, true)
     }
-    guard pr.merged else { return ("\(url) is not merged.", nil) }
+    guard pr.merged else { return ("\(url) is not merged.", nil, false) }
     guard pr.base == project.baseBranch else {
-      return ("\(url) was merged into \(pr.base), not \(project.baseBranch).", nil)
+      return ("\(url) was merged into \(pr.base), not \(project.baseBranch).", nil, false)
     }
     // Like the automatic match: a merge from before the report's newest evidence is not its fix.
     if let evidence {
@@ -90,9 +91,9 @@ extension AgentWorker {
       let text = try? await CommandRunner.checked(
         gh, ["pr", "view", url, "--json", "mergedAt", "--jq", ".mergedAt"], cwd: project.path)
       if let merged = text.flatMap({ ISO8601DateFormatter().date(from: $0) }), merged < evidence.addingTimeInterval(-300) {
-        return ("\(url) was merged before the report's latest evidence.", nil)
+        return ("\(url) was merged before the report's latest evidence.", nil, false)
       }
     }
-    return (nil, pr.mergeCommit)
+    return (nil, pr.mergeCommit, false)
   }
 }

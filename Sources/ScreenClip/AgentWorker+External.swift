@@ -408,7 +408,10 @@ extension AgentWorker {
             try model.updateIssue(issue.id) { $0.lastError = text }
           }
         } else if issue.status == .working, let sent = ExternalAssistant.sentDate(issue),
-          now.timeIntervalSince(sent) >= ExternalAssistant.noPullRequestReminder
+          now.timeIntervalSince(sent) >= ExternalAssistant.noPullRequestReminder,
+          // The tester may have canceled or requeued the report while GitHub was asked.
+          let current = model.issue(issue.id), current.status == .working, current.prURL == nil,
+          current.revision == issue.revision, !isActive(issue.id)
         {
           // Without this, a report Grok Bot never picked up shows "working" indefinitely.
           try model.updateIssue(issue.id) {

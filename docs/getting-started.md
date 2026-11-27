@@ -52,6 +52,6 @@ Browser URL context is optional and may ask for Safari or Chrome Automation acce
 
 ScreenClip hides its own windows during capture by default. To file a report about ScreenClip, turn off **Settings → General → Capture → Hide ScreenClip during capture** and save.
 
-Submitted screenshots are published to the project's GitHub repository, in the fix pull request or on Grok Bot's evidence branch. There is no per-project switch. Redact anything private before you submit. See [What each agent can see](user-guide.md#what-each-agent-can-see).
+Submitted screenshots are published to the project's GitHub repository, in the fix pull request or on Grok Bot's evidence branch. For Codex and Claude Code you can turn this off per project with **Project settings → Commit screenshots to the repository**; Grok Bot reports always push the approved screenshots to an evidence branch. Redact anything private before you submit. See [What each agent can see](user-guide.md#what-each-agent-can-see).
 
 What happens after submit is in the [user guide](user-guide.md).

@@ -33,6 +33,7 @@ Until the Apple secrets are set in the repository, every release is built and pu
 - [ ] `docs/README.md` and `docs/release/README.md`: a new row above the previous release.
 - [ ] `docs/getting-started.md`: add the release to the "later changes" list.
 - [ ] `docs/user-guide.md`, `docs/product-spec.md`, `docs/agents/`, `docs/ios-sdk.md`, `plugins/screenclip/README.md` and its skills, and `SECURITY.md` describe every new or changed behavior.
+- [ ] Search the rest of `docs/` for statements the release made false, in particular `docs/getting-started.md`, `docs/architecture.md`, `docs/development.md`, `docs/validation.md`, `docs/roadmap.md`, and the plugin line in `docs/README.md`. Absolute wording ("always", "never", "there is no", "not supported") is where earlier releases left stale claims.
 - [ ] Version statements in `docs/ios-sdk.md` and the DocC articles in `Sources/ScreenClipKit/ScreenClipKit.docc` (which SDK version added an API, which ScreenClip the Mac needs).
 - [ ] `version` in `plugins/screenclip/plugin.json` and `plugins/screenclip/.claude-plugin/plugin.json` matches `serverInfo` in `plugins/screenclip/server.py` when the server's tools changed.
 

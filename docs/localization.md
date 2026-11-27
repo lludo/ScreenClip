@@ -14,7 +14,7 @@ Counts such as "1 Open" use plural forms. Dates and numbers use the formatters a
 | --- | --- |
 | `Sources/ScreenClip/Localizable.xcstrings` | Menus, windows, settings, and activity lines the app writes |
 | `Sources/ScreenClipCore/Localizable.xcstrings` | Status names and agent-detection sentences. The core package looks these up with `Bundle.module` |
-| `Resources/InfoPlist.xcstrings` | The Screen Recording and Automation permission prompts |
+| `Resources/InfoPlist.xcstrings` | The Screen Recording, Automation, and Local Network permission prompts |
 
 The Swift package uses the `CompileStringCatalog` build plugin to compile the app and core catalogs into localized `.strings` and `.stringsdict` resources. This also supplies translations when running `swift test` with the native SwiftPM build system.
 
