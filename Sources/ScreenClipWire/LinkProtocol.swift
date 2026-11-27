@@ -7,15 +7,21 @@ import ImageIO
 
 /// The local-network protocol between the iOS SDK (client) and the Mac app (listener).
 ///
-/// Handshake, in clear:
-///   client → `hello` (device identity, nonce, and a public key when pairing)
-///   server → `challenge` (session) or `pairChallenge` (pairing), or `rejected`
-/// Then every frame is sealed with ChaCha20-Poly1305 under per-direction keys derived from the
+/// Handshake, in clear, for a paired device:
+///   client → `hello` (device identity and nonce)
+///   server → `challenge` (nonce), or `rejected`
+/// When pairing, the client first commits to its key and nonce without showing them:
+///   client → `hello` (device identity and a commitment to its public key and nonce)
+///   server → `challenge` (the Mac's public key and nonce), or `rejected`
+///   client → `pairReveal` (the public key and nonce the hello committed to)
+/// Neither side can pick its key or nonce after seeing the other's, so neither can steer the
+/// comparison code. Then every frame is sealed with ChaCha20-Poly1305 under per-direction keys derived from the
 /// pairing key and both nonces, with a counter nonce, so frames cannot be replayed or reordered.
 /// When pairing, both screens show the same 6-digit code; the Mac sends the sealed `welcome`
 /// only after the person confirms it.
 public enum LinkProtocol {
-  public static let version = 1
+  /// 2 added the pairing commitment and `pairReveal`. A device and a Mac must use the same version.
+  public static let version = 2
   public static let serviceType = "_screenclip._tcp"
   public static let txtMacID = "id"
   public static let txtVersion = "v"
@@ -28,12 +34,15 @@ public struct Hello: Codable, Equatable, Sendable {
   public var deviceModel: String
   public var appName: String
   public var bundleID: String
+  /// The session nonce. Empty when pairing: the nonce is then part of the commitment and
+  /// arrives in `pairReveal`.
   public var nonce: Data
-  /// Present only when the device asks to pair.
-  public var pairingPublicKey: Data?
+  /// Present only when the device asks to pair: `PairingExchange.commitment` over the public
+  /// key and nonce it will reveal after the Mac's challenge.
+  public var pairingCommitment: Data?
   public init(
     protocolVersion: Int = LinkProtocol.version, deviceID: UUID, deviceName: String,
-    deviceModel: String, appName: String, bundleID: String, nonce: Data, pairingPublicKey: Data?
+    deviceModel: String, appName: String, bundleID: String, nonce: Data, pairingCommitment: Data?
   ) {
     self.protocolVersion = protocolVersion
     self.deviceID = deviceID
@@ -42,7 +51,7 @@ public struct Hello: Codable, Equatable, Sendable {
     self.appName = appName
     self.bundleID = bundleID
     self.nonce = nonce
-    self.pairingPublicKey = pairingPublicKey
+    self.pairingCommitment = pairingCommitment
   }
 }
 
@@ -115,6 +124,8 @@ public enum LinkMessage: Codable, Equatable, Sendable {
   // In clear, during the handshake.
   case hello(Hello)
   case challenge(Challenge)
+  /// Device → Mac, when pairing: the public key and nonce its hello committed to.
+  case pairReveal(publicKey: Data, nonce: Data)
   case rejected(RejectReason)
   // Sealed.
   case welcome(macID: UUID, macName: String)
@@ -135,7 +146,7 @@ public enum LinkMessage: Codable, Equatable, Sendable {
 
   public var isHandshake: Bool {
     switch self {
-    case .hello, .challenge, .rejected: return true
+    case .hello, .challenge, .pairReveal, .rejected: return true
     default: return false
     }
   }
@@ -219,6 +230,29 @@ public struct PairingExchange: Sendable {
   public init() { privateKey = P256.KeyAgreement.PrivateKey() }
   public var publicKey: Data { privateKey.publicKey.rawRepresentation }
 
+  /// What a pairing hello sends in place of the device's public key and nonce. The Mac answers
+  /// with its own key and nonce before it learns either, and the device cannot change them
+  /// afterwards, so neither side can choose its values to steer the comparison code.
+  public static func commitment(publicKey: Data, nonce: Data) -> Data {
+    var hash = SHA256()
+    hash.update(data: Data("screenclip-pair-commit-v1".utf8))
+    // Length-prefixed, so the split between key and nonce is part of what is committed.
+    for part in [publicKey, nonce] {
+      var length = UInt32(part.count).bigEndian
+      hash.update(data: Data(bytes: &length, count: 4))
+      hash.update(data: part)
+    }
+    return Data(hash.finalize())
+  }
+  /// Whether `publicKey` and `nonce` are the values `commitment` was made over.
+  public static func reveals(_ commitment: Data, publicKey: Data, nonce: Data) -> Bool {
+    // A full-size nonce is required: the commitment hides the key only if the rest is unguessable.
+    guard nonce.count == Nonce.byteCount else { return false }
+    let expected = Self.commitment(publicKey: publicKey, nonce: nonce)
+    guard commitment.count == expected.count else { return false }
+    return zip(commitment, expected).reduce(UInt8(0)) { $0 | ($1.0 ^ $1.1) } == 0
+  }
+
   public struct Result: Sendable {
     /// Stored on both sides; the long-term key for this device and Mac.
     public let pairingKey: SymmetricKey
@@ -227,7 +261,8 @@ public struct PairingExchange: Sendable {
   }
 
   /// Derives the pairing key and the comparison code. Both public keys and both nonces are bound
-  /// in, so a relay that swaps keys produces a different code on each screen.
+  /// in, and the device commits to its key and nonce before the Mac shows its own, so a relay
+  /// that swaps keys produces a different code on each screen.
   public func complete(
     peerPublicKey: Data, clientPublicKey: Data, serverPublicKey: Data, clientNonce: Data,
     serverNonce: Data
@@ -254,6 +289,7 @@ public struct PairingExchange: Sendable {
 }
 
 public enum Nonce {
+  public static let byteCount = 32
   public static func make() -> Data {
     SymmetricKey(size: .bits256).withUnsafeBytes { Data($0) }
   }

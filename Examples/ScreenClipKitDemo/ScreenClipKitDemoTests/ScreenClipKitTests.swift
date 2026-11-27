@@ -259,17 +259,24 @@ import UIKit
     listener.newConnectionHandler = { connection in MainActor.assumeIsolated {
       let session = LinkConnection(connection: connection)
       server = session
+      let exchange = PairingExchange(), nonce = Nonce.make()
+      var commitment: Data?
       session.onMessage = { [weak session] message in
         guard let session else { return }
         switch message {
         case .hello(let hello):
+          // The hello commits to the device's key and nonce without showing either.
+          XCTAssertTrue(hello.nonce.isEmpty)
+          commitment = hello.pairingCommitment
+          XCTAssertNotNil(commitment)
+          session.send(.challenge(Challenge(macID: macID, macName: "Test Mac", nonce: nonce, pairingPublicKey: exchange.publicKey)))
+          session.continueHandshake()
+        case .pairReveal(let publicKey, let clientNonce):
           do {
-            let publicKey = try XCTUnwrap(hello.pairingPublicKey)
-            let exchange = PairingExchange(), nonce = Nonce.make()
+            XCTAssertTrue(PairingExchange.reveals(try XCTUnwrap(commitment), publicKey: publicKey, nonce: clientNonce))
             let result = try exchange.complete(peerPublicKey: publicKey, clientPublicKey: publicKey,
-              serverPublicKey: exchange.publicKey, clientNonce: hello.nonce, serverNonce: nonce)
-            session.send(.challenge(Challenge(macID: macID, macName: "Test Mac", nonce: nonce, pairingPublicKey: exchange.publicKey)))
-            session.secure(SecureChannel(pairingKey: result.pairingKey, clientNonce: hello.nonce, serverNonce: nonce, role: .server))
+              serverPublicKey: exchange.publicKey, clientNonce: clientNonce, serverNonce: nonce)
+            session.secure(SecureChannel(pairingKey: result.pairingKey, clientNonce: clientNonce, serverNonce: nonce, role: .server))
             session.send(.welcome(macID: macID, macName: "Test Mac"))
           } catch { XCTFail("Pairing failed: \(error)") }
         case .report(let report):

@@ -64,7 +64,8 @@ final class WireTests: XCTestCase {
       .hello(
         Hello(
           deviceID: UUID(), deviceName: "iPhone", deviceModel: "iPhone16,1", appName: "Demo",
-          bundleID: "com.example.demo", nonce: Nonce.make(), pairingPublicKey: nil)),
+          bundleID: "com.example.demo", nonce: Nonce.make(), pairingCommitment: nil)),
+      .pairReveal(publicKey: PairingExchange().publicKey, nonce: Nonce.make()),
       .challenge(Challenge(macID: UUID(), macName: "Mac", nonce: Nonce.make())),
       .rejected(.notPaired), .welcome(macID: UUID(), macName: "Mac"),
       .report(WireReport(note: "n", image: nil, device: device())), .ack(id: UUID()),
@@ -101,6 +102,22 @@ final class WireTests: XCTestCase {
       peerPublicKey: relay.publicKey, clientPublicKey: client.publicKey,
       serverPublicKey: relay.publicKey, clientNonce: clientNonce, serverNonce: serverNonce)
     XCTAssertNotEqual(c.pairingKey.data, b.pairingKey.data)
+  }
+
+  func testPairingCommitmentBindsTheKeyAndTheNonce() {
+    let key = PairingExchange().publicKey, nonce = Nonce.make()
+    let commitment = PairingExchange.commitment(publicKey: key, nonce: nonce)
+    XCTAssertEqual(commitment.count, 32)
+    XCTAssertTrue(PairingExchange.reveals(commitment, publicKey: key, nonce: nonce))
+    XCTAssertFalse(PairingExchange.reveals(commitment, publicKey: PairingExchange().publicKey, nonce: nonce))
+    XCTAssertFalse(PairingExchange.reveals(commitment, publicKey: key, nonce: Nonce.make()))
+    XCTAssertFalse(PairingExchange.reveals(Data(commitment.dropLast()), publicKey: key, nonce: nonce))
+    // Moving bytes between the key and the nonce is a different commitment, and a short nonce
+    // is never accepted.
+    let moved = PairingExchange.commitment(publicKey: key + nonce.prefix(1), nonce: Data(nonce.dropFirst()))
+    XCTAssertNotEqual(moved, commitment)
+    XCTAssertFalse(PairingExchange.reveals(moved, publicKey: key + nonce.prefix(1), nonce: Data(nonce.dropFirst())))
+    XCTAssertEqual(LinkProtocol.version, 2)
   }
 
   func testSecureChannelRejectsReplayTamperingAndWrongKeys() throws {
@@ -183,7 +200,7 @@ final class WireTests: XCTestCase {
         .hello(
           Hello(
             deviceID: UUID(), deviceName: "iPhone", deviceModel: "x", appName: "Demo",
-            bundleID: "com.example.demo", nonce: clientNonce, pairingPublicKey: nil)))
+            bundleID: "com.example.demo", nonce: clientNonce, pairingCommitment: nil)))
     }
     client.onMessage = { message in
       switch message {
