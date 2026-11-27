@@ -20,8 +20,12 @@ import ImageIO
 /// When pairing, both screens show the same 6-digit code; the Mac sends the sealed `welcome`
 /// only after the person confirms it.
 public enum LinkProtocol {
-  /// 2 added the pairing commitment and `pairReveal`. A device and a Mac must use the same version.
+  /// 2 added the pairing commitment and `pairReveal`. Pairing needs the same version on both
+  /// sides, and a device refuses a Mac of another version.
   public static let version = 2
+  /// The Mac still accepts a connection from a device that paired under this version: the
+  /// handshake of a paired device and every sealed message are the same in 1 and 2.
+  public static let earliestSessionVersion = 1
   public static let serviceType = "_screenclip._tcp"
   public static let txtMacID = "id"
   public static let txtVersion = "v"
@@ -40,6 +44,9 @@ public struct Hello: Codable, Equatable, Sendable {
   /// Present only when the device asks to pair: `PairingExchange.commitment` over the public
   /// key and nonce it will reveal after the Mac's challenge.
   public var pairingCommitment: Data?
+  /// What a version 1 device sent to pair. Only decoded, so the Mac can tell such a hello from
+  /// the connection of a paired device and refuse it.
+  public var pairingPublicKey: Data?
   public init(
     protocolVersion: Int = LinkProtocol.version, deviceID: UUID, deviceName: String,
     deviceModel: String, appName: String, bundleID: String, nonce: Data, pairingCommitment: Data?

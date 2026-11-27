@@ -10,7 +10,7 @@ The fastest way is to let your coding agent do it. In ScreenClip, open **Setting
 
 By hand:
 
-1. Add the package `https://github.com/lludo/ScreenClip` and link the product **ScreenClipKit** to your app target. It needs iOS 17 or later and a Swift 6 toolchain (Xcode 16 or newer). Use version 1.2.0 or later (attachment providers and reports from an existing screenshot arrived in 1.2.0). On the Mac, use ScreenClip 1.2.0 or later: an older ScreenClip still receives the reports, but doesn't tell the agent when a screenshot was picked from Photos. The release after 1.2.1 changed how pairing works, so the SDK and ScreenClip on the Mac must both be from before it or both from after it; a mismatched pair does not connect, and the SDK's settings say which side to update.
+1. Add the package `https://github.com/lludo/ScreenClip` and link the product **ScreenClipKit** to your app target. It needs iOS 17 or later and a Swift 6 toolchain (Xcode 16 or newer). Use version 1.2.0 or later (attachment providers and reports from an existing screenshot arrived in 1.2.0). On the Mac, use ScreenClip 1.2.0 or later: an older ScreenClip still receives the reports, but doesn't tell the agent when a screenshot was picked from Photos. Version 1.2.2 changed how pairing works: ScreenClipKit 1.2.2 or later needs ScreenClip 1.2.2 or later on the Mac, and pairing a device with ScreenClip 1.2.2 needs ScreenClipKit 1.2.2. A device paired with an earlier SDK keeps sending reports to ScreenClip 1.2.2 until its app updates the package. When the two do not fit, the settings of ScreenClipKit 1.2.2 say which side to update.
 2. Start it once:
    ```swift
    #if DEBUG

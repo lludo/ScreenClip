@@ -79,7 +79,11 @@ extension AgentWorker {
       pr = try await GitHubService.state(
         url: url, path: project.path, gh: AgentDetector.ghPath(model.snapshot.settings))
     } catch {
-      return ("GitHub did not confirm \(url): \(error.localizedDescription)", nil, true)
+      // GitHub answering that there is no such pull request is an answer, not an outage.
+      return (
+        "GitHub did not confirm \(url): \(error.localizedDescription)", nil,
+        !ExternalFix.saysPullRequestIsMissing(error.localizedDescription)
+      )
     }
     guard pr.merged else { return ("\(url) is not merged.", nil, false) }
     guard pr.base == project.baseBranch else {

@@ -158,7 +158,7 @@ Fix anything that fails before reporting success. Do not claim a check you did n
 ## 6. Tell the user how to use it
 
 - On the Mac: open ScreenClip > Settings > iOS, turn on **Receive reports from iOS devices**, and click **Pair a device…**.
-- On the device: run the Debug build, shake (or take a screenshot), tap the gear in the report sheet, tap **Pair** next to the Mac, and confirm the same 6-digit code on the Mac.
+- On the device: run the Debug build, shake (or take a screenshot), tap the gear in the report sheet, tap **Pair** next to the Mac, check that both screens show the same 6-digit code, then tap **Codes match** on the device and click **Confirm** on the Mac. ScreenClipKit 1.2.2 or later needs ScreenClip 1.2.2 or later on the Mac, and pairing with ScreenClip 1.2.2 needs ScreenClipKit 1.2.2 or later.
 - After that, shake, annotate, add a note, and tap **Send**. If the Mac is not reachable the report is saved and sent automatically later; **Fetch** on the Mac asks connected devices to send saved reports, and saved reports can also be exported and AirDropped to the Mac.
 - iPhone and Mac must be on the same network. iOS asks once for Local Network access.
 - Reports are routed to a ScreenClip project by the app's bundle ID. If the project is already in ScreenClip, the first report usually routes itself: ScreenClip finds the bundle ID in the repository's Xcode project. Otherwise the user picks the project once and ScreenClip remembers it.

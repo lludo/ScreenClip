@@ -30,12 +30,13 @@ import XCTest
       git.waitUntilExit()
     }
     // A stand-in `gh` that answers `pr list` with the list the test wrote (empty by default)
-    // and every other call with the pull request state the test wrote.
+    // and every other call with the pull request state the test wrote, or the error it wrote.
     let gh = root.appendingPathComponent("gh")
     try """
       #!/bin/sh
       dir="$(dirname "$0")"
       if [ "$2" = list ]; then cat "$dir/list.json" 2>/dev/null || echo '[]'; exit 0; fi
+      if [ -f "$dir/view-error" ]; then cat "$dir/view-error" >&2; exit 1; fi
       cat "$dir/state.json"
 
       """.write(
@@ -879,6 +880,18 @@ import XCTest
     XCTAssertEqual(model.issue(id)?.status, .merged)
     XCTAssertEqual(model.issue(id)?.prURL, url)
     XCTAssertTrue(AgentClosureInbox.load(root: model.store.root).isEmpty)
+  }
+
+  func testACloseRequestForAPullRequestGitHubDoesNotHaveIsRefusedAtOnce() async throws {
+    _ = try await failWithoutAPullRequest()
+    // GitHub answered: waiting a day for it would leave the agent's request unanswered.
+    try "GraphQL: Could not resolve to a PullRequest with the number of 31. (repository.pullRequest)\n"
+      .write(to: root.appendingPathComponent("view-error"), atomically: true, encoding: .utf8)
+    try await closeAsDone("https://github.com/example/app/pull/31")
+    XCTAssertEqual(model.issue(id)?.status, .failed)
+    XCTAssertTrue(model.issue(id)?.activities.last?.text.hasPrefix("Not closed: ") == true)
+    XCTAssertTrue(AgentClosureInbox.load(root: model.store.root).isEmpty)
+    XCTAssertTrue(model.worker.closureRetries.isEmpty)
   }
 
   func testAVerifiedPullRequestReplacesScreenClipsOwnUnmergedOne() async throws {

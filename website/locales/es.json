@@ -73,13 +73,13 @@
     "localBody": "Ambos se ejecutan en tu Mac con un worktree de Git separado para cada informe. Responde a sus preguntas en ScreenClip. ScreenClip ejecuta las comprobaciones del proyecto y abre la pull request."
   },
   "download": {
-    "title": "ScreenClip 1.2.1 para macOS.",
+    "title": "ScreenClip 1.2.2 para macOS.",
     "price": "Gratis para uso no comercial.",
     "source": "Puedes solicitar una licencia comercial. {link:license}.",
     "sourceMissing": "El código fuente aún no es público.",
     "github": "Ver en GitHub",
     "donate": "Apoyar el proyecto",
-    "noteReady": "ScreenClip 1.2.1 · Apple Silicon · macOS 14 o posterior",
+    "noteReady": "ScreenClip 1.2.2 · Apple Silicon · macOS 14 o posterior",
     "noteSoon": "La descarga para Mac estará disponible próximamente.",
     "macSoon": "La descarga para Mac llegará pronto.",
     "needsTitle": "Qué necesitas",
@@ -181,7 +181,7 @@
   },
   "support": {
     "title": "Soporte",
-    "statusReady": "ScreenClip 1.2.1 es gratis para uso no comercial. {link:download} abre la última imagen de disco en GitHub Releases.",
+    "statusReady": "ScreenClip 1.2.2 es gratis para uso no comercial. {link:download} abre la última imagen de disco en GitHub Releases.",
     "statusSoon": "ScreenClip llegará pronto. Todavía no hay una descarga disponible.",
     "issues": "Informa de un fallo o haz una pregunta en {link:issues}. Indica tu versión de macOS, el agente que usaste y qué ocurrió. Oculta los datos privados antes de compartir capturas.",
     "issuesMissing": "El soporte público aún no está disponible.",
@@ -242,7 +242,7 @@
     "pairAlt": "Ajustes › iOS de ScreenClip en el Mac, pidiendo confirmar el código de 6 dígitos que muestra el iPhone.",
     "pairOpen": "Abrir la captura de la vinculación a tamaño completo",
     "setupTitle": "Configura ScreenClipKit",
-    "setupIntro": "Necesitas ScreenClip 1.2.0 o posterior en tu Mac, y una app para iOS 17 o posterior compilada con Xcode 16 o más reciente.",
+    "setupIntro": "Necesitas ScreenClip 1.2.2 o posterior en tu Mac, y una app para iOS 17 o posterior compilada con Xcode 16 o más reciente.",
     "setup1Title": "Añade el paquete",
     "setup1Body": "En Xcode, elige File › Add Package Dependencies, introduce esta URL y enlaza ScreenClipKit con el target de tu app.",
     "setup2Title": "Inícialo en Debug",

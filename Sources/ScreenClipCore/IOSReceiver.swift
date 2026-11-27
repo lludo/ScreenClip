@@ -154,15 +154,7 @@ import Network
             case .failed(let error):
               self.state = .failed(error.localizedDescription)
               self.stopListener()
-              // A listener that fails after starting (the network changed, mDNSResponder
-              // restarted) stays down. Try again while the server is still meant to be on,
-              // so devices do not queue reports until someone toggles the setting.
-              DispatchQueue.main.asyncAfter(deadline: .now() + Self.restartDelay) { [weak self] in
-                MainActor.assumeIsolated {
-                  guard let self, case .failed = self.state, self.listener == nil else { return }
-                  self.start(port: port, advertise: advertise)
-                }
-              }
+              self.scheduleRestart(port: port, advertise: advertise)
             case .cancelled: break
             default: break
             }
@@ -180,6 +172,19 @@ import Network
       listener.start(queue: .main)
     } catch {
       state = .failed(error.localizedDescription)
+      scheduleRestart(port: port, advertise: advertise)
+    }
+  }
+
+  /// A listener that fails (the network changed, mDNSResponder restarted) or cannot be created
+  /// stays down. Try again while the server is still meant to be on, so devices do not queue
+  /// reports until someone toggles the setting.
+  private func scheduleRestart(port: NWEndpoint.Port, advertise: Bool) {
+    DispatchQueue.main.asyncAfter(deadline: .now() + Self.restartDelay) { [weak self] in
+      MainActor.assumeIsolated {
+        guard let self, case .failed = self.state, self.listener == nil else { return }
+        self.start(port: port, advertise: advertise)
+      }
     }
   }
 
@@ -247,8 +252,10 @@ import Network
   public func declinePairing() {
     if let session = pairingSession {
       session.pendingKey = nil
+      // Before the reveal the device is not reading clear frames any more: it waits for sealed
+      // ones, so a rejection would not be understood. Closing the connection is.
+      if session.pairing != nil { session.link.cancel() } else { reject(session, .declined) }
       session.pairing = nil
-      reject(session, .declined)
     }
     pairingSession = nil
     pairingRequest = nil
@@ -373,7 +380,14 @@ import Network
       if storageError != nil { reloadRecords() }
       guard storageError == nil else { return reject(session, .busy) }
       session.hello = hello
-      guard hello.protocolVersion == LinkProtocol.version else { return reject(session, .unsupportedVersion) }
+      // Version 2 changed only how a device pairs. A device paired under version 1 connects
+      // the same way as before, so it keeps delivering until its app updates the SDK.
+      let pairedEarlier =
+        hello.protocolVersion == LinkProtocol.earliestSessionVersion && hello.pairingPublicKey == nil
+        && hello.pairingCommitment == nil
+      guard hello.protocolVersion == LinkProtocol.version || pairedEarlier else {
+        return reject(session, .unsupportedVersion)
+      }
       let serverNonce = Nonce.make()
       if let commitment = hello.pairingCommitment {
         guard pairingOpen else { return reject(session, .pairingClosed) }

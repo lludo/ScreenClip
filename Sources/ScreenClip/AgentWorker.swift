@@ -354,6 +354,7 @@ import ScreenClipCore
       if finishing.contains(closure.issueID) || publishing.contains(closure.issueID) { continue }
       if let retry = closureRetries[closure.id], retry > Date() { continue }
       AgentClosureInbox.remove(closure.id, root: model.store.root)
+      closureRetries[closure.id] = nil
       guard let issue = model.issue(closure.issueID), !issue.archived,
         ![.merged, .verified, .canceled, .draft].contains(issue.status)
       else { continue }
@@ -377,13 +378,12 @@ import ScreenClipCore
         // GitHub or origin did not answer (offline, rate limit): that says nothing about the
         // fix, so the request waits for a later tick instead of being refused for good.
         if refusal != nil, unreachable,
-          Date().timeIntervalSince(closure.createdAt) < Self.closureRetryLimit,
+          abs(Date().timeIntervalSince(closure.createdAt)) < Self.closureRetryLimit,
           (try? AgentClosureInbox.write(closure, root: model.store.root)) != nil
         {
           closureRetries[closure.id] = Date().addingTimeInterval(Self.closureRetryInterval)
           continue
         }
-        closureRetries[closure.id] = nil
         if let refusal {
           model.perform {
             try model.updateIssue(closure.issueID) {
