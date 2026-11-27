@@ -73,13 +73,13 @@
     "localBody": "Оба агента работают на вашем Mac. Для каждого отчёта создаётся отдельное рабочее дерево Git. Отвечайте на вопросы в ScreenClip. Приложение запускает проверки проекта и открывает pull request."
   },
   "download": {
-    "title": "ScreenClip 1.2.1 для macOS.",
+    "title": "ScreenClip 1.2.2 для macOS.",
     "price": "Бесплатно для некоммерческого использования.",
     "source": "Коммерческая лицензия доступна по запросу. {link:license}.",
     "sourceMissing": "Исходный код пока не опубликован.",
     "github": "Открыть на GitHub",
     "donate": "Поддержать проект",
-    "noteReady": "ScreenClip 1.2.1 · Apple Silicon · macOS 14 или новее",
+    "noteReady": "ScreenClip 1.2.2 · Apple Silicon · macOS 14 или новее",
     "noteSoon": "Загрузка для Mac скоро появится.",
     "macSoon": "Загрузка для Mac скоро появится.",
     "needsTitle": "Что нужно",
@@ -181,7 +181,7 @@
   },
   "support": {
     "title": "Поддержка",
-    "statusReady": "ScreenClip 1.2.1 бесплатен для некоммерческого использования. {link:download} открывает последний образ диска в GitHub Releases.",
+    "statusReady": "ScreenClip 1.2.2 бесплатен для некоммерческого использования. {link:download} открывает последний образ диска в GitHub Releases.",
     "statusSoon": "ScreenClip скоро появится. Загрузка пока недоступна.",
     "issues": "Сообщите об ошибке или задайте вопрос в {link:issues}. Укажите версию macOS, выбранного агента и что произошло. Перед публикацией закрасьте на снимке личные данные.",
     "issuesMissing": "Публичная поддержка пока недоступна.",
@@ -242,7 +242,7 @@
     "pairAlt": "Настройки › iOS в ScreenClip на Mac с просьбой подтвердить 6-значный код, показанный на iPhone.",
     "pairOpen": "Открыть снимок сопряжения в полном размере",
     "setupTitle": "Настройка ScreenClipKit",
-    "setupIntro": "Нужен ScreenClip 1.2.0 или новее на Mac и приложение для iOS 17 или новее, собранное в Xcode 16 или новее.",
+    "setupIntro": "Нужен ScreenClip 1.2.2 или новее на Mac и приложение для iOS 17 или новее, собранное в Xcode 16 или новее.",
     "setup1Title": "Добавьте пакет",
     "setup1Body": "В Xcode выберите File › Add Package Dependencies, введите этот URL и подключите ScreenClipKit к таргету приложения.",
     "setup2Title": "Запустите в Debug",

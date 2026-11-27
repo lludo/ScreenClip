@@ -73,13 +73,13 @@
     "localBody": "Both run on your Mac in a separate Git worktree for each report. Answer questions in ScreenClip. ScreenClip runs your project checks and opens the pull request."
   },
   "download": {
-    "title": "ScreenClip 1.2.1 for macOS",
+    "title": "ScreenClip 1.2.2 for macOS",
     "price": "Free for noncommercial use.",
     "source": "Commercial licenses are available on request. {link:license}.",
     "sourceMissing": "The source is not public yet.",
     "github": "View on GitHub",
     "donate": "Support the project",
-    "noteReady": "ScreenClip 1.2.1 · Apple Silicon · macOS 14 or later",
+    "noteReady": "ScreenClip 1.2.2 · Apple Silicon · macOS 14 or later",
     "noteSoon": "Mac download coming soon.",
     "macSoon": "Mac download coming soon.",
     "needsTitle": "What you need",
@@ -181,7 +181,7 @@
   },
   "support": {
     "title": "Support",
-    "statusReady": "{link:download} gets the latest disk image from GitHub Releases. ScreenClip 1.2.1 is free for noncommercial use.",
+    "statusReady": "{link:download} gets the latest disk image from GitHub Releases. ScreenClip 1.2.2 is free for noncommercial use.",
     "statusSoon": "ScreenClip is coming soon. There is no download available yet.",
     "issues": "Report a bug or ask a question in {link:issues}. Include your macOS version, the agent you used, and what happened. Redact private details before sharing screenshots.",
     "issuesMissing": "Public support is not available yet.",
@@ -242,7 +242,7 @@
     "pairAlt": "ScreenClip Settings › iOS on the Mac, asking to confirm the 6-digit code shown on the iPhone.",
     "pairOpen": "Open the full-size pairing screenshot",
     "setupTitle": "Set up ScreenClipKit",
-    "setupIntro": "You need ScreenClip 1.2.0 or later on your Mac, and an app for iOS 17 or later built with Xcode 16 or newer.",
+    "setupIntro": "You need ScreenClip 1.2.2 or later on your Mac, and an app for iOS 17 or later built with Xcode 16 or newer.",
     "setup1Title": "Add the package",
     "setup1Body": "In Xcode, choose File › Add Package Dependencies, enter this URL, and link ScreenClipKit to your app target.",
     "setup2Title": "Start it in Debug",

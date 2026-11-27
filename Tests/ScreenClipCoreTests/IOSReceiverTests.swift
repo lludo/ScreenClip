@@ -20,7 +20,7 @@ import XCTest
 
     init(
       port: NWEndpoint.Port, deviceID: UUID = UUID(), key: SymmetricKey? = nil, pairing: Bool,
-      protocolVersion: Int = LinkProtocol.version, commitment: Data? = nil,
+      protocolVersion: Int = LinkProtocol.version, commitment: Data? = nil, legacyPairing: Bool = false,
       reveal: ((PairingExchange, Data) -> LinkMessage?)? = nil
     ) {
       self.reveal = reveal
@@ -31,14 +31,19 @@ import XCTest
         connection: NWConnection(host: "127.0.0.1", port: port, using: LinkConnection.tcpParameters()))
       link.onReady = { [weak self] in
         guard let self else { return }
-        self.link.send(
-          .hello(
-            Hello(
-              protocolVersion: protocolVersion,
-              deviceID: self.deviceID, deviceName: "QA iPhone", deviceModel: "iPhone17,1", appName: "Shop",
-              bundleID: "com.example.shop", nonce: self.exchange == nil ? self.nonce : Data(),
-              pairingCommitment: commitment
-                ?? self.exchange.map { PairingExchange.commitment(publicKey: $0.publicKey, nonce: self.nonce) })))
+        var hello = Hello(
+          protocolVersion: protocolVersion,
+          deviceID: self.deviceID, deviceName: "QA iPhone", deviceModel: "iPhone17,1", appName: "Shop",
+          bundleID: "com.example.shop", nonce: self.exchange == nil ? self.nonce : Data(),
+          pairingCommitment: commitment
+            ?? self.exchange.map { PairingExchange.commitment(publicKey: $0.publicKey, nonce: self.nonce) })
+        if legacyPairing {
+          // What ScreenClipKit 1.2.1 and earlier sent to pair: the key itself, with the nonce.
+          hello.pairingCommitment = nil
+          hello.pairingPublicKey = self.exchange?.publicKey
+          hello.nonce = self.nonce
+        }
+        self.link.send(.hello(hello))
       }
       link.onMessage = { [weak self] message in
         guard let self else { return }
@@ -176,6 +181,37 @@ import XCTest
     spin { old.messages.contains(.rejected(.unsupportedVersion)) }
     XCTAssertTrue(old.messages.contains(.rejected(.unsupportedVersion)))
     XCTAssertNil(receiver.pairingRequest)
+  }
+
+  func testADevicePairedUnderVersion1StillConnectsButCannotPairThatWay() throws {
+    let (receiver, port) = try makeReceiver()
+    receiver.openPairing()
+    let pairing = FakeDevice(port: port, pairing: true)
+    spin { receiver.pairingRequest != nil }
+    receiver.confirmPairing()
+    spin { pairing.messages.contains { if case .welcome = $0 { return true } else { return false } } }
+    pairing.link.cancel()
+    spin { receiver.connected[pairing.deviceID] == nil }
+
+    // An app still on the earlier SDK keeps its pairing: its connection is the same as before.
+    let earlier = FakeDevice(
+      port: port, deviceID: pairing.deviceID, key: try XCTUnwrap(pairing.key), pairing: false, protocolVersion: 1)
+    spin { earlier.messages.contains { if case .welcome = $0 { return true } else { return false } } }
+    earlier.link.send(.ping)
+    spin { receiver.connected[pairing.deviceID] != nil }
+    XCTAssertNotNil(receiver.connected[pairing.deviceID])
+
+    // Pairing the way version 1 did, with the key in the hello, is refused.
+    receiver.openPairing()
+    let old = FakeDevice(port: port, pairing: true, protocolVersion: 1, legacyPairing: true)
+    spin { old.messages.contains(.rejected(.unsupportedVersion)) }
+    XCTAssertTrue(old.messages.contains(.rejected(.unsupportedVersion)))
+    XCTAssertNil(receiver.pairingRequest)
+    // A later version than this Mac knows is refused even for a paired device.
+    let newer = FakeDevice(
+      port: port, deviceID: pairing.deviceID, key: pairing.key, pairing: false, protocolVersion: 3)
+    spin { newer.messages.contains(.rejected(.unsupportedVersion)) }
+    XCTAssertTrue(newer.messages.contains(.rejected(.unsupportedVersion)))
   }
 
   func testPairedDeviceDeliversAndUnknownDeviceIsRejected() throws {

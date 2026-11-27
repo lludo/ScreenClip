@@ -12,7 +12,7 @@ You also need a local Git repository for each project, and at least one agent:
 
 ## Install the release build
 
-On an Apple Silicon Mac you do not need Xcode. Download `ScreenClip.dmg` from the [latest GitHub Release](https://github.com/lludo/ScreenClip/releases/latest), open it, and drag **ScreenClip** into **Applications**. The [1.0.0 release notes](release/v1.0.0.md) cover what is included (later changes are in the [1.0.1](release/v1.0.1.md), [1.0.2](release/v1.0.2.md), [1.0.3](release/v1.0.3.md), [1.0.4](release/v1.0.4.md), [1.0.5](release/v1.0.5.md), [1.1.0](release/v1.1.0.md), [1.2.0](release/v1.2.0.md) and [1.2.1](release/v1.2.1.md) notes) and how to verify the download. Then skip to [First capture](#first-capture).
+On an Apple Silicon Mac you do not need Xcode. Download `ScreenClip.dmg` from the [latest GitHub Release](https://github.com/lludo/ScreenClip/releases/latest), open it, and drag **ScreenClip** into **Applications**. The [1.0.0 release notes](release/v1.0.0.md) cover what is included (later changes are in the [1.0.1](release/v1.0.1.md), [1.0.2](release/v1.0.2.md), [1.0.3](release/v1.0.3.md), [1.0.4](release/v1.0.4.md), [1.0.5](release/v1.0.5.md), [1.1.0](release/v1.1.0.md), [1.2.0](release/v1.2.0.md), [1.2.1](release/v1.2.1.md) and [1.2.2](release/v1.2.2.md) notes) and how to verify the download. Then skip to [First capture](#first-capture).
 
 Intel Macs, and anyone working on ScreenClip itself, build from source.
 

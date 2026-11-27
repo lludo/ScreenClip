@@ -40,6 +40,12 @@ public enum ExternalFix {
   /// tester or to ScreenClip's own agent; Merged, Verified, and Canceled are finished.
   public static let closableStatuses: Set<IssueStatus> = [.needsYou, .failed, .queued]
 
+  /// Whether `gh`'s error says GitHub answered and has no such pull request, as opposed to not
+  /// answering at all (offline, rate limited, signed out). Only the second is worth waiting for.
+  public static func saysPullRequestIsMissing(_ error: String) -> Bool {
+    error.contains("Could not resolve to a PullRequest") || error.contains("no pull requests found")
+  }
+
   public static func canClose(_ issue: Issue) -> Bool {
     closableStatuses.contains(issue.status) && !issue.archived && !issue.dispatchUncertain
       && issue.reportNumber != nil && issue.projectID != nil

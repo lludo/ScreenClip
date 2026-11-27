@@ -39,6 +39,9 @@
     @ObservationIgnored private var linkMac: DiscoveredMac?
     @ObservationIgnored private var exchange: PairingExchange?
     @ObservationIgnored private var pendingPairing: Pairing?
+    /// A pairing was just refused: the reason stays on screen when the device then goes back
+    /// to a Mac it was already paired with.
+    @ObservationIgnored private var keepErrorOnConnect = false
     /// The Mac confirmed the pairing in progress.
     @ObservationIgnored private var pairingWelcomed = false
     @ObservationIgnored private var clientNonce = Data()
@@ -205,6 +208,7 @@
     func pair(with mac: DiscoveredMac) {
       closeLink()
       lastError = nil
+      keepErrorOnConnect = false
       connect(to: mac, pairing: true)
     }
 
@@ -225,7 +229,8 @@
     }
 
     private func connected(to macID: UUID, named macName: String) {
-      lastError = nil
+      if !keepErrorOnConnect { lastError = nil }
+      keepErrorOnConnect = false
       connectedMacID = macID
       phase = .connected(macName)
       sendQueue()
@@ -486,6 +491,7 @@
         case .busy:
           lastError = "Your Mac is busy. Try again in a moment."
         }
+        keepErrorOnConnect = exchange != nil
         closeLink()
         phase = .searching
         // closeLink() silences the link's own close callback, which is what schedules the next
