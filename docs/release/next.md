@@ -7,6 +7,7 @@ Pairing an iPhone or iPad is stricter, and several ways a report could get stuck
 ## New
 
 - Pairing an iOS device now has the device commit to its key before the Mac sends its own, so neither side can influence the 6-digit code you compare. **Update ScreenClip on the Mac and the ScreenClipKit package in your app together:** an older SDK does not connect to this ScreenClip, and this SDK does not connect to an older ScreenClip. Devices you already paired stay paired once both sides are updated. When the versions differ, the SDK's settings say which side to update.
+- Pairing is now confirmed on both screens: tap **Codes match** on the device as well as **Confirm** on the Mac. The device keeps a new pairing only after both.
 
 ## Fixes
 

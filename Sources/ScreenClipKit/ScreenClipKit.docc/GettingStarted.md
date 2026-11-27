@@ -66,7 +66,7 @@ With a generated Info.plist, put the keys in a small `ScreenClip-Debug-Info.plis
 
 1. On the Mac, open **Settings › iOS** and turn on **Receive reports from iOS devices**, then click **Pair a device…**.
 2. Run the Debug build on the device and shake it. Tap the gear in the report sheet, then tap **Pair** next to your Mac.
-3. Check that both screens show the same 6-digit code, then click **Confirm** on the Mac.
+3. Check that both screens show the same 6-digit code, then tap **Codes match** on the device and click **Confirm** on the Mac.
 
 From then on: shake, mark up, write a note, and tap **Send**. The report appears in ScreenClip's queue with an iPhone icon. ScreenClip routes it to the project whose repository builds your app's bundle ID.
 

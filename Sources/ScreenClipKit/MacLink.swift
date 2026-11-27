@@ -29,6 +29,8 @@
     private(set) var lastError: String?
     /// The Mac this device is connected to now.
     private(set) var connectedMacID: UUID?
+    /// The tester said on this device that the pairing codes match.
+    private(set) var pairingConfirmed = false
 
     @ObservationIgnored private let outbox: Outbox
     @ObservationIgnored let sent: SentLog
@@ -37,6 +39,8 @@
     @ObservationIgnored private var linkMac: DiscoveredMac?
     @ObservationIgnored private var exchange: PairingExchange?
     @ObservationIgnored private var pendingPairing: Pairing?
+    /// The Mac confirmed the pairing in progress.
+    @ObservationIgnored private var pairingWelcomed = false
     @ObservationIgnored private var clientNonce = Data()
     private(set) var inFlight: UUID?
     @ObservationIgnored private var skipped: Set<UUID> = []
@@ -204,6 +208,31 @@
       connect(to: mac, pairing: true)
     }
 
+    /// The tester compared the codes on this device. A new pairing is kept only after this and
+    /// the Mac's own confirmation, in either order.
+    func confirmPairing() {
+      guard case .pairing = phase, let link else { return }
+      pairingConfirmed = true
+      completePairing(on: link)
+    }
+
+    private func completePairing(on link: LinkConnection) {
+      guard pairingConfirmed, pairingWelcomed, let pairing = pendingPairing else { return }
+      guard savePairings(pairings.filter { $0.macID != pairing.macID } + [pairing]) else { return link.cancel() }
+      pendingPairing = nil
+      exchange = nil
+      connected(to: pairing.macID, named: pairing.macName)
+    }
+
+    private func connected(to macID: UUID, named macName: String) {
+      lastError = nil
+      connectedMacID = macID
+      phase = .connected(macName)
+      sendQueue()
+      refreshStatuses()
+      flush()
+    }
+
     func cancelPairing() {
       closeLink()
       phase = .searching
@@ -352,6 +381,8 @@
       clientNonce = Nonce.make()
       exchange = pairing ? PairingExchange() : nil
       pendingPairing = nil
+      pairingConfirmed = false
+      pairingWelcomed = false
       skipped.removeAll()
       phase = .connecting(mac.name)
       link.onReady = { [weak self, weak link] in
@@ -429,24 +460,19 @@
               serverNonce: challenge.nonce, role: .client))
         }
       case .welcome(let macID, let macName):
-        if var pairing = pendingPairing, pairing.macID == macID {
-          pairing.macName = macName
-          guard savePairings(pairings.filter { $0.macID != macID } + [pairing]) else { return link.cancel() }
-          pendingPairing = nil
-          exchange = nil
+        if pendingPairing?.macID == macID {
+          // The Mac's word is not enough to keep a new pairing: the tester confirms here too.
+          pendingPairing?.macName = macName
+          pairingWelcomed = true
+          completePairing(on: link)
         } else if exchange == nil, linkMac?.macID == macID, let index = pairings.firstIndex(where: { $0.macID == macID }) {
           if pairings[index].macName != macName {
             var updated = pairings
             updated[index].macName = macName
             guard savePairings(updated) else { return link.cancel() }
           }
+          connected(to: macID, named: macName)
         } else { return link.cancel() }
-        lastError = nil
-        connectedMacID = macID
-        phase = .connected(macName)
-        sendQueue()
-        refreshStatuses()
-        flush()
       case .rejected(let reason):
         switch reason {
         case .notPaired:
@@ -507,6 +533,8 @@
       inFlight = nil
       exchange = nil
       pendingPairing = nil
+      pairingConfirmed = false
+      pairingWelcomed = false
       if wasPairing, lastError == nil { lastError = "Pairing did not finish." }
       if phase != .missingInfoPlist { phase = suspended ? .idle : .searching }
       DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in self?.autoConnect() }
@@ -520,6 +548,8 @@
       inFlight = nil
       exchange = nil
       pendingPairing = nil
+      pairingConfirmed = false
+      pairingWelcomed = false
       current?.cancel()
     }
   }
