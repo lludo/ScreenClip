@@ -4,7 +4,7 @@ Add ScreenClipKit to the Debug build of your app, pair a device with your Mac, a
 
 ## Overview
 
-You need ScreenClip 1.2.0 or later on a Mac running macOS 14 or later. You also need an iOS 17 or later app built with Xcode 16 or newer. The device and the Mac must be on the same local network.
+You need ScreenClip 1.2.0 or later on a Mac running macOS 14 or later. The release after 1.2.1 changed how pairing works, so the SDK and ScreenClip on the Mac must both be from before it or both from after it; a mismatched pair does not connect, and the SDK's settings say which side to update. You also need an iOS 17 or later app built with Xcode 16 or newer. The device and the Mac must be on the same local network.
 
 > Tip: The quickest install is to let your coding agent do it. In ScreenClip, open **Settings › iOS** and click **Copy agent prompt**. Paste it into Claude Code or Codex in your iOS project. The agent adds the package, the start call, and the Debug-only Info.plist keys, then shows you the diff.
 
@@ -66,7 +66,7 @@ With a generated Info.plist, put the keys in a small `ScreenClip-Debug-Info.plis
 
 1. On the Mac, open **Settings › iOS** and turn on **Receive reports from iOS devices**, then click **Pair a device…**.
 2. Run the Debug build on the device and shake it. Tap the gear in the report sheet, then tap **Pair** next to your Mac.
-3. Check that both screens show the same 6-digit code, then click **Confirm** on the Mac.
+3. Check that both screens show the same 6-digit code, then tap **Codes match** on the device and click **Confirm** on the Mac.
 
 From then on: shake, mark up, write a note, and tap **Send**. The report appears in ScreenClip's queue with an iPhone icon. ScreenClip routes it to the project whose repository builds your app's bundle ID.
 

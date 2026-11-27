@@ -54,12 +54,19 @@
           }
         case .pairing(let code, let macName):
           VStack(alignment: .leading, spacing: 8) {
-            Text("Confirm this code on \(macName)")
+            Text("Compare this code with \(macName)")
               .font(.subheadline)
             Text(code).font(.system(size: 40, weight: .semibold, design: .rounded).monospacedDigit())
               .textSelection(.enabled)
-            Text("Only confirm if the Mac shows the same code.").font(.caption).foregroundStyle(.secondary)
-            Button("Cancel pairing", role: .cancel) { link.cancelPairing() }
+            Text("Confirm here and on the Mac only if both show the same code.")
+              .font(.caption).foregroundStyle(.secondary)
+            // Two buttons in one row: without a style of their own, a tap on the row presses both.
+            if link.pairingConfirmed {
+              Text("Waiting for the Mac…").font(.subheadline).foregroundStyle(.secondary)
+            } else {
+              Button("Codes match") { link.confirmPairing() }.buttonStyle(.borderedProminent)
+            }
+            Button("Cancel pairing", role: .cancel) { link.cancelPairing() }.buttonStyle(.borderless)
           }
           .padding(.vertical, 4)
         default:

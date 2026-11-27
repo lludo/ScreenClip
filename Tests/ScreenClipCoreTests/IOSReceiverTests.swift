@@ -15,8 +15,15 @@ import XCTest
     var code: String?
     var onMessage: ((LinkMessage) -> Void)?
     var closed = false
+    /// What the device sends after the Mac's pairing challenge, in place of its own key and nonce.
+    var reveal: ((PairingExchange, Data) -> LinkMessage?)?
 
-    init(port: NWEndpoint.Port, deviceID: UUID = UUID(), key: SymmetricKey? = nil, pairing: Bool) {
+    init(
+      port: NWEndpoint.Port, deviceID: UUID = UUID(), key: SymmetricKey? = nil, pairing: Bool,
+      protocolVersion: Int = LinkProtocol.version, commitment: Data? = nil,
+      reveal: ((PairingExchange, Data) -> LinkMessage?)? = nil
+    ) {
+      self.reveal = reveal
       self.deviceID = deviceID
       self.key = key
       exchange = pairing ? PairingExchange() : nil
@@ -27,8 +34,11 @@ import XCTest
         self.link.send(
           .hello(
             Hello(
+              protocolVersion: protocolVersion,
               deviceID: self.deviceID, deviceName: "QA iPhone", deviceModel: "iPhone17,1", appName: "Shop",
-              bundleID: "com.example.shop", nonce: self.nonce, pairingPublicKey: self.exchange?.publicKey)))
+              bundleID: "com.example.shop", nonce: self.exchange == nil ? self.nonce : Data(),
+              pairingCommitment: commitment
+                ?? self.exchange.map { PairingExchange.commitment(publicKey: $0.publicKey, nonce: self.nonce) })))
       }
       link.onMessage = { [weak self] message in
         guard let self else { return }
@@ -39,6 +49,11 @@ import XCTest
               peerPublicKey: serverKey, clientPublicKey: exchange.publicKey, serverPublicKey: serverKey,
               clientNonce: self.nonce, serverNonce: challenge.nonce)
           {
+            if let reveal = self.reveal {
+              if let message = reveal(exchange, self.nonce) { self.link.send(message) }
+            } else {
+              self.link.send(.pairReveal(publicKey: exchange.publicKey, nonce: self.nonce))
+            }
             self.key = result.pairingKey
             self.code = result.code
           }
@@ -111,6 +126,56 @@ import XCTest
     XCTAssertEqual(saved.first?.key, device.key?.data)
     XCTAssertEqual(receiver.devices.count, 1)
     XCTAssertFalse(receiver.pairingOpen)
+  }
+
+  func testARevealThatDoesNotMatchTheCommitmentIsRefused() throws {
+    let (receiver, port) = try makeReceiver()
+    receiver.openPairing()
+    // The device reveals another key than the one its hello committed to.
+    let swapped = FakeDevice(port: port, pairing: true, reveal: { _, nonce in
+      .pairReveal(publicKey: PairingExchange().publicKey, nonce: nonce)
+    })
+    spin { swapped.closed }
+    XCTAssertTrue(swapped.closed)
+    XCTAssertNil(receiver.pairingRequest)
+    // The same key with another nonce is refused too.
+    let renonced = FakeDevice(port: port, pairing: true, reveal: { exchange, _ in
+      .pairReveal(publicKey: exchange.publicKey, nonce: Nonce.make())
+    })
+    spin { renonced.closed }
+    XCTAssertTrue(renonced.closed)
+    XCTAssertNil(receiver.pairingRequest)
+    XCTAssertTrue(saved.isEmpty)
+    // The window is free again for an honest device.
+    let device = FakeDevice(port: port, pairing: true)
+    spin { receiver.pairingRequest != nil && device.code != nil }
+    XCTAssertEqual(receiver.pairingRequest?.code, device.code)
+  }
+
+  func testNoCodeIsShownBeforeTheReveal() throws {
+    let (receiver, port) = try makeReceiver()
+    receiver.openPairing()
+    let silent = FakeDevice(port: port, pairing: true, reveal: { _, _ in nil })
+    spin { silent.messages.contains { if case .challenge = $0 { return true } else { return false } } }
+    RunLoop.main.run(until: Date().addingTimeInterval(0.3))
+    XCTAssertNil(receiver.pairingRequest)
+    // While one pairing is under way, another device is asked to wait.
+    let second = FakeDevice(port: port, pairing: true)
+    spin { second.messages.contains(.rejected(.busy)) }
+    XCTAssertTrue(second.messages.contains(.rejected(.busy)))
+    // Closing the window ends the unfinished pairing.
+    receiver.closePairing()
+    spin { silent.closed }
+    XCTAssertTrue(silent.closed)
+  }
+
+  func testAnEarlierProtocolVersionIsRefused() throws {
+    let (receiver, port) = try makeReceiver()
+    receiver.openPairing()
+    let old = FakeDevice(port: port, pairing: true, protocolVersion: 1)
+    spin { old.messages.contains(.rejected(.unsupportedVersion)) }
+    XCTAssertTrue(old.messages.contains(.rejected(.unsupportedVersion)))
+    XCTAssertNil(receiver.pairingRequest)
   }
 
   func testPairedDeviceDeliversAndUnknownDeviceIsRejected() throws {

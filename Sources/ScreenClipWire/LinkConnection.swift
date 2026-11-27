@@ -57,6 +57,15 @@ public final class LinkConnection: @unchecked Sendable {
     }
   }
 
+  /// Resumes reading for one more clear handshake message, when the handshake has another step
+  /// before the keys exist.
+  public func continueHandshake() {
+    queue.async {
+      guard self.channel == nil else { return }
+      self.receiveHeader()
+    }
+  }
+
   public func send(_ message: LinkMessage, completion: ((Error?) -> Void)? = nil) {
     queue.async {
       do {
@@ -92,7 +101,7 @@ public final class LinkConnection: @unchecked Sendable {
       guard let data, let length = Frame.length(header: data) else {
         return self.finish(done ? nil : WireError.malformed)
       }
-      // Hello, challenge and rejection only carry identity strings, keys and nonces.
+      // Hello, challenge, reveal and rejection only carry identity strings, keys and nonces.
       if self.channel == nil, length > 64 * 1024 { return self.finish(WireError.tooLarge) }
       self.receiveBody(length)
     }

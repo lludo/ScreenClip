@@ -254,23 +254,31 @@ import UIKit
     var server: LinkConnection?
     defer { listener.cancel(); server?.cancel() }
     let ready = expectation(description: "Loopback listener ready")
+    let welcomed = expectation(description: "Mac confirmed the pairing")
     let delivered = expectation(description: "Received offline report")
     listener.stateUpdateHandler = { if case .ready = $0 { ready.fulfill() } }
     listener.newConnectionHandler = { connection in MainActor.assumeIsolated {
       let session = LinkConnection(connection: connection)
       server = session
+      let exchange = PairingExchange(), nonce = Nonce.make()
+      var commitment: Data?
       session.onMessage = { [weak session] message in
         guard let session else { return }
         switch message {
         case .hello(let hello):
+          // The hello commits to the device's key and nonce without showing either.
+          XCTAssertTrue(hello.nonce.isEmpty)
+          commitment = hello.pairingCommitment
+          XCTAssertNotNil(commitment)
+          session.send(.challenge(Challenge(macID: macID, macName: "Test Mac", nonce: nonce, pairingPublicKey: exchange.publicKey)))
+          session.continueHandshake()
+        case .pairReveal(let publicKey, let clientNonce):
           do {
-            let publicKey = try XCTUnwrap(hello.pairingPublicKey)
-            let exchange = PairingExchange(), nonce = Nonce.make()
+            XCTAssertTrue(PairingExchange.reveals(try XCTUnwrap(commitment), publicKey: publicKey, nonce: clientNonce))
             let result = try exchange.complete(peerPublicKey: publicKey, clientPublicKey: publicKey,
-              serverPublicKey: exchange.publicKey, clientNonce: hello.nonce, serverNonce: nonce)
-            session.send(.challenge(Challenge(macID: macID, macName: "Test Mac", nonce: nonce, pairingPublicKey: exchange.publicKey)))
-            session.secure(SecureChannel(pairingKey: result.pairingKey, clientNonce: hello.nonce, serverNonce: nonce, role: .server))
-            session.send(.welcome(macID: macID, macName: "Test Mac"))
+              serverPublicKey: exchange.publicKey, clientNonce: clientNonce, serverNonce: nonce)
+            session.secure(SecureChannel(pairingKey: result.pairingKey, clientNonce: clientNonce, serverNonce: nonce, role: .server))
+            session.send(.welcome(macID: macID, macName: "Test Mac")) { _ in welcomed.fulfill() }
           } catch { XCTFail("Pairing failed: \(error)") }
         case .report(let report):
           XCTAssertEqual(report.id, offline.id)
@@ -285,6 +293,13 @@ import UIKit
     await fulfillment(of: [ready], timeout: 5)
     let endpoint = NWEndpoint.hostPort(host: "127.0.0.1", port: try XCTUnwrap(listener.port))
     client.pair(with: MacLink.DiscoveredMac(macID: macID, name: "Test Mac", endpoint: endpoint))
+    // The Mac's confirmation alone keeps nothing: the tester has to confirm on the device too.
+    await fulfillment(of: [welcomed], timeout: 5)
+    try await Task.sleep(for: .milliseconds(300))
+    guard case .pairing = client.phase else { return XCTFail("Paired without the device's confirmation") }
+    XCTAssertTrue(try keys.load().isEmpty)
+    XCTAssertFalse(client.isConnected)
+    client.confirmPairing()
     await fulfillment(of: [delivered], timeout: 5)
     XCTAssertEqual(try keys.load().map(\.macID), [macID])
     XCTAssertTrue(sent.entries.isEmpty)

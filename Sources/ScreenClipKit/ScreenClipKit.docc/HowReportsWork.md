@@ -23,7 +23,7 @@ To report something seen earlier, the tester can tap the photo button and pick o
 | The tester leaves the app right after Send | The SDK asks iOS for a little background time to finish sending. |
 | No network at all | ScreenClip settings on the device can export or AirDrop `.screenclipreport` files to the Mac. |
 
-Reports are sent only to a Mac the device has paired with. Pairing compares a 6-digit code on both screens, and every report is encrypted for that Mac.
+Reports are sent only to a Mac the device has paired with. Pairing compares a 6-digit code on both screens and is confirmed on both, and every report is encrypted for that Mac.
 
 ### On the Mac
 

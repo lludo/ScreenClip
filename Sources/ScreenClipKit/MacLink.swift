@@ -10,6 +10,8 @@
   @MainActor @Observable final class MacLink {
     struct DiscoveredMac: Identifiable, Equatable {
       var macID: UUID?
+      /// The link protocol version the Mac advertises, when it advertises one.
+      var protocolVersion: Int?
       var name: String
       var endpoint: NWEndpoint
       var id: String { name }
@@ -27,6 +29,8 @@
     private(set) var lastError: String?
     /// The Mac this device is connected to now.
     private(set) var connectedMacID: UUID?
+    /// The tester said on this device that the pairing codes match.
+    private(set) var pairingConfirmed = false
 
     @ObservationIgnored private let outbox: Outbox
     @ObservationIgnored let sent: SentLog
@@ -35,6 +39,8 @@
     @ObservationIgnored private var linkMac: DiscoveredMac?
     @ObservationIgnored private var exchange: PairingExchange?
     @ObservationIgnored private var pendingPairing: Pairing?
+    /// The Mac confirmed the pairing in progress.
+    @ObservationIgnored private var pairingWelcomed = false
     @ObservationIgnored private var clientNonce = Data()
     private(set) var inFlight: UUID?
     @ObservationIgnored private var skipped: Set<UUID> = []
@@ -176,11 +182,12 @@
     private func resultsChanged(_ results: Set<NWBrowser.Result>) {
       discovered = results.compactMap { result in
         guard case .service(let name, _, _, _) = result.endpoint else { return nil }
-        var macID: UUID?
-        if case .bonjour(let txt) = result.metadata, let text = txt[LinkProtocol.txtMacID] {
-          macID = UUID(uuidString: text)
+        var macID: UUID?, version: Int?
+        if case .bonjour(let txt) = result.metadata {
+          macID = txt[LinkProtocol.txtMacID].flatMap(UUID.init(uuidString:))
+          version = txt[LinkProtocol.txtVersion].flatMap(Int.init)
         }
-        return DiscoveredMac(macID: macID, name: name, endpoint: result.endpoint)
+        return DiscoveredMac(macID: macID, protocolVersion: version, name: name, endpoint: result.endpoint)
       }.sorted { $0.name < $1.name }
       autoConnect()
     }
@@ -199,6 +206,31 @@
       closeLink()
       lastError = nil
       connect(to: mac, pairing: true)
+    }
+
+    /// The tester compared the codes on this device. A new pairing is kept only after this and
+    /// the Mac's own confirmation, in either order.
+    func confirmPairing() {
+      guard case .pairing = phase, let link else { return }
+      pairingConfirmed = true
+      completePairing(on: link)
+    }
+
+    private func completePairing(on link: LinkConnection) {
+      guard pairingConfirmed, pairingWelcomed, let pairing = pendingPairing else { return }
+      guard savePairings(pairings.filter { $0.macID != pairing.macID } + [pairing]) else { return link.cancel() }
+      pendingPairing = nil
+      exchange = nil
+      connected(to: pairing.macID, named: pairing.macName)
+    }
+
+    private func connected(to macID: UUID, named macName: String) {
+      lastError = nil
+      connectedMacID = macID
+      phase = .connected(macName)
+      sendQueue()
+      refreshStatuses()
+      flush()
     }
 
     func cancelPairing() {
@@ -349,6 +381,8 @@
       clientNonce = Nonce.make()
       exchange = pairing ? PairingExchange() : nil
       pendingPairing = nil
+      pairingConfirmed = false
+      pairingWelcomed = false
       skipped.removeAll()
       phase = .connecting(mac.name)
       link.onReady = { [weak self, weak link] in
@@ -377,14 +411,28 @@
       }
     }
 
+    /// Which side to update when the Mac and this SDK speak different link versions.
+    static func versionMismatch(macVersion: Int?) -> String {
+      guard let macVersion, macVersion != LinkProtocol.version else {
+        return "ScreenClip on your Mac and the ScreenClipKit package in this app are different versions. Update both to the latest."
+      }
+      return macVersion < LinkProtocol.version
+        ? "Update ScreenClip on your Mac to work with this version of the SDK."
+        : "Update the ScreenClipKit package in this app to work with ScreenClip on your Mac."
+    }
+
     private func hello() -> Hello {
       let info = Bundle.main.infoDictionary ?? [:]
       return Hello(
         deviceID: KitPreferences.deviceID, deviceName: UIDeviceName.current,
         deviceModel: UIDeviceName.model,
         appName: (info["CFBundleDisplayName"] as? String) ?? (info["CFBundleName"] as? String) ?? "",
-        bundleID: Bundle.main.bundleIdentifier ?? "", nonce: clientNonce,
-        pairingPublicKey: exchange?.publicKey)
+        // When pairing, the key and nonce stay back until the Mac has sent its own; the hello
+        // only commits to them.
+        bundleID: Bundle.main.bundleIdentifier ?? "", nonce: exchange == nil ? clientNonce : Data(),
+        pairingCommitment: exchange.map {
+          PairingExchange.commitment(publicKey: $0.publicKey, nonce: clientNonce)
+        })
     }
 
     private func handle(_ message: LinkMessage, on link: LinkConnection) {
@@ -397,6 +445,7 @@
               peerPublicKey: serverKey, clientPublicKey: exchange.publicKey, serverPublicKey: serverKey,
               clientNonce: clientNonce, serverNonce: challenge.nonce)
           else { return link.cancel() }
+          link.send(.pairReveal(publicKey: exchange.publicKey, nonce: clientNonce))
           pendingPairing = Pairing(
             macID: challenge.macID, macName: challenge.macName, key: result.pairingKey.data, pairedAt: Date())
           link.secure(
@@ -411,24 +460,19 @@
               serverNonce: challenge.nonce, role: .client))
         }
       case .welcome(let macID, let macName):
-        if var pairing = pendingPairing, pairing.macID == macID {
-          pairing.macName = macName
-          guard savePairings(pairings.filter { $0.macID != macID } + [pairing]) else { return link.cancel() }
-          pendingPairing = nil
-          exchange = nil
+        if pendingPairing?.macID == macID {
+          // The Mac's word is not enough to keep a new pairing: the tester confirms here too.
+          pendingPairing?.macName = macName
+          pairingWelcomed = true
+          completePairing(on: link)
         } else if exchange == nil, linkMac?.macID == macID, let index = pairings.firstIndex(where: { $0.macID == macID }) {
           if pairings[index].macName != macName {
             var updated = pairings
             updated[index].macName = macName
             guard savePairings(updated) else { return link.cancel() }
           }
+          connected(to: macID, named: macName)
         } else { return link.cancel() }
-        lastError = nil
-        connectedMacID = macID
-        phase = .connected(macName)
-        sendQueue()
-        refreshStatuses()
-        flush()
       case .rejected(let reason):
         switch reason {
         case .notPaired:
@@ -438,7 +482,7 @@
         case .declined:
           lastError = "Pairing was declined on the Mac."
         case .unsupportedVersion:
-          lastError = "Update ScreenClip on your Mac to pair with this version of the SDK."
+          lastError = Self.versionMismatch(macVersion: linkMac?.protocolVersion)
         case .busy:
           lastError = "Your Mac is busy. Try again in a moment."
         }
@@ -474,7 +518,7 @@
         if let id = connectedMacID { sent.update(states, macID: id, name: uniqueMacName) }
       case .failed(let id, let text):
         deliveryFailed(id, text)
-      case .hello, .report, .queue, .track, .verify, .ping:
+      case .hello, .pairReveal, .report, .queue, .track, .verify, .ping:
         break
       }
     }
@@ -489,6 +533,8 @@
       inFlight = nil
       exchange = nil
       pendingPairing = nil
+      pairingConfirmed = false
+      pairingWelcomed = false
       if wasPairing, lastError == nil { lastError = "Pairing did not finish." }
       if phase != .missingInfoPlist { phase = suspended ? .idle : .searching }
       DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in self?.autoConnect() }
@@ -502,6 +548,8 @@
       inFlight = nil
       exchange = nil
       pendingPairing = nil
+      pairingConfirmed = false
+      pairingWelcomed = false
       current?.cancel()
     }
   }

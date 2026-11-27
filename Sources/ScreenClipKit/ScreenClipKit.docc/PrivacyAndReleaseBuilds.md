@@ -19,8 +19,8 @@ TestFlight builds are Release builds, so the SDK is off there.
 
 Reports go only to a Mac this device has paired with, over your local network:
 
-- **Pairing** is an ephemeral P-256 key agreement confirmed by a 6-digit code shown on both screens. A relay that swapped keys would show different codes.
-- **Encryption.** After the opening `hello` and `challenge`, which are sent in clear and carry the device and app names and ids, every message is sealed with ChaCha20-Poly1305, so it can't be read, forged, replayed, or reordered.
+- **Pairing** is an ephemeral P-256 key agreement confirmed by a 6-digit code shown on both screens. The device commits to its key before the Mac sends its own, so neither side can steer the code, and a relay that swapped keys would show different codes.
+- **Encryption.** After the opening handshake messages, which are sent in clear and carry the device and app names and ids, every message is sealed with ChaCha20-Poly1305, so it can't be read, forged, replayed, or reordered.
 
 Each report carries:
 

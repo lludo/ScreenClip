@@ -92,6 +92,8 @@ import Network
     var ready = false
     var awaitingProof = false
     var pendingKey: SymmetricKey?
+    /// Set between a pairing hello and its reveal: the Mac's half of the exchange and its nonce.
+    var pairing: (exchange: PairingExchange, serverNonce: Data, commitment: Data)?
     /// Reports this device shows in its Sent list, and the states it last received.
     var tracked: [UUID] = []
     var sentStates: [UUID: ReportState] = [:]
@@ -215,7 +217,7 @@ import Network
 
   public func closePairing() {
     pairingOpen = false
-    if pairingRequest != nil { declinePairing() }
+    if pairingRequest != nil || pairingSession != nil { declinePairing() }
   }
 
   public func confirmPairing(requestID: UUID? = nil) {
@@ -245,6 +247,7 @@ import Network
   public func declinePairing() {
     if let session = pairingSession {
       session.pendingKey = nil
+      session.pairing = nil
       reject(session, .declined)
     }
     pairingSession = nil
@@ -316,7 +319,9 @@ import Network
     link.start()
     // A connection that never says hello does not hold a slot.
     DispatchQueue.main.asyncAfter(deadline: .now() + 10) { [weak session] in
-      if let session, session.hello == nil || session.awaitingProof { session.link.cancel() }
+      if let session, session.hello == nil || session.awaitingProof || session.pairing != nil {
+        session.link.cancel()
+      }
     }
   }
 
@@ -370,23 +375,18 @@ import Network
       session.hello = hello
       guard hello.protocolVersion == LinkProtocol.version else { return reject(session, .unsupportedVersion) }
       let serverNonce = Nonce.make()
-      if let clientKey = hello.pairingPublicKey {
+      if let commitment = hello.pairingCommitment {
         guard pairingOpen else { return reject(session, .pairingClosed) }
-        guard pairingRequest == nil else { return reject(session, .busy) }
+        guard pairingSession == nil, pairingRequest == nil else { return reject(session, .busy) }
+        // The Mac's key and nonce go out before the device shows its own, which the hello only
+        // committed to. The code is derived once the reveal matches that commitment.
         let exchange = PairingExchange()
-        guard
-          let result = try? exchange.complete(
-            peerPublicKey: clientKey, clientPublicKey: clientKey, serverPublicKey: exchange.publicKey,
-            clientNonce: hello.nonce, serverNonce: serverNonce)
-        else { return session.link.cancel() }
+        session.pairing = (exchange, serverNonce, commitment)
+        pairingSession = session
         session.link.send(
           .challenge(
             Challenge(macID: macID, macName: macName, nonce: serverNonce, pairingPublicKey: exchange.publicKey)))
-        session.link.secure(
-          SecureChannel(pairingKey: result.pairingKey, clientNonce: hello.nonce, serverNonce: serverNonce, role: .server))
-        session.pendingKey = result.pairingKey
-        pairingSession = session
-        pairingRequest = PairingRequest(deviceName: hello.deviceName, appName: hello.appName, code: result.code)
+        session.link.continueHandshake()
       } else {
         guard let record = records.first(where: { $0.device.id == hello.deviceID }) else {
           return reject(session, .notPaired)
@@ -399,6 +399,20 @@ import Network
         session.awaitingProof = true
         session.link.send(.welcome(macID: macID, macName: macName))
       }
+    case .pairReveal(let clientKey, let clientNonce):
+      guard let pairing = session.pairing, pairingSession === session, pairingOpen, let hello = session.hello,
+        PairingExchange.reveals(pairing.commitment, publicKey: clientKey, nonce: clientNonce),
+        let result = try? pairing.exchange.complete(
+          peerPublicKey: clientKey, clientPublicKey: clientKey, serverPublicKey: pairing.exchange.publicKey,
+          clientNonce: clientNonce, serverNonce: pairing.serverNonce)
+      else { return session.link.cancel() }
+      session.pairing = nil
+      session.link.secure(
+        SecureChannel(
+          pairingKey: result.pairingKey, clientNonce: clientNonce, serverNonce: pairing.serverNonce,
+          role: .server))
+      session.pendingKey = result.pairingKey
+      pairingRequest = PairingRequest(deviceName: hello.deviceName, appName: hello.appName, code: result.code)
     case .report(let report):
       guard session.ready else { return session.link.cancel() }
       do {
