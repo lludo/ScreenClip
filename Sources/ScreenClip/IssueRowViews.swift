@@ -1,15 +1,55 @@
+import ImageIO
 import ScreenClipCore
 import SwiftUI
 
 /// Capture PNGs are written once under a fresh UUID name, so a path always names the same
 /// image. Views re-render on every agent progress line; this keeps them off the disk.
+///
+/// A decoded capture costs 10-20 MB, so images are downsampled to the size they are drawn at
+/// and the cache is capped. Holding full captures here once grew the app past 1 GB.
 @MainActor enum CaptureImageCache {
-  private static let cache = NSCache<NSString, NSImage>()
-  static func image(_ path: String) -> NSImage? {
-    if let hit = cache.object(forKey: path as NSString) { return hit }
-    guard let image = NSImage(contentsOfFile: path) else { return nil }
-    cache.setObject(image, forKey: path as NSString)
-    return image
+  /// Longest side, in pixels, of a queue-row thumbnail. The row draws a 48 pt square crop, so
+  /// this leaves the short side sharp at 2x for captures up to about 2.6:1.
+  static let thumbnailPixels = 256
+  /// Longest side, in pixels, of a capture in the report detail, which is at most 420 pt tall.
+  static let detailPixels = 1680
+  static let costLimit = 96 * 1024 * 1024
+
+  private static let cache: NSCache<NSString, NSImage> = {
+    let cache = NSCache<NSString, NSImage>()
+    cache.totalCostLimit = costLimit
+    return cache
+  }()
+
+  static func thumbnail(_ path: String) -> NSImage? { image(path, maxPixels: thumbnailPixels) }
+  static func image(_ path: String) -> NSImage? { image(path, maxPixels: detailPixels) }
+
+  private static func image(_ path: String, maxPixels: Int) -> NSImage? {
+    let key = "\(maxPixels):\(path)" as NSString
+    if let hit = cache.object(forKey: key) { return hit }
+    guard let decoded = downsampled(path, maxPixels: maxPixels) else { return nil }
+    cache.setObject(decoded.image, forKey: key, cost: decoded.bytes)
+    return decoded.image
+  }
+
+  /// Decodes `path` no larger than `maxPixels` on its longest side, never upscaling.
+  nonisolated static func downsampled(_ path: String, maxPixels: Int) -> (image: NSImage, bytes: Int)? {
+    let url = URL(fileURLWithPath: path) as CFURL
+    guard let source = CGImageSourceCreateWithURL(url, [kCGImageSourceShouldCache: false] as CFDictionary)
+    else { return nil }
+    let options: [CFString: Any] = [
+      kCGImageSourceCreateThumbnailFromImageAlways: true,
+      kCGImageSourceCreateThumbnailWithTransform: true,
+      kCGImageSourceShouldCacheImmediately: true,
+      kCGImageSourceThumbnailMaxPixelSize: maxPixels,
+    ]
+    guard let image = CGImageSourceCreateThumbnailAtIndex(source, 0, options as CFDictionary) else {
+      return nil
+    }
+    return (
+      NSImage(cgImage: image, size: NSSize(width: image.width, height: image.height)),
+      image.bytesPerRow * image.height
+    )
   }
 }
 
@@ -27,7 +67,7 @@ struct IssueRow: View {
   @Environment(\.locale) private var locale
   var body: some View {
     HStack(alignment: .top, spacing: 12) {
-      if let image = issue.captures.first?.imagePath.flatMap(CaptureImageCache.image) {
+      if let image = issue.captures.first?.imagePath.flatMap(CaptureImageCache.thumbnail) {
         Image(nsImage: image).resizable().scaledToFill().frame(width: 48, height: 48).clipped()
           .clipShape(RoundedRectangle(cornerRadius: 7))
       } else {
