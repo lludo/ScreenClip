@@ -1,6 +1,6 @@
 # Coding agents
 
-Updated: November 15, 2026.
+Updated: November 26, 2026.
 
 ScreenClip captures an observation and hands it to a coding agent. Codex and Claude Code investigate and fix it in an isolated Git worktree. Grok Bot is a remote assistant: ScreenClip pushes the approved screenshots to GitHub and wakes the assistant with a webhook, then tracks the pull request. The agent is pluggable.
 
@@ -19,7 +19,7 @@ The one-off prompts once used to have each agent investigate its own integration
 - **System default.** Settings → AI Agents → **AI agent** → **System default** sets `AppSettings.defaultAgent`. Missing in older queues means Codex.
 - **Project default.** Project settings stores either inherit (`defaultAgent` null) or an explicit provider. Inherit follows the system default. An explicit provider stays when the system default changes. An older project with screenshot sharing on migrates to Grok Bot; every other older project inherits.
 - **Per report.** The capture window's **Agent** picker starts at the project's effective default (or its last submitted agent, model, and effort when enabled in Project settings) and can be changed for a new report or a draft. The choice is stamped on the issue (`Issue.agent`).
-- **Follow-ups keep their agent.** Adding a capture to a submitted issue locks the picker to that issue's agent, because conversation IDs are not interchangeable between agents. Switching a submitted issue to another agent is not supported; cancel it and submit a new report.
+- **Follow-ups keep their agent.** Adding a capture to a submitted issue locks the picker to that issue's agent, because conversation IDs are not interchangeable between agents. You cannot switch a submitted issue to another agent yourself; cancel it and submit a new report. ScreenClip moves one only when its agent runs out of quota and handover is on, and the report then starts a new conversation with the other agent.
 - **Older issues** have no `agent` field and resolve to Codex (`Issue.resolvedAgent`).
 
 ## Default prompt add-on
@@ -74,7 +74,7 @@ Codex and Claude Code follow the same contract, so the rest of ScreenClip stays 
 { "outcome": "implemented | question | blocked", "summary": "…", "question": "…" }
 ```
 
-**ScreenClip owns everything after the result.** `finish` in [AgentWorker+Publishing.swift](../../Sources/ScreenClip/AgentWorker+Publishing.swift) turns `question` and `blocked` into **Needs you**. For `implemented`, it fetches the project's base branch from origin, integrates any new commits with the agent’s working edits, runs validation, commits, pushes, opens the PR, watches checks, schedules up to two repair turns, and merges only after independently verifying the PR head, checks, reviews, and input revision. Agents are told not to commit, push, open PRs, or merge. The one git operation an agent may start is merging the base branch into its worktree, uncommitted, when a rebase or update is requested or the base conflicts; ScreenClip concludes that merge with its own commit. Each integration also blocks those operations where the agent supports it.
+**ScreenClip owns everything after the result.** `finish` in [AgentWorker+Publishing.swift](../../Sources/ScreenClip/AgentWorker+Publishing.swift) turns `question` and `blocked` into **Needs you**. For `implemented`, it fetches the project's base branch from origin, integrates any new commits with the agent’s working edits, runs validation, commits, pushes, opens the PR, watches checks, schedules up to two repair turns, and merges only after independently verifying the PR head, checks, reviews, and input revision. Agents are told not to commit, push, open PRs, or merge, and not to use ScreenClip's MCP tools to close or change any report from inside a ScreenClip turn; they return the JSON outcome instead. The one git operation an agent may start is merging the base branch into its worktree, uncommitted, when a rebase or update is requested or the base conflicts; ScreenClip concludes that merge with its own commit. Each integration also blocks those operations where the agent supports it.
 
 **Conversation identity.** `Issue.threadID` holds the agent's conversation ID (a Codex thread or a Claude session UUID). Replies and new evidence continue the same conversation. `Issue.turnID` is non-nil while a turn runs.
 

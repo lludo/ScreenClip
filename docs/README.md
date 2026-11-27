@@ -26,7 +26,7 @@ The [root README](../README.md) is the short introduction. This page is the map.
   - [Codex](agents/codex.md) — `codex app-server`, threads, permissions, and desktop links.
   - [Claude Code](agents/claude-code.md) — headless `claude -p` turns, sessions, and the Claude Desktop hand-off.
   - [Grok Bot](agents/external-assistant.md) — the webhook, the `screenclip/<N>-<slug>-<workspace>` evidence branch, pull-request discovery (`ScreenClip: #N`), and Connect Grok Bot (**POST to** and **key**).
-- [Optional MCP plugin](../plugins/screenclip/README.md) — queue access for Codex and Claude Code: read reports, and suggest project settings for you to accept.
+- [Optional MCP plugin](../plugins/screenclip/README.md) — queue access for Codex and Claude Code: read reports, suggest project settings for you to accept, and close reports they fixed themselves.
 
 ## How it works
 

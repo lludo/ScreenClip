@@ -7,6 +7,8 @@ final class ComposerInteractionTests: XCTestCase {
   }
 
   @MainActor func testDismissKeyboardAndUseAnnotationHistory() throws {
+    // These tests check positions; a simulator left in landscape would move everything.
+    XCUIDevice.shared.orientation = .portrait
     let app = XCUIApplication()
     app.launch()
     let settings = app.buttons["Settings"].firstMatch
@@ -62,6 +64,8 @@ final class ComposerInteractionTests: XCTestCase {
   }
 
   @MainActor func testPickingAPhotoReplacesTheCaptureAndCanBeUndone() throws {
+    // These tests check positions; a simulator left in landscape would move everything.
+    XCUIDevice.shared.orientation = .portrait
     let app = XCUIApplication()
     app.launchArguments = ["-simulateShakeAfter", "1"]
     app.launch()

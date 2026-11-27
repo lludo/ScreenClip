@@ -1,6 +1,6 @@
 # ScreenClip validation
 
-Updated: November 16, 2026. Development host: macOS 27.0.1, Xcode 27.2, Swift 6.4.2, Apple Silicon.
+Updated: November 26, 2026. Development host: macOS 27.0.1, Xcode 27.2, Swift 6.4.2, Apple Silicon.
 
 This page records what is verified and how. What is still open is in the [roadmap](roadmap.md#open-gates). The macOS CI job that runs these checks is in [Development](development.md#ci).
 
@@ -14,11 +14,11 @@ The checks below describe the coverage and the live verification completed on th
 | Queue and store | Persistence, single writer, report numbers (legacy migration, no reuse), drafts, related captures, archive rules, delete rules, feedback search, badge counts, export | Installed updates kept both projects and all reports | Downgrade to an older build (see store versioning in the roadmap) |
 | Routing | Ambiguity, URL boundaries, most-specific website rule, case-insensitive schemes | — | Browser URL permission prompts |
 | Codex | JSON-RPC correlation and timeouts, questions and replies in one thread, cancellation during project lookup and before turn acknowledgement, authentication (nine regressions) | A synthetic fix through validation, GitHub CI, PR, and confirmed merge in a private fixture; restart and resume in the same chat | Desktop sidebar grouping fails; see below |
-| Claude Code | Fake-CLI client and worker tests: arguments, evidence input, progress, structured and fenced results, usage, failures, cancellation, missing sessions, timeouts are wired, detection, holding work while signed out | The installed CLI (2.1.128) has every flag and sandbox setting used; plugin manifests pass `claude plugin validate` | A live fix through PR and merge; permanent plugin installation; an interactive plugin fix |
+| Claude Code | Fake-CLI client and worker tests: arguments, evidence input, progress, structured and fenced results, usage, failures, cancellation, missing sessions, timeouts are wired, detection, holding work while signed out | The installed CLI (version in [Claude Code](agents/claude-code.md#verification-status)) has every flag and sandbox setting used; plugin manifests pass `claude plugin validate` | A live fix through PR and merge; permanent plugin installation; an interactive plugin fix |
 | Grok Bot | `ExternalAssistantTests`: payload encoding, slug and branch names, always-enabled screenshot sharing, idempotent retry, pull-request matching, the hand-off-folder merge guard (other `.screenclip/` files do not block a merge), detection, the Authorization header on a test POST (line breaks rejected, removed on a cross-host redirect), Keychain update in place. `ExternalAssistantAppTests`: stays in the agent list, submit refused until configured, a restart during the POST stays retryable | — | A live webhook, an evidence push to a real repository, pull-request discovery, and auto-merge with other `.screenclip/` files left in place; see [Grok Bot](agents/external-assistant.md#verification-status) |
 | Git and GitHub safety | Changed-source rejection, stale head and revision merge rejection, worktree from `origin/<base>` excludes unpushed commits, worktree cleanup, GitHub remote parsing, PR body redaction | Fixes published and merged through GitHub PRs | — |
 | Process handling | A background grandchild holding the pipe cannot hang a command; a timeout terminates the whole process tree; agents get no GitHub tokens | — | — |
-| Plugin and scripts | MCP server: approved images only, private fields excluded, invalid arguments and malformed requests answered with errors, status groups and project matching by name, subfolder, and worktree; Settings install commands and detection (`AgentMCPSetupTests`); queue review: read-only access, searches, archive eligibility | — | Public directory submission |
+| Plugin and scripts | MCP server: approved images only, private fields excluded, invalid arguments and malformed requests answered with errors, status groups and project matching by name, subfolder, and worktree; Settings install commands and detection (`AgentMCPSetupTests`); `close_issue` requests and their refusals; queue review: read-only access, searches, archive eligibility | — | Public directory submission |
 
 ## Before / After PR evidence
 

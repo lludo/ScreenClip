@@ -861,6 +861,26 @@ import XCTest
     XCTAssertTrue(issue.activities.last?.text.contains("Closed by claude-code") == true)
   }
 
+  func testACloseRequestWaitsWhileGitHubDoesNotAnswer() async throws {
+    _ = try await failWithoutAPullRequest()
+    let url = "https://github.com/example/app/pull/30"
+    // Without a state file the stand-in gh fails, the way it does offline or rate limited.
+    try? FileManager.default.removeItem(at: root.appendingPathComponent("state.json"))
+    try await closeAsDone(url)
+    XCTAssertEqual(model.issue(id)?.status, .failed)
+    XCTAssertFalse(model.issue(id)?.activities.last?.text.hasPrefix("Not closed: ") == true)
+    XCTAssertEqual(AgentClosureInbox.load(root: model.store.root).count, 1)
+    // Not asked again before the retry interval.
+    try pullRequest(["url": .string(url), "state": .string("MERGED")])
+    await model.worker.applyAgentClosures()
+    XCTAssertEqual(model.issue(id)?.status, .failed)
+    model.worker.closureRetries = [:]
+    await model.worker.applyAgentClosures()
+    XCTAssertEqual(model.issue(id)?.status, .merged)
+    XCTAssertEqual(model.issue(id)?.prURL, url)
+    XCTAssertTrue(AgentClosureInbox.load(root: model.store.root).isEmpty)
+  }
+
   func testAVerifiedPullRequestReplacesScreenClipsOwnUnmergedOne() async throws {
     _ = try await failWithoutAPullRequest()
     try model.updateIssue(id) { $0.prURL = "https://github.com/example/app/pull/1" }

@@ -160,18 +160,26 @@ extension AgentWorker {
     }
     texts[id] = nil
     sentContext[id] = AgentPrompt.delivered(issue, threadID: threadID)
-    let result = try await client.request(
-      "turn/start",
-      params: .object([
-        "threadId": .string(threadID), "input": .array(input), "outputSchema": schema,
-        // A follow-up after a merge runs in a new worktree; an owned thread is not resumed,
-        // so the turn is what carries the current directory.
-        "cwd": .string(path),
-        // Owned threads skip thread/resume. Reapply the project choice on every turn,
-        // including a switch back from full access and a continuation after a question.
-        "approvalPolicy": .string(mode.approvalPolicy),
-        "approvalsReviewer": .string(mode.reviewer), "sandboxPolicy": mode.sandboxPolicy,
-      ].merging(Self.codexModelParams(for: issue)) { $1 }), timeout: 60)
+    let result: JSONValue
+    do {
+      result = try await client.request(
+        "turn/start",
+        params: .object([
+          "threadId": .string(threadID), "input": .array(input), "outputSchema": schema,
+          // A follow-up after a merge runs in a new worktree; an owned thread is not resumed,
+          // so the turn is what carries the current directory.
+          "cwd": .string(path),
+          // Owned threads skip thread/resume. Reapply the project choice on every turn,
+          // including a switch back from full access and a continuation after a question.
+          "approvalPolicy": .string(mode.approvalPolicy),
+          "approvalsReviewer": .string(mode.reviewer), "sandboxPolicy": mode.sandboxPolicy,
+        ].merging(Self.codexModelParams(for: issue)) { $1 }), timeout: 60)
+    } catch let error as ScreenClipError {
+      // An error reply is definite: no turn started, so the sign-in and usage-limit holds apply
+      // and Continue may simply try again.
+      if case .refused = error { try? model.updateIssue(id) { $0.dispatchUncertain = false } }
+      throw error
+    }
     guard let turnID = result["turn"]["id"].string else {
       throw ScreenClipError.message("Codex did not acknowledge the turn.")
     }

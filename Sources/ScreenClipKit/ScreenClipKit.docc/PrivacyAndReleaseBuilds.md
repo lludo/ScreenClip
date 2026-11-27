@@ -20,14 +20,14 @@ TestFlight builds are Release builds, so the SDK is off there.
 Reports go only to a Mac this device has paired with, over your local network:
 
 - **Pairing** is an ephemeral P-256 key agreement confirmed by a 6-digit code shown on both screens. A relay that swapped keys would show different codes.
-- **Encryption.** After pairing, every message is sealed with ChaCha20-Poly1305, so it can't be read, forged, replayed, or reordered.
+- **Encryption.** After the opening `hello` and `challenge`, which are sent in clear and carry the device and app names and ids, every message is sealed with ChaCha20-Poly1305, so it can't be read, forged, replayed, or reordered.
 
 Each report carries:
 
 - the approved image, with annotations and redactions burned in
 - the note
 - app name, bundle ID, version, build, and an optional git SHA (Info.plist key `ScreenClipGitSHA`)
-- device name and model, OS version, locale, orientation, and screen size
+- device name (iOS gives apps the generic name, such as "iPhone") and model, OS version, locale, orientation, and screen size
 - for a screenshot picked from Photos, that it was picked and its capture date when the file has one
 - the visible view-controller chain and the innermost screen title
 - optional <doc:Diagnostics> and your own attachments

@@ -1,6 +1,6 @@
 # Grok Bot (external assistant)
 
-Updated: November 14, 2026. Part of [Coding agents](README.md).
+Updated: November 26, 2026. Part of [Coding agents](README.md).
 
 Grok Bot is a remote destination. It does not run on the Mac and does not return the local agents' `implemented` / `question` / `blocked` result. ScreenClip uses an isolated worktree only to commit and push the approved screenshots, wakes Grok Bot with a webhook, then tracks the pull request on GitHub. In every agent list the destination is named **Grok Bot**.
 
@@ -11,7 +11,7 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 | Where it appears | Settings → AI Agents → **AI agent** → **System default**, each project's **Project default**, and the capture window's **Agent** picker, next to Codex and Claude Code. |
 | Ready | The Grok Bot row says **Grok Bot ready** and the host once the Webhook URL and key have been saved in the Keychain. Otherwise it says **Grok Bot is not connected**. |
 | Evidence | Approved screenshots and `report.json` are committed to `screenclip/<reportNumber>-<slug>-<workspace>` in the project's repository and pushed. The webhook does not contain image bytes. |
-| Screenshot sharing | Always enabled for configured projects, including older projects saved with sharing off. The project editor has no sharing checkbox. |
+| Screenshot sharing | Always enabled for configured projects, including older projects saved with sharing off. The project's **Commit screenshots to the repository** setting applies to Codex and Claude Code only; it does not turn off the Grok Bot evidence push. |
 | After a 2xx | Activity `Sent to external assistant`. The issue stays **Working** until a pull request is found. |
 | Pull request | The assistant opens a PR from that same branch. The body contains `ScreenClip: #<reportNumber>`. It may also contain `ScreenClip-Report:`, `ScreenClip-Revision:`, and `ScreenClip-Agent:`. ScreenClip polls GitHub and **Refresh PR status** picks it up immediately. A fork PR is ignored. A draft is attached and is not merged. |
 | Merge | ScreenClip decides. The existing auto-merge checks apply (validated head, passing checks, current revision, reviews). A PR that still has the hand-off folder `.screenclip/<reportNumber>/`, or that is still a draft, is not merged. Other `.screenclip/` files do not hold the merge back and are left in place. |
@@ -81,7 +81,7 @@ ScreenClip asks the remote routine to investigate, implement, build, test, and p
 
 Connecting Grok Bot is global. The sheet does not pick a project.
 
-1. Open **Settings → AI Agents**. On the **Grok Bot** row, click **Connect Grok Bot**.
+1. Open **Settings → AI Agents**. In the **Grok Bot** section, click **Connect Grok Bot**.
 2. In Grok Bot, open your ScreenClip assistant's info pane, then the **ScreenClip reports** routine. It shows **POST to**, **key**, and **header**, each with a copy button. The routine's webhook secret is not visible to the assistant, so asking it to connect does not produce these values.
 3. Paste **POST to** into **Webhook URL**. Paste **key**, or **header**, into **Key**. A bare key is sent as `Bearer` plus that key. A value that already starts with `Bearer ` is kept. A value that starts with `Authorization:` has that prefix removed, and `Bearer ` is added when the remainder does not already have it. The address must be `https` (plain `http` is accepted only for `localhost`, `127.0.0.1`, and `::1`). The key must be a single line.
 4. Click **Connect**. ScreenClip sends the test webhook and shows **Grok Bot ready**, or an error for a bad URL, a missing key, or HTTP 401.

@@ -51,6 +51,11 @@ import ScreenClipCore
   /// One pass over the close requests at a time: a pass can wait on GitHub or `git fetch`, and
   /// the next timer tick must not apply the same request again meanwhile.
   var applyingClosures = false
+  /// Close requests whose check could not reach GitHub or `origin`, and when to try each again.
+  var closureRetries: [UUID: Date] = [:]
+  /// How long a close request waits for GitHub or `origin` to answer before it is refused.
+  static let closureRetryLimit: TimeInterval = 24 * 60 * 60
+  static let closureRetryInterval: TimeInterval = 60
   /// A Codex request left unanswered this long is answered for an absent tester. 0 disables.
   var questionTimeLimit: TimeInterval {
     TimeInterval(model.snapshot.settings.unattendedAnswerDelay * 60)
@@ -347,6 +352,7 @@ import ScreenClipCore
       // A report being validated or published keeps the request for a later tick: closing it
       // mid-publish would be undone when the publish stops and records its own outcome.
       if finishing.contains(closure.issueID) || publishing.contains(closure.issueID) { continue }
+      if let retry = closureRetries[closure.id], retry > Date() { continue }
       AgentClosureInbox.remove(closure.id, root: model.store.root)
       guard let issue = model.issue(closure.issueID), !issue.archived,
         ![.merged, .verified, .canceled, .draft].contains(issue.status)
@@ -356,17 +362,28 @@ import ScreenClipCore
       var verified = false, verifiedCommit: String?
       if closure.resolution == .done {
         let refusal: String?
+        var unreachable = false
         if let project = model.project(issue.projectID) {
           if let pullRequest = closure.pullRequest {
-            (refusal, verifiedCommit) = await refusalForMergedPullRequest(
+            (refusal, verifiedCommit, unreachable) = await refusalForMergedPullRequest(
               pullRequest, project: project, after: ExternalFix.latestEvidence(issue))
           } else {
-            refusal = await refusalForLandedCommit(
+            (refusal, unreachable) = await refusalForLandedCommit(
               closure.commit ?? "", project: project, after: ExternalFix.latestEvidence(issue))
           }
         } else {
           refusal = "The report has no project, so the fix cannot be checked."
         }
+        // GitHub or origin did not answer (offline, rate limit): that says nothing about the
+        // fix, so the request waits for a later tick instead of being refused for good.
+        if refusal != nil, unreachable,
+          Date().timeIntervalSince(closure.createdAt) < Self.closureRetryLimit,
+          (try? AgentClosureInbox.write(closure, root: model.store.root)) != nil
+        {
+          closureRetries[closure.id] = Date().addingTimeInterval(Self.closureRetryInterval)
+          continue
+        }
+        closureRetries[closure.id] = nil
         if let refusal {
           model.perform {
             try model.updateIssue(closure.issueID) {
@@ -415,24 +432,27 @@ import ScreenClipCore
   }
   /// Why `commit` does not count as a landed fix, or nil when it is on the project's base branch
   /// on `origin`. A commit only in a local worktree has not landed.
-  func refusalForLandedCommit(_ commit: String, project: Project, after evidence: Date) async -> String? {
-    guard !commit.isEmpty else { return "A done close needs a pull request or a commit." }
-    _ = try? await CommandRunner.run(
+  /// `unreachable` is true when `origin` could not be fetched, so the answer may be out of date.
+  func refusalForLandedCommit(
+    _ commit: String, project: Project, after evidence: Date
+  ) async -> (refusal: String?, unreachable: Bool) {
+    guard !commit.isEmpty else { return ("A done close needs a pull request or a commit.", false) }
+    let fetch = try? await CommandRunner.run(
       GitWorkspace.git, ["fetch", "--quiet", "origin", project.baseBranch], cwd: project.path,
       timeout: 60)
     let result = try? await CommandRunner.run(
       GitWorkspace.git,
       ["merge-base", "--is-ancestor", commit, "origin/" + project.baseBranch], cwd: project.path)
     guard result?.status == 0 else {
-      return "Commit \(commit) is not on \(project.baseBranch) on origin."
+      return ("Commit \(commit) is not on \(project.baseBranch) on origin.", fetch?.status != 0)
     }
     // A commit from before the report's newest evidence cannot fix what that evidence shows.
     let time = try? await CommandRunner.checked(
       GitWorkspace.git, ["show", "-s", "--format=%ct", commit], cwd: project.path)
     if let seconds = time.flatMap(TimeInterval.init), Date(timeIntervalSince1970: seconds) < evidence.addingTimeInterval(-300) {
-      return "Commit \(commit) is older than the report's latest evidence."
+      return ("Commit \(commit) is older than the report's latest evidence.", false)
     }
-    return nil
+    return (nil, false)
   }
   static func isTimeLimitError(_ text: String) -> Bool {
     text.contains("did not finish within") && text.contains("was stopped")
