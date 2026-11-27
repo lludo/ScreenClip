@@ -56,8 +56,14 @@ public enum AgentClosureInbox {
     let folder = folder(root: root)
     guard
       let files = try? fileManager.contentsOfDirectory(
-        at: folder, includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey])
+        at: folder, includingPropertiesForKeys: [.fileSizeKey, .isRegularFileKey, .contentModificationDateKey])
     else { return [] }
+    // A server that crashed mid-write leaves a .tmp file; anything an hour old is abandoned.
+    for file in files where file.pathExtension == "tmp" {
+      let modified = (try? file.resourceValues(forKeys: [.contentModificationDateKey]))?
+        .contentModificationDate ?? .distantPast
+      if Date().timeIntervalSince(modified) > 3600 { try? fileManager.removeItem(at: file) }
+    }
     return files.filter { $0.pathExtension == "json" && !$0.lastPathComponent.hasPrefix(".") }
       .compactMap { url -> AgentClosure? in
         guard let values = try? url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey]),

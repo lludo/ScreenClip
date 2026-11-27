@@ -7,7 +7,11 @@ final class ExternalFixTests: XCTestCase {
     XCTAssertEqual(ExternalFix.reportNumbers(in: "Load the DNA mapping sheet (ScreenClip #153)"), [153])
     XCTAssertEqual(
       ExternalFix.reportNumbers(in: "Swipe the person panel away (ScreenClip #141, #143)"), [141, 143])
-    XCTAssertEqual(ExternalFix.reportNumbers(in: "screenclip #7 and #8 & #9"), [7, 8, 9])
+    XCTAssertEqual(ExternalFix.reportNumbers(in: "ScreenClip #7 and #8 & #9"), [7, 8, 9])
+    // A tester's question copied into a title, and text that explains the convention, fix nothing.
+    XCTAssertEqual(ExternalFix.reportNumbers(in: "is the screenclip #98 and #94 fully merged and fixed?"), [])
+    XCTAssertEqual(ExternalFix.reportNumbers(in: "Lists like `ScreenClip #141, #143` count too"), [])
+    XCTAssertEqual(ExternalFix.reportNumbers(in: "Fix it\n> ScreenClip #5 is still broken\n```\nScreenClip #6\n```"), [])
     XCTAssertEqual(ExternalFix.reportNumbers(in: "ScreenClip #144\n\n**What was wrong**"), [144])
     XCTAssertEqual(ExternalFix.reportNumbers(in: "ScreenClip report: #136\nIssue ID: x"), [136])
     XCTAssertEqual(ExternalFix.reportNumbers(in: "ScreenClip: #12"), [12])
@@ -88,5 +92,18 @@ final class ExternalFixTests: XCTestCase {
     var uncertain = issue(number: 136, status: .needsYou)
     uncertain.dispatchUncertain = true
     XCTAssertFalse(ExternalFix.canClose(uncertain))
+  }
+
+  func testIssueIDLinesIdentifyTheReportExactly() {
+    let id = UUID()
+    let body = "Fix\n\nScreenClip report: #12\nIssue ID: \(id.uuidString)\nInput revision: 1"
+    XCTAssertEqual(ExternalFix.issueIDs(in: body), [id])
+    XCTAssertEqual(ExternalFix.issueIDs(in: "Issue ID: not-a-uuid"), [])
+    // Another Mac's ScreenClip PR names its own report #136; only the issue ID decides.
+    let report = issue(number: 136, status: .failed)
+    let other = merged(9, title: "Fix", body: "ScreenClip report: #136\nIssue ID: \(UUID().uuidString)")
+    XCTAssertNil(ExternalFix.fix(for: report, in: [other], repo: "lludo/Genealogy", base: "main"))
+    let own = merged(10, title: "Fix", body: "ScreenClip report: #1\nIssue ID: \(report.id.uuidString)")
+    XCTAssertNotNil(ExternalFix.fix(for: report, in: [own], repo: "lludo/Genealogy", base: "main"))
   }
 }

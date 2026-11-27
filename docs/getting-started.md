@@ -12,7 +12,7 @@ You also need a local Git repository for each project, and at least one agent:
 
 ## Install the release build
 
-On an Apple Silicon Mac you do not need Xcode. Download `ScreenClip.dmg` from the [latest GitHub Release](https://github.com/lludo/ScreenClip/releases/latest), open it, and drag **ScreenClip** into **Applications**. The [1.0.0 release notes](release/v1.0.0.md) cover what is included (later changes are in the [1.0.1](release/v1.0.1.md), [1.0.2](release/v1.0.2.md), [1.0.3](release/v1.0.3.md), [1.0.4](release/v1.0.4.md), [1.0.5](release/v1.0.5.md), [1.1.0](release/v1.1.0.md) and [1.2.0](release/v1.2.0.md) notes) and how to verify the download. Then skip to [First capture](#first-capture).
+On an Apple Silicon Mac you do not need Xcode. Download `ScreenClip.dmg` from the [latest GitHub Release](https://github.com/lludo/ScreenClip/releases/latest), open it, and drag **ScreenClip** into **Applications**. The [1.0.0 release notes](release/v1.0.0.md) cover what is included (later changes are in the [1.0.1](release/v1.0.1.md), [1.0.2](release/v1.0.2.md), [1.0.3](release/v1.0.3.md), [1.0.4](release/v1.0.4.md), [1.0.5](release/v1.0.5.md), [1.1.0](release/v1.1.0.md), [1.2.0](release/v1.2.0.md) and [1.2.1](release/v1.2.1.md) notes) and how to verify the download. Then skip to [First capture](#first-capture).
 
 Intel Macs, and anyone working on ScreenClip itself, build from source.
 
@@ -40,7 +40,7 @@ More commands, tests, and CI are in [Development](development.md).
 ## First capture
 
 1. **Add a project** in **Settings → Projects**: the Git repository root, base branch, website URLs or native app bundle IDs, and a validation command.
-2. **Connect an agent** in **Settings → Connections**. **Detect agents** fills the list. Set **System default** under **AI agent**. In **Project settings**, **Project default** starts as **System default**.
+2. **Connect an agent** in **Settings → AI Agents**. **Detect agents** fills the list. Set **System default** under **AI agent**. In **Project settings**, **Project default** starts as **System default**.
    - **Codex** reuses an existing session when it can.
    - **Claude Code:** **Sign in to Claude Code** opens Terminal for `claude auth login`. You can set **Claude Code executable** and **Model** (empty uses Claude Code's default).
    - **Grok Bot:** open the **Grok Bot** section, click **Connect Grok Bot**, copy **POST to** and **key** (or **header**) from the assistant's **ScreenClip reports** routine, and click **Connect**. The webhook fields are described in [Grok Bot](agents/external-assistant.md#webhook-and-key).

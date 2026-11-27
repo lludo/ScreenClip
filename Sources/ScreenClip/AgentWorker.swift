@@ -48,6 +48,9 @@ import ScreenClipCore
   /// The revision each report already continued automatically after a time limit, so a turn
   /// that keeps hanging stops for the tester instead of looping.
   var timeoutContinuations: [UUID: Int] = [:]
+  /// One pass over the close requests at a time: a pass can wait on GitHub or `git fetch`, and
+  /// the next timer tick must not apply the same request again meanwhile.
+  var applyingClosures = false
   /// A Codex request left unanswered this long is answered for an absent tester. 0 disables.
   var questionTimeLimit: TimeInterval {
     TimeInterval(model.snapshot.settings.unattendedAnswerDelay * 60)
@@ -164,7 +167,7 @@ import ScreenClipCore
       model.snapshot.issues.filter {
         $0.status == .queued && !$0.archived && model.project($0.projectID) != nil
       }.map(\.resolvedAgent)
-    ).filter { isHeld($0) }
+    ).filter { isHeld($0) && usageLimitedUntil[$0] == nil }
     guard !held.isEmpty else { return }
     if now.timeIntervalSince(model.lastAgentDetection) >= heldRecheckInterval {
       await model.refreshAgents(automatic: true)
@@ -234,14 +237,15 @@ import ScreenClipCore
   func handOver(_ id: UUID, from agent: AgentKind, to next: AgentKind, detail: String) {
     usageLimitedUntil[agent] = Date().addingTimeInterval(usageLimitWait)
     guard let issue = model.issue(id) else { return }
-    let progress = issue.activities.filter { $0.kind == "update" }.suffix(12).map(\.text)
+    let progress = issue.activities.filter { $0.kind == "update" && !Self.isOwnActivity($0.text) }
+      .suffix(12).map(\.text)
     let note = """
       \(agent.title) started this report and stopped because it is out of quota (\(String(detail.prefix(200)))). You are taking over in the same worktree and branch.
       Its changes so far are uncommitted in the worktree: run `git status` and `git diff` first, keep what is right, and finish the fix rather than starting over. Then validate and retest as usual.
       \(issue.resultSummary.map { "Its last summary:\n" + $0 } ?? "")
       Its last progress messages, oldest first:
       \(progress.map { "- " + $0 }.joined(separator: "\n"))
-      """
+      """ + (issue.handover.map { "\n\nAn earlier handover on this report:\n" + String($0.prefix(3000)) } ?? "")
     model.perform {
       try model.updateIssue(id) {
         $0.agent = next
@@ -260,9 +264,24 @@ import ScreenClipCore
       }
     }
   }
+  /// ScreenClip's own timeline lines, left out of a handover so it carries the agent's progress.
+  static func isOwnActivity(_ text: String) -> Bool {
+    let prefixes = [
+      "Capture submitted", "Preparing isolated workspace", "Investigating capture revision",
+      "Queued to continue", "Running project validation", "The turn ran past",
+      "Previous Claude Code session was not found", "No Claude Code process survived",
+      "New evidence arrived", "Session reconciled",
+    ]
+    return prefixes.contains { text.hasPrefix($0) } || text.contains(" is at its usage limit")
+      || text.contains(" is out of quota; handing this report to ")
+  }
   /// A turn hit `turnTimeLimit`. The work so far is in the worktree and the session, so carry
   /// on once in the same session; a second stop on the same revision waits for the tester.
+  static func timeLimitContinuation(minutes: Int) -> String {
+    "The turn ran past \(minutes) minutes and was stopped. Continuing the same conversation automatically."
+  }
   func continueAfterTimeLimit(_ id: UUID, message: String) -> Bool {
+    let minutes = max(1, Int((turnTimeLimit / 60).rounded()))
     guard let issue = model.issue(id), issue.status == .working, !issue.dispatchUncertain,
       timeoutContinuations[id] != issue.revision
     else { return false }
@@ -272,7 +291,7 @@ import ScreenClipCore
       try model.updateIssue(id) {
         $0.turnID = nil
         $0.lastError = nil
-        $0.record(message + " Continuing the same session automatically.", status: .queued)
+        $0.record(Self.timeLimitContinuation(minutes: minutes), status: .queued)
       }
     }
     return true
@@ -286,33 +305,67 @@ import ScreenClipCore
       && !issue.dispatchUncertain && !isActive(issue.id)
       && issue.questions.allSatisfy({ $0.reply != nil })
     {
-      guard let error = issue.lastError, Self.isTransientFailure(error) else { continue }
+      guard let error = issue.lastError, Self.isTransientFailure(error),
+        issue.autoRetriedRevision != issue.revision
+      else { continue }
+      // Once per revision, so a report that keeps failing the same way waits for the tester.
+      model.perform { try model.updateIssue(issue.id) { $0.autoRetriedRevision = $0.revision } }
       model.retry(issue.id)
     }
   }
+  /// Only errors ScreenClip or the agent CLI wrote as the whole failure, never project output:
+  /// validation logs can mention limits, timeouts, or `.gitignore` for their own reasons.
   static func isTransientFailure(_ text: String) -> Bool {
-    AgentDetector.isUsageLimitError(text) || isTimeLimitError(text)
-      || (text.contains("ignored by one of your .gitignore files") && text.contains(".screenclip"))
+    let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+    if trimmed.hasPrefix("Validation failed") || trimmed.hasPrefix("Project validation failed") {
+      return false
+    }
+    let usagePrefixes = [
+      "You've reached your", "You’ve reached your", "You've hit your", "You’ve hit your",
+      "Claude AI usage limit reached", "5-hour limit reached", "Weekly limit reached",
+    ]
+    if usagePrefixes.contains(where: { trimmed.hasPrefix($0) }) {
+      return AgentDetector.isUsageLimitError(trimmed)
+    }
+    if trimmed.hasPrefix("Claude Code did not finish within")
+      || trimmed.hasPrefix("Codex did not finish within")
+    {
+      return isTimeLimitError(trimmed)
+    }
+    return trimmed.hasPrefix("The following paths are ignored by one of your .gitignore files")
+      && trimmed.contains(".screenclip")
   }
   /// Applies the close requests coding agents sent through the MCP server (`close_issue`): an
   /// agent that finished a report itself, or found it no longer applies, closes it instead of
   /// leaving it blocked. A running turn for that report is stopped first. The worktree and branch
   /// stay, since the agent's own PR may still need them.
   func applyAgentClosures() async {
+    guard !applyingClosures else { return }
+    applyingClosures = true
+    defer { applyingClosures = false }
     for closure in AgentClosureInbox.load(root: model.store.root) {
+      // A report being validated or published keeps the request for a later tick: closing it
+      // mid-publish would be undone when the publish stops and records its own outcome.
+      if finishing.contains(closure.issueID) || publishing.contains(closure.issueID) { continue }
       AgentClosureInbox.remove(closure.id, root: model.store.root)
       guard let issue = model.issue(closure.issueID), !issue.archived,
-        ![.merged, .verified, .canceled].contains(issue.status)
+        ![.merged, .verified, .canceled, .draft].contains(issue.status)
       else { continue }
       // "Done" with a pull request counts only once GitHub confirms that pull request is merged
       // into the project's base branch, in the project's own repository.
       var verified = false, verifiedCommit: String?
-      if closure.resolution == .done, let pullRequest = closure.pullRequest {
+      if closure.resolution == .done {
         let refusal: String?
         if let project = model.project(issue.projectID) {
-          (refusal, verifiedCommit) = await refusalForMergedPullRequest(pullRequest, project: project)
+          if let pullRequest = closure.pullRequest {
+            (refusal, verifiedCommit) = await refusalForMergedPullRequest(
+              pullRequest, project: project, after: ExternalFix.latestEvidence(issue))
+          } else {
+            refusal = await refusalForLandedCommit(
+              closure.commit ?? "", project: project, after: ExternalFix.latestEvidence(issue))
+          }
         } else {
-          refusal = "The report has no project, so the pull request cannot be checked."
+          refusal = "The report has no project, so the fix cannot be checked."
         }
         if let refusal {
           model.perform {
@@ -331,6 +384,11 @@ import ScreenClipCore
           ![.merged, .verified, .canceled].contains(current.status)
         else { continue }
       }
+      // A publish may have started while GitHub or git was checked: try again on a later tick.
+      if finishing.contains(closure.issueID) || publishing.contains(closure.issueID) {
+        try? AgentClosureInbox.write(closure, root: model.store.root)
+        continue
+      }
       if isActive(issue.id) || model.issue(issue.id)?.status == .working { await cancel(issue.id) }
       model.perform {
         try model.updateIssue(closure.issueID) {
@@ -338,7 +396,8 @@ import ScreenClipCore
             // A verified pull request is the fix, even over ScreenClip's own unmerged one.
             if verified || $0.prURL == nil { $0.prURL = pullRequest }
           }
-          if let commit = closure.commit ?? verifiedCommit { $0.mergeCommit = commit }
+          if let commit = verifiedCommit ?? closure.commit { $0.mergeCommit = commit }
+          $0.handover = nil
           $0.lastError = nil
           $0.validationFeedback = nil
           $0.dispatchUncertain = false
@@ -353,6 +412,27 @@ import ScreenClipCore
         }
       }
     }
+  }
+  /// Why `commit` does not count as a landed fix, or nil when it is on the project's base branch
+  /// on `origin`. A commit only in a local worktree has not landed.
+  func refusalForLandedCommit(_ commit: String, project: Project, after evidence: Date) async -> String? {
+    guard !commit.isEmpty else { return "A done close needs a pull request or a commit." }
+    _ = try? await CommandRunner.run(
+      GitWorkspace.git, ["fetch", "--quiet", "origin", project.baseBranch], cwd: project.path,
+      timeout: 60)
+    let result = try? await CommandRunner.run(
+      GitWorkspace.git,
+      ["merge-base", "--is-ancestor", commit, "origin/" + project.baseBranch], cwd: project.path)
+    guard result?.status == 0 else {
+      return "Commit \(commit) is not on \(project.baseBranch) on origin."
+    }
+    // A commit from before the report's newest evidence cannot fix what that evidence shows.
+    let time = try? await CommandRunner.checked(
+      GitWorkspace.git, ["show", "-s", "--format=%ct", commit], cwd: project.path)
+    if let seconds = time.flatMap(TimeInterval.init), Date(timeIntervalSince1970: seconds) < evidence.addingTimeInterval(-300) {
+      return "Commit \(commit) is older than the report's latest evidence."
+    }
+    return nil
   }
   static func isTimeLimitError(_ text: String) -> Bool {
     text.contains("did not finish within") && text.contains("was stopped")

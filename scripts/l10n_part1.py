@@ -99,7 +99,7 @@ A("Codex — not found", "Codex — 未找到", "Codex — no encontrado", "Code
 A("Codex, Claude Code, or Grok Bot. Choose a default.", "Codex、Claude Code 或 Grok Bot。选择一个默认项。", "Codex, Claude Code o Grok Bot. Elige uno predeterminado.", "Codex、Claude Code、Grok Bot。デフォルトを選んでください。", "Codex, Claude Code ou Grok Bot. Escolha um padrão.", "Codex, Claude Code oder Grok Bot. Wähle einen Standard.", "Codex, Claude Code ou Grok Bot. Choisissez une valeur par défaut.", "Codex, Claude Code 또는 Grok Bot. 기본값을 선택하세요.", "Codex, Claude Code или Grok Bot. Выберите агент по умолчанию.", "Codex、Claude Code 或 Grok Bot。選擇一個預設項。")
 A("Connect an agent", "连接一个代理", "Conecta un agente", "エージェントを接続", "Conecte um agente", "Verbinde einen Agenten", "Connectez un agent", "에이전트 연결", "Подключите агента", "連接一個代理")
 A("Connected to Codex", "已连接到 Codex", "Conectado a Codex", "Codex に接続済み", "Conectado ao Codex", "Mit Codex verbunden", "Connecté à Codex", "Codex에 연결됨", "Подключено к Codex", "已連線到 Codex")
-A("Connections", "连接", "Conexiones", "接続", "Conexões", "Verbindungen", "Connexions", "연결", "Подключения", "連線")
+A("AI Agents", "AI 代理", "Agentes de IA", "AI エージェント", "Agentes de IA", "KI-Agenten", "Agents IA", "AI 에이전트", "ИИ-агенты", "AI 代理")
 A("Context added", "已添加说明", "Contexto añadido", "内容を追加しました", "Contexto adicionado", "Kontext hinzugefügt", "Contexte ajouté", "내용을 추가했습니다", "Контекст добавлен", "已加入說明")
 A("Continue", "继续", "Continuar", "続行", "Continuar", "Weiter", "Continuer", "계속", "Продолжить", "繼續")
 A("Continuing in Codex", "正在 Codex 中继续", "Continuando en Codex", "Codex で続行しています", "Continuando no Codex", "Weiter in Codex", "Poursuite dans Codex", "Codex에서 계속합니다", "Продолжаем в Codex", "正在 Codex 中繼續")

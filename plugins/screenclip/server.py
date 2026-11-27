@@ -52,7 +52,7 @@ TOOLS = [
     {"name": "list_projects", "description": "List the projects ScreenClip knows, with their repository paths, whether a validation command is set, whether fixes commit Before / After screenshots, whether a settings proposal is waiting for the tester, and how many reports are in each group.", "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False}, "annotations": READ_ONLY},
     {"name": "propose_project_settings", "description": "Propose a project's validation command or base branch. ScreenClip refuses to publish a fix until the project has a validation command, so propose one when publishing is blocked on it. Nothing changes until the tester accepts the proposal in ScreenClip; they can also reject it. A new proposal for the same project replaces the one still waiting. The validation command runs with zsh in each report's worktree before publishing and must exit 0 when the checks pass. Make it self-contained (no -quiet flags that hide failures, no interactive prompts) and safe to run unattended.", "inputSchema": {"type": "object", "properties": {"project": {"type": "string", "description": "Project name, or an absolute path inside its repository or one of its worktrees."}, "validation_command": {"type": "string", "description": "Shell command that checks a fix, such as the project's tests and build."}, "base_branch": {"type": "string", "description": "Branch that fixes are based on and merged into."}, "reason": {"type": "string", "description": "One or two sentences for the tester: why this setting, and what the command checks."}}, "required": ["project"], "additionalProperties": False}, "annotations": PROPOSES},
 ]
-TOOLS.append({"name": "close_issue", "description": "Close a ScreenClip report you resolved yourself, so it stops showing as blocked or waiting. Use resolution done when the fix landed another way (your own pull request or commit; pass pull_request or commit as evidence; a pull_request must be merged into the project's base branch in the project's own GitHub repository, which ScreenClip checks with GitHub before closing, and otherwise records why it did not close the report), or canceled when the report is a duplicate, already fixed, or no longer applies. ScreenClip applies it within seconds: a run still working on the report is stopped first, and the summary is recorded on the report's timeline. Do not close a report whose fix has not landed.", "inputSchema": {"type": "object", "properties": {"issue_id": {"type": "string", "description": "Issue UUID or report number, such as #234 or 234"}, "resolution": {"type": "string", "enum": ["done", "canceled"], "default": "done"}, "pull_request": {"type": "string", "description": "https URL of the pull request that delivered the fix."}, "commit": {"type": "string", "description": "Commit SHA (7-64 hex characters) that delivered the fix."}, "summary": {"type": "string", "description": "One to three sentences for the tester: what was done and where."}}, "required": ["issue_id", "summary"], "additionalProperties": False}, "annotations": CLOSES})
+TOOLS.append({"name": "close_issue", "description": "Close a ScreenClip report you resolved yourself, so it stops showing as blocked or waiting. Use resolution done when the fix landed another way (your own pull request or commit; pass pull_request or commit as evidence; a pull_request must be merged into the project's base branch in the project's own GitHub repository, and a commit must be on that base branch on origin; ScreenClip checks before closing, and otherwise records why it did not close the report), or canceled when the report is a duplicate, already fixed, or no longer applies. ScreenClip applies it within seconds: a run still working on the report is stopped first, and the summary is recorded on the report's timeline. Do not close a report whose fix has not landed.", "inputSchema": {"type": "object", "properties": {"issue_id": {"type": "string", "description": "Issue UUID or report number, such as #234 or 234"}, "resolution": {"type": "string", "enum": ["done", "canceled"], "default": "done"}, "pull_request": {"type": "string", "description": "https URL of the pull request that delivered the fix."}, "commit": {"type": "string", "description": "Commit SHA (7-64 hex characters) that delivered the fix."}, "summary": {"type": "string", "description": "One to three sentences for the tester: what was done and where."}}, "required": ["issue_id", "summary"], "additionalProperties": False}, "annotations": CLOSES})
 TOOL_NAMES = {tool["name"] for tool in TOOLS}
 
 def snapshot():
@@ -258,6 +258,15 @@ def close(state, arguments):
     issue = find_issue(state, arguments.get("issue_id"))
     if issue is None:
         raise InvalidParams("No report matches issue_id")
+    if issue.get("archived"):
+        raise InvalidParams("The report is archived; there is nothing to close")
+    # A session working in one project's repository does not close another project's reports.
+    try:
+        here = resolve_project(state, os.getcwd())
+    except ValueError:
+        here = None
+    if here is not None and issue.get("projectID") and here.get("id") != issue.get("projectID"):
+        raise InvalidParams(f"Report belongs to another project than {here.get('name')}, the one this session works in")
     resolution = arguments.get("resolution", "done")
     if resolution not in ("done", "canceled"):
         raise InvalidParams("resolution must be done or canceled")
@@ -290,7 +299,7 @@ def close(state, arguments):
         os.replace(temporary, destination)
     finally:
         temporary.unlink(missing_ok=True)
-    result = {"status": "closing", "reportNumber": issue.get("reportNumber"), "resolution": resolution, "note": "ScreenClip applies this within about 15 seconds while it is running; get_issue then shows the report as merged (done) or canceled. A pull request is checked with GitHub first: if it is not merged into the project's base branch in the project's repository, the report stays as it was and its latest activity starts with 'Not closed:' and says why."}
+    result = {"status": "closing", "reportNumber": issue.get("reportNumber"), "resolution": resolution, "note": "ScreenClip applies this within about 15 seconds while it is running; get_issue then shows the report as merged (done) or canceled. A pull request is checked with GitHub first, and a commit must be on the base branch on origin: if not, the report stays as it was and its latest activity starts with 'Not closed:' and says why."}
     return {"content": [{"type": "text", "text": json.dumps(result)}]}
 
 def call(name, arguments):

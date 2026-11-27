@@ -408,7 +408,7 @@ import XCTest
   func testEveryModelUsedUpHoldsTheReportAndStartsAgainLater() async throws {
     let claude = try limitedClaude(limitedModels: ["fable", "opus", "sonnet"])
     let model = try makeModel()
-    model.worker.usageLimitWait = 0.5
+    model.worker.usageLimitWait = 3600
     try model.commit {
       $0.settings.claudePath = claude
       $0.settings.claudeModel = "fable"
@@ -424,7 +424,7 @@ import XCTest
     XCTAssertTrue(model.worker.isHeld(.claude))
 
     // Once the wait is over the queue picks the report up again by itself.
-    try await Task.sleep(nanoseconds: 600_000_000)
+    model.worker.usageLimitedUntil[.claude] = Date().addingTimeInterval(-1)
     model.worker.pump()
     try await wait { self.runModels().count > 3 }
   }
@@ -447,10 +447,25 @@ import XCTest
         "The following paths are ignored by one of your .gitignore files:\n.screenclip\n"
       $0.record("publish", status: .needsYou)
     }
+    let noisyValidation = try submit(model, agent: .claude)
+    try model.updateIssue(noisyValidation) {
+      $0.lastError =
+        "Validation failed after two repair attempts.\nRetry limit reached\nTest did not finish within 60 seconds and was stopped"
+      $0.record("failed", status: .failed)
+    }
     model.worker.recoverTransientFailures()
     XCTAssertEqual(model.issue(limited)?.status, .queued)
     XCTAssertEqual(model.issue(ignored)?.status, .queued)
     XCTAssertEqual(model.issue(real)?.status, .failed)
+    XCTAssertEqual(model.issue(noisyValidation)?.status, .failed)
+
+    // At most once per revision: failing the same way again waits for the tester.
+    try model.updateIssue(limited) {
+      $0.lastError = "You've reached your Fable limit."
+      $0.record("limit again", status: .failed)
+    }
+    model.worker.recoverTransientFailures()
+    XCTAssertEqual(model.issue(limited)?.status, .failed)
   }
 
   func testOutOfQuotaAgentHandsTheReportAndItsWorkToTheNextAgent() throws {
@@ -494,24 +509,74 @@ import XCTest
 
   func testAgentCloseRequestClosesTheReport() async throws {
     let model = try makeModel()
+    let repo = try XCTUnwrap(model.snapshot.projects.first?.path)
     let done = try submit(model, agent: .claude)
+    let unpushed = try submit(model, agent: .claude)
     let duplicate = try submit(model, agent: .claude)
-    try model.updateIssue(done) { $0.record("failed", status: .failed) }
+    // The project's origin has the landed commit; a second commit exists only locally.
+    let commit = { (message: String) in
+      try self.git(
+        ["-c", "user.name=T", "-c", "user.email=t@example.invalid", "commit", "-q", "--allow-empty",
+         "-m", message], in: repo)
+    }
+    let origin = root.appendingPathComponent("origin.git").path
+    _ = try git(["init", "-q", "--bare", origin], in: root.path)
+    _ = try git(["remote", "add", "origin", origin], in: repo)
+    try commit("fix")
+    _ = try git(["push", "-q", "origin", "main"], in: repo)
+    let landed = try git(["rev-parse", "HEAD"], in: repo)
+    try commit("local")
+    let local = try git(["rev-parse", "HEAD"], in: repo)
+
+    for id in [done, unpushed] { try model.updateIssue(id) { $0.record("failed", status: .failed) } }
     try model.updateIssue(duplicate) { $0.record("waiting", status: .needsYou) }
     try AgentClosureInbox.write(
       AgentClosure(
-        issueID: done, resolution: .done, commit: "abc1234",
+        issueID: done, resolution: .done, commit: landed,
         summary: "Fixed in my own commit.", closer: "claude-code"), root: model.store.root)
+    try AgentClosureInbox.write(
+      AgentClosure(issueID: unpushed, resolution: .done, commit: local, summary: "Not pushed."),
+      root: model.store.root)
     try AgentClosureInbox.write(
       AgentClosure(issueID: duplicate, resolution: .canceled, summary: "Duplicate."),
       root: model.store.root)
     await model.worker.applyAgentClosures()
     XCTAssertEqual(model.issue(done)?.status, .merged)
-    // A commit is recorded as given; a pull request is checked with GitHub (PRRefreshTests).
-    XCTAssertEqual(model.issue(done)?.mergeCommit, "abc1234")
+    XCTAssertEqual(model.issue(done)?.mergeCommit, landed)
     XCTAssertTrue(model.issue(done)?.activities.last?.text.contains("Closed by claude-code") == true)
+    // A commit only in a local checkout has not landed.
+    XCTAssertEqual(model.issue(unpushed)?.status, .failed)
+    XCTAssertTrue(model.issue(unpushed)?.activities.last?.text.hasPrefix("Not closed:") == true)
     XCTAssertEqual(model.issue(duplicate)?.status, .canceled)
     XCTAssertTrue(AgentClosureInbox.load(root: model.store.root).isEmpty)
+  }
+
+  func testCloseRequestWaitsWhileTheReportIsPublishing() async throws {
+    let model = try makeModel()
+    let id = try submit(model, agent: .claude)
+    try model.updateIssue(id) { $0.record("publishing", status: .working) }
+    model.worker.publishing.insert(id)
+    try AgentClosureInbox.write(
+      AgentClosure(issueID: id, resolution: .canceled, summary: "Duplicate."), root: model.store.root)
+    await model.worker.applyAgentClosures()
+    XCTAssertEqual(model.issue(id)?.status, .working)
+    XCTAssertEqual(AgentClosureInbox.load(root: model.store.root).count, 1)
+    model.worker.publishing.remove(id)
+    await model.worker.applyAgentClosures()
+    XCTAssertEqual(model.issue(id)?.status, .canceled)
+  }
+
+  @discardableResult private func git(_ arguments: [String], in directory: String) throws -> String {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/git")
+    process.arguments = arguments
+    process.currentDirectoryURL = URL(fileURLWithPath: directory)
+    let pipe = Pipe()
+    process.standardOutput = pipe
+    try process.run()
+    process.waitUntilExit()
+    let output = String(decoding: pipe.fileHandleForReading.readDataToEndOfFile(), as: UTF8.self)
+    return output.trimmingCharacters(in: .whitespacesAndNewlines)
   }
 
   func testDoneCloseRequestWithoutEvidenceIsIgnored() async throws {
@@ -532,6 +597,17 @@ import XCTest
     XCTAssertTrue(AgentDetector.isUsageLimitError(
       "You've reached your Fable limit. Switch to another model, or manage usage credits"))
     XCTAssertFalse(AgentDetector.isUsageLimitError("Tests failed: 3 of 120"))
+    XCTAssertTrue(AgentDetector.isUsageLimitError("Claude AI usage limit reached|1764000000"))
+    XCTAssertFalse(AgentDetector.isUsageLimitError("Context limit reached · /compact or /clear to continue"))
+    XCTAssertFalse(AgentDetector.isUsageLimitError("API Error: 529 {\"type\":\"overloaded_error\"}"))
+    XCTAssertFalse(AgentDetector.isUsageLimitError("Retry limit reached"))
+    XCTAssertTrue(AgentDetector.isUsageLimitError("5-hour limit reached ∙ resets 1am"))
+    XCTAssertTrue(AgentDetector.isUsageLimitError("Weekly limit reached ∙ resets Mon 9am"))
+    XCTAssertTrue(AgentWorker.isTransientFailure("You've hit your usage limit. Try again later."))
+    XCTAssertTrue(AgentWorker.isTransientFailure("Claude AI usage limit reached|1764000000"))
+    XCTAssertEqual(AgentModelCatalog.claudeFallbacks(after: "haiku"), [])
+    XCTAssertTrue(AgentWorker.isTimeLimitError("Claude Code did not finish within 120 minutes and was stopped."))
+    XCTAssertFalse(AgentWorker.isTimeLimitError("Claude Code reported an error."))
     XCTAssertFalse(AgentDetector.isSignInError("You've reached your Fable limit."))
   }
 

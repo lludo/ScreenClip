@@ -66,7 +66,7 @@ struct SettingsView: View {
               .tag(0)
             Text(verbatim: Chrome.text("Projects", locale: locale, comment: "Settings tab listing projects."))
               .tag(1)
-            Text(verbatim: Chrome.text("Connections", locale: locale, comment: "Settings tab for agent connections."))
+            Text(verbatim: Chrome.text("AI Agents", locale: locale, comment: "Settings tab for coding agents, Grok Bot, and the MCP server."))
               .tag(2)
             Text(verbatim: Chrome.text("iOS", locale: locale, comment: "Settings tab for the iOS SDK and local server."))
               .tag(3)

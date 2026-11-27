@@ -44,6 +44,7 @@ extension AgentWorker {
       try model.updateIssue(id) { issue in
         issue.prURL = url
         issue.prRevision = issue.revision
+        issue.handover = nil
         issue.checkSummary = nil
         for i in issue.questions.indices where issue.questions[i].reply == nil {
           issue.questions[i].reply = "Fixed outside ScreenClip"
@@ -62,7 +63,9 @@ extension AgentWorker {
   /// Why GitHub does not confirm `url` as a merged fix for a report of `project`, or nil when
   /// it is merged into the project's base branch, in the project's own repository. Used before
   /// an agent's `close_issue` with a pull request marks a report merged.
-  func refusalForMergedPullRequest(_ url: String, project: Project) async -> (refusal: String?, mergeCommit: String?) {
+  func refusalForMergedPullRequest(
+    _ url: String, project: Project, after evidence: Date? = nil
+  ) async -> (refusal: String?, mergeCommit: String?) {
     let repo: String
     do { repo = try await githubRepo(project) } catch {
       return (error.localizedDescription, nil)
@@ -80,6 +83,15 @@ extension AgentWorker {
     guard pr.merged else { return ("\(url) is not merged.", nil) }
     guard pr.base == project.baseBranch else {
       return ("\(url) was merged into \(pr.base), not \(project.baseBranch).", nil)
+    }
+    // Like the automatic match: a merge from before the report's newest evidence is not its fix.
+    if let evidence {
+      let gh = AgentDetector.ghPath(model.snapshot.settings)
+      let text = try? await CommandRunner.checked(
+        gh, ["pr", "view", url, "--json", "mergedAt", "--jq", ".mergedAt"], cwd: project.path)
+      if let merged = text.flatMap({ ISO8601DateFormatter().date(from: $0) }), merged < evidence.addingTimeInterval(-300) {
+        return ("\(url) was merged before the report's latest evidence.", nil)
+      }
     }
     return (nil, pr.mergeCommit)
   }

@@ -189,13 +189,24 @@ public enum AgentDetector {
 
   /// Whether an agent's error means it ran out of usage for now (a model or plan limit),
   /// rather than that the work failed. The same report succeeds on another model or later.
+  /// Only quota wording counts: a context-window limit, a per-minute rate limit, or a server
+  /// overload is not fixed by switching models or waiting 15 minutes.
   public static func isUsageLimitError(_ text: String) -> Bool {
-    let lower = text.lowercased()
-    return [
-      "you've reached your", "you’ve reached your", "usage limit", "rate_limit_error",
-      "rate limit reached", "limit reached", "hit your limit", "429 too many requests",
-      "overloaded_error",
-    ].contains { lower.contains($0) }
+    let lower = text.lowercased().replacingOccurrences(of: "’", with: "'")
+    if lower.contains("context") { return false }
+    if lower.range(of: #"you've reached your [a-z0-9 .-]{0,40}limit"#, options: .regularExpression)
+      != nil
+    {
+      return true
+    }
+    // Claude Code's plan limits: "5-hour limit reached ∙ resets 1am", "Weekly limit reached".
+    if lower.range(of: #"\b(5-hour|five-hour|weekly|daily|session) limit reached"#, options: .regularExpression)
+      != nil || (lower.contains("limit reached") && lower.contains("resets"))
+    {
+      return true
+    }
+    return ["usage limit", "hit your limit", "out of usage credits", "quota exceeded"]
+      .contains { lower.contains($0) }
   }
 
   /// A path that is missing or not executable has not been found. Only a real executable

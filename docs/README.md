@@ -10,6 +10,7 @@ The [root README](../README.md) is the short introduction. This page is the map.
 - [User guide](user-guide.md) — capture, the queue, moving a report, agent permissions, what each agent can see, and screen-recording recovery.
 - [ScreenClip for iOS](ios-sdk.md) — ScreenClipKit in your app's Debug build: shake to report, pairing, the local server, Fetch, and AirDrop.
 - [Release checklist](release/checklist.md) — every step for cutting a release.
+- [1.2.1 release notes](release/v1.2.1.md) — reports no longer fail on usage limits: Claude Code switches to a lower model and reports move to your other agent with the work so far; longer turns, and agents can close reports they fixed themselves.
 - [1.2.0 release notes](release/v1.2.0.md) — report an existing iPhone or iPad screenshot, attach your app's own files, and let agents suggest project settings; pull request evidence stays off the base branch.
 - [1.1.0 release notes](release/v1.1.0.md) — ScreenClip for iOS: ScreenClipKit in your app's Debug build, shake to report, live status and retest from the phone; new projects use the repository's default branch.
 - [1.0.5 release notes](release/v1.0.5.md) — Claude Code and Codex can check each project's reports, installed from Settings, and reports merged by hand are detected.

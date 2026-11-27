@@ -184,7 +184,7 @@ def structured_data(config, catalog=None):
         app["offers"] = offers
         app["isAccessibleForFree"] = True
         app["downloadUrl"] = config.download_url
-        app["softwareVersion"] = "1.2.0"
+        app["softwareVersion"] = "1.2.1"
     faq = {
         "@type": "FAQPage",
         "inLanguage": catalog.html_lang,

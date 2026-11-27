@@ -104,6 +104,6 @@ Secrets ScreenClip stores for itself go in the Keychain. Pull requests include t
 | `Sources/ScreenClipWire/` | Shared with the iOS SDK: annotation model, Core Graphics renderer, iOS report types, and the local-network protocol |
 | `Sources/ScreenClipKit/` | The iOS SDK (Debug builds only) |
 | `Examples/ScreenClipKitDemo/` | A small iOS app with ScreenClipKit installed the Debug-only way |
-| `plugins/screenclip/` | Read-only MCP server, the Claude Code `fix-report` skill, and the `install-ios-sdk` skill |
+| `plugins/screenclip/` | MCP server (reads the queue, proposes settings, closes fixed reports), the Claude Code `fix-report` skill, and the `install-ios-sdk` skill |
 | `scripts/` | Build, install, package, test, localization (including the `CompileStringCatalog` SwiftPM build plugin), probes, and the read-only queue review |
 | `website/` | The static site deployed as the Vercel project `screenclip-website` |

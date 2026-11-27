@@ -8,7 +8,7 @@ ScreenClip can send any report to Claude Code instead of Codex or Grok Bot. Each
 
 | Topic | Behavior |
 | --- | --- |
-| Executable | Settings → Connections → Claude Code. Detected from `/opt/homebrew/bin/claude`, `/usr/local/bin/claude`, `~/.local/bin/claude`, `~/.claude/local/claude`, `~/.npm-global/bin/claude`, or `~/.bun/bin/claude`. Override the path if needed. |
+| Executable | Settings → AI Agents → Claude Code. Detected from `/opt/homebrew/bin/claude`, `/usr/local/bin/claude`, `~/.local/bin/claude`, `~/.claude/local/claude`, `~/.npm-global/bin/claude`, or `~/.bun/bin/claude`. Override the path if needed. |
 | Model | Optional default in Settings, for example `opus` or `sonnet`; empty uses Claude Code's default. A report can override the model and effort from the composer's **Agent** menu. |
 | Sign-in | **Sign in to Claude Code** opens Terminal running `claude auth login`, then use **Detect agents**. Detection reads `claude auth status`. ScreenClip never handles Claude credentials. The Claude desktop app's sign-in is separate from the CLI's. |
 | Turn | One process per turn, with the prompt and approved PNGs sent as one stream-json user message. |
@@ -69,7 +69,8 @@ Not verified: the visual sidebar group. The record had no git anchors immediatel
 ## Recovery
 
 - **Cancel** sends SIGTERM to `claude` and every process it started, then SIGKILL to anything still running 3 seconds later. ScreenClip stops reading Claude's output 3 seconds after it exits, so a background process that inherited the pipes cannot keep the turn open.
-- A turn that runs longer than 45 minutes is stopped the same way and reported as failed. Continue runs it again in the same session.
+- A turn that runs longer than 2 hours is stopped the same way. The first stop on a revision continues the same session automatically; a second one fails the report, and Continue runs it again in the same session.
+- A run that reports a usage limit (`You've reached your Fable limit`, `5-hour limit reached`, `Claude AI usage limit reached`) continues on the next lower model: Fable, then Opus, then Sonnet. A fresh session is told the worktree may already hold changes from the earlier attempt. Context-window limits, per-minute rate limits and server overloads are not usage limits and fail the run as before. When every model is used up, the report goes to Codex with a handover note if **Hand reports to another agent when one is out of quota** is on and Codex is ready; otherwise it goes back to the queue and starts again by itself after 15 minutes. It is not marked failed for a usage limit ScreenClip recognizes.
 - A run that reports Claude Code is signed out (`Not logged in · Please run /login`, an invalid API key, an expired token) goes back to the queue, held until you sign in.
 - After a ScreenClip restart, a report that was working continues the same session automatically when no `claude` process for that session is still running. If one is (it survived the crash, or you resumed it in Terminal), the report waits under **Needs you** for **Reconcile chat**.
 - A child process can survive a ScreenClip crash, and a session may also be running in Terminal. **Reconcile chat** and resumed dispatch check for those processes and refuse a competing turn. Reconciliation clears interrupted state only when no matching process is found; it does not read completed results from Claude history. Continue to run the turn again.
@@ -78,9 +79,9 @@ Not verified: the visual sidebar group. The record had no git anchors immediatel
 
 ## Reading the queue interactively (plugin)
 
-You can also pull reports into your own interactive Claude Code session instead of having ScreenClip dispatch them. The repository is a local Claude Code plugin marketplace with the MCP server (it reads the queue and can propose project settings for you to accept) and a `fix-report` skill. Installation steps are in the [plugin README](../../plugins/screenclip/README.md). To get only the MCP tools in every project, use Settings › Connections › **Check tasks from your agents** › Install.
+You can also pull reports into your own interactive Claude Code session instead of having ScreenClip dispatch them. The repository is a local Claude Code plugin marketplace with the MCP server (it reads the queue, can propose project settings for you to accept, and can close reports the session fixed) and a `fix-report` skill. Installation steps are in the [plugin README](../../plugins/screenclip/README.md). To get only the MCP tools in every project, use Settings › AI Agents › **Check tasks from your agents** › Install.
 
-Then ask, for example, "fix ScreenClip #234". The skill reads the note, context, and screenshots, refuses to duplicate a report ScreenClip is already working on, and fixes it in the current session. ScreenClip does not learn about fixes made this way: mark the report Verified or archive it after retesting.
+Then ask, for example, "fix ScreenClip #234". The skill reads the note, context, and screenshots, refuses to duplicate a report ScreenClip is already working on, and fixes it in the current session. When the fix is merged, the skill closes the report with `close_issue`, and a merged pull request that names it as `ScreenClip #N` closes it on its own, so the report moves to **To retest**.
 
 ## Limitations
 

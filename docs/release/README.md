@@ -5,6 +5,7 @@ ScreenClip is not on the Mac App Store. The download is a notarized DMG on GitHu
 | Page | What it covers |
 | --- | --- |
 | [Release checklist](checklist.md) | Every step for cutting a release, from syncing and reviewing to publishing and verifying. Follow it for every release |
+| [v1.2.1 release notes](v1.2.1.md) | Usage limits no longer fail reports (lower model, then handover to the other agent), 2-hour turns that continue once, agents close reports they fixed, Settings tab renamed AI Agents |
 | [v1.2.0 release notes](v1.2.0.md) | Reports from an existing iPhone or iPad screenshot, your app's own attachments, project settings suggested by agents; evidence kept off the base branch |
 | [v1.1.0 release notes](v1.1.0.md) | ScreenClip for iOS (ScreenClipKit, local server, pairing, diagnostics, live status, retest from the phone); default base branch |
 | [v1.0.5 release notes](v1.0.5.md) | Agents check their project's reports through the MCP server, installed from Settings; merges done by hand detected by branch |

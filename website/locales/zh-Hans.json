@@ -73,13 +73,13 @@
     "localBody": "两者都在 Mac 上运行，每份报告使用独立的 Git 工作树。你可以在 ScreenClip 中回答问题。ScreenClip 会运行项目检查并创建拉取请求。"
   },
   "download": {
-    "title": "适用于 macOS 的 ScreenClip 1.2.0。",
+    "title": "适用于 macOS 的 ScreenClip 1.2.1。",
     "price": "非商业用途免费。",
     "source": "如需商业许可，请联系我们。{link:license}。",
     "sourceMissing": "源代码尚未公开。",
     "github": "在 GitHub 上查看",
     "donate": "支持这个项目",
-    "noteReady": "ScreenClip 1.2.0 · Apple Silicon · macOS 14 或更高版本",
+    "noteReady": "ScreenClip 1.2.1 · Apple Silicon · macOS 14 或更高版本",
     "noteSoon": "Mac 版即将开放下载。",
     "macSoon": "Mac 版下载即将提供。",
     "needsTitle": "你需要",
@@ -97,7 +97,7 @@
       },
       {
         "q": "编程代理能查看 ScreenClip 里有哪些未完成的报告吗？",
-        "a": "在“设置 › 连接”中，可以授予 Codex 或 Claude Code 对报告队列的只读访问权限。"
+        "a": "在“设置 › AI 代理”中，可以让 Codex 或 Claude Code 查看你的报告队列，并关闭它们自己修复的报告。"
       },
       {
         "q": "什么会离开这台 Mac？",
@@ -125,13 +125,13 @@
       "从网站和原生 Mac 应用截取",
       "Codex、Claude Code 和 Grok Bot",
       "项目验证、GitHub 拉取请求、可选合并和复测队列",
-      "Claude Code 和 Codex 可以读取项目报告并提出设置更改，供你批准",
+      "Claude Code 和 Codex 可以读取项目报告、提出设置更改供你批准，并关闭它们修复的报告",
       "通过 ScreenClipKit 从你自己的 iPhone 和 iPad App 提交报告（Debug 构建）"
     ]
   },
   "privacy": {
     "title": "隐私政策",
-    "updated": "更新于 2026 年 11 月 25 日。",
+    "updated": "更新于 2026 年 11 月 26 日。",
     "intro": "ScreenClip 将报告保存在 Mac 上。编程代理可能会将报告发送给其服务提供商。提交到 GitHub 仓库的截图对所有有权访问该仓库的人可见。",
     "staysTitle": "留在 Mac 上的内容",
     "stays1": "报告、截图、备注、标注、项目设置、问题和活动保存在 Mac 上的 {code:appSupport}。队列是 SQLite 数据库加上图像文件。代理的工作在同一文件夹下的 Git worktree 中进行。你自己的项目检出目录不是工作目录。",
@@ -148,10 +148,10 @@
     "localTitle": "Codex 和 Claude Code",
     "local1": "Codex 和 Claude Code 在你的 Mac 上运行。ScreenClip 把已确认的截图、备注和提示交给该本地代理。其中不涉及任何 ScreenClip 服务器。不过，ScreenClip 会把报告的截图随修复一起发布到项目的 GitHub 仓库，详见下文的 GitHub 部分。",
     "local2": "代理使用你登录的账户：Codex 通过 app-server，Claude Code 通过它自己的登录。该代理可能按该账户的条款把提示和图像发给自己的提供方。ScreenClip 启动这些代理时，环境里没有 GitHub 令牌。推送分支和打开拉取请求的是 ScreenClip，不是代理。",
-    "local3": "如果你为 Claude Code 或 Codex 安装 ScreenClip 的 MCP 服务器，该代理的会话就能读取你的报告：标题、备注、状态、问题和活动记录。服务器在你的 Mac 上运行，本身不发送任何内容，但代理可能像处理提示词一样，把读到的内容发送给它的服务提供方。从代理中移除该服务器即可停止。",
+    "local3": "如果你为 Claude Code 或 Codex 安装 ScreenClip 的 MCP 服务器，该代理的会话就能读取你的报告：标题、备注、状态、问题和活动记录。代理还可以提出项目设置供你接受，并关闭它们自己修复的报告。服务器在你的 Mac 上运行，本身不发送任何内容，但代理可能像处理提示词一样，把读到的内容发送给它的服务提供方。从代理中移除该服务器即可停止。",
     "iosTitle": "集成 ScreenClipKit 的 iOS 应用",
     "githubTitle": "GitHub",
-    "github1": "拉取请求自动化使用你安装的 GitHub CLI，以及该 CLI 登录的 GitHub 账户。ScreenClip 推送 {code:branch} 分支，并为 Codex 和 Claude Code 打开拉取请求。它读取检查状态，并且只在该项目启用自动合并、检查和审查规则都通过时才合并。",
+    "github1": "拉取请求自动化使用你安装的 GitHub CLI，以及该 CLI 登录的 GitHub 账户。ScreenClip 推送 {code:branch} 分支，并为 Codex 和 Claude Code 打开拉取请求。它读取检查状态，并且只在该项目启用自动合并、检查和审查规则都通过时才合并。它还会查看该项目已合并的拉取请求，找出以“ScreenClip #N”提到某个报告的请求，并把这些报告移到“待复测”。",
     "grokTitle": "Grok Bot",
     "grok1": "在你保存 webhook URL 和 Authorization header 之前，不会向 Grok Bot 发送任何内容。保存该连接后，你发给 Grok Bot 的每份报告都会共享其已确认的截图。无论仓库是私有还是公开，都没有单独的项目共享设置。",
     "grok3": "能读取仓库的人都能访问证据；公开仓库则包括互联网上的任何人。在后续提交中删除文件不会将其从 Git 历史中抹去。Grok Bot 从该分支打开拉取请求。Cancel 会停止本地记录，并在连接支持时尝试发送取消请求；远程运行仍可能完成。问题留在 Grok Bot 的对话中。",
@@ -168,7 +168,7 @@
     "changesTitle": "变更",
     "changes": "本政策的实质性变更会发布在本页，并更新日期。",
     "github2a": "拉取请求正文包含代理的摘要、已涂掉疑似秘密值的项目验证命令，以及报告引用。",
-    "github2b": "对 Codex 和 Claude Code，ScreenClip 还会把报告的截图随修复一起提交，并以 Before / After 对比的形式嵌入拉取请求：你已确认的最终截图（含你的标注和遮盖），以及代理重新测试修复时截取的截图。没有可以关闭这一行为的设置。",
+    "github2b": "对 Codex 和 Claude Code，ScreenClip 还会把报告的截图随修复一起提交，并以 Before / After 对比的形式嵌入拉取请求：你已确认的最终截图（含你的标注和遮盖），以及代理重新测试修复时截取的截图。此功能默认开启。在项目设置中关闭“将截图提交到仓库”即可不提交任何截图，此时拉取请求会用文字描述前后对比。",
     "github2c": "任何能读取该仓库的人都能看到这些图片；在公开仓库中，这意味着互联网上的任何人。在后续提交中移除这些文件，并不会把它们从 Git 历史中抹去。发布的只有最终截图，绝不包括未遮盖的裁切。",
     "grok2a": "然后 ScreenClip 会把已确认的 PNG 和 {code:reportJson} 推送到项目仓库的 {code:branch} 分支，并发送一个很小的 JSON webhook。webhook 不含图像字节。",
     "grok2b": "它包含报告编号、issue id、修订、标题、备注、后来的上下文备注、源应用名称、bundle ID、项目名称、仓库、基线分支、验证命令，以及证据分支、提交和文件路径。只有在 {ui:browserUrl} 打开时，才会包含浏览器 URL 和窗口标题。webhook 还包含工作区 ID、以前的拉取请求 URL 和投递标识符。",
@@ -181,7 +181,7 @@
   },
   "support": {
     "title": "支持",
-    "statusReady": "ScreenClip 1.2.0 非商业使用免费。{link:download} 打开 GitHub Releases 上最新的磁盘映像。",
+    "statusReady": "ScreenClip 1.2.1 非商业使用免费。{link:download} 打开 GitHub Releases 上最新的磁盘映像。",
     "statusSoon": "ScreenClip 即将推出，目前尚未开放下载。",
     "issues": "如需报告问题或提问，请前往 {link:issues}。请注明 macOS 版本、使用的代理和具体情况。分享截图前，请先遮盖私人信息。",
     "issuesMissing": "公开支持尚未提供。",

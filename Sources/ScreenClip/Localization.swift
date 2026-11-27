@@ -235,6 +235,11 @@ enum ActivityPatterns {
         locale: locale,
         comment: "Activity log for an automatic repair. First %lld is the attempt, second is the limit.")
     }
+    if let url = capture(#"^Fixed outside ScreenClip by (\S+), which is merged\.$"#, text) {
+      return Chrome.format(
+        "activity.fixedOutside", "Fixed outside ScreenClip by \(url), which is merged.", locale: locale,
+        comment: "Activity log. %@ is a pull request URL and stays unchanged. Keep ScreenClip.")
+    }
     if let url = remainder("Previous fix: ", text) {
       return Chrome.format(
         "activity.previousFix", "Previous fix: \(url)", locale: locale,
@@ -376,6 +381,42 @@ enum ActivityPatterns {
         "Codex did not finish within \(minutes) minutes and was stopped. Retry to continue in the same chat.",
         locale: locale,
         comment: "Activity log. %lld is the time limit in minutes. Keep Codex.")
+    }
+    if let minutes = firstInt(
+      #"^The turn ran past (\d+) minutes and was stopped\. Continuing the same conversation automatically\.$"#,
+      text)
+    {
+      return Chrome.format(
+        "activity.timeLimitContinues",
+        "The turn ran past \(minutes) minutes and was stopped. Continuing the same conversation automatically.",
+        locale: locale,
+        comment: "Activity log. %lld is the time limit in minutes.")
+    }
+    if let parts = groups(#"^(.+) is at its usage limit; continuing with (.+)$"#, text), parts.count == 2 {
+      return Chrome.format(
+        "activity.modelFallback", "\(parts[0]) is at its usage limit; continuing with \(parts[1])",
+        locale: locale,
+        comment: "Activity log. %1$@ is the used-up model (or “The default model”), %2$@ the next model. Model names stay unchanged.")
+    }
+    if let parts = groups(
+      #"^(.+) is at its usage limit\. This report starts again by itself in (\d+) minutes\.$"#, text),
+      parts.count == 2, let minutes = Int(parts[1])
+    {
+      return Chrome.format(
+        "activity.usageLimitHold",
+        "\(parts[0]) is at its usage limit. This report starts again by itself in \(minutes) minutes.",
+        locale: locale,
+        comment: "Activity log. %1$@ is the agent name (Codex, Claude Code), %2$lld minutes.")
+    }
+    if let parts = groups(
+      #"^(.+) is out of quota; handing this report to (.+) with the work so far\.$"#, text),
+      parts.count == 2
+    {
+      return Chrome.format(
+        "activity.agentHandover",
+        "\(parts[0]) is out of quota; handing this report to \(parts[1]) with the work so far.",
+        locale: locale,
+        comment: "Activity log. %1$@ is the agent that ran out of quota, %2$@ the agent taking over. Keep agent names.")
     }
     if let minutes = firstInt(
       #"^Claude Code did not finish within (\d+) minutes and was stopped\.$"#, text)

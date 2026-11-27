@@ -235,20 +235,37 @@ extension AgentWorker {
     let minutes = max(1, Int((limit / 60).rounded()))
     let message =
       "Codex did not finish within \(minutes) minutes and was stopped. Retry to continue in the same chat."
-    // Record first, so the interrupted turn's late events cannot publish a result.
+    // Record first, so the interrupted turn's late events cannot publish a result. Until the
+    // interrupt returns the report counts as dispatching, so a continuation cannot start a turn
+    // on a thread that is still busy.
     jobs.remove(id)
+    // The first stop on a revision continues by itself, as for Claude Code.
+    let revision = model.issue(id)?.revision
+    let continues =
+      revision != nil && timeoutContinuations[id] != revision
+      && model.issue(id)?.status == .working
+    if continues {
+      timeoutContinuations[id] = revision
+      dispatching.insert(id)
+    }
     model.perform {
       try model.updateIssue(id) {
         $0.turnID = nil
         $0.dispatchUncertain = false
-        $0.lastError = message
-        $0.unread = true
-        $0.record(message, status: .failed, kind: "error")
+        if continues {
+          $0.lastError = nil
+          $0.record(Self.timeLimitContinuation(minutes: minutes), status: .queued)
+        } else {
+          $0.lastError = message
+          $0.unread = true
+          $0.record(message, status: .failed, kind: "error")
+        }
       }
     }
-    if let issue = model.issue(id) { model.notify(issue, text: message) }
+    if !continues, let issue = model.issue(id) { model.notify(issue, text: message) }
     canceledTurns.insert(turnID)
     await interrupt(threadID: threadID, turnID: turnID)
+    dispatching.remove(id)
     pump()
   }
   func recordProjectLinkIssue(_ id: UUID, message: String) throws {

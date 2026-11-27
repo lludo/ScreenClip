@@ -8,7 +8,7 @@ Grok Bot is a remote destination. It does not run on the Mac and does not return
 
 | Topic | Behavior |
 | --- | --- |
-| Where it appears | Settings → Connections → **AI agent** → **System default**, each project's **Project default**, and the capture window's **Agent** picker, next to Codex and Claude Code. |
+| Where it appears | Settings → AI Agents → **AI agent** → **System default**, each project's **Project default**, and the capture window's **Agent** picker, next to Codex and Claude Code. |
 | Ready | The Grok Bot row says **Grok Bot ready** and the host once the Webhook URL and key have been saved in the Keychain. Otherwise it says **Grok Bot is not connected**. |
 | Evidence | Approved screenshots and `report.json` are committed to `screenclip/<reportNumber>-<slug>-<workspace>` in the project's repository and pushed. The webhook does not contain image bytes. |
 | Screenshot sharing | Always enabled for configured projects, including older projects saved with sharing off. The project editor has no sharing checkbox. |
@@ -65,7 +65,7 @@ The webhook also sends `Idempotency-Key` set to `delivery.key`. Request headers 
 
 `notes` are the capture notes, in capture order. `capture-<n>.png` belongs to `notes[n-1]`; a text note has no PNG, so its number is skipped (a text note followed by a screenshot gives `capture-2.png`). `contextNotes` are text added later with **Add context**, kept separate so they do not shift the screenshot paths. `context.browserURL` and `context.windowTitle` are included only when **Read the active browser URL for project matching** is on. App name and bundle ID are always included.
 
-`promptAddOn` includes required autonomy instructions and the screenshot publication contract (or, for a report filed as text only, a line saying there are no original screenshots) followed by the current shared instruction text from **Settings → Connections → Agent instructions**. Both `report.json` and the webhook include it, even when the optional add-on is empty. The routine should use the latest webhook value. Screenshot publication is authorized: the routine must embed the original evidence PNGs at `evidence.commit`, capture the rebuilt fixed UI, commit retest PNGs inside the hand-off directory (never elsewhere in the repository), and embed immutable GitHub commit links for both. Screenshots appear only in the pull request description; they never reach the base branch. Follow-up revisions must update the comparison. A missing retest capture does not block the pull request: the routine finishes it and states in the description which After screenshot is missing and the concrete obstacle. ScreenClip's local missing-image repair check does not run inside the remote routine.
+`promptAddOn` includes required autonomy instructions and the screenshot publication contract (or, for a report filed as text only, a line saying there are no original screenshots) followed by the current shared instruction text from **Settings → AI Agents → Agent instructions**. Both `report.json` and the webhook include it, even when the optional add-on is empty. The routine should use the latest webhook value. Screenshot publication is authorized: the routine must embed the original evidence PNGs at `evidence.commit`, capture the rebuilt fixed UI, commit retest PNGs inside the hand-off directory (never elsewhere in the repository), and embed immutable GitHub commit links for both. Screenshots appear only in the pull request description; they never reach the base branch. Follow-up revisions must update the comparison. A missing retest capture does not block the pull request: the routine finishes it and states in the description which After screenshot is missing and the concrete obstacle. ScreenClip's local missing-image repair check does not run inside the remote routine.
 
 ScreenClip asks the remote routine to investigate, implement, build, test, and prepare its pull request autonomously, asking only for material missing decisions or concrete blockers. The routine should use automatic permission review in its coding agent when available and leave merging to ScreenClip. ScreenClip does not control the remote Grok Bot or cloud agent permission settings through this webhook; those must also permit unattended work.
 
@@ -81,14 +81,14 @@ ScreenClip asks the remote routine to investigate, implement, build, test, and p
 
 Connecting Grok Bot is global. The sheet does not pick a project.
 
-1. Open **Settings → Connections**. On the **Grok Bot** row, click **Connect Grok Bot**.
+1. Open **Settings → AI Agents**. On the **Grok Bot** row, click **Connect Grok Bot**.
 2. In Grok Bot, open your ScreenClip assistant's info pane, then the **ScreenClip reports** routine. It shows **POST to**, **key**, and **header**, each with a copy button. The routine's webhook secret is not visible to the assistant, so asking it to connect does not produce these values.
 3. Paste **POST to** into **Webhook URL**. Paste **key**, or **header**, into **Key**. A bare key is sent as `Bearer` plus that key. A value that already starts with `Bearer ` is kept. A value that starts with `Authorization:` has that prefix removed, and `Bearer ` is added when the remainder does not already have it. The address must be `https` (plain `http` is accepted only for `localhost`, `127.0.0.1`, and `::1`). The key must be a single line.
 4. Click **Connect**. ScreenClip sends the test webhook and shows **Grok Bot ready**, or an error for a bad URL, a missing key, or HTTP 401.
 5. In **Project settings**, leave **Project default** on **System default**, or choose Grok Bot for that project. Screenshot sharing is always enabled.
 6. A new capture starts on the project's effective default. You can pick another connected provider for that capture. A follow-up stays on the provider the report already uses.
 
-In **Settings → Connections**, the **AI agent** list shows Grok Bot like Codex and Claude Code: icon, name, and a status such as **Grok Bot ready · host**. There are no buttons on that row. The **Grok Bot** section below Claude Code and Codex has the Webhook URL, a Key row that says **Set** or **Not set** and never shows the secret, a Capabilities row, **Connect Grok Bot** or **Test connection**, and **Disconnect Grok Bot**. **Save settings** stores an edited URL with the saved key. **Disconnect Grok Bot** removes the Keychain item.
+In **Settings → AI Agents**, the **AI agent** list shows Grok Bot like Codex and Claude Code: icon, name, and a status such as **Grok Bot ready · host**. There are no buttons on that row. The **Grok Bot** section below Claude Code and Codex has the Webhook URL, a Key row that says **Set** or **Not set** and never shows the secret, a Capabilities row, **Connect Grok Bot** or **Test connection**, and **Disconnect Grok Bot**. **Save settings** stores an edited URL with the saved key. **Disconnect Grok Bot** removes the Keychain item.
 
 The address and secret live in the Keychain (`com.screenclip.app.external-assistant`). They are not written to the SQLite queue, and ScreenClip does not write them to a log. Replacing a saved connection updates the Keychain item in place. The check ScreenClip runs asks Grok Bot to accept a small test message. `scripts/send_test_webhook.py` sends that same test from `SCREENCLIP_WEBHOOK_URL` and `SCREENCLIP_AUTHORIZATION`.
 
@@ -145,7 +145,7 @@ ScreenClip runs the project’s validation command on the pull request head befo
 
 The menu bar status line is **Grok Bot ready** or **Grok Bot is not connected**, the same shape as **Codex ready** and **Claude Code ready**.
 
-- **System default:** Settings → Connections → **System default**. A missing value in an older queue means Codex.
+- **System default:** Settings → AI Agents → **System default**. A missing value in an older queue means Codex.
 - **Project default:** Project settings. **System default (Codex)** (or whichever provider is current) follows the system default. Choosing Grok Bot, Codex, or Claude Code stores that provider and does not change when the system default changes. An older project that had **Allow sending screenshots to the external assistant** on migrates to an explicit Grok Bot default. Other older projects keep inheriting.
 - **Capture:** the **Agent** picker starts at the project's effective default. You can override it for that capture. Follow-up captures stay on the provider the report started with.
 - Grok Bot appears in those pickers once it is connected. A follow-up locked to Grok Bot explains why it cannot be sent if the connection is missing.

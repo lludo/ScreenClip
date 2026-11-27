@@ -73,13 +73,13 @@
     "localBody": "Les deux travaillent sur votre Mac, dans un worktree Git distinct pour chaque rapport. Répondez à leurs questions dans ScreenClip, qui lance les vérifications du projet et ouvre la pull request."
   },
   "download": {
-    "title": "ScreenClip 1.2.0 pour macOS.",
+    "title": "ScreenClip 1.2.1 pour macOS.",
     "price": "Gratuit pour un usage non commercial.",
     "source": "Une licence commerciale est disponible sur demande. {link:license}.",
     "sourceMissing": "Le code source n’est pas encore public.",
     "github": "Voir sur GitHub",
     "donate": "Soutenir le projet",
-    "noteReady": "ScreenClip 1.2.0 · Apple Silicon · macOS 14 ou ultérieur",
+    "noteReady": "ScreenClip 1.2.1 · Apple Silicon · macOS 14 ou ultérieur",
     "noteSoon": "Le téléchargement Mac arrive bientôt.",
     "macSoon": "Le téléchargement Mac arrive bientôt.",
     "needsTitle": "Ce qu’il vous faut",
@@ -97,7 +97,7 @@
       },
       {
         "q": "Mon agent de code peut-il voir ce qui est ouvert dans ScreenClip ?",
-        "a": "Dans Réglages › Connexions, utilisez l’option de consultation des tâches pour donner à Codex ou Claude Code un accès en lecture seule aux rapports."
+        "a": "Dans Réglages › Agents IA, utilisez l’option de consultation des tâches pour permettre à Codex ou Claude Code de voir vos rapports et de fermer ceux qu’ils ont corrigés eux-mêmes."
       },
       {
         "q": "Qu’est-ce qui quitte le Mac ?",
@@ -125,13 +125,13 @@
       "Captures de sites et d’apps Mac natives",
       "Codex, Claude Code et Grok Bot",
       "Validation du projet, pull requests GitHub, fusion facultative et file de nouveaux tests",
-      "Claude Code et Codex peuvent consulter les rapports du projet et proposer des réglages à approuver",
+      "Claude Code et Codex peuvent consulter les rapports du projet, proposer des réglages à approuver et fermer les rapports qu’ils ont corrigés",
       "Rapports depuis vos propres apps iPhone et iPad avec ScreenClipKit, en version Debug"
     ]
   },
   "privacy": {
     "title": "Politique de confidentialité",
-    "updated": "Mise à jour le 25 novembre 2026.",
+    "updated": "Mise à jour le 26 novembre 2026.",
     "intro": "ScreenClip conserve les rapports sur votre Mac. Votre agent peut les transmettre à son fournisseur. Les captures ajoutées au dépôt GitHub sont visibles par toute personne qui y a accès.",
     "staysTitle": "Ce qui reste sur le Mac",
     "stays1": "Les rapports, captures, notes, annotations, réglages de projet, questions et activité sont stockés sur le Mac dans {code:appSupport}. La file est une base SQLite plus des fichiers image. Le travail de l’agent s’exécute dans un Git worktree de ce même dossier. Votre propre copie du projet n’est pas le répertoire de travail.",
@@ -148,10 +148,10 @@
     "localTitle": "Codex et Claude Code",
     "local1": "Codex et Claude Code s’exécutent sur votre Mac. ScreenClip transmet la capture approuvée, votre note et la demande à cet agent local. Aucun serveur ScreenClip n’intervient. ScreenClip publie en revanche les captures du rapport dans le dépôt GitHub du projet avec le correctif, comme décrit plus bas dans la section GitHub.",
     "local2": "L’agent utilise le compte auquel vous êtes connecté : Codex via son app-server, Claude Code via sa propre connexion. Cet agent peut envoyer la demande et les images à son fournisseur selon les conditions de ce compte. ScreenClip lance ces agents sans jetons GitHub dans leur environnement. C’est ScreenClip, et non l’agent, qui pousse les branches et ouvre les pull requests.",
-    "local3": "Si vous installez le serveur MCP de ScreenClip pour Claude Code ou Codex, les sessions de cet agent peuvent lire vos rapports : titres, notes, statuts, questions et activité. Le serveur s’exécute sur votre Mac et n’envoie rien lui-même, mais l’agent peut envoyer ce qu’il lit à son fournisseur, comme il le fait pour le prompt. Retirez le serveur de l’agent pour arrêter cela.",
+    "local3": "Si vous installez le serveur MCP de ScreenClip pour Claude Code ou Codex, les sessions de cet agent peuvent lire vos rapports : titres, notes, statuts, questions et activité. Les agents peuvent aussi proposer des réglages de projet que vous acceptez, et fermer les rapports qu’ils ont corrigés eux-mêmes. Le serveur s’exécute sur votre Mac et n’envoie rien lui-même, mais l’agent peut envoyer ce qu’il lit à son fournisseur, comme il le fait pour le prompt. Retirez le serveur de l’agent pour arrêter cela.",
     "iosTitle": "Apps iOS avec ScreenClipKit",
     "githubTitle": "GitHub",
-    "github1": "L’automatisation des pull requests utilise le GitHub CLI que vous installez et le compte GitHub auquel ce CLI est connecté. ScreenClip pousse une branche {code:branch} et, pour Codex et Claude Code, ouvre la pull request. Il lit l’état des checks et ne fusionne que si la fusion automatique est activée pour ce projet et que les checks et règles de revue sont satisfaits.",
+    "github1": "L’automatisation des pull requests utilise le GitHub CLI que vous installez et le compte GitHub auquel ce CLI est connecté. ScreenClip pousse une branche {code:branch} et, pour Codex et Claude Code, ouvre la pull request. Il lit l’état des checks et ne fusionne que si la fusion automatique est activée pour ce projet et que les checks et règles de revue sont satisfaits. Il consulte aussi les pull requests fusionnées du projet pour trouver celles qui citent un rapport comme « ScreenClip #N », et place ces rapports dans À retester.",
     "grokTitle": "Grok Bot",
     "grok1": "Rien n’est envoyé à Grok Bot tant que vous n’avez pas enregistré une URL de webhook et un Authorization header. Une fois cette connexion enregistrée, chaque rapport que vous envoyez à Grok Bot partage ses captures approuvées. Il n’existe pas de réglage de partage distinct par projet, que le dépôt soit privé ou public.",
     "grok3": "Toute personne ayant accès au dépôt peut lire les preuves ; pour un dépôt public, cela inclut tout le monde sur Internet. Supprimer les fichiers dans un commit ultérieur ne les efface pas de l’historique Git. Grok Bot ouvre la pull request depuis cette branche. Cancel arrête le suivi local et, si la connexion le permet, demande l’annulation sans garantie ; l’exécution distante peut se poursuivre. Les questions restent dans le chat Grok Bot.",
@@ -168,7 +168,7 @@
     "changesTitle": "Modifications",
     "changes": "Les changements importants de cette politique seront publiés sur cette page, avec une date mise à jour.",
     "github2a": "Le corps de la pull request contient le résumé de l’agent, la commande de validation du projet avec les valeurs qui ressemblent à des secrets masquées, et la référence du rapport.",
-    "github2b": "Pour Codex et Claude Code, ScreenClip ajoute aussi les captures du rapport au commit du correctif et les intègre à la pull request sous la forme d’une comparaison Before / After : les captures finales que vous avez approuvées, avec vos annotations et masquages, et les captures que l’agent a prises en retestant le correctif. Aucun réglage ne désactive cela.",
+    "github2b": "Pour Codex et Claude Code, ScreenClip ajoute aussi les captures du rapport au commit du correctif et les intègre à la pull request sous la forme d’une comparaison Before / After : les captures finales que vous avez approuvées, avec vos annotations et masquages, et les captures que l’agent a prises en retestant le correctif. C’est activé par défaut. Désactivez « Committer les captures dans le dépôt » dans les réglages du projet pour ne committer aucune capture ; ses pull requests décrivent alors l’avant et l’après en mots.",
     "github2c": "Toute personne qui peut lire le dépôt peut voir ces images ; dans un dépôt public, cela inclut tout le monde sur Internet. Retirer les fichiers dans un commit ultérieur ne les efface pas de l’historique Git. Seules les captures finales sont publiées, jamais le recadrage non masqué.",
     "grok2a": "ScreenClip pousse alors les PNG approuvés et un fichier {code:reportJson} vers une branche {code:branch} du dépôt du projet, et envoie un petit webhook JSON. Le webhook ne contient pas d’octets d’image.",
     "grok2b": "Il contient le numéro de rapport, l’issue id, la révision, le titre, les notes, les notes de contexte ultérieures, le nom de l’app source, le bundle ID, le nom du projet, le dépôt, la branche de base, la commande de validation, ainsi que la branche de preuve, le commit et les chemins de fichiers. L’URL du navigateur et le titre de la fenêtre ne sont inclus que si {ui:browserUrl} est activé. Le webhook contient aussi un identifiant d’espace de travail, les URL des pull requests précédentes et des identifiants de livraison.",
@@ -181,7 +181,7 @@
   },
   "support": {
     "title": "Assistance",
-    "statusReady": "ScreenClip 1.2.0 est gratuit pour un usage non commercial. {link:download} ouvre la dernière image disque sur GitHub Releases.",
+    "statusReady": "ScreenClip 1.2.1 est gratuit pour un usage non commercial. {link:download} ouvre la dernière image disque sur GitHub Releases.",
     "statusSoon": "ScreenClip arrive bientôt. Aucun téléchargement n’est encore disponible.",
     "issues": "Signalez un bug ou posez une question sur {link:issues}. Précisez votre version de macOS, l’agent utilisé et ce qui s’est passé. Masquez les informations privées sur vos captures.",
     "issuesMissing": "L’assistance publique n’est pas encore disponible.",

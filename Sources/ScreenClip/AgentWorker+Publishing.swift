@@ -44,6 +44,8 @@ extension AgentWorker {
       try model.updateIssue(id) {
         $0.turnID = nil
         $0.dispatchUncertain = false
+        // The agent that took over finished a turn; its own conversation now holds the work.
+        $0.handover = nil
       }
     }
     if issue.revision != issue.coveredRevision {
@@ -600,6 +602,7 @@ extension AgentWorker {
           status: .queued)
         issue.workspaceID = UUID()
         issue.deliveredContext = nil
+        issue.handover = nil
         issue.worktreePath = nil
         issue.branch = nil
         issue.prURL = nil
