@@ -36,8 +36,9 @@ extension AgentWorker {
     }
   }
 
-  /// Records `url` as the report's merged fix. The report's own worktree and branch are freed
-  /// only when the fix was merged from that branch; otherwise they may hold other work.
+  /// Records `url` as the report's merged fix. When the fix was merged from the report's own
+  /// branch, its worktree and branches are freed as after any merge. Otherwise the branch may
+  /// hold other work: the worktree and local branch go only when nothing would be lost.
   func closeAsFixedElsewhere(_ id: UUID, url: String, commit: String?, head: String?) {
     guard let issue = model.issue(id) else { return }
     model.perform {

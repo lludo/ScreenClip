@@ -145,10 +145,25 @@ struct GrokConnectionCheck: Equatable {
   func commit(_ change: (inout StoreSnapshot) throws -> Void) throws {
     var next = snapshot
     try change(&next)
+    let previous = snapshot
     snapshot = try store.save(next)
+    releaseDroppedWorkspaces(previous: previous)
     // Any deferred progress was part of `next` and is now saved.
     pendingSave?.cancel()
     pendingSave = nil
+  }
+  /// A worktree no report refers to any more (a merged report that got new evidence continues in
+  /// a new one; a deleted report has none) is removed when nothing in it would be lost.
+  private func releaseDroppedWorkspaces(previous: StoreSnapshot) {
+    let referenced = Set(snapshot.issues.compactMap(\.worktreePath))
+    for issue in previous.issues {
+      guard let path = issue.worktreePath, !referenced.contains(path),
+        GitWorkspace.isScreenClipWorktree(path, root: store.root),
+        FileManager.default.fileExists(atPath: path), let project = project(issue.projectID)
+      else { continue }
+      let branch = issue.branch
+      Task { await worker.releaseUnreferencedWorkspace(path: path, branch: branch, project: project) }
+    }
   }
   private var pendingSave: Task<Void, Never>?
   /// For agent progress lines: they arrive often and losing the last second of them in a crash
@@ -836,6 +851,7 @@ struct GrokConnectionCheck: Equatable {
         $0.archived = archived
         $0.record(archived ? "Report archived; evidence retained" : "Report restored from archive")
       }
+      if archived { Task { await worker.releaseWorkspace(id) } }
     }
   }
   func openCaptureSettings() {

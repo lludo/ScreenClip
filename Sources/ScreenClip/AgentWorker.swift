@@ -97,6 +97,7 @@ import ScreenClipCore
       await recoverCodexAfterRestart()
       await recoverClaudeAfterRestart()
       recoverTransientFailures()
+      await releaseUnneededWorkspaces()
     }
     pump()
   }
@@ -342,8 +343,9 @@ import ScreenClipCore
   }
   /// Applies the close requests coding agents sent through the MCP server (`close_issue`): an
   /// agent that finished a report itself, or found it no longer applies, closes it instead of
-  /// leaving it blocked. A running turn for that report is stopped first. The worktree and branch
-  /// stay, since the agent's own PR may still need them.
+  /// leaving it blocked. A running turn for that report is stopped first. The worktree and local
+  /// branch are then removed only when nothing would be lost (`releaseWorkspace`); the remote
+  /// branch stays, since the agent's own PR may still need it.
   func applyAgentClosures() async {
     guard !applyingClosures else { return }
     applyingClosures = true
@@ -428,6 +430,7 @@ import ScreenClipCore
             kind: "agent-closure")
         }
       }
+      await releaseWorkspace(closure.issueID)
     }
   }
   /// Why `commit` does not count as a landed fix, or nil when it is on the project's base branch

@@ -575,8 +575,9 @@ extension AgentWorker {
       model.perform { try model.updateIssue(id) { $0.lastError = error.localizedDescription } }
     }
   }
-  /// `cleanUp` is false when the merged fix came from another branch: the report's
-  /// worktree and branch are then left for the tester, who archives the report.
+  /// `cleanUp` is false when the merged fix came from another branch: the report's own branch
+  /// may hold other work, so its worktree and local branch are removed only when nothing would
+  /// be lost (`releaseWorkspace`), and its remote branch stays.
   func recordMerge(_ id: UUID, commit: String?, coveredRevision: Int, cleanUp: Bool = true) throws {
     let finished = model.issue(id)
     defer {
@@ -585,6 +586,8 @@ extension AgentWorker {
         let project = model.project(finished.projectID)
       {
         Task { await removeWorkspace(id, path: path, branch: finished.branch, project: project) }
+      } else if !cleanUp {
+        Task { await releaseWorkspace(id) }
       }
     }
     try model.updateIssue(id) { issue in
