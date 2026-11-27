@@ -4,6 +4,16 @@
   "installCommand": "npm install --omit=dev",
   "buildCommand": "python3 build.py",
   "outputDirectory": "dist",
+  "ignoreCommand": "sh ignore-build.sh",
+  "git": {
+    "deploymentEnabled": {
+      "claude/**": false,
+      "cursor/**": false,
+      "codex/**": false,
+      "grokbot/**": false,
+      "screenclip/**": false
+    }
+  },
   "cleanUrls": true,
   "trailingSlash": false,
   "redirects": [
